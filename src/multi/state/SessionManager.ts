@@ -14,6 +14,7 @@ import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { roomAdmissionRegistry } from "../room/admission"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
+import { isFiveBossGauntletQuest } from "../five-boss/contract"
 import { registerMemoryCounters } from "../../lib/memory-diagnostics"
 import { recordServerWork } from "../../lib/server-work-performance"
 import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
@@ -499,7 +500,15 @@ export class SessionManager {
         // client finished loading; treating it as active before this point can
         // publish Leave to peers that are still constructing their battle.
         for (const client of clients) {
-            this.armActiveBattleHeartbeatLease(client.connectionId)
+            if (client.fiveBossBattleEntered) {
+                // The CN five-boss client can stay silent for longer than the
+                // ordinary heartbeat lease while a boss is active. Keep the
+                // authenticated socket for LevelNext; the next loading phase
+                // and the room watchdog still provide bounded cleanup.
+                this.clearBattleHeartbeatLease(client.connectionId)
+            } else {
+                this.armActiveBattleHeartbeatLease(client.connectionId)
+            }
         }
         for (const client of clients) {
             this.sendJson(client.socket, [1, [1]])
@@ -609,6 +618,10 @@ export class SessionManager {
 
     isRoomRestoreBlocked(roomNumber: string, viewerId: number): boolean {
         return this.blockedRoomRestores.get(roomNumber)?.has(viewerId) ?? false
+    }
+
+    isBattleSeatRetired(roomNumber: string, viewerId: number): boolean {
+        return this.retiredBattleSeats.get(roomNumber)?.has(`viewer:${viewerId}`) ?? false
     }
 
     beginRescueGuestWait(client: SessionClient): void {
@@ -936,6 +949,11 @@ export class SessionManager {
             const lifecycle = embeddedMultiCoordinator.ensureLifecycle(room)
             roomInstanceId = lifecycle.instanceId
             lifecycleVersion = lifecycle.version
+            if (isFiveBossGauntletQuest(room.category, room.quest_id)
+                && this.isHostOnline(room.host_viewer_id, roomNumber)) {
+                this.completeSettlementReturn(roomNumber)
+                return
+            }
         } catch (e) {
             return
         }
@@ -966,17 +984,26 @@ export class SessionManager {
         gameVerboseLog(() => `[MULTI] waiting for settlement lobby return: room=${roomNumber} graceMs=${settlementReturnGraceMs}`)
     }
 
-    completeSettlementReturn(roomNumber: string): void {
+    completeSettlementReturn(roomNumber: string): boolean {
         const pendingTimer = this.settlementReturnTimers.get(roomNumber)
         if (pendingTimer) clearTimeout(pendingTimer)
         this.settlementReturnTimers.delete(roomNumber)
         let roomGeneration: number | undefined
+        let completed = false
         try {
             const { getRoom } = require("../room/manager")
             const room = getRoom(roomNumber)
             if (room) {
-                embeddedMultiCoordinator.completeSettlementReturn(room)
-                roomGeneration = room.lobby_generation
+                const transition = embeddedMultiCoordinator.completeSettlementReturn(room)
+                if (transition.ok) {
+                    roomGeneration = room.lobby_generation
+                    for (const client of this.getClientsInRoom(roomNumber)) {
+                        if (!client.isBattle && !client.superseded && !client.socket.destroyed) {
+                            client.roomGeneration = room.lobby_generation
+                        }
+                    }
+                    completed = true
+                }
             }
         } catch (e) {}
         try {
@@ -988,7 +1015,8 @@ export class SessionManager {
                 transitionRoomSettlementSnapshots(roomNumber, "LOBBY", roomGeneration)
             }
         } catch (e) {}
-        gameVerboseLog(() => `[MULTI] settlement host returned: room=${roomNumber}`)
+        if (completed) gameVerboseLog(() => `[MULTI] settlement host returned: room=${roomNumber}`)
+        return completed
     }
 
     createClient(socket: net.Socket, viewerId: number, roomNumber: string, connectionId: string, playerId: number | null): SessionClient {
@@ -1330,6 +1358,9 @@ export class SessionManager {
         if (expected <= 0) {
             if (this.battleSceneStartedRooms.has(roomNumber)) {
                 this.recordFiveBossBattleEntry(roomNumber, this.getConnectedBattleClients(roomNumber))
+                if (client.fiveBossBattleEntered) {
+                    this.clearBattleHeartbeatLease(connectionId)
+                }
             }
             return false
         }
@@ -1339,7 +1370,14 @@ export class SessionManager {
             this.sceneReadyClients.set(roomNumber, readySet)
         }
         readySet.add(connectionId)
-        this.armBattleReadyHeartbeatLease(connectionId)
+        if (client.fiveBossBattleEntered) {
+            // During the next-boss barrier, the ready peer may legitimately
+            // wait longer than 25 seconds for another peer's loading lease.
+            // The slow peer's fixed deadline owns that wait.
+            this.clearBattleHeartbeatLease(connectionId)
+        } else {
+            this.armBattleReadyHeartbeatLease(connectionId)
+        }
         const released = this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "scene_ready")
         if (released) this.activateBattleScene(roomNumber)
         return released

@@ -3,7 +3,7 @@ import { runPersistenceTransactionSync } from "../persistence-coordinator"
 import { PartyCategory } from "../../data/types"
 import { parseGlobalPartyId } from "../special-event-parties"
 import { QuestCategory } from "../types"
-import { getMode15ExclusiveItemIds, isMode15Quest, MODE15_PRACTICE_QUEST_ID } from "../mode15-optional"
+import { getMode15ExclusiveItemIds, isMode15EquipmentAllowedQuest } from "../mode15-optional"
 import type { FinishContext } from "./finish/types"
 
 export interface RecommendedQuestParty {
@@ -223,8 +223,7 @@ function isCompleteParty(party: RecommendedQuestParty): boolean {
 }
 
 function isPartyAllowedForQuest(party: RecommendedQuestParty, category: number, questId: number): boolean {
-    const fantasyPractice = category === QuestCategory.RUSH_EVENT && questId === MODE15_PRACTICE_QUEST_ID
-    return isMode15Quest(category, questId) || fantasyPractice || getMode15ExclusiveItemIds([
+    return isMode15EquipmentAllowedQuest(category, questId) || getMode15ExclusiveItemIds([
         party.equipment_id_1, party.equipment_id_2, party.equipment_id_3,
         party.ability_soul_id_1, party.ability_soul_id_2, party.ability_soul_id_3,
     ]).length === 0

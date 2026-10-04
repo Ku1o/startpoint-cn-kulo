@@ -13,6 +13,7 @@ import {
 import { isMode15RoomClosed } from "../mode15-room-gate"
 import {
     getMode15ExclusiveGlobalPartyItemsSync,
+    isMode15EquipmentAllowedQuest,
     isMode15Quest,
 } from "../../lib/mode15-optional"
 import { getPlayerSync, updatePlayerPartySlotAsync } from "../../data/domains/player"
@@ -257,7 +258,7 @@ function collectCanonicalRoomRoster(
 }
 
 function preflightBattleRoster(room: any, members: any[], roomGeneration = room.lobby_generation): number[] {
-    if (isMode15Quest(Number(room.category), Number(room.quest_id))) {
+    if (isMode15EquipmentAllowedQuest(Number(room.category), Number(room.quest_id))) {
         return []
     }
 
@@ -455,32 +456,43 @@ async function handleEnterComs(
         return
     }
 
-    // Select valid parties from the cached server-wide player-party pool.
-    // The host is intentionally not excluded, matching every other
-    // multiplayer mode. A complete host party remains the final fallback for
-    // very small/new databases that do not yet contain valid three-character
-    // parties.
-    let npcParties: any[] = []
-    try {
-        const selectionOptions = getNpcPartySelectionOptions(room.category, room.quest_id)
-        npcParties = getRandomPlayerNpcPartiesSync(
-            client.playerId,
-            needNPCs,
-            selectionOptions,
-        )
-            .map(entry => entry.party)
-    } catch (error) {
-        console.error(`[LOBBY] player NPC party pool selection failed room=${client.roomNumber}`, error)
-    }
-
     const npcMates: any[] = []
     const recruitedMates = selectStableNpcSlots(recruitResult.recruitedMates, needNPCs)
+    room.npc_party_by_com_id ??= {}
+    const missingPartyCount = recruitedMates.filter(recruited =>
+        !room.npc_party_by_com_id[String(recruited.com_id)]).length
+    // Select only parties for COM seats this room has never used. A rematch
+    // whose complete COM roster is cached performs no pool scan or random draw.
+    let npcParties: any[] = []
+    if (missingPartyCount > 0) {
+        try {
+            const selectionOptions = getNpcPartySelectionOptions(room.category, room.quest_id)
+            npcParties = getRandomPlayerNpcPartiesSync(
+                client.playerId,
+                missingPartyCount,
+                selectionOptions,
+            ).map(entry => entry.party)
+        } catch (error) {
+            console.error(`[LOBBY] player NPC party pool selection failed room=${client.roomNumber}`, error)
+        }
+    }
     const firstFallbackComId = 3 - needNPCs
+    let nextPartyIndex = 0
     for (let i = 0; i < needNPCs; i++) {
         const recruited = recruitedMates[i] ?? null
         const comId = recruited?.com_id ?? (firstFallbackComId + i)
         const viewerId = recruited?.viewer_id ?? (900000000 + comId)
-        const party = npcParties[i] ?? npcParties[0] ?? hostMate.party
+        // Keep a room's COM composition stable across rematches. Re-randomizing
+        // on every return can replace a battle-tested party with a much larger
+        // custom-asset combination and make the AIR client's 4096 atlas packer
+        // fail with U_1d93f4 during auto-repeat.
+        const partyKey = String(comId)
+        const party = room.npc_party_by_com_id?.[partyKey]
+            ?? npcParties[nextPartyIndex++]
+            ?? hostMate.party
+        if (!room.npc_party_by_com_id[partyKey]) {
+            room.npc_party_by_com_id[partyKey] = party
+        }
 
         npcMates.push({
             viewerId: viewerId,
@@ -721,6 +733,48 @@ export function scheduleRematchDisconnectCleanup(roomNumber: string): void {
     rematchCleanupTimers.delete(roomNumber)
     rematchCleanedGeneration.delete(roomNumber)
     scheduleRematchRosterCleanup(roomNumber)
+}
+
+function releaseMissingRematchMembersForExplicitAi(
+    room: NonNullable<ReturnType<typeof getRoom>>,
+    requester: SessionClient,
+): number[] {
+    if (room.lobby_generation <= 0
+        || requester.viewerId !== room.host_viewer_id
+        || room.expected_real_viewer_ids.length === 0) return []
+
+    const liveViewerIds = new Set(
+        sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
+            .filter(client => !client.isBattle
+                && !client.superseded
+                && !client.socket.destroyed
+                && client.socket.readable
+                && client.socket.writable)
+            .map(client => client.viewerId),
+    )
+    const releasedViewerIds = room.expected_real_viewer_ids
+        .filter(viewerId => viewerId !== room.host_viewer_id && !liveViewerIds.has(viewerId))
+    if (releasedViewerIds.length === 0) return []
+
+    for (const viewerId of releasedViewerIds) {
+        if (sessionManager.isRescueGuest(room.room_number, viewerId)) {
+            sessionManager.ejectRescueGuest(room.room_number, viewerId, "host_ai_replacement")
+        } else {
+            removeRoomMember(room.room_number, viewerId)
+        }
+    }
+
+    // Explicit COM entry means the host chose to replace the currently absent
+    // members now. The old reconnect timer must not keep or later reapply that
+    // roster reservation after the replacement has entered.
+    const cleanupTimer = rematchCleanupTimers.get(room.room_number)
+    if (cleanupTimer) clearTimeout(cleanupTimer)
+    rematchCleanupTimers.delete(room.room_number)
+    rematchCleanedGeneration.delete(room.room_number)
+    room.rematch_wait_started_at = null
+    console.log(`[LOBBY] host AI replacement released absent rematch members:`
+        + ` room=${room.room_number} viewers=${releasedViewerIds.join(",")}`)
+    return releasedViewerIds
 }
 
 function rejectClaimedAdmission(
@@ -1000,6 +1054,12 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
 }
 
 function handleReady(_socket: net.Socket, client: SessionClient, data: any[]): void {
+    const room = getRoom(client.roomNumber)
+    if (room
+        && room.lifecycle.phase === "RETURNING"
+        && room.host_viewer_id === client.viewerId) {
+        sessionManager.completeSettlementReturn(client.roomNumber)
+    }
     const readyState = Array.isArray(data[1]) ? data[1][0] : data[1]
     client.isReady = readyState === 1
     if (sessionManager.isRescueGuest(client.roomNumber, client.viewerId)) {
@@ -1026,7 +1086,12 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
 
     const room = getRoom(client.roomNumber)
     if (!room) return
-    const lifecyclePhase = embeddedMultiCoordinator.ensureLifecycle(room).phase
+    let lifecyclePhase = embeddedMultiCoordinator.ensureLifecycle(room).phase
+    if (lifecyclePhase === "RETURNING"
+        && sessionManager.isHostOnline(room.host_viewer_id, client.roomNumber)
+        && sessionManager.completeSettlementReturn(client.roomNumber)) {
+        lifecyclePhase = embeddedMultiCoordinator.ensureLifecycle(room).phase
+    }
     // Normally TCP StartBattle commits the transition before HTTP /start.
     // If a very fast client reverses that order, /start has already committed
     // the same battle generation; finish the lobby delivery without advancing
@@ -1172,6 +1237,7 @@ async function handleNotify(socket: net.Socket, client: SessionClient, data: any
         case 10: {
             const room = getRoom(client.roomNumber)
             if (room?.is_npc_mode) {
+                releaseMissingRematchMembersForExplicitAi(room, client)
                 await handleEnterComs(client, notifyData[1] as any[])
             } else {
                 gameVerboseLog(() => `[LOBBY] ignored legacy COM summon for real-player room=${client.roomNumber}`)

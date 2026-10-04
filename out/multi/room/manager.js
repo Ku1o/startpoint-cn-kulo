@@ -120,6 +120,7 @@ function createRoom(hostViewerId, hostPlayerId, hostPartyId, category, questId, 
         is_npc_mode: isNpcMode,
         npc_count: 0,
         rematch_ai_count: 0,
+        npc_party_by_com_id: {},
         expected_real_viewer_ids: [],
         lobby_generation: 0,
         rematch_wait_started_at: null,
@@ -220,12 +221,29 @@ function removeRoomMember(roomNumber, viewerId) {
     const room = rooms.get(roomNumber);
     if (!room || viewerId === room.host_viewer_id)
         return false;
+    let changed = false;
     const index = room.member_viewer_ids.indexOf(viewerId);
-    if (index < 0)
-        return false;
-    room.member_viewer_ids.splice(index, 1);
-    delete room.member_player_ids[viewerId];
-    return true;
+    if (index >= 0) {
+        room.member_viewer_ids.splice(index, 1);
+        changed = true;
+    }
+    if (room.member_player_ids[viewerId] !== undefined) {
+        delete room.member_player_ids[viewerId];
+        changed = true;
+    }
+    // This operation is used only after an intentional leave or an expired
+    // reconnect grace. Release every retained rematch reference together so
+    // an AI replacement is not still blocked by the previous real viewer.
+    const expectedCount = room.expected_real_viewer_ids.length;
+    room.expected_real_viewer_ids = room.expected_real_viewer_ids
+        .filter(expectedViewerId => expectedViewerId !== viewerId);
+    if (room.expected_real_viewer_ids.length !== expectedCount)
+        changed = true;
+    const mateCount = room.mates.length;
+    room.mates = room.mates.filter(mate => mate.viewer_id !== viewerId);
+    if (room.mates.length !== mateCount)
+        changed = true;
+    return changed;
 }
 exports.removeRoomMember = removeRoomMember;
 function getRoomMemberPlayerId(room, viewerId) {

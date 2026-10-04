@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { generateDataHeaders, getServerTime, getServerDate } from "../../utils";
 import { collectPlayerDataPooledExpSync, dailyResetPlayerDataSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
-import { deletePlayerActiveQuestSync, getPlayerActiveQuestSync } from "../../data/domains/quest_active"
+import { deletePlayerActiveQuestIfPlayIdSync, getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { getSession } from "../../data/domains/session"
 import { prepareClientSerializedData } from "../../data/utils/player-data";
 import { getContentSnapshot } from "../../content/runtime/content-snapshot";
@@ -9,11 +9,13 @@ import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconcilia
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getDisplayHost } from "../../multi/room/serializer";
 import { getRoom } from "../../multi/room/manager";
+import { sessionManager } from "../../multi/state/SessionManager";
 import { runPermanentValidators } from "../../lib/validate";
 import { activeQuests } from "../api/singleBattleQuest";
 import { getFavoritePartyGroupListSync } from "../../lib/profileFavorite";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { shouldResetMode15RunForStaleActiveQuest } from "../../lib/mode15-active-quest-recovery";
+import { classifyMultiActiveQuestRecovery } from "../../lib/multi-active-quest-recovery";
 import {
     cleanupLegacyMode15RescueProgressSync,
     isMode15RuntimeLoaded,
@@ -273,36 +275,58 @@ const routes = async (fastify: FastifyInstance) => {
         // Inject unfinished quest lists for battle recovery
         const activeQuest = getPlayerActiveQuestSync(playerId);
         if (activeQuest) {
-            // A multiplayer client can disconnect during settlement before its
-            // own finish request removes the active quest.  Once the room has
-            // already returned to the lobby, that battle can no longer be
-            // resumed and exposing it as unfinished traps the client in a loop.
             const activeRoom = activeQuest.roomNumber ? getRoom(activeQuest.roomNumber) : undefined;
-            const roomExists = activeQuest.roomNumber ? !!activeRoom : true;
-            const completedMultiRoom = activeQuest.isMulti && !!activeRoom && activeRoom.raising_state !== 4;
-            const noLongerInCurrentBattle = activeQuest.isMulti
-                && !!activeRoom
-                && activeRoom.raising_state === 4
-                && activeRoom.expected_real_viewer_ids.length > 0
-                && !activeRoom.expected_real_viewer_ids.includes(accountId);
-            if (!roomExists || completedMultiRoom || noLongerInCurrentBattle || isStaleAbyssBattle(activeQuest)) {
+            const multiRecovery = classifyMultiActiveQuestRecovery(
+                activeQuest,
+                activeRoom,
+                viewerId,
+                activeQuest.roomNumber
+                    ? sessionManager.isBattleSeatRetired(activeQuest.roomNumber, viewerId)
+                    : false,
+            );
+            if (!multiRecovery.recoverable || isStaleAbyssBattle(activeQuest)) {
                 const mode15Quest = isMode15Quest(activeQuest.category, activeQuest.questId);
-                // Multiplayer rescue guests never own the Mode15 run represented
-                // by this room. Loading-stage disconnects may remove them from the
-                // room before /cn/load recovers their stale active quest, so only
-                // a persisted host marker is authoritative once the room is gone.
+                // A stale multiplayer room cannot distinguish a defeat from a
+                // transport loss. Mode15 therefore clears this battle record
+                // without resetting the host's current 5/10/15 boundary.
                 const shouldResetMode15Run = shouldResetMode15RunForStaleActiveQuest(
                     mode15Quest,
                     activeQuest,
                 );
-                gameVerboseLog(() => `[CN-LOAD] stale active quest cleared: room=${activeQuest.roomNumber} exists=${roomExists} state=${activeRoom?.raising_state ?? "missing"} mode15=${mode15Quest} multiHost=${activeQuest.isMultiHost} reset=${shouldResetMode15Run}`);
-                if (shouldResetMode15Run) {
-                    resetMode15RunSync(playerId);
+                gameVerboseLog(() => `[CN-LOAD] stale active quest cleared:`
+                    + ` play=${activeQuest.playId} room=${activeQuest.roomNumber ?? "missing"}`
+                    + ` reason=${multiRecovery.reason}`
+                    + ` state=${activeRoom?.lifecycle?.phase ?? "missing"}`
+                    + ` mode15=${mode15Quest} multiHost=${activeQuest.isMultiHost}`
+                    + ` reset=${shouldResetMode15Run}`);
+                const deleted = await runPersistenceTransaction({
+                    domain: "multi-settlement",
+                    playerId,
+                    operation: "load_orphan_active_quest_cleanup",
+                }, () => {
+                    const deletedCurrentPlay = deletePlayerActiveQuestIfPlayIdSync(
+                        playerId,
+                        activeQuest.playId,
+                    );
+                    if (deletedCurrentPlay && shouldResetMode15Run) {
+                        resetMode15RunSync(playerId);
+                    }
+                    return deletedCurrentPlay;
+                });
+                if (deleted) {
+                    if (activeQuests[playerId]?.playId === activeQuest.playId) {
+                        delete activeQuests[playerId];
+                    }
+                    clientData.unfinished_quest_list = [];
+                    clientData.unfinished_multi_quest_list = [];
+                } else {
+                    const replacement = getPlayerActiveQuestSync(playerId);
+                    const entry = replacement
+                        ? { play_id: replacement.playId, continue_count: replacement.continueCount }
+                        : null;
+                    clientData.unfinished_quest_list = entry && !replacement!.isMulti ? [entry] : [];
+                    clientData.unfinished_multi_quest_list = entry && replacement!.isMulti ? [entry] : [];
                 }
-                deletePlayerActiveQuestSync(playerId);
-                delete activeQuests[playerId];
-                clientData.unfinished_quest_list = [];
-                clientData.unfinished_multi_quest_list = [];
             } else {
                 const entry = { play_id: activeQuest.playId, continue_count: activeQuest.continueCount };
                 if (activeQuest.isMulti) {

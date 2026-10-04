@@ -14,8 +14,8 @@ import { roomAdmissionRegistry } from "../../multi/room/admission"
 import { resolveMultiPlayerContext } from "../../multi/player-context"
 import { getAttentionConfig } from "../../multi/attention-config"
 import { isMode15RoomClosed } from "../../multi/mode15-room-gate"
-import { canJoinMode15RescueSync, isMode15Quest } from "../../lib/mode15-optional"
 import { embeddedMultiCoordinator } from "../../multi/coordinator/embedded"
+import { canJoinMultiGuestQuestSync } from "../../multi/guest-eligibility"
 
 interface CheckBody {
     viewer_id: number
@@ -51,19 +51,30 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "Invalid viewer id or no player bound."
         })
-        const { playerId } = ctx
+        const { playerId, player } = ctx
 
         const requested = Number.isFinite(body.request_number) ? body.request_number : 3
         const holding = Number.isFinite(body.holding_number) ? body.holding_number : 0
         const availableSlots = Math.max(0, Math.min(3, requested) - Math.max(0, holding))
+        const guestEligibilityByQuest = new Map<string, boolean>()
 
         const recruitments = takeRandomRecruitments(viewerId, availableSlots, recruitment => {
             const room = getRoom(recruitment.roomNumber)
             if (!room || room.host_viewer_id === viewerId) return false
             if (room.is_npc_mode || isMode15RoomClosed(room)) return false
             if (["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(room).phase)) return false
-            if (isMode15Quest(room.category, room.quest_id)
-                && !canJoinMode15RescueSync(playerId, room.category, room.quest_id).allowed) return false
+            const eligibilityKey = `${room.category}:${room.quest_id}`
+            let guestEligible = guestEligibilityByQuest.get(eligibilityKey)
+            if (guestEligible === undefined) {
+                guestEligible = canJoinMultiGuestQuestSync(
+                    playerId,
+                    room.category,
+                    room.quest_id,
+                    player,
+                ).allowed
+                guestEligibilityByQuest.set(eligibilityKey, guestEligible)
+            }
+            if (!guestEligible) return false
             if (!sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation)) return false
             if (isRoomWaitingForExpectedMember(room)) return false
             const occupiedViewerIds = new Set<number>(room.member_viewer_ids ?? [room.host_viewer_id])

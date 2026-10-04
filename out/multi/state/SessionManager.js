@@ -11,6 +11,7 @@ const chain_diagnostic_1 = require("../tcp/chain-diagnostic");
 const embedded_1 = require("../coordinator/embedded");
 const admission_1 = require("../room/admission");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const contract_1 = require("../five-boss/contract");
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const server_work_performance_1 = require("../../lib/server-work-performance");
 const realtime_diagnostics_1 = require("../../lib/realtime-diagnostics");
@@ -457,7 +458,16 @@ class SessionManager {
         // client finished loading; treating it as active before this point can
         // publish Leave to peers that are still constructing their battle.
         for (const client of clients) {
-            this.armActiveBattleHeartbeatLease(client.connectionId);
+            if (client.fiveBossBattleEntered) {
+                // The CN five-boss client can stay silent for longer than the
+                // ordinary heartbeat lease while a boss is active. Keep the
+                // authenticated socket for LevelNext; the next loading phase
+                // and the room watchdog still provide bounded cleanup.
+                this.clearBattleHeartbeatLease(client.connectionId);
+            }
+            else {
+                this.armActiveBattleHeartbeatLease(client.connectionId);
+            }
         }
         for (const client of clients) {
             this.sendJson(client.socket, [1, [1]]);
@@ -570,6 +580,10 @@ class SessionManager {
     isRoomRestoreBlocked(roomNumber, viewerId) {
         var _a, _b;
         return (_b = (_a = this.blockedRoomRestores.get(roomNumber)) === null || _a === void 0 ? void 0 : _a.has(viewerId)) !== null && _b !== void 0 ? _b : false;
+    }
+    isBattleSeatRetired(roomNumber, viewerId) {
+        var _a, _b;
+        return (_b = (_a = this.retiredBattleSeats.get(roomNumber)) === null || _a === void 0 ? void 0 : _a.has(`viewer:${viewerId}`)) !== null && _b !== void 0 ? _b : false;
     }
     beginRescueGuestWait(client) {
         var _a;
@@ -918,6 +932,11 @@ class SessionManager {
             const lifecycle = embedded_1.embeddedMultiCoordinator.ensureLifecycle(room);
             roomInstanceId = lifecycle.instanceId;
             lifecycleVersion = lifecycle.version;
+            if ((0, contract_1.isFiveBossGauntletQuest)(room.category, room.quest_id)
+                && this.isHostOnline(room.host_viewer_id, roomNumber)) {
+                this.completeSettlementReturn(roomNumber);
+                return;
+            }
         }
         catch (e) {
             return;
@@ -955,12 +974,21 @@ class SessionManager {
             clearTimeout(pendingTimer);
         this.settlementReturnTimers.delete(roomNumber);
         let roomGeneration;
+        let completed = false;
         try {
             const { getRoom } = require("../room/manager");
             const room = getRoom(roomNumber);
             if (room) {
-                embedded_1.embeddedMultiCoordinator.completeSettlementReturn(room);
-                roomGeneration = room.lobby_generation;
+                const transition = embedded_1.embeddedMultiCoordinator.completeSettlementReturn(room);
+                if (transition.ok) {
+                    roomGeneration = room.lobby_generation;
+                    for (const client of this.getClientsInRoom(roomNumber)) {
+                        if (!client.isBattle && !client.superseded && !client.socket.destroyed) {
+                            client.roomGeneration = room.lobby_generation;
+                        }
+                    }
+                    completed = true;
+                }
             }
         }
         catch (e) { }
@@ -974,7 +1002,9 @@ class SessionManager {
             }
         }
         catch (e) { }
-        (0, game_logging_1.gameVerboseLog)(() => `[MULTI] settlement host returned: room=${roomNumber}`);
+        if (completed)
+            (0, game_logging_1.gameVerboseLog)(() => `[MULTI] settlement host returned: room=${roomNumber}`);
+        return completed;
     }
     createClient(socket, viewerId, roomNumber, connectionId, playerId) {
         return {
@@ -1320,6 +1350,9 @@ class SessionManager {
         if (expected <= 0) {
             if (this.battleSceneStartedRooms.has(roomNumber)) {
                 this.recordFiveBossBattleEntry(roomNumber, this.getConnectedBattleClients(roomNumber));
+                if (client.fiveBossBattleEntered) {
+                    this.clearBattleHeartbeatLease(connectionId);
+                }
             }
             return false;
         }
@@ -1329,7 +1362,15 @@ class SessionManager {
             this.sceneReadyClients.set(roomNumber, readySet);
         }
         readySet.add(connectionId);
-        this.armBattleReadyHeartbeatLease(connectionId);
+        if (client.fiveBossBattleEntered) {
+            // During the next-boss barrier, the ready peer may legitimately
+            // wait longer than 25 seconds for another peer's loading lease.
+            // The slow peer's fixed deadline owns that wait.
+            this.clearBattleHeartbeatLease(connectionId);
+        }
+        else {
+            this.armBattleReadyHeartbeatLease(connectionId);
+        }
         const released = this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "scene_ready");
         if (released)
             this.activateBattleScene(roomNumber);

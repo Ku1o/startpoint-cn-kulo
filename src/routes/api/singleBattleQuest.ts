@@ -59,6 +59,7 @@ import { isValidNormalPartySlotSync } from "../../data/domains/party";
 import { usesNormalCurrentPartySlot } from "../../lib/party-current-slot";
 import {
     getMode15ExclusiveGlobalPartyItemsSync,
+    isMode15EquipmentAllowedQuest,
     isMode15Quest,
     settleMode15BattleSync,
 } from "../../lib/mode15-optional";
@@ -549,7 +550,7 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        if (!isMode15Quest(category, questId)) {
+        if (!isMode15EquipmentAllowedQuest(category, questId)) {
             // Carnival quests use their own saved party category.  Looking up
             // NORMAL here allowed Mode15-exclusive equipment in Carnival even
             // though the selected Carnival party actually contained it.
@@ -595,7 +596,7 @@ const routes = async (fastify: FastifyInstance) => {
                 await startFiveBossSolo(playerId, body.play_id, () => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
-                        isAutoStartMode, isMulti: false, entryItemId: FIVE_BOSS_GAUNTLET.ticketItemId,
+                        isAutoStartMode, isMulti: false,
                         partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     })

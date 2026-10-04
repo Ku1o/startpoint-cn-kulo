@@ -2,7 +2,6 @@ import { getDb } from "../../data/db"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { getPlayerOptionSync } from "../../data/domains/option"
-import { FiveBossGauntletRunError } from "../../data/domains/fiveBossGauntletRun"
 import { computeRealTimeStamina } from "../../lib/stamina"
 import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
@@ -27,9 +26,6 @@ function startFiveBossSoloInTransaction<T>(playerId: number, playId: string, per
     const stamina = Math.max(player.stamina, computeRealTimeStamina(player))
     const staminaCost = FIVE_BOSS_GAUNTLET.staminaCost
     if (stamina < staminaCost) throw new Error("Insufficient stamina.")
-    const debit = db.prepare(`UPDATE players_items SET amount = amount - 1
-        WHERE player_id = ? AND id = ? AND amount >= 1`).run(playerId, FIVE_BOSS_GAUNTLET.ticketItemId)
-    if (debit.changes !== 1) throw new FiveBossGauntletRunError("insufficient_ticket", "Not enough entry tickets.")
     updatePlayerSync({ id: playerId, stamina: stamina - staminaCost, staminaHealTime: new Date(),
         totalStaminaUsed: (player.totalStaminaUsed ?? 0) + staminaCost })
     db.prepare("UPDATE five_boss_solo_runs SET status = 'aborted' WHERE player_id = ? AND status = 'active'").run(playerId)

@@ -246,7 +246,7 @@ function collectCanonicalRoomRoster(roomNumber, preserveNpcCount = false, roomGe
 }
 function preflightBattleRoster(room, members, roomGeneration = room.lobby_generation) {
     var _a, _b, _c, _d, _e;
-    if ((0, mode15_optional_1.isMode15Quest)(Number(room.category), Number(room.quest_id))) {
+    if ((0, mode15_optional_1.isMode15EquipmentAllowedQuest)(Number(room.category), Number(room.quest_id))) {
         return [];
     }
     const lobbyClients = SessionManager_1.sessionManager.getClientsInRoom(room.room_number, roomGeneration);
@@ -378,7 +378,7 @@ function notifyRoomDisbanded(roomNumber) {
 exports.notifyRoomDisbanded = notifyRoomDisbanded;
 function handleEnterComs(client, coms, maxNpcCount) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         let room = (0, manager_1.getRoom)(client.roomNumber);
         if (!room)
             return;
@@ -434,32 +434,41 @@ function handleEnterComs(client, coms, maxNpcCount) {
             synchronizeRoomRoster(client.roomNumber, realMates.slice(0, 3), true);
             return;
         }
-        // Select valid parties from the cached server-wide player-party pool.
-        // The host is intentionally not excluded, matching every other
-        // multiplayer mode. A complete host party remains the final fallback for
-        // very small/new databases that do not yet contain valid three-character
-        // parties.
-        let npcParties = [];
-        try {
-            const selectionOptions = (0, player_party_pool_1.getNpcPartySelectionOptions)(room.category, room.quest_id);
-            npcParties = (0, player_party_pool_1.getRandomPlayerNpcPartiesSync)(client.playerId, needNPCs, selectionOptions)
-                .map(entry => entry.party);
-        }
-        catch (error) {
-            console.error(`[LOBBY] player NPC party pool selection failed room=${client.roomNumber}`, error);
-        }
         const npcMates = [];
         const recruitedMates = (0, controller_1.selectStableNpcSlots)(recruitResult.recruitedMates, needNPCs);
+        (_d = room.npc_party_by_com_id) !== null && _d !== void 0 ? _d : (room.npc_party_by_com_id = {});
+        const missingPartyCount = recruitedMates.filter(recruited => !room.npc_party_by_com_id[String(recruited.com_id)]).length;
+        // Select only parties for COM seats this room has never used. A rematch
+        // whose complete COM roster is cached performs no pool scan or random draw.
+        let npcParties = [];
+        if (missingPartyCount > 0) {
+            try {
+                const selectionOptions = (0, player_party_pool_1.getNpcPartySelectionOptions)(room.category, room.quest_id);
+                npcParties = (0, player_party_pool_1.getRandomPlayerNpcPartiesSync)(client.playerId, missingPartyCount, selectionOptions).map(entry => entry.party);
+            }
+            catch (error) {
+                console.error(`[LOBBY] player NPC party pool selection failed room=${client.roomNumber}`, error);
+            }
+        }
         const firstFallbackComId = 3 - needNPCs;
+        let nextPartyIndex = 0;
         for (let i = 0; i < needNPCs; i++) {
-            const recruited = (_d = recruitedMates[i]) !== null && _d !== void 0 ? _d : null;
-            const comId = (_e = recruited === null || recruited === void 0 ? void 0 : recruited.com_id) !== null && _e !== void 0 ? _e : (firstFallbackComId + i);
-            const viewerId = (_f = recruited === null || recruited === void 0 ? void 0 : recruited.viewer_id) !== null && _f !== void 0 ? _f : (900000000 + comId);
-            const party = (_h = (_g = npcParties[i]) !== null && _g !== void 0 ? _g : npcParties[0]) !== null && _h !== void 0 ? _h : hostMate.party;
+            const recruited = (_e = recruitedMates[i]) !== null && _e !== void 0 ? _e : null;
+            const comId = (_f = recruited === null || recruited === void 0 ? void 0 : recruited.com_id) !== null && _f !== void 0 ? _f : (firstFallbackComId + i);
+            const viewerId = (_g = recruited === null || recruited === void 0 ? void 0 : recruited.viewer_id) !== null && _g !== void 0 ? _g : (900000000 + comId);
+            // Keep a room's COM composition stable across rematches. Re-randomizing
+            // on every return can replace a battle-tested party with a much larger
+            // custom-asset combination and make the AIR client's 4096 atlas packer
+            // fail with U_1d93f4 during auto-repeat.
+            const partyKey = String(comId);
+            const party = (_k = (_j = (_h = room.npc_party_by_com_id) === null || _h === void 0 ? void 0 : _h[partyKey]) !== null && _j !== void 0 ? _j : npcParties[nextPartyIndex++]) !== null && _k !== void 0 ? _k : hostMate.party;
+            if (!room.npc_party_by_com_id[partyKey]) {
+                room.npc_party_by_com_id[partyKey] = party;
+            }
             npcMates.push({
                 viewerId: viewerId,
                 comId: comId,
-                name: (_m = (_k = (_j = coms[comId - 1]) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : (_l = coms[i]) === null || _l === void 0 ? void 0 : _l.name) !== null && _m !== void 0 ? _m : `NPC${comId}`,
+                name: (_p = (_m = (_l = coms[comId - 1]) === null || _l === void 0 ? void 0 : _l.name) !== null && _m !== void 0 ? _m : (_o = coms[i]) === null || _o === void 0 ? void 0 : _o.name) !== null && _p !== void 0 ? _p : `NPC${comId}`,
                 rank: hostMate.rank,
                 degreeId: hostMate.degreeId,
                 playerRoleKind: 99,
@@ -677,6 +686,43 @@ function scheduleRematchDisconnectCleanup(roomNumber) {
     scheduleRematchRosterCleanup(roomNumber);
 }
 exports.scheduleRematchDisconnectCleanup = scheduleRematchDisconnectCleanup;
+function releaseMissingRematchMembersForExplicitAi(room, requester) {
+    if (room.lobby_generation <= 0
+        || requester.viewerId !== room.host_viewer_id
+        || room.expected_real_viewer_ids.length === 0)
+        return [];
+    const liveViewerIds = new Set(SessionManager_1.sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
+        .filter(client => !client.isBattle
+        && !client.superseded
+        && !client.socket.destroyed
+        && client.socket.readable
+        && client.socket.writable)
+        .map(client => client.viewerId));
+    const releasedViewerIds = room.expected_real_viewer_ids
+        .filter(viewerId => viewerId !== room.host_viewer_id && !liveViewerIds.has(viewerId));
+    if (releasedViewerIds.length === 0)
+        return [];
+    for (const viewerId of releasedViewerIds) {
+        if (SessionManager_1.sessionManager.isRescueGuest(room.room_number, viewerId)) {
+            SessionManager_1.sessionManager.ejectRescueGuest(room.room_number, viewerId, "host_ai_replacement");
+        }
+        else {
+            (0, manager_1.removeRoomMember)(room.room_number, viewerId);
+        }
+    }
+    // Explicit COM entry means the host chose to replace the currently absent
+    // members now. The old reconnect timer must not keep or later reapply that
+    // roster reservation after the replacement has entered.
+    const cleanupTimer = rematchCleanupTimers.get(room.room_number);
+    if (cleanupTimer)
+        clearTimeout(cleanupTimer);
+    rematchCleanupTimers.delete(room.room_number);
+    rematchCleanedGeneration.delete(room.room_number);
+    room.rematch_wait_started_at = null;
+    console.log(`[LOBBY] host AI replacement released absent rematch members:`
+        + ` room=${room.room_number} viewers=${releasedViewerIds.join(",")}`);
+    return releasedViewerIds;
+}
 function rejectClaimedAdmission(socket, client, reason) {
     var _a;
     (0, admission_1.recordRoomAdmissionDenial)(reason);
@@ -940,6 +986,12 @@ function handleChangeParty(_socket, client, data) {
 }
 function handleReady(_socket, client, data) {
     var _a;
+    const room = (0, manager_1.getRoom)(client.roomNumber);
+    if (room
+        && room.lifecycle.phase === "RETURNING"
+        && room.host_viewer_id === client.viewerId) {
+        SessionManager_1.sessionManager.completeSettlementReturn(client.roomNumber);
+    }
     const readyState = Array.isArray(data[1]) ? data[1][0] : data[1];
     client.isReady = readyState === 1;
     if (SessionManager_1.sessionManager.isRescueGuest(client.roomNumber, client.viewerId)) {
@@ -964,7 +1016,12 @@ function handleStartBattle(_socket, client, _data) {
     const room = (0, manager_1.getRoom)(client.roomNumber);
     if (!room)
         return;
-    const lifecyclePhase = embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase;
+    let lifecyclePhase = embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase;
+    if (lifecyclePhase === "RETURNING"
+        && SessionManager_1.sessionManager.isHostOnline(room.host_viewer_id, client.roomNumber)
+        && SessionManager_1.sessionManager.completeSettlementReturn(client.roomNumber)) {
+        lifecyclePhase = embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase;
+    }
     // Normally TCP StartBattle commits the transition before HTTP /start.
     // If a very fast client reverses that order, /start has already committed
     // the same battle generation; finish the lobby delivery without advancing
@@ -1113,6 +1170,7 @@ function handleNotify(socket, client, data) {
             case 10: {
                 const room = (0, manager_1.getRoom)(client.roomNumber);
                 if (room === null || room === void 0 ? void 0 : room.is_npc_mode) {
+                    releaseMissingRematchMembersForExplicitAi(room, client);
                     yield handleEnterComs(client, notifyData[1]);
                 }
                 else {

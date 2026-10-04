@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.settleMode15BattleSync = exports.resetMode15RunSync = exports.cleanupLegacyMode15RescueProgressSync = exports.canJoinMode15RescueSync = exports.canStartMode15QuestSync = exports.getExpectedMode15StageSync = exports.getMode15ExclusiveGlobalPartyItemsSync = exports.getMode15ExclusivePartyItemsSync = exports.isMode15Quest = exports.getMode15QuestRef = exports.MODE15_SOLO_FIXED_REWARDS = exports.MODE15_BOSS_TOKEN_REWARDS = exports.getMode15ExclusiveItemIds = exports.MODE15_EXCLUSIVE_EQUIPMENT_IDS = exports.MODE15_PRACTICE_QUEST_ID = exports.MODE15_SOLO_REWARD_GROUP_BASE_ID = exports.MODE15_FULL_CLEAR_REWARD_GROUP_ID = exports.MODE15_BOSS_TOKEN_REWARD_GROUP_ID = exports.MODE15_DREAM_EMBLEM_ID = exports.MODE15_FULL_CLEAR_TICKET_ID = exports.MODE15_FULL_CLEAR_TOKEN_ID = exports.MODE15_TOKEN_ID = exports.MODE15_LEGACY_HARD_MULTI_EVENT_ID = exports.MODE15_MULTI_EVENT_ID = exports.MODE15_RUSH_EVENT_ID = void 0;
+exports.settleMode15BattleSync = exports.resetMode15RunSync = exports.cleanupLegacyMode15RescueProgressSync = exports.canJoinMode15RescueSync = exports.canStartMode15QuestSync = exports.getExpectedMode15StageSync = exports.getMode15ExclusiveGlobalPartyItemsSync = exports.getMode15ExclusivePartyItemsSync = exports.isMode15EquipmentAllowedQuest = exports.isMode15Quest = exports.getMode15QuestRef = exports.MODE15_SOLO_FIXED_REWARDS = exports.MODE15_BOSS_TOKEN_REWARDS = exports.getMode15ExclusiveItemIds = exports.MODE15_EXCLUSIVE_EQUIPMENT_IDS = exports.MODE15_PRACTICE_QUEST_ID = exports.MODE15_SOLO_REWARD_GROUP_BASE_ID = exports.MODE15_FULL_CLEAR_REWARD_GROUP_ID = exports.MODE15_BOSS_TOKEN_REWARD_GROUP_ID = exports.MODE15_DREAM_EMBLEM_ID = exports.MODE15_FULL_CLEAR_TICKET_ID = exports.MODE15_FULL_CLEAR_TOKEN_ID = exports.MODE15_TOKEN_ID = exports.MODE15_LEGACY_HARD_MULTI_EVENT_ID = exports.MODE15_MULTI_EVENT_ID = exports.MODE15_RUSH_EVENT_ID = void 0;
 const db_1 = require("../data/db");
 const persistence_coordinator_1 = require("./persistence-coordinator");
 const types_1 = require("../data/types");
@@ -106,6 +106,14 @@ function isMode15Quest(category, questId) {
     return getMode15QuestRef(category, questId) !== null;
 }
 exports.isMode15Quest = isMode15Quest;
+/** Quests where Fantasy weapons and their ability souls may be equipped. */
+function isMode15EquipmentAllowedQuest(category, questId) {
+    return isMode15Quest(category, questId)
+        || (Number(category) === Number(types_2.QuestCategory.RUSH_EVENT)
+            && Number(questId) >= exports.MODE15_RUSH_EVENT_ID * 1000 + 1
+            && Number(questId) <= exports.MODE15_PRACTICE_QUEST_ID);
+}
+exports.isMode15EquipmentAllowedQuest = isMode15EquipmentAllowedQuest;
 function getMode15ExclusivePartyItemsSync(playerId, category, groupId, slot = null) {
     const clauses = ["player_id = ?", "category = ?", "group_id = ?"];
     const args = [playerId, category, groupId];
@@ -276,9 +284,11 @@ function settleMode15BattleSync(playerId, category, questId, accomplished, optio
     if (ref === null)
         return null;
     if (!accomplished) {
-        if (!options.rescue)
+        const preserveBoundaryStage = ref.category === MODE15_MULTI_CATEGORY;
+        if (!options.rescue && !preserveBoundaryStage)
             resetMode15RunSync(playerId);
-        console.log(`[MODE15] failed: player=${playerId} stage=${ref.stage}; rescue=${!!options.rescue}`);
+        console.log(`[MODE15] failed: player=${playerId} stage=${ref.stage}`
+            + ` rescue=${!!options.rescue} preserved=${preserveBoundaryStage}`);
         return null;
     }
     const tokenAmount = (_a = exports.MODE15_BOSS_TOKEN_REWARDS[ref.stage]) !== null && _a !== void 0 ? _a : 0;

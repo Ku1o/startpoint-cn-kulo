@@ -52,7 +52,9 @@ interface ContinueRequest {
 export function isFiveBossContinueRequest(playerId: number, category: number, questId: number, playId: unknown): boolean {
     if (isFiveBossGauntletQuest(category, questId)) return true
     const active = getPlayerActiveQuestSync(playerId)
-    if (active && isFiveBossGauntletQuest(active.category, active.questId)) return true
+    if (active !== null
+        && active.playId === playId
+        && isFiveBossGauntletQuest(active.category, active.questId)) return true
     if (typeof playId !== "string") return false
     return !!getDb().prepare(`SELECT 1 FROM five_boss_solo_runs WHERE player_id = ? AND play_id = ?
         UNION ALL SELECT 1 FROM five_boss_gauntlet_members WHERE player_id = ? AND client_play_id = ? LIMIT 1`)

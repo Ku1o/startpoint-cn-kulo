@@ -12,6 +12,12 @@ process.env.DATA_DIR = tempRoot
 
 const { getDb } = require(path.join(ROOT, "out", "data", "db.js"))
 const mode15 = require(path.join(ROOT, "out", "lib", "mode15.js"))
+const recovery = require(path.join(
+    ROOT,
+    "out",
+    "lib",
+    "mode15-active-quest-recovery.js",
+))
 const completion = require(path.join(
     ROOT,
     "out",
@@ -50,7 +56,7 @@ function insertPracticeProgress(section, questId, playerId) {
     `).run(section, questId, playerId)
 }
 
-function insertRunMarker(stage) {
+function insertRunMarker(stage, playerId = 1) {
     db.prepare(`
         INSERT INTO players_rush_events_played_parties (
             character_id_1, character_id_2, character_id_3,
@@ -65,9 +71,9 @@ function insertRunMarker(stage) {
             NULL, NULL, NULL, NULL, NULL, NULL,
             NULL, NULL, NULL, NULL, NULL, NULL,
             NULL, NULL, NULL, NULL, NULL, NULL,
-            1, 700098, ?, 0
+            ?, 700098, ?, 0
         )
-    `).run(700098000 + stage)
+    `).run(playerId, 700098000 + stage)
 }
 
 test("permanent clear history does not advance a fresh run", () => {
@@ -110,6 +116,77 @@ test("reset clears only current-run state and keeps completion history", () => {
         FROM players_quest_progress
         WHERE player_id = 1 AND quest_id BETWEEN 300098001 AND 300098003
     `).get().count, 0)
+})
+
+test("failed multiplayer boundaries preserve stages 5, 10 and 15 without boundary rewards", () => {
+    const boundaryQuestIds = new Map([
+        [5, 300098001],
+        [10, 300098002],
+        [15, 300098003],
+    ])
+    for (const [index, [stage, questId]] of [...boundaryQuestIds].entries()) {
+        const playerId = 10 + index
+        for (let cleared = 1; cleared < stage; cleared += 1) {
+            insertRunMarker(cleared, playerId)
+        }
+        const beforeMarkers = db.prepare(`
+            SELECT COUNT(*) AS count
+            FROM players_rush_events_played_parties
+            WHERE player_id = ? AND event_id = 700098
+        `).get(playerId).count
+        assert.equal(mode15.getExpectedMode15StageSync(playerId), stage)
+
+        const result = mode15.settleMode15BattleSync(
+            playerId,
+            7,
+            questId,
+            false,
+            { rescue: false },
+        )
+
+        assert.equal(result, null)
+        assert.equal(mode15.getExpectedMode15StageSync(playerId), stage)
+        assert.equal(db.prepare(`
+            SELECT COUNT(*) AS count
+            FROM players_rush_events_played_parties
+            WHERE player_id = ? AND event_id = 700098
+        `).get(playerId).count, beforeMarkers)
+        assert.equal(db.prepare(`
+            SELECT COUNT(*) AS count
+            FROM players_items
+            WHERE player_id = ? AND id = 2370098
+        `).get(playerId).count, 0)
+        assert.equal(db.prepare(`
+            SELECT COUNT(*) AS count
+            FROM players_quest_progress
+            WHERE player_id = ? AND section IN (7, 8) AND quest_id = ?
+        `).get(playerId, questId).count, 0)
+    }
+})
+
+test("stale multiplayer recovery preserves the boundary while solo failure still resets", () => {
+    assert.equal(recovery.shouldResetMode15RunForStaleActiveQuest(
+        true,
+        { isMulti: true, isMultiHost: true },
+    ), false)
+    assert.equal(recovery.shouldResetMode15RunForStaleActiveQuest(
+        true,
+        { isMulti: true, isMultiHost: false },
+    ), false)
+    assert.equal(recovery.shouldResetMode15RunForStaleActiveQuest(
+        true,
+        { isMulti: false, isMultiHost: false },
+    ), true)
+    assert.equal(recovery.shouldResetMode15RunForStaleActiveQuest(
+        false,
+        { isMulti: false, isMultiHost: false },
+    ), false)
+
+    const playerId = 20
+    for (let stage = 1; stage <= 5; stage += 1) insertRunMarker(stage, playerId)
+    assert.equal(mode15.getExpectedMode15StageSync(playerId), 6)
+    mode15.settleMode15BattleSync(playerId, 24, 700098006, false)
+    assert.equal(mode15.getExpectedMode15StageSync(playerId), 1)
 })
 
 test("finite Gauntlet clears synthesize only the optional classification row", () => {

@@ -29,6 +29,7 @@ const select_denial_1 = require("../room/select-denial");
 const embedded_1 = require("../coordinator/embedded");
 const player_context_1 = require("../player-context");
 const party_snapshot_1 = require("../party-snapshot");
+const guest_eligibility_1 = require("../guest-eligibility");
 const ROOM_CAPACITY = 3;
 function isReturningMember(room, viewerId) {
     return room.host_viewer_id === viewerId
@@ -56,10 +57,8 @@ function canEnterMode15Room(playerId, room) {
         return true;
     return (0, mode15_optional_1.canStartMode15QuestSync)(playerId, room.category, room.quest_id).allowed;
 }
-function canJoinRoomAsGuest(playerId, room) {
-    if (!(0, mode15_optional_1.isMode15Quest)(room.category, room.quest_id))
-        return true;
-    return (0, mode15_optional_1.canJoinMode15RescueSync)(playerId, room.category, room.quest_id).allowed;
+function canJoinRoomAsGuest(playerId, player, room) {
+    return (0, guest_eligibility_1.canJoinMultiGuestQuestSync)(playerId, room.category, room.quest_id, player).allowed;
 }
 function registerLobbyRoutes(fastify) {
     // The legacy client posts this telemetry endpoint after handling native
@@ -107,7 +106,7 @@ function registerLobbyRoutes(fastify) {
             // code, follow sharing and random recruitment must therefore use
             // the same repeatable rescue gate instead of the helper's own run
             // position.
-            .filter(r => canJoinRoomAsGuest(viewerPlayerId, r))
+            .filter(r => canJoinRoomAsGuest(viewerPlayerId, ctx.player, r))
             .map(r => {
             const serialized = (0, serializer_1.serializeRoom)(r, viewerPlayerId);
             if (!isReturningMember(r, viewerId)
@@ -141,10 +140,15 @@ function registerLobbyRoutes(fastify) {
         (0, player_context_1.cacheMultiPlayerContext)(viewer_id, ctx);
         (0, party_snapshot_1.primeRealPartySnapshot)(ctx.playerId);
         const quest = (0, assets_1.getQuestFromCategorySync)(category, quest_id);
-        if (!quest)
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Quest doesn't exist."
+        if (!quest) {
+            console.warn(`[MULTI] create_room acknowledged as unavailable:`
+                + ` viewer=${viewer_id} category=${category} quest=${quest_id}`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id, result_code: 4507 }),
+                data: {},
             });
+        }
         if ((0, mode15_optional_1.isMode15Quest)(category, quest_id)) {
             const gate = (0, mode15_optional_1.canStartMode15QuestSync)(ctx.playerId, category, quest_id);
             if (!gate.allowed) {
@@ -192,7 +196,7 @@ function registerLobbyRoutes(fastify) {
         const roomVisible = !!room
             && !(0, mode15_room_gate_1.isMode15RoomClosed)(room)
             && !SessionManager_1.sessionManager.isRoomRestoreBlocked(room.room_number, viewerId)
-            && (returningMember || (canJoinRoomAsGuest(viewerPlayerId, room)
+            && (returningMember || (canJoinRoomAsGuest(viewerPlayerId, ctx.player, room)
                 && !["STARTING", "BATTLE"].includes(embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase)
                 && !(0, manager_1.isRoomWaitingForExpectedMember)(room)
                 && getCurrentLobbyOccupancy(room) < ROOM_CAPACITY));
@@ -219,6 +223,7 @@ function registerLobbyRoutes(fastify) {
         });
     }));
     fastify.post("/select_room", (request, reply) => __awaiter(this, void 0, void 0, function* () {
+        var _e, _f, _g, _h, _j, _k, _l;
         const body = request.body;
         const viewerId = body.viewer_id;
         if (!viewerId || isNaN(viewerId))
@@ -231,20 +236,22 @@ function registerLobbyRoutes(fastify) {
                 "error": "Bad Request", "message": "Invalid viewer id or no player bound."
             });
         const room = body.room_number ? (0, manager_1.getRoom)(body.room_number) : (0, manager_1.getRoomByToken)(body.access_token || "");
-        if (room && (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id))) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
-            });
-        }
+        const roomQuestMismatch = !!room
+            && (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id));
         const returningMember = !!room && isReturningMember(room, viewerId);
         const rescueSelection = Number(body.accepted_type) === 2;
         const randomRescue = !!room
             && !returningMember
             && rescueSelection
             && (0, recruitment_1.wasRandomRecruitmentDeliveredTo)(room.room_number, viewerId);
-        const mode15Blocked = !!room
+        const invalidRescueSelection = !!room
             && !returningMember
-            && !canJoinRoomAsGuest(ctx.playerId, room);
+            && rescueSelection
+            && !randomRescue;
+        const guestEligibility = room && !returningMember
+            ? (0, guest_eligibility_1.canJoinMultiGuestQuestSync)(ctx.playerId, room.category, room.quest_id, ctx.player)
+            : null;
+        const guestIneligible = (guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.allowed) === false;
         const mode15RoomClosed = !!room && (0, mode15_room_gate_1.isMode15RoomClosed)(room);
         // A rescue notice remains visible on the client for roughly 30 seconds.
         // If the host enabled AI or started/stopped recruitment after delivery,
@@ -267,24 +274,31 @@ function registerLobbyRoutes(fastify) {
         const lobbySeatsFull = !!room
             && !returningMember
             && (0, manager_1.getRoomAcceptedSeatCount)(room) >= ROOM_CAPACITY;
-        const isUnavailableWithoutCapacity = !!room && (mode15RoomClosed
+        const isUnavailableWithoutCapacity = !!room && (roomQuestMismatch
+            ||
+                mode15RoomClosed
             || (!returningMember && (battleStarted
                 || waitingForExpectedMember
                 || lobbySeatsFull
                 || staleRescueNotice
-                || mode15Blocked)));
+                || invalidRescueSelection
+                || guestIneligible)));
         const restoreBlocked = !!room && SessionManager_1.sessionManager.isRoomRestoreBlocked(room.room_number, viewerId);
         const capacityDenied = !!room
             && !returningMember
             && !isUnavailableWithoutCapacity
             && !restoreBlocked
-            && !admission_1.roomAdmissionRegistry.reserve(room.room_number, room.lobby_generation, viewerId, getCurrentLobbyViewerIds(room), ROOM_CAPACITY);
+            && !admission_1.roomAdmissionRegistry.reserve(room.room_number, room.lobby_generation, viewerId, getCurrentLobbyViewerIds(room), ROOM_CAPACITY, Date.now(), randomRescue ? "rescue" : "direct");
         if (!room || isUnavailableWithoutCapacity || restoreBlocked || capacityDenied) {
             if (room && !returningMember) {
                 admission_1.roomAdmissionRegistry.release(room.room_number, viewerId);
             }
             if (mode15RoomClosed) {
                 console.log(`[MODE15] select_room denied: completed host room=${room === null || room === void 0 ? void 0 : room.room_number} viewer=${viewerId}`);
+            }
+            if (roomQuestMismatch) {
+                console.log(`[MULTI] select_room denied before TCP: viewer=${viewerId}`
+                    + ` room=${room === null || room === void 0 ? void 0 : room.room_number} reason=quest_mismatch`);
             }
             if (capacityDenied) {
                 console.log(`[MULTI] select_room denied before TCP: viewer=${viewerId}`
@@ -293,6 +307,22 @@ function registerLobbyRoutes(fastify) {
             if (lobbySeatsFull) {
                 console.log(`[MULTI] select_room denied before TCP: viewer=${viewerId}`
                     + ` room=${room === null || room === void 0 ? void 0 : room.room_number} reason=room_seats_full`);
+            }
+            if (guestIneligible) {
+                console.log(`[MULTI] guest select denied: viewer=${viewerId}`
+                    + ` room=${room === null || room === void 0 ? void 0 : room.room_number} category=${room === null || room === void 0 ? void 0 : room.category} quest=${room === null || room === void 0 ? void 0 : room.quest_id}`
+                    + ` source=${rescueSelection ? "rescue" : "direct"}`
+                    + ` reason=${guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.reason}`
+                    + ` rank=${(_e = guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.playerRank) !== null && _e !== void 0 ? _e : "unknown"}`
+                    + ` requiredRank=${(_f = guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.minimumPlayerRank) !== null && _f !== void 0 ? _f : "none"}`
+                    + ` prerequisite=${(_h = (_g = guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.requiredQuestCategories) === null || _g === void 0 ? void 0 : _g.join("|")) !== null && _h !== void 0 ? _h : "none"}`
+                    + `:${(_j = guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.requiredQuestId) !== null && _j !== void 0 ? _j : "none"}`
+                    + ` requiredItem=${(_k = guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.requiredItemId) !== null && _k !== void 0 ? _k : "none"}`
+                    + ` itemCount=${(_l = guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.currentItemCount) !== null && _l !== void 0 ? _l : "unknown"}`);
+            }
+            if (invalidRescueSelection) {
+                console.log(`[MULTI] rescue select denied: viewer=${viewerId}`
+                    + ` room=${room === null || room === void 0 ? void 0 : room.room_number} reason=notice_not_delivered`);
             }
             const denialRaisingState = (0, select_denial_1.getSelectRoomDenialRaisingState)({
                 battleStarted,

@@ -37,7 +37,9 @@ function isFiveBossContinueRequest(playerId, category, questId, playId) {
     if ((0, contract_1.isFiveBossGauntletQuest)(category, questId))
         return true;
     const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
-    if (active && (0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId))
+    if (active !== null
+        && active.playId === playId
+        && (0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId))
         return true;
     if (typeof playId !== "string")
         return false;

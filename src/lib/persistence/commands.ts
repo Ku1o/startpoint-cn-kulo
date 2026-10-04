@@ -16,7 +16,7 @@ import {
 } from "./command-names"
 import { settleMissionCategories, type MissionSettlementResult } from "../mission/settlement"
 import { getPlayerSingleQuestProgressSync } from "../../data/domains/quest"
-import { deletePlayerActiveQuestSync } from "../../data/domains/quest_active"
+import { deletePlayerActiveQuestIfPlayIdSync } from "../../data/domains/quest_active"
 import { recordMissionBattleFacts } from "../mission/battle-facts"
 import { trackSteamRobotChallengeMission } from "../mission/steam-robot-challenge"
 import { recordQuestRecommendedPartySafe } from "../quest/recommended-party-history"
@@ -53,14 +53,14 @@ registerWriterCommand<SingleRefreshQuestProgressArgs, SingleRefreshQuestProgress
     ),
 )
 
-registerWriterCommand<MultiCleanupActiveQuestArgs, null>(
+registerWriterCommand<MultiCleanupActiveQuestArgs, boolean>(
     MULTI_CLEANUP_ACTIVE_QUEST,
     args => runPersistenceTransactionSync(
         { domain: "multi-settlement", playerId: args.playerId, operation: "active_quest_cleanup" },
-        () => {
-            deletePlayerActiveQuestSync(args.playerId)
-            return null
-        },
+        () => deletePlayerActiveQuestIfPlayIdSync(
+            args.playerId,
+            args.expectedPlayId,
+        ),
     ),
 )
 

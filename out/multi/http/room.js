@@ -34,6 +34,35 @@ function forbidden(reply) {
         "message": "Room permission denied.",
     });
 }
+function sendShareRoomAcknowledgement(reply, viewerId, reason) {
+    console.warn(`[MULTI] stale share_room acknowledged: viewer=${viewerId} reason=${reason}`);
+    reply.header("content-type", "application/x-msgpack");
+    return reply.status(200).send({
+        data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+        data: { config: (0, attention_config_1.getAttentionConfig)() },
+    });
+}
+function sendUnavailableRoomConnection(reply, viewerId, roomNumber, reason) {
+    console.warn(`[MULTI] room connection acknowledged as unavailable:`
+        + ` viewer=${viewerId} room=${roomNumber} reason=${reason}`);
+    reply.header("content-type", "application/x-msgpack");
+    return reply.status(200).send({
+        data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+        data: {
+            application_update_url: "",
+            category_id: 0,
+            host_entry_time: 0,
+            ip_address: "",
+            port: 0,
+            quest_id: 0,
+            raising_state: 9,
+            room_number: roomNumber,
+            room_sequence: 0,
+            share_room_options: 0,
+            is_pickup: null,
+        },
+    });
+}
 function registerRoomRoutes(fastify) {
     // ---- prepare ----
     fastify.post("/prepare", (request, reply) => __awaiter(this, void 0, void 0, function* () {
@@ -53,28 +82,11 @@ function registerRoomRoutes(fastify) {
             if (mode15RoomClosed) {
                 console.log(`[MODE15] prepare denied: completed host room=${room === null || room === void 0 ? void 0 : room.room_number} viewer=${viewerId}`);
             }
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send({
-                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
-                "data": {
-                    application_update_url: "",
-                    category_id: 0,
-                    host_entry_time: 0,
-                    ip_address: "",
-                    port: 0,
-                    quest_id: 0,
-                    raising_state: 9,
-                    room_number: (room === null || room === void 0 ? void 0 : room.room_number) || body.room_number || "",
-                    room_sequence: 0,
-                    share_room_options: 0,
-                    is_pickup: null,
-                }
-            });
+            return sendUnavailableRoomConnection(reply, viewerId, (room === null || room === void 0 ? void 0 : room.room_number) || body.room_number || "", !room ? "room_missing"
+                : mode15RoomClosed ? "mode15_closed" : "restore_blocked");
         }
         if (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
-            });
+            return sendUnavailableRoomConnection(reply, viewerId, room.room_number, "quest_mismatch");
         }
         if (viewerId === room.host_viewer_id)
             (0, manager_1.updateHostEntryTime)(room.room_number);
@@ -104,15 +116,23 @@ function registerRoomRoutes(fastify) {
         }
         const room = (0, manager_1.getRoom)(body.room_number);
         if (!room || (0, mode15_room_gate_1.isMode15RoomClosed)(room) || SessionManager_1.sessionManager.isRoomRestoreBlocked(body.room_number, viewerId)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room doesn't exist."
+            console.warn(`[MULTI] stale summon acknowledged: viewer=${viewerId}`
+                + ` room=${body.room_number} reason=room_unavailable`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                data: { mate1: null, mate2: null },
             });
         }
         if (room.host_viewer_id !== viewerId)
             return forbidden(reply);
         if (room.category !== Number(body.category_id) || room.quest_id !== Number(body.quest_id)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
+            console.warn(`[MULTI] stale summon acknowledged: viewer=${viewerId}`
+                + ` room=${body.room_number} reason=quest_mismatch`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                data: { mate1: null, mate2: null },
             });
         }
         // Random recruitment is a real-player broadcast.  The client still calls
@@ -211,17 +231,13 @@ function registerRoomRoutes(fastify) {
         }
         const room = (0, manager_1.getRoom)(body.room_number);
         if (!room) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room doesn't exist."
-            });
+            return sendShareRoomAcknowledgement(reply, viewerId, "room_missing");
         }
         if (room.host_viewer_id !== viewerId)
             return forbidden(reply);
         if ((body.category !== undefined && room.category !== Number(body.category))
             || (body.quest_id !== undefined && room.quest_id !== Number(body.quest_id))) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
-            });
+            return sendShareRoomAcknowledgement(reply, viewerId, "quest_mismatch");
         }
         if ((0, mode15_room_gate_1.isMode15RoomClosed)(room)) {
             (0, recruitment_1.stopRandomRecruitment)(room.room_number);

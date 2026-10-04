@@ -6,6 +6,10 @@
 最新已验收公网和内网包的路径、APK/SWF 哈希、UUID 与验收依据统一登记在
 [android-accepted.json](./android-accepted.json)。2026-09-09 应用户要求完成离线验收后，当前基线为深渊续战 Lens 公网/内网累计成品；验收范围见 [验收记录](./ACCEPTANCE-ABYSS-AUTOSTART-20260909.md)，不等同于真机测试。
 
+幻想武器和能力魂在非幻想关卡的准备页不可出战规则、服务端适用范围对齐及尚未生成
+APK/IPA 的交付边界见
+[幻想装备准备页门禁](./fantasy-equipment-party-gate/README.md)。
+
 本会话新增的关注按钮、本人资料路由、标题 `CNtips_b` 隐藏及环境切换流程见
 [rush-leaderboard/TITLE-CNTIPS.md](./rush-leaderboard/TITLE-CNTIPS.md)。
 新增 Lens 724/422 能力、稻穗/基诺维、五重地图及手动 Auto 锁、5900101 铁钢限制见
