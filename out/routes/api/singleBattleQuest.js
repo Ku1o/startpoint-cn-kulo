@@ -368,7 +368,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 data: {},
             });
         }
-        if (!(0, mode15_optional_1.isMode15Quest)(category, questId)) {
+        if (!(0, mode15_optional_1.isMode15EquipmentAllowedQuest)(category, questId)) {
             // Carnival quests use their own saved party category.  Looking up
             // NORMAL here allowed Mode15-exclusive equipment in Carnival even
             // though the selected Carnival party actually contained it.
@@ -410,7 +410,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 yield (0, solo_runtime_1.startFiveBossSolo)(playerId, body.play_id, () => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
-                        isAutoStartMode, isMulti: false, entryItemId: contract_1.FIVE_BOSS_GAUNTLET.ticketItemId,
+                        isAutoStartMode, isMulti: false,
                         partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     });

@@ -86,7 +86,6 @@ function isFrozenFiveBossBattleClient(room, client) {
     var _a;
     const identity = (_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.battleIdentityByViewerId[String(client.viewerId)];
     return !!identity && identity.playerId === client.playerId
-        && identity.remoteAddress === client.socket.remoteAddress
         && identity.connectionId === client.connectionId && !client.superseded;
 }
 exports.isFrozenFiveBossBattleClient = isFrozenFiveBossBattleClient;

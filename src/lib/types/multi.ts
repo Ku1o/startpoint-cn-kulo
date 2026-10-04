@@ -83,6 +83,8 @@ export interface MultiRoom {
     npc_count: number  // fixed NPC count per battle: 0=unrecruited, 1/2=fixed count
     /** AI count of the battle that most recently started; used by the rematch lobby. */
     rematch_ai_count?: number
+    /** Stable COM party snapshots for this room's auto-repeat lifecycle. */
+    npc_party_by_com_id: Record<string, any>
     expected_real_viewer_ids: number[]
     lobby_generation: number
     rematch_wait_started_at: number | null

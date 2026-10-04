@@ -25,6 +25,7 @@ import {
 import { getCachedMultiPlayerContext, resolveMultiPlayerContext } from "../player-context"
 import { buildRealParty, getRealPartySnapshot } from "../party-snapshot"
 import { markTcpDisconnectReason } from "./disconnect-diagnostics"
+import { canJoinMultiGuestQuestSync } from "../guest-eligibility"
 
 // NPC workers historically import buildRealParty from this module. Keep the
 // export stable while the implementation lives beside the warmed snapshot.
@@ -178,6 +179,15 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         const roomPhase = embeddedMultiCoordinator.ensureLifecycle(currentRoom).phase
         const restoreBlocked = sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId))
         const recordedPlayerId = getRoomMemberPlayerId(currentRoom, Number(viewerId))
+        const guestAdmissionIsRescue = !isReturningMember
+            && roomAdmissionRegistry.isRescue(roomId, currentRoom.lobby_generation, Number(viewerId))
+        const guestEligibility = !isReturningMember
+            ? canJoinMultiGuestQuestSync(
+                ctx.playerId,
+                currentRoom.category,
+                currentRoom.quest_id,
+            )
+            : null
         const structuralReasons = [
             categoryMismatch ? "category_mismatch" : "",
             questMismatch ? "quest_mismatch" : "",
@@ -185,6 +195,9 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             !viewerAlreadyConnected && liveClients.length >= 3 ? "full" : "",
             !isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE") ? "battle_started" : "",
             !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
+            guestEligibility?.allowed === false
+                ? `${guestAdmissionIsRescue ? "rescue" : "guest"}_${guestEligibility.reason}`
+                : "",
             restoreBlocked ? "restore_blocked" : "",
         ].filter(Boolean)
 

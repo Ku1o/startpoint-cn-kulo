@@ -5,7 +5,6 @@ const db_1 = require("../../data/db");
 const player_1 = require("../../data/domains/player");
 const quest_active_1 = require("../../data/domains/quest_active");
 const option_1 = require("../../data/domains/option");
-const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const stamina_1 = require("../../lib/stamina");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const contract_1 = require("./contract");
@@ -34,10 +33,6 @@ function startFiveBossSoloInTransaction(playerId, playId, persist) {
     const staminaCost = contract_1.FIVE_BOSS_GAUNTLET.staminaCost;
     if (stamina < staminaCost)
         throw new Error("Insufficient stamina.");
-    const debit = db.prepare(`UPDATE players_items SET amount = amount - 1
-        WHERE player_id = ? AND id = ? AND amount >= 1`).run(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId);
-    if (debit.changes !== 1)
-        throw new fiveBossGauntletRun_1.FiveBossGauntletRunError("insufficient_ticket", "Not enough entry tickets.");
     (0, player_1.updatePlayerSync)({ id: playerId, stamina: stamina - staminaCost, staminaHealTime: new Date(),
         totalStaminaUsed: ((_a = player.totalStaminaUsed) !== null && _a !== void 0 ? _a : 0) + staminaCost });
     db.prepare("UPDATE five_boss_solo_runs SET status = 'aborted' WHERE player_id = ? AND status = 'active'").run(playerId);

@@ -77,12 +77,12 @@ function finish(p, room, engine = runtime) {
 }
 
 test('multiplayer charges only host once; pins Auto; retries do not grant items or EXP again', () => {
-    const host = player(), guest = player(0), room = run([host, guest])
+    const host = player(), guest = player(1), room = run([host, guest])
     start(guest, room)
     start(host, room)
     start(host, room)
     assert.equal(items.getPlayerItemSync(host.id, mode.ticketItemId), 1)
-    assert.equal(items.getPlayerItemSync(guest.id, mode.ticketItemId), 0)
+    assert.equal(items.getPlayerItemSync(guest.id, mode.ticketItemId), 1)
     assert.equal(players.getPlayerSync(host.id).stamina, 65)
     assert.equal(players.getPlayerSync(host.id).totalStaminaUsed, 35)
     assert.equal(players.getPlayerSync(guest.id).stamina, 100)
@@ -139,7 +139,7 @@ test('guest abort does not strand a completed host run', () => {
     assert.equal(items.getPlayerItemSync(guest.id, 10000145), null)
 })
 
-test('solo start charges ticket + 35 stamina atomically and accepts retry without another debit', () => {
+test('solo start charges only 35 stamina atomically and accepts retry without another debit', () => {
     const p = player()
     const persist = () => active.insertPlayerActiveQuestSync(p.id, { playerId: p.id, playId: p.playId,
         category: mode.category, questId: mode.visibleQuestId, useBoostPoint: false, useBossBoostPoint: false,
@@ -151,29 +151,23 @@ test('solo start charges ticket + 35 stamina atomically and accepts retry withou
     solo.startFiveBossSoloSync(p.id, p.playId, persist)
     solo.startFiveBossSoloSync(p.id, p.playId, () => assert.fail('replayed persistence'))
     assert.equal(players.getPlayerSync(p.id).stamina, 65)
-    assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
+    assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 2)
     getDb().transaction(() => solo.saveFiveBossSoloReceiptSync(p.id, p.playId, 'single-retry-key', { ok: 1 }))()
     assert.deepEqual(solo.getFiveBossSoloReceiptSync(p.id, 'single-retry-key'), { ok: 1 })
     assert.throws(() => solo.startFiveBossSoloSync(p.id, p.playId, persist), /ended/)
 })
 
-test('five-boss starts require 35 stamina, preserve tickets on failure, and allow a zero-stamina guest', async () => {
-    const p = player(1)
+test('solo five-boss requires 35 stamina without a ticket; multiplayer still charges the host', async () => {
+    const p = player(0)
     const app = await httpApp(p, load('routes/api/singleBattleQuest').default)
     try {
         players.updatePlayerSync({ id: p.id, stamina: 34, staminaHealTime: new Date() })
         let response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
         assert.equal(response.statusCode, 400, response.body)
         assert.match(response.body, /Insufficient stamina/)
-        assert.equal(items.getPlayerItemSync(p.id, 10000143), 1)
+        assert.equal(items.getPlayerItemSync(p.id, 10000143), 0)
         assert.equal(players.getPlayerSync(p.id).stamina, 34)
         players.updatePlayerSync({ id: p.id, stamina: 35, staminaHealTime: new Date() })
-        items.setPlayerItemSync(p.id, 10000143, 0)
-        response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
-        assert.equal(response.statusCode, 200, response.body)
-        assert.equal(response.json().data_headers.result_code, 4050)
-        assert.equal(players.getPlayerSync(p.id).stamina, 35)
-        items.setPlayerItemSync(p.id, 10000143, 1)
         response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
         assert.equal(response.statusCode, 200, response.body)
         assert.equal(response.json().data.user_info.stamina, 0)
@@ -189,8 +183,8 @@ test('five-boss starts require 35 stamina, preserve tickets on failure, and allo
     const guestApp = await httpApp(guest, load('multi/http/battle').registerBattleRoutes)
     try {
         let response = await guestApp.inject({ method: 'POST', url: '/start', payload: httpStart(guest, room) })
-        assert.equal(response.statusCode, 400, response.body)
-        assert.match(response.body, /Insufficient stamina/)
+        assert.equal(response.statusCode, 200, response.body)
+        assert.equal(response.json().data_headers.result_code, 4050)
         assert.equal(items.getPlayerItemSync(host.id, 10000143), 1)
         assert.equal(players.getPlayerSync(host.id).stamina, 34)
         assert.equal(active.getPlayerActiveQuestSync(guest.id), null)
@@ -324,6 +318,33 @@ test('multiplayer five-boss abort waits for the async persistence boundary', asy
     } finally { await app.close() }
 })
 
+test('multiplayer abort recovers omitted route fields but rejects explicit forgery', async () => {
+    const p = player(), room = run([p])
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    try {
+        assert.equal((await app.inject({
+            method: 'POST', url: '/start', payload: httpStart(p, room),
+        })).statusCode, 200)
+        const forged = await app.inject({
+            method: 'POST', url: '/abort',
+            payload: { viewer_id: p.viewerId, play_id: p.playId, category: 1,
+                quest_id: 1000101, api_count: 2 },
+        })
+        assert.equal(forged.statusCode, 400, forged.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
+        const recovered = await app.inject({
+            method: 'POST', url: '/abort',
+            payload: { viewer_id: p.viewerId, play_id: p.playId, api_count: 3 },
+        })
+        assert.equal(recovered.statusCode, 200, recovered.body)
+        assert.equal(recovered.json().data.category_id, mode.category)
+        assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+        assert.equal(ledger.getFiveBossRunByClientSync({
+            playerId: p.id, clientPlayId: p.playId,
+        }).status, 'aborted')
+    } finally { await app.close() }
+})
+
 test('lobby snapshot requires three ready slots, owned characters and the bound battle connection', () => {
     const host = player(), guest = player(), room = run([host, guest])
     delete room.five_boss_runtime
@@ -352,7 +373,10 @@ test('lobby snapshot requires three ready slots, owned characters and the bound 
         assert.deepEqual(room.five_boss_runtime.expectedRealPlayerIds, [host.id, guest.id])
         assert.equal(lobby.isFrozenFiveBossBattleClient(room, { ...clients[0], isBattle: true }), true)
         assert.equal(lobby.isFrozenFiveBossBattleClient(room, { ...clients[0], connectionId: 'forged' }), false)
-        assert.equal(lobby.isFrozenFiveBossBattleClient(room, { ...clients[0], socket: { remoteAddress: '127.0.0.99' } }), false)
+        assert.equal(lobby.isFrozenFiveBossBattleClient(room,
+            { ...clients[0], socket: { remoteAddress: '127.0.0.99' } }), true)
+        assert.equal(lobby.isFrozenFiveBossBattleClient(room,
+            { ...clients[0], playerId: guest.id, socket: { remoteAddress: '127.0.0.99' } }), false)
     } finally { manager.getClientsInRoom = original }
 })
 
@@ -386,6 +410,74 @@ test('shared NPC lobby recruitment fills remaining seats without a Five Boss-onl
         await recruit()
         assert.equal(client.mates.filter(m => m.comId).length, 2)
         assert.equal(client.mates.length, 3)
+    } finally {
+        manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
+test('AI auto-repeat keeps the first successful COM parties stable in the room', async t => {
+    const p = player()
+    const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    room.is_npc_mode = true
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const pool = load('multi/npc/player-party-pool')
+    const socket = new (require('node:events').EventEmitter)()
+    Object.assign(socket, { destroyed: false, readable: true, writable: true, remoteAddress: '127.0.0.1',
+        write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+    const client = manager.createClient(socket, p.viewerId, room.room_number, `stable-ai-host-${p.id}`, p.id)
+    client.yourself = { viewerId: p.viewerId, playerId: p.id, comId: 0, state: [1], rank: 1,
+        party: { characters: [[0, { id: 111001 }]], unison_characters: [], marker: 'host-party' } }
+    client.mates = [client.yourself]
+    manager.addClientToRoom(client)
+    let selection = 0
+    t.mock.method(pool, 'getRandomPlayerNpcPartiesSync', () => {
+        selection++
+        const prefix = selection === 1 ? 'first' : 'rerolled'
+        return [1, 2].map(index => ({
+            sourcePlayerId: 100 + index,
+            party: {
+                characters: [[0, { id: 111001 }], [0, { id: 111001 }], [0, { id: 111001 }]],
+                unison_characters: [],
+                marker: `${prefix}-${index}`,
+            },
+        }))
+    })
+    const lobby = load('multi/tcp/lobby')
+    const recruit = async () => {
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+    }
+    try {
+        await recruit()
+        assert.deepEqual(
+            client.mates.filter(mate => mate.comId).map(mate => mate.party.marker),
+            ['first-1', 'first-2'],
+        )
+        assert.deepEqual(
+            Object.values(room.npc_party_by_com_id).map(party => party.marker),
+            ['first-1', 'first-2'],
+        )
+
+        room.lobby_generation = 1
+        client.roomGeneration = 1
+        room.expected_real_viewer_ids = [p.viewerId]
+        room.rematch_ai_count = 2
+        room.npc_count = 2
+        client.mates = [client.yourself]
+        room.mates = [{ viewer_id: p.viewerId, player_id: p.id, com_id: 0 }]
+        await recruit()
+
+        assert.equal(selection, 1, 'a rematch with fixed COM parties must not query the random pool again')
+        assert.deepEqual(
+            client.mates.filter(mate => mate.comId).map(mate => mate.party.marker),
+            ['first-1', 'first-2'],
+        )
+        assert.equal(
+            client.mates.some(mate => mate.party?.marker?.startsWith('rerolled')),
+            false,
+        )
     } finally {
         manager.removeClient(client)
         load('multi/room/manager').disbandRoom(room.room_number)
@@ -472,6 +564,89 @@ test('rematch restores the previous AI count and fills the extra AI after the re
     }
 })
 
+test('departed bell guest releases the rematch seat so AI can fill and start again', async () => {
+    const host = player(), guest = player()
+    const room = createRoom(host.viewerId, host.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    room.lobby_generation = 1
+    room.expected_real_viewer_ids = [host.viewerId, guest.viewerId]
+    room.member_viewer_ids = [host.viewerId, guest.viewerId]
+    room.member_player_ids = { [host.viewerId]: host.id, [guest.viewerId]: guest.id }
+    room.rematch_ai_count = 1
+    room.npc_count = 1
+    room.is_npc_mode = true
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const makeSocket = address => {
+        const socket = new (require('node:events').EventEmitter)()
+        Object.assign(socket, { destroyed: false, readable: true, writable: true, remoteAddress: address,
+            write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+        return socket
+    }
+    const hostSocket = makeSocket('127.0.0.1')
+    const guestSocket = makeSocket('127.0.0.2')
+    const hostClient = manager.createClient(
+        hostSocket, host.viewerId, room.room_number, `departed-host-${host.id}`, host.id,
+    )
+    const guestClient = manager.createClient(
+        guestSocket, guest.viewerId, room.room_number, `departed-guest-${guest.id}`, guest.id,
+    )
+    hostClient.roomGeneration = room.lobby_generation
+    guestClient.roomGeneration = room.lobby_generation
+    hostClient.yourself = { viewerId: host.viewerId, playerId: host.id, comId: 0, state: [1],
+        autoplayMode: false, rank: 130, party: {
+            characters: [[0, { id: 111001 }]], unison_characters: [],
+        } }
+    guestClient.yourself = { viewerId: guest.viewerId, playerId: guest.id, comId: 0, state: [1],
+        autoplayMode: false, rank: 130, party: {
+            characters: [[0, { id: 111001 }]], unison_characters: [],
+        } }
+    hostClient.mates = [hostClient.yourself, guestClient.yourself]
+    guestClient.mates = hostClient.mates
+    room.mates = [
+        { viewer_id: host.viewerId, player_id: host.id, com_id: 0 },
+        { viewer_id: guest.viewerId, player_id: guest.id, com_id: 0 },
+    ]
+    manager.addClientToRoom(hostClient)
+    manager.addClientToRoom(guestClient)
+    manager.markRescueGuest(room.room_number, guest.viewerId)
+    const lobby = load('multi/tcp/lobby')
+    try {
+        // A transport loss alone still reserves the real seat for reconnect.
+        manager.removeClient(guestClient)
+        assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId, guest.viewerId])
+
+        // The host's explicit EnterComs request chooses AI replacement now,
+        // releasing the absent rescue guest without waiting for the reconnect
+        // grace to expire.
+        lobby.handleMessage(hostSocket, [0, [10, [{ name: 'COM1' }, { name: 'COM2' }]]])
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId])
+        assert.deepEqual(room.member_viewer_ids, [host.viewerId])
+        assert.equal(room.mates.some(mate => mate.viewer_id === guest.viewerId), false)
+
+        const deadline = Date.now() + 3000
+        while (Date.now() < deadline && hostClient.mates.filter(mate => mate.comId).length < 2) {
+            await new Promise(resolve => setTimeout(resolve, 20))
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        }
+        const npcMates = hostClient.mates.filter(mate => mate.comId)
+        assert.equal(npcMates.length, 2)
+        for (const mate of npcMates) mate.state = [1]
+        lobby.checkHostAutoReady(room.room_number)
+        assert.equal(hostClient.yourself.state[0], 1)
+
+        lobby.handleMessage(hostSocket, [0, [6]])
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.equal(room.lifecycle.phase, 'BATTLE')
+        assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId])
+        assert.equal(room.npc_count, 2)
+        assert.deepEqual(room.five_boss_runtime.expectedRealPlayerIds, [host.id])
+    } finally {
+        manager.removeClient(hostClient)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
 test('new gacha characters can be granted and load their own mana nodes through runtime accessors', () => {
     const p = player()
     const assets = load('lib/assets')
@@ -509,6 +684,42 @@ function httpFinish(p) {
         statistics: { clear_phase: 1, max_combo_count: 0, party: { characters: [{ id: 111001 }],
             unison_characters: [], equipments: [], ability_soul_ids: [] } }, api_count: 2, mate_player_result: [] }
 }
+
+test('five-boss start acknowledges a room lost after the outer gate without charging', async () => {
+    const p = player(1)
+    const body = { ...httpStart(p), room_number: 'missing-after-five-boss-gate' }
+    const headers = {}
+    let statusCode = 0
+    let payload = null
+    const reply = {
+        header(name, value) {
+            headers[name] = value
+            return this
+        },
+        status(value) {
+            statusCode = value
+            return this
+        },
+        send(value) {
+            payload = value
+            return value
+        },
+    }
+
+    await load('multi/http/five-boss-battle').handleFiveBossStart(body, p.id, reply)
+
+    assert.equal(statusCode, 200)
+    assert.equal(headers['content-type'], 'application/x-msgpack')
+    assert.equal(payload.data_headers.result_code, 4050)
+    assert.deepEqual(payload.data, {})
+    assert.equal(players.getPlayerSync(p.id).stamina, 100)
+    assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
+    assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+    assert.equal(ledger.getFiveBossRunByClientSync({
+        playerId: p.id,
+        clientPlayId: p.playId,
+    }), null)
+})
 
 test('solo full-manual rewards use the whole-run AUTO record and replay exactly once', async () => {
     const p = player()
@@ -553,7 +764,7 @@ test('both option endpoints mark AUTO permanently for this solo play across retr
             delete load('routes/api/singleBattleQuest').activeQuests[p.id]
             assert.equal((await app.inject({ method: 'POST', url: '/quest/start', payload: httpStart(p) })).statusCode, 200)
             assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 1)
-            assert.equal(items.getPlayerItemSync(p.id, 10000143), 1)
+            assert.equal(items.getPlayerItemSync(p.id, 10000143), 2)
             const result = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
             assert.equal(result.statusCode, 200, result.body)
             assert.equal(result.json().data.item_list['10000145'], 5)
@@ -708,7 +919,8 @@ test('new valid multiplayer start abandons solo atomically; invalid start preser
         const frozen = room.five_boss_runtime
         delete room.five_boss_runtime
         const rejected = await multiApp.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
-        assert.equal(rejected.statusCode, 400, rejected.body)
+        assert.equal(rejected.statusCode, 200, rejected.body)
+        assert.equal(rejected.json().data_headers.result_code, 4050)
         assert.equal(active.getPlayerActiveQuestSync(p.id).playId, oldPlay)
         assert.equal(solo.isActiveFiveBossSoloSync(p.id, oldPlay), true)
         room.five_boss_runtime = frozen
@@ -716,11 +928,49 @@ test('new valid multiplayer start abandons solo atomically; invalid start preser
         assert.equal(response.statusCode, 200, response.body)
         assert.equal(solo.isActiveFiveBossSoloSync(p.id, oldPlay), false)
         assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
-        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 2)
         assert.equal(players.getPlayerSync(p.id).stamina, 30)
         assert.equal(solo.abandonFiveBossSoloForMultiSync(p.id, oldPlay), false)
         assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
     } finally { await soloApp.close(); await multiApp.close() }
+})
+
+test('new five-boss room abandons an orphan ordinary solo active quest', async () => {
+    const p = player(2)
+    const oldPlay = 'orphan-ordinary-solo'
+    const oldActive = {
+        playerId: p.id,
+        playId: oldPlay,
+        questId: 1000101,
+        category: 1,
+        useBossBoostPoint: false,
+        useBoostPoint: false,
+        isAutoStartMode: false,
+        isMulti: false,
+        isMultiHost: false,
+        roomNumber: null,
+        continueCount: 0,
+        startedAtMs: Date.now(),
+    }
+    active.insertPlayerActiveQuestSync(p.id, oldActive)
+    load('routes/api/singleBattleQuest').activeQuests[p.id] = {
+        ...oldActive,
+        roomNumber: undefined,
+    }
+    const room = run([p])
+    p.playId = 'five-after-orphan-solo'
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    try {
+        const response = await app.inject({
+            method: 'POST',
+            url: '/start',
+            payload: httpStart(p, room),
+        })
+        assert.equal(response.statusCode, 200, response.body)
+        assert.equal(response.json().data.play_id, p.playId)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
+        assert.equal(load('routes/api/singleBattleQuest').activeQuests[p.id].playId, p.playId)
+    } finally { await app.close() }
 })
 
 test('stale multiplayer with a missing room field is recovered from its immutable ledger', async () => {
@@ -925,15 +1175,18 @@ test('finish waits for proof writes already accepted before the battle socket cl
     }
 })
 
-test('finish requires authenticated battle entry and forged identity cannot create it', async () => {
+test('finish without authenticated battle entry is terminal and forged identity cannot create it', async () => {
     const p = player(), room = run([p]);start(p, room)
     const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
     const originalWarn = console.warn, messages = []
     console.warn = (...args) => messages.push(args.join(' '))
     try {
         const rejected = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
-        assert.equal(rejected.statusCode, 400)
-        const evidence = JSON.parse(messages.find(line => line.startsWith('[FIVE-BOSS-REJECT]')).split('] ')[1])
+        assert.equal(rejected.statusCode, 200)
+        assert.equal(rejected.json().data.clear_rank, 0)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
+        assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+        const evidence = JSON.parse(messages.find(line => line.startsWith('[FIVE-BOSS-ACK]')).split('] ')[1])
         assert.equal(evidence.code, 'battle_proof_missing')
         assert.equal(evidence.proof.battle_entered_at, null)
         const prepare = getDb().prepare
@@ -945,18 +1198,26 @@ test('finish requires authenticated battle entry and forged identity cannot crea
         try {
             const retries = await Promise.all(Array.from({ length: 20 }, () =>
                 app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })))
-            assert.ok(retries.every(response => response.statusCode === 400))
+            assert.ok(retries.every(response => response.statusCode === 200))
+            assert.ok(retries.every(response => response.json().data.clear_rank === 0))
             assert.equal(diagnosticReads, 0)
-            assert.equal(messages.filter(line => line.startsWith('[FIVE-BOSS-REJECT]')).length, 1)
+            const acknowledgements = messages
+                .filter(line => line.startsWith('[FIVE-BOSS-ACK]'))
+                .map(line => JSON.parse(line.split('] ')[1]))
+            assert.deepEqual(
+                [...new Set(acknowledgements.map(entry => entry.code))].sort(),
+                ['battle_proof_missing', 'run_not_active'],
+            )
+            assert.equal(acknowledgements.length, 2)
         } finally { getDb().prepare = prepare }
-        ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId,
-            playerId: p.id, roomNumber: room.room_number, signal: 'scene_ready' })
         const forged = await app.inject({ method: 'POST', url: '/finish', payload: { ...httpFinish(p), quest_id: 1000101 } })
         assert.equal(forged.statusCode, 400)
         assert.equal(getDb().prepare('SELECT finalized_at FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?')
             .get(room.five_boss_runtime.runId, p.id).finalized_at, null)
         assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
-        assert.equal((await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })).statusCode, 200)
+        assert.equal(ledger.getFiveBossRunByClientSync({
+            playerId: p.id, clientPlayId: p.playId,
+        }).status, 'aborted')
     } finally { console.warn = originalWarn; await app.close() }
 })
 
@@ -1149,7 +1410,7 @@ test('real solo HTTP start/finish persists receipt; hidden scene and free finish
         const start = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
         assert.equal(start.statusCode, 200, start.body)
         assert.equal(start.json().data.user_info.stamina, 65)
-        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 2)
         const finish = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
         assert.equal(finish.statusCode, 200, finish.body)
         assert.equal(finish.json().data.item_list['10000145'], 5)
@@ -1159,6 +1420,31 @@ test('real solo HTTP start/finish persists receipt; hidden scene and free finish
         assert.equal(retry.statusCode, 200, retry.body)
         assert.equal(items.getPlayerItemSync(p.id, 10000145), 5)
         assert.equal(characters.getPlayerCharacterSync(p.id, 111001).exp, exp)
+    } finally { await app.close() }
+})
+
+test('solo five-boss can finish two stamina-funded rounds without a multiplayer ticket', async () => {
+    const p = player(0)
+    players.updatePlayerSync({
+        id: p.id,
+        stamina: 70,
+        staminaHealTime: new Date(),
+        rankPoint: 999_999_999,
+    })
+    const app = await httpApp(p, load('routes/api/singleBattleQuest').default)
+    try {
+        for (let round = 0; round < 2; round++) {
+            if (round > 0) p.playId += '-next'
+            const started = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
+            assert.equal(started.statusCode, 200, started.body)
+            assert.equal(started.json().data.user_info.stamina, 35 - 35 * round)
+            assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 0)
+            const finished = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
+            assert.equal(finished.statusCode, 200, finished.body)
+            assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+        }
+        assert.equal(players.getPlayerSync(p.id).stamina, 0)
+        assert.equal(players.getPlayerSync(p.id).totalStaminaUsed, 70)
     } finally { await app.close() }
 })
 
@@ -1406,6 +1692,68 @@ test('Fantasy real multiplayer finish grants one ticket for full host clear; not
         }
     } finally { await app.close() }
 })
+
+test('Fantasy multiplayer abort preserves its boundary stage without granting rewards', async () => {
+    const p = player(0)
+    const rush = load('data/domains/rushEvent')
+    const mode15 = load('lib/mode15')
+    const playedParty = {
+        characterIds: [111001, null, null],
+        unisonCharacterIds: [null, null, null],
+        equipmentIds: [null, null, null],
+        abilitySoulIds: [null, null, null],
+        evolutionImgLevels: [null, null, null],
+        unisonEvolutionImgLevels: [null, null, null],
+        battleType: 0,
+    }
+    for (let stage = 1; stage < 10; stage++) {
+        rush.insertPlayerRushEventPlayedPartySync(p.id, 700098, {
+            ...playedParty,
+            round: 700098000 + stage,
+        })
+    }
+    assert.equal(mode15.getExpectedMode15StageSync(p.id), 10)
+    const room = createRoom(p.viewerId, p.id, 1, 7, 300098002, 0, 111001)
+    const manager = load('multi/room/manager')
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    try {
+        const started = await app.inject({
+            method: 'POST',
+            url: '/start',
+            payload: { ...httpStart(p, room), category: 7, quest_id: 300098002 },
+        })
+        assert.equal(started.statusCode, 200, started.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
+        const tokenBefore = items.getPlayerItemSync(p.id, 2370098) ?? 0
+
+        const aborted = await app.inject({
+            method: 'POST',
+            url: '/abort',
+            payload: {
+                viewer_id: p.viewerId,
+                play_id: p.playId,
+                category: 7,
+                quest_id: 300098002,
+                room_number: room.room_number,
+                api_count: 2,
+            },
+        })
+        assert.equal(aborted.statusCode, 200, aborted.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+        assert.equal(mode15.getExpectedMode15StageSync(p.id), 10)
+        assert.equal(mode15.canStartMode15QuestSync(p.id, 7, 300098002).allowed, true)
+        assert.equal(mode15.canStartMode15QuestSync(p.id, 7, 300098001).allowed, false)
+        assert.equal(items.getPlayerItemSync(p.id, 2370098) ?? 0, tokenBefore)
+        assert.equal(getDb().prepare(`SELECT COUNT(*) AS count
+            FROM players_quest_progress
+            WHERE player_id = ? AND section IN (7, 8) AND quest_id = 300098002`)
+            .get(p.id).count, 0)
+    } finally {
+        manager.disbandRoom(room.room_number)
+        await app.close()
+    }
+})
+
 function continuePayload(p, apiCount = 10) {
     return { viewer_id: p.viewerId, play_id: p.playId, quest_id: mode.visibleQuestId, category: mode.category,
         api_count: apiCount, payment_type: 1, statistics: { continue_count: 0, playthrough_frame: 1800 } }

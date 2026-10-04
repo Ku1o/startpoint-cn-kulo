@@ -31,6 +31,7 @@ import {
 import {
     canStartMode15QuestSync,
     getMode15ExclusiveGlobalPartyItemsSync,
+    isMode15EquipmentAllowedQuest,
     isMode15RuntimeLoaded,
     MODE15_PRACTICE_QUEST_ID,
     MODE15_RUSH_EVENT_ID,
@@ -771,7 +772,7 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
-        if (questData.rushEventId !== MODE15_RUSH_EVENT_ID) {
+        if (!isMode15EquipmentAllowedQuest(QuestCategory.RUSH_EVENT, questId)) {
             const partyCategory = partyCategoryForRushEvent(questData.rushEventId)
             const restricted = getMode15ExclusiveGlobalPartyItemsSync(
                 playerId, partyCategory, partyId,

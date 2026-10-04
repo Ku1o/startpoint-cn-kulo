@@ -46,6 +46,7 @@ function setup(t, rejected = [], fantasy = false, count = 3) {
     const lookups = []
     t.mock.method(players, 'getPlayerSync', () => ({ partySlot: 7 }))
     t.mock.method(mode15, 'isMode15Quest', () => fantasy)
+    t.mock.method(mode15, 'isMode15EquipmentAllowedQuest', () => fantasy)
     t.mock.method(mode15, 'getMode15ExclusiveGlobalPartyItemsSync', (playerId, category, slot) => {
         lookups.push({ playerId, category, slot })
         return rejected.includes(playerId) ? [5900001] : []

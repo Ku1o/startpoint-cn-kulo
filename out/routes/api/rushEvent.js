@@ -605,7 +605,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 });
             }
         }
-        if (questData.rushEventId !== mode15_optional_1.MODE15_RUSH_EVENT_ID) {
+        if (!(0, mode15_optional_1.isMode15EquipmentAllowedQuest)(types_2.QuestCategory.RUSH_EVENT, questId)) {
             const partyCategory = (0, rush_party_categories_1.partyCategoryForRushEvent)(questData.rushEventId);
             const restricted = (0, mode15_optional_1.getMode15ExclusiveGlobalPartyItemsSync)(playerId, partyCategory, partyId);
             if (restricted.length > 0) {

@@ -51,8 +51,30 @@ export function deletePlayerActiveQuestSync(playerId: number): void {
     getDb().prepare(`DELETE FROM players_active_quests WHERE player_id = ?`).run(playerId)
 }
 
+export function deletePlayerActiveQuestIfPlayIdSync(
+    playerId: number,
+    expectedPlayId: string,
+): boolean {
+    return getDb().prepare(`
+        DELETE FROM players_active_quests
+        WHERE player_id = ? AND play_id = ?
+    `).run(playerId, expectedPlayId).changes === 1
+}
+
 export function updatePlayerActiveQuestContinueCountSync(playerId: number, continueCount: number): void {
     getDb().prepare(`
         UPDATE players_active_quests SET continue_count = ? WHERE player_id = ?
     `).run(continueCount, playerId)
+}
+
+export function updatePlayerActiveQuestContinueCountIfPlayIdSync(
+    playerId: number,
+    expectedPlayId: string,
+    continueCount: number,
+): boolean {
+    return getDb().prepare(`
+        UPDATE players_active_quests
+        SET continue_count = ?
+        WHERE player_id = ? AND play_id = ?
+    `).run(continueCount, playerId, expectedPlayId).changes === 1
 }

@@ -3,6 +3,7 @@ interface PendingRoomAdmission {
     selectedAt: number
     expiresAt: number
     state: "reserved" | "claimed"
+    source: "direct" | "rescue"
     connectionId?: string
 }
 
@@ -122,12 +123,16 @@ export class RoomAdmissionRegistry {
         occupiedViewerIds: Iterable<number>,
         capacity: number,
         now: number = Date.now(),
+        source: "direct" | "rescue" = "direct",
     ): boolean {
         let roomAdmissions = this.prune(roomNumber, generation, now)
         const existing = roomAdmissions?.get(viewerId)
         if (existing) {
             existing.expiresAt = now + this.ttlMs
-            if (existing.state === "reserved") existing.selectedAt = now
+            if (existing.state === "reserved") {
+                existing.selectedAt = now
+                existing.source = source
+            }
             recordAdmissionEvent("refresh")
             return true
         }
@@ -150,9 +155,19 @@ export class RoomAdmissionRegistry {
             selectedAt: now,
             expiresAt: now + this.ttlMs,
             state: "reserved",
+            source,
         })
         recordAdmissionEvent("reserve")
         return true
+    }
+
+    isRescue(
+        roomNumber: string,
+        generation: number,
+        viewerId: number,
+        now: number = Date.now(),
+    ): boolean {
+        return this.prune(roomNumber, generation, now)?.get(viewerId)?.source === "rescue"
     }
 
     claim(

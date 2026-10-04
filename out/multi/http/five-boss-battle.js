@@ -32,6 +32,7 @@ const settlement_performance_1 = require("../../lib/settlement-performance");
 const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const multi_active_quest_recovery_1 = require("../../lib/multi-active-quest-recovery");
 /** Small structured evidence, without logging tokens, party data or the full request. */
 function logFiveBossRequestFailure(operation, body, playerId, error, acknowledged = false) {
     const code = error === null || error === void 0 ? void 0 : error.code;
@@ -50,7 +51,13 @@ function logFiveBossRequestFailure(operation, body, playerId, error, acknowledge
         return `[${acknowledged ? "FIVE-BOSS-ACK" : "FIVE-BOSS-REJECT"}] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
             category: body.category, quest: body.quest_id, run: run === null || run === void 0 ? void 0 : run.runId, room: run === null || run === void 0 ? void 0 : run.roomNumber,
             status: run === null || run === void 0 ? void 0 : run.status, code, message,
-            proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null,
+            proof: member, active: active ? {
+                play: active.playId,
+                category: active.category,
+                quest: active.questId,
+                multi: active.isMulti,
+                room: active.roomNumber,
+            } : null,
             transport: run ? connection_diagnostic_1.fiveBossConnectionDiagnostics.snapshot(run.runId, playerId) : { available: false, reason: "run_not_found" } })}`;
     });
 }
@@ -67,6 +74,7 @@ const STALE_MEMBER_REQUEST_CODES = new Set([
     "member_not_active",
     "client_play_not_found",
     "active_quest_mismatch",
+    "battle_proof_missing",
 ]);
 function isStaleFiveBossMemberRequestError(error) {
     const code = error === null || error === void 0 ? void 0 : error.code;
@@ -90,10 +98,12 @@ function shouldHandleFiveBossMemberRequest(body, playerId) {
     if ((0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id }))
         return true;
     const memory = singleBattleQuest_1.activeQuests[playerId];
-    if (memory && (0, contract_1.isFiveBossGauntletQuest)(memory.category, memory.questId))
+    if ((memory === null || memory === void 0 ? void 0 : memory.playId) === body.play_id
+        && (0, contract_1.isFiveBossGauntletQuest)(memory.category, memory.questId))
         return true;
     const persistent = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
     return persistent !== null
+        && persistent.playId === body.play_id
         && (0, contract_1.isFiveBossGauntletQuest)(persistent.category, persistent.questId);
 }
 exports.shouldHandleFiveBossMemberRequest = shouldHandleFiveBossMemberRequest;
@@ -187,15 +197,23 @@ function resolveFiveBossRoomNumber(bodyRoomNumber, playerId, playId, boundRun) {
  * 此函数与新局 start 同处一个事务，开新局失败时旧局保持原状。
  */
 function abandonStaleFiveBossRun(body, playerId) {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const stale = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
-    if (!stale
-        || !(0, contract_1.isFiveBossGauntletQuest)(stale.category, stale.questId)
-        || stale.playId === body.play_id) {
+    if (!stale || stale.playId === body.play_id)
         return;
-    }
     try {
         if (!stale.isMulti) {
+            if (!(0, contract_1.isFiveBossGauntletQuest)(stale.category, stale.questId)) {
+                if ((0, quest_active_1.deletePlayerActiveQuestIfPlayIdSync)(playerId, stale.playId)) {
+                    if (((_a = singleBattleQuest_1.activeQuests[playerId]) === null || _a === void 0 ? void 0 : _a.playId) === stale.playId) {
+                        delete singleBattleQuest_1.activeQuests[playerId];
+                    }
+                    console.log(`[MULTI] five-boss start: abandoned stale ordinary solo`
+                        + ` player=${playerId} play=${stale.playId}`
+                        + ` category=${stale.category} quest=${stale.questId}`);
+                }
+                return;
+            }
             if ((0, solo_runtime_1.abandonFiveBossSoloForMultiSync)(playerId, stale.playId)) {
                 clearMatchingMemoryActive(playerId, stale.playId);
                 console.log(`[MULTI] five-boss start: abandoned previous solo player=${playerId} play=${stale.playId}`);
@@ -203,12 +221,29 @@ function abandonStaleFiveBossRun(body, playerId) {
             return;
         }
         const oldRun = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: stale.playId });
-        const oldRoomNumber = (_a = oldRun === null || oldRun === void 0 ? void 0 : oldRun.roomNumber) !== null && _a !== void 0 ? _a : stale.roomNumber;
+        const oldRoomNumber = (_b = oldRun === null || oldRun === void 0 ? void 0 : oldRun.roomNumber) !== null && _b !== void 0 ? _b : stale.roomNumber;
         const oldRoom = oldRoomNumber ? (0, manager_1.getRoom)(oldRoomNumber) : undefined;
-        if (oldRoom && (!oldRun || ((_b = oldRoom.five_boss_runtime) === null || _b === void 0 ? void 0 : _b.runId) === oldRun.runId))
+        if (oldRun
+            && (oldRoom === null || oldRoom === void 0 ? void 0 : oldRoom.lifecycle.phase) === "BATTLE"
+            && ((_c = oldRoom.five_boss_runtime) === null || _c === void 0 ? void 0 : _c.runId) === oldRun.runId
+            && oldRoom.five_boss_runtime.expectedRealPlayerIds.includes(playerId)) {
             return;
-        if (!oldRun || !oldRoomNumber) {
-            console.warn(`[FIVE-BOSS-STALE] missing immutable run player=${playerId} play=${stale.playId}`);
+        }
+        const oldViewerId = oldRoom === null || oldRoom === void 0 ? void 0 : oldRoom.member_viewer_ids.find(viewerId => oldRoom.member_player_ids[viewerId] === playerId);
+        const recovery = (0, multi_active_quest_recovery_1.classifyMultiActiveQuestRecovery)(stale, oldRoom, oldViewerId !== null && oldViewerId !== void 0 ? oldViewerId : 0, oldRoomNumber && oldViewerId
+            ? SessionManager_1.sessionManager.isBattleSeatRetired(oldRoomNumber, oldViewerId)
+            : false);
+        if (recovery.recoverable)
+            return;
+        if (!oldRun || !oldRoomNumber || !(0, contract_1.isFiveBossGauntletQuest)(stale.category, stale.questId)) {
+            if ((0, quest_active_1.deletePlayerActiveQuestIfPlayIdSync)(playerId, stale.playId)) {
+                if (((_d = singleBattleQuest_1.activeQuests[playerId]) === null || _d === void 0 ? void 0 : _d.playId) === stale.playId) {
+                    delete singleBattleQuest_1.activeQuests[playerId];
+                }
+                console.log(`[MULTI] five-boss start: abandoned orphan active quest`
+                    + ` player=${playerId} play=${stale.playId}`
+                    + ` reason=${recovery.reason}`);
+            }
             return;
         }
         // Recover only a missing room field from this exact persisted player/play binding.
@@ -334,9 +369,15 @@ function handleFiveBossStart(body, playerId, reply) {
         var _a;
         const room = (0, manager_1.getRoom)(body.room_number);
         if (!room) {
-            return reply.status(400).send({
-                error: "Bad Request",
-                message: "Room doesn't exist.",
+            console.warn(`[MULTI] five-boss start acknowledged as unavailable:`
+                + ` viewer=${body.viewer_id} room=${body.room_number} reason=room_missing_after_gate`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({
+                    viewer_id: body.viewer_id,
+                    result_code: 4050,
+                }),
+                data: {},
             });
         }
         // 五重决战不消耗、不结算任何强化点:客户端在"降临讨伐"页签建房时会按官方 boss 战
@@ -449,8 +490,32 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
             if (!isFiveBossBattleRequestError(error) || !isStaleFiveBossMemberRequestError(error))
                 throw error;
             // The run settled or aborted while this client was still finishing its
-            // local battle. Answer with a reward-less failed finish instead of a
-            // 400: the CN client renders that error as a fatal H400 and logs out.
+            // local battle, or the authenticated battle proof never completed.
+            // Answer with a reward-less failed finish instead of a 400: the CN
+            // client renders that error as a fatal H400 and logs out.
+            if (error.code === "battle_proof_missing" && boundRun) {
+                try {
+                    const aborted = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                        domain: "multi-settlement",
+                        playerId,
+                        operation: "five_boss_missing_proof_abort",
+                    }, () => (0, battle_runtime_1.abortFiveBossBattle)({
+                        playerId,
+                        clientPlayId: body.play_id,
+                        requestRoomNumber: roomNumber,
+                        requestCategory: contract_1.FIVE_BOSS_GAUNTLET.category,
+                        requestQuestId: contract_1.FIVE_BOSS_GAUNTLET.visibleQuestId,
+                    }));
+                    afterResponse(reply, () => terminalRoomTransition(roomNumber, aborted.runId, aborted.runStatus));
+                }
+                catch (abortError) {
+                    if (!isFiveBossBattleRequestError(abortError)
+                        || !isStaleFiveBossMemberRequestError(abortError)) {
+                        console.error(`[MULTI] five-boss missing-proof cleanup failed:`
+                            + ` player=${playerId} play=${body.play_id}`, abortError);
+                    }
+                }
+            }
             logFiveBossRequestFailure("finish", body, playerId, error, true);
             clearMatchingMemoryActive(playerId, body.play_id);
             if (boundRun && boundRun.status !== "active") {
@@ -496,7 +561,17 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
 exports.handleFiveBossFinish = handleFiveBossFinish;
 function handleFiveBossAbort(body, playerId, reply) {
     return __awaiter(this, void 0, void 0, function* () {
-        const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
+        const boundRun = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
+        const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun);
+        // QuestAbortRealRemote builds a smaller payload than finish on some CN
+        // clients. Recover only omitted route fields from this exact player/play
+        // ledger binding; explicitly supplied wrong values must still be rejected.
+        const requestCategory = body.category == null && boundRun
+            ? contract_1.FIVE_BOSS_GAUNTLET.category
+            : body.category;
+        const requestQuestId = body.quest_id == null && boundRun
+            ? contract_1.FIVE_BOSS_GAUNTLET.visibleQuestId
+            : body.quest_id;
         let result;
         try {
             result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
@@ -505,8 +580,8 @@ function handleFiveBossAbort(body, playerId, reply) {
                 playerId,
                 clientPlayId: body.play_id,
                 requestRoomNumber: roomNumber,
-                requestCategory: body.category,
-                requestQuestId: body.quest_id,
+                requestCategory,
+                requestQuestId,
             }));
         }
         catch (error) {
@@ -524,7 +599,7 @@ function handleFiveBossAbort(body, playerId, reply) {
                 data_headers: headers,
                 data: {
                     user_info: {},
-                    category_id: body.category,
+                    category_id: requestCategory,
                     is_multi: "multi",
                     start_time: headers.servertime,
                     quest_name: "",
@@ -546,7 +621,7 @@ function handleFiveBossAbort(body, playerId, reply) {
             data_headers: headers,
             data: {
                 user_info: {},
-                category_id: body.category,
+                category_id: requestCategory,
                 is_multi: "multi",
                 start_time: headers.servertime,
                 quest_name: "",

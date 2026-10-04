@@ -24,10 +24,7 @@ const persistence_coordinator_1 = require("../persistence-coordinator");
  */
 (0, command_registry_1.registerWriterCommand)(command_names_1.MISSION_SETTLE_CATEGORIES, args => (0, settlement_1.settleMissionCategories)(args.playerId, args.categories, new Date(args.evaluationTimeMs)));
 (0, command_registry_1.registerWriterCommand)(command_names_1.SINGLE_REFRESH_QUEST_PROGRESS, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "single-quest", playerId: args.playerId, operation: "progress_refresh" }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(args.playerId, args.section, args.questId)));
-(0, command_registry_1.registerWriterCommand)(command_names_1.MULTI_CLEANUP_ACTIVE_QUEST, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "multi-settlement", playerId: args.playerId, operation: "active_quest_cleanup" }, () => {
-    (0, quest_active_1.deletePlayerActiveQuestSync)(args.playerId);
-    return null;
-}));
+(0, command_registry_1.registerWriterCommand)(command_names_1.MULTI_CLEANUP_ACTIVE_QUEST, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "multi-settlement", playerId: args.playerId, operation: "active_quest_cleanup" }, () => (0, quest_active_1.deletePlayerActiveQuestIfPlayIdSync)(args.playerId, args.expectedPlayId)));
 (0, command_registry_1.registerWriterCommand)(command_names_1.MULTI_RECORD_BATTLE_FACTS, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "multi-settlement", playerId: args.finishCtx.playerId, operation: "facts_transaction" }, () => {
     const missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(args.finishCtx, new Date(args.evaluationTimeMs));
     if (!args.fixedParty) {

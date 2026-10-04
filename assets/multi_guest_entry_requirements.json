@@ -1,0 +1,66 @@
+{
+  "source": "master/quest/event/hard_multi_event_quest.orderedmap (client 1.4.72 terminal table)",
+  "source_sha256": "0cff010d66830f98a6856f98874852a249fe6373f91ec48d1d09c303efc9e6c3",
+  "rules": {
+    "26:1001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [7, 8],
+      "required_quest_id": 200014004
+    },
+    "26:2001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [7, 8],
+      "required_quest_id": 200017004
+    },
+    "26:3001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [7, 8],
+      "required_quest_id": 200018004
+    },
+    "26:1001001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [2],
+      "required_quest_id": 1061004
+    },
+    "26:1002001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [2],
+      "required_quest_id": 1062004
+    },
+    "26:1003001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [2],
+      "required_quest_id": 1063004
+    },
+    "26:1004001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [2],
+      "required_quest_id": 1064004
+    },
+    "26:1005001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [2],
+      "required_quest_id": 1065004
+    },
+    "26:1006001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [2],
+      "required_quest_id": 1066004
+    },
+    "26:100001001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [7, 8],
+      "required_quest_id": 200064004
+    },
+    "26:100000001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [7, 8],
+      "required_quest_id": 200053004
+    },
+    "26:100002001": {
+      "minimum_player_rank": 120,
+      "required_quest_categories": [7, 8],
+      "required_quest_id": 200077004
+    }
+  }
+}

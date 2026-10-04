@@ -29,6 +29,10 @@
 - [云服运行日志复盘与第二轮优化](./development/RUNTIME-LOG-FOLLOWUP-20261003.md)
 - [PR #15 上线后六小时日志复盘](./development/RUNTIME-LOG2-FOLLOWUP-20261003.md)
 - [五重决战共斗掉线与 H400 修复](./development/FIVE-BOSS-DISCONNECT-H400-FIX-20261004.md)
+- [五重决战 staging 新日志复查与续战修复](./development/FIVE-BOSS-STAGING-LOG-FOLLOWUP-20261004.md)
+- [多人稳定性、五重、幻想与 AI 续战改进总记录](./development/MULTIPLAYER-STABILITY-CONSOLIDATED-20261004.md)
+- [多人房间 H400 与登录任务恢复循环修复](./development/MULTIPLAYER-H400-LOGIN-LOOP-FIX-20261004.md)
+- [幻想装备与魂珠准备页不可出战门禁](./development/FANTASY-EQUIPMENT-PARTY-GATE-20261004.md)
 - [SQLite 单写线程实施记录](./development/SQLITE-WRITER-THREAD-20261003.md)
 
 ## 贡献流程

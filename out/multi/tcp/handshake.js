@@ -31,6 +31,7 @@ const player_context_1 = require("../player-context");
 const party_snapshot_1 = require("../party-snapshot");
 Object.defineProperty(exports, "buildRealParty", { enumerable: true, get: function () { return party_snapshot_1.buildRealParty; } });
 const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
+const guest_eligibility_1 = require("../guest-eligibility");
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
@@ -168,6 +169,11 @@ function handleHandshake(socket, data) {
             const roomPhase = embedded_1.embeddedMultiCoordinator.ensureLifecycle(currentRoom).phase;
             const restoreBlocked = SessionManager_1.sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId));
             const recordedPlayerId = (0, manager_1.getRoomMemberPlayerId)(currentRoom, Number(viewerId));
+            const guestAdmissionIsRescue = !isReturningMember
+                && admission_1.roomAdmissionRegistry.isRescue(roomId, currentRoom.lobby_generation, Number(viewerId));
+            const guestEligibility = !isReturningMember
+                ? (0, guest_eligibility_1.canJoinMultiGuestQuestSync)(ctx.playerId, currentRoom.category, currentRoom.quest_id)
+                : null;
             const structuralReasons = [
                 categoryMismatch ? "category_mismatch" : "",
                 questMismatch ? "quest_mismatch" : "",
@@ -175,6 +181,9 @@ function handleHandshake(socket, data) {
                 !viewerAlreadyConnected && liveClients.length >= 3 ? "full" : "",
                 !isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE") ? "battle_started" : "",
                 !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
+                (guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.allowed) === false
+                    ? `${guestAdmissionIsRescue ? "rescue" : "guest"}_${guestEligibility.reason}`
+                    : "",
                 restoreBlocked ? "restore_blocked" : "",
             ].filter(Boolean);
             if (structuralReasons.length > 0) {

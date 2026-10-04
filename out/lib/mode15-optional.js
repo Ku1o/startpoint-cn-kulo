@@ -4,14 +4,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c, _d, _e;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.shouldUnlockMode15MultiplayerPlayedParty = exports.shouldUnlockMode15PlayedParties = exports.getMode15ExclusiveGlobalPartyItemsSync = exports.getMode15ExclusivePartyItemsSync = exports.settleMode15BattleSync = exports.resetMode15RunSync = exports.cleanupLegacyMode15RescueProgressSync = exports.canJoinMode15RescueSync = exports.canStartMode15QuestSync = exports.getExpectedMode15StageSync = exports.getMode15ExclusiveItemIds = exports.isMode15Quest = exports.isMode15RuntimeLoaded = exports.MODE15_PRACTICE_QUEST_ID = exports.MODE15_TOKEN_ID = exports.MODE15_LEGACY_HARD_MULTI_EVENT_ID = exports.MODE15_MULTI_EVENT_ID = exports.MODE15_RUSH_EVENT_ID = void 0;
+exports.shouldUnlockMode15MultiplayerPlayedParty = exports.shouldUnlockMode15PlayedParties = exports.getMode15ExclusiveGlobalPartyItemsSync = exports.getMode15ExclusivePartyItemsSync = exports.settleMode15BattleSync = exports.resetMode15RunSync = exports.cleanupLegacyMode15RescueProgressSync = exports.canJoinMode15RescueSync = exports.canStartMode15QuestSync = exports.getExpectedMode15StageSync = exports.getMode15ExclusiveItemIds = exports.isMode15EquipmentAllowedQuest = exports.isMode15Quest = exports.isMode15RuntimeLoaded = exports.MODE15_PRACTICE_QUEST_ID = exports.MODE15_TOKEN_ID = exports.MODE15_LEGACY_HARD_MULTI_EVENT_ID = exports.MODE15_MULTI_EVENT_ID = exports.MODE15_RUSH_EVENT_ID = void 0;
 const path_1 = __importDefault(require("path"));
+const types_1 = require("./types");
 const DEFAULTS = Object.freeze({
     rushEventId: 700098,
     multiEventId: 300098,
     legacyHardMultiEventId: 100098,
     tokenId: 2370098,
-    practiceQuestId: 700098013,
+    practiceQuestId: 700098016,
 });
 function isMissingRequestedModule(error, requested) {
     var _a;
@@ -57,6 +58,14 @@ function isMode15Quest(category, questId) {
     return (_b = (_a = runtime === null || runtime === void 0 ? void 0 : runtime.isMode15Quest) === null || _a === void 0 ? void 0 : _a.call(runtime, category, questId)) !== null && _b !== void 0 ? _b : false;
 }
 exports.isMode15Quest = isMode15Quest;
+function isMode15EquipmentAllowedQuest(category, questId) {
+    var _a, _b;
+    return (_b = (_a = runtime === null || runtime === void 0 ? void 0 : runtime.isMode15EquipmentAllowedQuest) === null || _a === void 0 ? void 0 : _a.call(runtime, category, questId)) !== null && _b !== void 0 ? _b : (isMode15Quest(category, questId)
+        || (Number(category) === Number(types_1.QuestCategory.RUSH_EVENT)
+            && Number(questId) >= exports.MODE15_RUSH_EVENT_ID * 1000 + 1
+            && Number(questId) <= exports.MODE15_PRACTICE_QUEST_ID));
+}
+exports.isMode15EquipmentAllowedQuest = isMode15EquipmentAllowedQuest;
 function getMode15ExclusiveItemIds(itemIds) {
     var _a, _b;
     return (_b = (_a = runtime === null || runtime === void 0 ? void 0 : runtime.getMode15ExclusiveItemIds) === null || _a === void 0 ? void 0 : _a.call(runtime, itemIds)) !== null && _b !== void 0 ? _b : [];

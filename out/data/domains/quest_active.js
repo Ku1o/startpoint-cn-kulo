@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlayerActiveQuestContinueCountSync = exports.deletePlayerActiveQuestSync = exports.insertPlayerActiveQuestSync = exports.getPlayerActiveQuestSync = void 0;
+exports.updatePlayerActiveQuestContinueCountIfPlayIdSync = exports.updatePlayerActiveQuestContinueCountSync = exports.deletePlayerActiveQuestIfPlayIdSync = exports.deletePlayerActiveQuestSync = exports.insertPlayerActiveQuestSync = exports.getPlayerActiveQuestSync = void 0;
 const db_1 = require("../db");
 function buildActiveQuest(raw) {
     var _a;
@@ -45,9 +45,24 @@ function deletePlayerActiveQuestSync(playerId) {
     (0, db_1.getDb)().prepare(`DELETE FROM players_active_quests WHERE player_id = ?`).run(playerId);
 }
 exports.deletePlayerActiveQuestSync = deletePlayerActiveQuestSync;
+function deletePlayerActiveQuestIfPlayIdSync(playerId, expectedPlayId) {
+    return (0, db_1.getDb)().prepare(`
+        DELETE FROM players_active_quests
+        WHERE player_id = ? AND play_id = ?
+    `).run(playerId, expectedPlayId).changes === 1;
+}
+exports.deletePlayerActiveQuestIfPlayIdSync = deletePlayerActiveQuestIfPlayIdSync;
 function updatePlayerActiveQuestContinueCountSync(playerId, continueCount) {
     (0, db_1.getDb)().prepare(`
         UPDATE players_active_quests SET continue_count = ? WHERE player_id = ?
     `).run(continueCount, playerId);
 }
 exports.updatePlayerActiveQuestContinueCountSync = updatePlayerActiveQuestContinueCountSync;
+function updatePlayerActiveQuestContinueCountIfPlayIdSync(playerId, expectedPlayId, continueCount) {
+    return (0, db_1.getDb)().prepare(`
+        UPDATE players_active_quests
+        SET continue_count = ?
+        WHERE player_id = ? AND play_id = ?
+    `).run(continueCount, playerId, expectedPlayId).changes === 1;
+}
+exports.updatePlayerActiveQuestContinueCountIfPlayIdSync = updatePlayerActiveQuestContinueCountIfPlayIdSync;

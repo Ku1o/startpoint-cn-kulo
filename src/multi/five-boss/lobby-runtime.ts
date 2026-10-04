@@ -76,7 +76,6 @@ export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
 export function isFrozenFiveBossBattleClient(room: MultiRoom, client: SessionClient): boolean {
     const identity = room.five_boss_runtime?.battleIdentityByViewerId[String(client.viewerId)]
     return !!identity && identity.playerId === client.playerId
-        && identity.remoteAddress === client.socket.remoteAddress
         && identity.connectionId === client.connectionId && !client.superseded
 }
 
