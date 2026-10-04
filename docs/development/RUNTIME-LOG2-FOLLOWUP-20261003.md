@@ -1,8 +1,12 @@
 # PR #15 上线后六小时日志复盘
 
-日期：2026-10-03
+日期：2026-10-03（修订：2026-10-04）
 
 数据来源：`Documents/日志2` 中 PR #15 部署后的 stdout/stderr。采样窗口约 366 分钟。原始日志包含客户端上报信息，不纳入仓库；本文只保留聚合指标。
+
+> **修订说明（2026-10-04）**：本文原“阶段 A：先启用现有 writer 能力”的建议已被生产 A/B 否定。当前结论是保持
+> `CN_WRITER_THREAD=0` 止损，先完成唯一写入者与事务边界改造；修正依据见“2026-10-04 生产 A/B 修正”，修订后的
+> 推进顺序见“修订后的推进顺序”。
 
 ## 总结
 
@@ -34,6 +38,33 @@ RAID 类别 23 的改善尤其明显：
 - `raid.degree`：14088 次，平均 0.28 ms，最大 212.9 ms。
 
 `raid.finish` 按时间三等分后平均约为 33.2 / 32.4 / 31.9 ms，没有随六小时运行继续恶化。RAID 已不是增长型泄漏，但其全服流水写入仍是稳定 CPU 成本。
+
+## 2026-10-04 生产 A/B 修正
+
+对 `dd249203` 代码在相同生产负载下分别关闭和开启 `CN_WRITER_THREAD`，结果出现明确回退：
+
+| 指标 | 关闭 writer | 开启 writer | 变化 |
+|---|---:|---:|---:|
+| 单位请求 CPU | 11.09 ms | 20.12 ms | +81.4% |
+| 主线程 ELU | 43.0% | 69.5% | +26.5 个百分点 |
+| 事件循环 P99 | 82.8 ms | 686.8 ms | +729% |
+| RAID `mode_rewards` 平均 | 37.4 ms | 499.3 ms | +1235% |
+| `SQLITE_BUSY` HTTP 500 | 0 | 4 | 新增错误 |
+
+开启 writer 的窗口请求量更低，CPU 和延迟反而更高。原“阶段 A：先启用现有 writer 能力”的结论因此废止：
+现有 writer 虽然使用了第二个核心，但把同一份事务工作放到了错误的所有权和锁边界内执行。
+
+代码层面的根因：
+
+- `sqlite-writer-worker` 在 `BEGIN IMMEDIATE` 之后才运行整条领域命令，SELECT、奖励计算、任务结算、响应组装和
+  `structuredClone` 都在写锁内；`COMMIT` 只在整个命令结束后执行，因此“短事务”实际持锁时间很长。
+- 主线程仍有大量请求内同步写事务。`/load` 的深渊塔刷新会在每次加载时开启 `BEGIN IMMEDIATE`，即使本次没有任何
+  重置；writer 与主连接同时竞争 SQLite 唯一写锁，主连接 `busy_timeout=1000`，超时即可能出现 `SQLITE_BUSY` 500。
+- 单人 finish 被拆成 `single.refresh_quest_progress` 和 `single.settle_finish` 两条命令，两次跨线程传输、两个事务
+  边界，第二条还会把完整响应对象结构化克隆回主线程。
+- 组提交把重型 finish/RAID 命令和短命令放进同一批次，重命令扩大整批的锁持有时间和失败范围。
+
+修复方向不是增加线程，而是唯一写入者、缩短写锁范围和合并完整命令；详细顺序见下文“修订后的推进顺序”。
 
 ## 本轮已实施的调整
 
@@ -133,7 +164,8 @@ sqliteWriter.completed=0
 - 多人战斗事实与角色经验；
 - 多人 active quest 清理。
 
-但由于 `CN_WRITER_THREAD` 未开启，这些命令仍回退到主线程执行。
+但由于 `CN_WRITER_THREAD` 未开启，这些命令仍回退到主线程执行。2026-10-04 修正后，该状态继续作为止损基线，
+直到唯一写入者与事务边界改造完成。
 
 日志 2 的相关阶段累计量：
 
@@ -147,20 +179,24 @@ sqliteWriter.completed=0
 
 这些是墙钟阶段数据，包含排队与执行，不能直接相加作为纯 CPU，但足以说明 writer-thread 有较大的可迁移覆盖面。
 
-本地 writer A/B：
+本地 writer A/B（仅命令吞吐基准）：
 
 | 模式 | 吞吐 | loop p99 |
 |---|---:|---:|
 | writer-thread | 10411-10911/s | 5.7-6.0 ms |
 | 进程内 | 4074-4617/s | 148-173 ms |
 
-因此下一轮最高优先级不是继续修改 TCP，而是显式启用：
+该基准只测 writer 命令在无主线程旁路写、无 RAID 结算和真实混合负载下的吞吐，不能外推到生产。生产 A/B 见
+“2026-10-04 生产 A/B 修正”，结论是开启 writer 会造成 CPU、ELU、loop P99 和 RAID 结算明显回退。
+
+因此当前最高优先级不是开启 writer，而是保持：
 
 ```env
-CN_WRITER_THREAD=1
+CN_WRITER_THREAD=0
 ```
 
-保持 `SQLITE_WRITER_FALLBACK=0`，出现错误时明确失败，不静默退回主线程。
+并先完成唯一写入者与事务边界改造。`SQLITE_WRITER_FALLBACK=0` 留待重新启用 writer 时继续使用，避免故障时静默
+退回主线程。
 
 ### 单人/多人 finish 仍有极端长尾
 
@@ -302,9 +338,12 @@ RSS 上升但 JS heap 下降，不符合普通 JavaScript 堆泄漏形态。可�
 3. 只有跨线程复制成本显著低于计算成本的完整任务才进入计算 worker；
 4. 以主线程 ELU、事件循环 p99、断线和单位请求 CPU共同判断收益。
 
-### 阶段 A：先启用现有 writer 能力
+### 阶段 A（已废止）：先启用现有 writer 能力
 
-建议生产环境先设置：
+> **本节结论已被 2026-10-04 生产 A/B 否定，不再执行。** 当前保持 `CN_WRITER_THREAD=0`；下面的线程预算、
+> 开关核对项和回退方式保留为历史分析与将来重新启用时的检查清单。修订后的顺序见“修订后的推进顺序”。
+
+原文建议（已废止）：
 
 ```env
 CN_MULTICORE=1
@@ -317,7 +356,7 @@ SQLITE_DIAGNOSTICS=false
 CN_LOAD_HTTP_COMPRESSION=off
 ```
 
-writer 参数先使用已验证的默认值：
+writer 参数（重新启用时）使用已验证的默认值：
 
 ```env
 SQLITE_GROUP_COMMIT_WINDOW_MS=2
@@ -373,7 +412,16 @@ CN_WRITER_THREAD=0
 重启后同一注册命令回到进程内执行，不涉及 schema、存档格式或客户端协议回滚。`SQLITE_WRITER_FALLBACK` 继续保持
 `0`，避免 worker 故障时静默把重事务重新压回主线程。
 
-### 阶段 B：扩大完整业务命令覆盖
+### 阶段 B（修订后为第一步）：统一唯一写入者并扩大完整业务命令覆盖
+
+- 盘点并迁移请求热路径中的主线程同步写事务。当前约有 201 处 `runPersistenceTransactionSync`，`/load` 的深渊塔
+  刷新即使无重置也会开启 `BEGIN IMMEDIATE`，是最典型的旁路写；`abyss-time-revision`、`boxGacha`、`character`、
+  `campaign` 等也在请求路径内。
+- 把 `sqlite-persistence-worker` 的 player/news 命令并入 writer registry，最终只保留一个业务写连接；checkpoint
+  worker 只负责 WAL 维护。
+- 增加运行时守卫：writer 开启时，如果请求上下文仍启动主线程同步写事务，记录调用域并告警；迁移完成后再评估将
+  主连接置为逻辑只读。
+- 不要增加第二个 SQLite writer；SQLite 同一时刻仍只有一个写者。
 
 当前 writer 已覆盖：
 
@@ -553,20 +601,49 @@ worker-thread 阶段不需要迁移 MySQL。SQLite 进程内调用和单写线�
 
 数据库如果仍与 Node 部署在同一台 4 核服务器上，也会竞争相同 CPU；换库本身不会降低 MessagePack、任务计算或房间协议的 CPU。
 
+### 修订后的推进顺序（2026-10-04）
+
+1. 立即止损：`CN_WRITER_THREAD=0`、`CN_RESPONSE_WORKERS=0`、`CN_LOAD_HTTP_COMPRESSION=off`，保持
+   `SQLITE_CHECKPOINT_WORKER=1` 和 `SQLITE_WRITER_FALLBACK=0`，先记录关闭 writer 的高峰基线。
+2. 建立唯一写入者：完成上节盘点与迁移，主线程热路径不再直接执行同步写事务。
+3. 合并单人 finish：把 `single.refresh_quest_progress` 与 `single.settle_finish` 合并为一个端到端命令，在同一命令
+   内校验进度/revision、刷新深渊、发放奖励、更新任务/角色/active quest、写幂等 receipt 并提交；响应组装移到
+   COMMIT 之后，只返回紧凑结算结果。
+4. 缩短写锁：把命令拆成 prepare（读取、纯计算、构建紧凑写入计划）、commit（`BEGIN IMMEDIATE`、重校验关键版本、
+   最小范围读改写、COMMIT）、finalize（afterCommit 副作用、响应组装、structured clone）。需要原子性的权威读取
+   必须留在 commit 内或提交前重校验。
+5. 按重量区分 batch：short（新闻回执、简单标记、单条计数）允许组提交；heavy（单人 finish、多人完整结算、
+   RAID 全局更新）独占一个 batch。保持全局 FIFO/同玩家顺序，不能让 heavy 抢占导致命令乱序。参数调整放在架构
+   修复之后，可先试 `SQLITE_GROUP_COMMIT_WINDOW_MS=1`、`SQLITE_GROUP_COMMIT_MAX=8`。
+6. 深渊刷新：现有 `best_time_revision` 行级预检已经存在，重点是把无需写入的 revision 检查移出 immediate 事务；
+   如需进一步减少重复检查，再引入每玩家/每活动/revision 标记。候补索引
+   `(player_id, section, quest_id, best_time_revision)` 必须先用生产数据库副本执行 `EXPLAIN QUERY PLAN` 和基准，
+   并计入高频写入表的写放大后再决定。
+7. RAID 全局写入：评估独立的 `raid.record_clear` 短命令（`INSERT OR IGNORE` 幂等 ledger + 增量更新 global_state
+   + 读取当前计数）。当前 RAID 清算、degree 发奖和玩家奖励在同一事务内，拆出前必须明确两段提交的失败窗口、
+   重试/补偿顺序和 degree 计算依赖；先完成第 4 步并测量，仍是热点再拆。
+8. 第四核心：writer 架构稳定前保持 `CN_RESPONSE_WORKERS=0`；`/load` 重新成为热点时只评估端到端只读 worker；
+   实时 Hub 拆分属于更后续的独立阶段。
+
 ### 分阶段验收门槛
 
 每个阶段只改变一个主要变量，至少覆盖一个高峰 30-60 分钟窗口，并与相邻同类窗口比较。
 
 | 指标 | 通过标准 |
 |---|---|
-| 正确性 | 现有多核、多人连接、finish 幂等、任务和抽卡回归全部通过 |
+| 请求热路径主线程同步写 | 0（启动、迁移、管理后台等明确例外） |
+| `SQLITE_BUSY` | 0 |
+| HTTP 500 | 0 |
 | writer 健康 | failed/timeouts/restarts/queueFull 为 0，submitted 与 completed 差值可解释 |
-| 主线程 | ELU、loop p99/max 长尾或 heartbeat timeout 至少一项稳定改善 |
-| CPU | 单位请求 CPU 不出现不可解释的明显回退 |
-| 延迟 | 目标事务 p95/p99 改善，不能只看平均值 |
+| CPU/请求 | 不高于关闭 writer 基线的 110% |
+| 主线程 ELU | 至少下降 20% |
+| 事件循环 P99 | 至少下降 20% |
+| 单人/多人 finish P95/P99 | 不高于关闭 writer 基线 |
+| 幂等 | 重试不重复发奖 |
+| 关机 | drain 后无未完成命令 |
 | 数据一致性 | 奖励、任务、active quest 和缓存不存在部分提交 |
 | 内存 | RSS/worker heap 有界，队列和 retained bytes 不持续增长 |
-| 可回退 | 关闭单一环境变量并重启即可回到上一阶段 |
+| 可回退 | 关闭 `CN_WRITER_THREAD` 并重启即可回到上一阶段 |
 
 代码阶段的可复现验证至少包括：
 
@@ -595,22 +672,28 @@ node tools/sqlite-writer-latency-benchmark.cjs --commands=800 --concurrency=32 -
 
 每项单独重启、单独采样，避免多变量同时变化：
 
-1. `SQLITE_DIAGNOSTICS=false`
-2. `CN_LOAD_HTTP_COMPRESSION=off`
-3. `CN_WRITER_THREAD=1`
-4. 保持其他 writer 参数为 `SQLITE-WRITER-THREAD-20261003.md` 的建议值
-5. 高峰运行 30-60 分钟后比较：
-   - `loopP99/loopMax`
-   - 单位请求 CPU
-   - `sqliteWriter.submitted/completed/failed/timeouts/restarts`
-   - `single.transaction`
-   - `multi.mission/facts_transaction/active_quest_cleanup`
-   - `multi_battle_quest/finish` p95/p99
-   - `heartbeat_timeout/loading_timeout`
+1. 保持 `CN_WRITER_THREAD=0`，记录关闭 writer 时的单位请求 CPU、ELU、loop P99、finish P95/P99 和 BUSY/500 基线；
+2. 完成唯一写入者迁移与运行时守卫；
+3. 合并单人 finish 命令；
+4. 实施 prepare/commit/finalize 并缩短写锁；
+5. 分级 batch；
+6. 深渊刷新快路径/标记；
+7. RAID 全局短事务（仅在仍有证据时）；
+8. 以上完成后，单独把 `CN_WRITER_THREAD=1` 作为一次生产 A/B；满足硬门槛后再评估 response worker/第四核心。
+
+高峰运行 30-60 分钟后比较：
+
+- `loopP99/loopMax`
+- 单位请求 CPU
+- `sqliteWriter.submitted/completed/failed/timeouts/restarts`
+- `single.transaction`
+- `multi.mission/facts_transaction/active_quest_cleanup`
+- `multi_battle_quest/finish` p95/p99
+- `heartbeat_timeout/loading_timeout`
 
 ## 后续代码优先级
 
-若启用 writer-thread 后多人 finish 仍有明显长尾，再按顺序迁移：
+在唯一写入者完成、重新启用 writer 前，按顺序迁移剩余的完整事务：
 
 1. `multi.reward_transaction`
 2. 多人结算剩余读改写事务
