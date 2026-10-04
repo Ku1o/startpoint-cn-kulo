@@ -12,7 +12,7 @@
 
 # iOS IPA 工作入口
 
-最新 iOS 登记（2026-09-25）：作者机制 1.4.1047 回槽性能修复公网 unsigned IPA 为 `accepted_offline`，验收范围为离线检查，未新增真机测试。保留 SET C8601、幻想连战返回、EX 和独立编队累计功能，完整 ABC 与 AOT 方法表均为 101,387 项，准入号 `ios-184-author-1043-20260924`。精确成品以 `ios-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-1047-20260925.md`。下文旧日期内容仅作历史方法保留说明。
+最新 iOS 登记（2026-10-04）：救援铃铛 iOS 缓存清理与超级+ 内置排版 unsigned IPA 为 `accepted_offline`，验收范围为离线检查，未新增真机测试。在用户已验收的作者装备 F1009 载体上追加 `cn.mod::AuthorState` 600 秒启动缓存清理（allowlist `File.cacheDirectory/app` 与 `.AIR`，`GlobalLoading/applyLoad` 原生入口包装器）并替换内置超级+紧凑排版 payload；保留 SET C8601、幻想连战返回、EX 和独立编队等全部累计功能，完整 ABC 与 AOT 方法表均为 101,463 项，准入号 `ios-184-author-1047-public-20261001` 沿用不变。精确成品以 `ios-accepted.json` 为准，范围见 `ACCEPTANCE-OROCHI-RESCUE-BELL-IOS-20261004.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 iOS IPA/SWF/AOT 工作前，先读 `ios-accepted.json` 和其中指定的方法文档，运行 `python client-patch/verify_ios_baseline.py` 回读实际 IPA、主可执行文件、主 SWF 的 SHA-256 和包身份。输入缺失或不匹配时不得改用旧包、诊断包或按文件名推测最新包。

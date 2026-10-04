@@ -58,6 +58,7 @@
       "endpoint": "http://<LAN_HOST>:8001",
       "local_build_report": "F:\\codex\\outputs\\orochi-rescue-bell-client-20261002-c8016-cache-10m\\package-report.json",
       "local_build_checks": {
+        "method_bodies_checked": 96706,
         "c8016_helper_swf_only_changed_at_tag": 359,
         "c8016_helper_swf_matches": true,
         "periodic_cache_period_seconds": 600,
