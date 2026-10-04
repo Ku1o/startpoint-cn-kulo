@@ -12,13 +12,18 @@ const contract = JSON.parse(fs.readFileSync(
 ))
 
 function python(script) {
-    const result = spawnSync('python3', ['-c', script], {
-        cwd: root,
-        encoding: 'utf8',
-        env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' },
-    })
-    assert.equal(result.status, 0, result.stderr)
-    return JSON.parse(result.stdout)
+    const candidates = [process.env.PYTHON, 'python3', 'python'].filter(Boolean)
+    for (const command of candidates) {
+        const result = spawnSync(command, ['-c', script], {
+            cwd: root,
+            encoding: 'utf8',
+            env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' },
+        })
+        if (result.error && result.error.code === 'ENOENT') continue
+        assert.equal(result.status, 0, result.stderr)
+        return JSON.parse(result.stdout)
+    }
+    throw new Error('no Python interpreter found (tried PYTHON, python3, python)')
 }
 
 test('client gate contract covers all Fantasy quests and only exclusive item ids', () => {
