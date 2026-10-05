@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.130",
+  "cdn_version": "1.4.131",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -24531,6 +24531,54 @@
       "created_at": "2026-10-02",
       "audit": {
         "directory": "assets/asset-patch/audit/five-boss-reward-preview-1.4.130",
+        "report": "report.json"
+      }
+    },
+    {
+      "id": "empress-pixelart-pivot-fix-1.4.131",
+      "type": "patch",
+      "name": "女帝歼灭者像素小人分裂修复",
+      "description": "把女帝歼灭者（epuration_empress_playable）像素小人换回已修好锚点的版本，修复多图层镜像帧左右各一半的分裂。",
+      "version": "1.4.131",
+      "depends_on": "1.4.130",
+      "enabled": true,
+      "archive": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix.zip",
+      "archive_size": 146021,
+      "chain": [
+        "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix.zip",
+          "size": 146021,
+          "sha256": "55a30454a0c1d78cb3178bc5440d2d63e886e4cc300bb9aa940a40328e8af353",
+          "members": 7,
+          "files": [
+            "production/upload/3a/88ac92c4c19100308f4de8316ce3643575c7b8",
+            "production/upload/88/17ca5ba735ea49d1cb9f131f8c300785db2309",
+            "production/upload/ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+            "production/upload/b0/c98779d8c575cb9bc0bba0db8f4297c63d51d3",
+            "production/upload/c6/111f3fab99f98b9a5e5d0f437e7e04a2854696",
+            "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+            "production/upload/ff/a71d173d805d94f3f0ac77f170378aecd0e235"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/3a/88ac92c4c19100308f4de8316ce3643575c7b8",
+        "production/upload/88/17ca5ba735ea49d1cb9f131f8c300785db2309",
+        "production/upload/ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+        "production/upload/b0/c98779d8c575cb9bc0bba0db8f4297c63d51d3",
+        "production/upload/c6/111f3fab99f98b9a5e5d0f437e7e04a2854696",
+        "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+        "production/upload/ff/a71d173d805d94f3f0ac77f170378aecd0e235"
+      ],
+      "changes": [
+        "像素小人帧、图集与特殊形态 6 个文件取自旧链最终状态（1.4.696 锚点修复 + 1.4.790 图集重打包），timeline 不变。"
+      ],
+      "created_at": "2026-10-05",
+      "audit": {
+        "directory": "assets/asset-patch/audit/empress-pixelart-pivot-fix-1.4.131",
         "report": "report.json"
       }
     }
