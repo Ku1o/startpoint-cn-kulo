@@ -1,9 +1,9 @@
 {
-  "status": "prepared_local_resource_update",
+  "status": "candidate",
   "base_version": "1.4.130",
-  "target_version": "1.4.131",
+  "target_version": "<由所有者分配>",
   "archive": {
-    "name": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix.zip",
+    "name": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix-candidate.zip",
     "size": 146021,
     "sha256": "55a30454a0c1d78cb3178bc5440d2d63e886e4cc300bb9aa940a40328e8af353",
     "members": 7,

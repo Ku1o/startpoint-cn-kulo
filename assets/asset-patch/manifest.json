@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.131",
+  "cdn_version": "1.4.130",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -24535,21 +24535,18 @@
       }
     },
     {
-      "id": "empress-pixelart-pivot-fix-1.4.131",
+      "id": "empress-pixelart-pivot-fix-candidate-20261005",
       "type": "patch",
       "name": "女帝歼灭者像素小人分裂修复",
-      "description": "把女帝歼灭者（epuration_empress_playable）像素小人换回已修好锚点的版本，修复多图层镜像帧左右各一半的分裂。",
-      "version": "1.4.131",
+      "description": "把女帝歼灭者（179985 epuration_empress_playable）像素小人换回旧链 1.4.696 已修好锚点的版本，修复多图层镜像帧左右各一半的分裂。仅客户端资源，不改 SWF。",
+      "version": "<由所有者分配>",
       "depends_on": "1.4.130",
-      "enabled": true,
-      "archive": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix.zip",
-      "archive_size": 146021,
-      "chain": [
-        "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix.zip"
-      ],
+      "enabled": false,
+      "candidate_only": true,
+      "archive": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix-candidate.zip",
       "archive_integrity": [
         {
-          "name": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix.zip",
+          "name": "pinball-1.4.130-1.4.131-1-empress-pixelart-pivot-fix-candidate.zip",
           "size": 146021,
           "sha256": "55a30454a0c1d78cb3178bc5440d2d63e886e4cc300bb9aa940a40328e8af353",
           "members": 7,
@@ -24561,7 +24558,16 @@
             "production/upload/c6/111f3fab99f98b9a5e5d0f437e7e04a2854696",
             "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
             "production/upload/ff/a71d173d805d94f3f0ac77f170378aecd0e235"
-          ]
+          ],
+          "member_sha256": {
+            "production/upload/3a/88ac92c4c19100308f4de8316ce3643575c7b8": "a193438e0ce1f5998154959ced3a2792a21ce0e3a46e07cb394707f56caa4bd8",
+            "production/upload/88/17ca5ba735ea49d1cb9f131f8c300785db2309": "988b3232f11f4a7eb1ecd6240a82e9c06546ed47584a8235cd6edf8dd0163e6c",
+            "production/upload/ab/2c7aa166fcb7757f9eebefe7983406062ef710": "dd8ee3a45ccdf1ca232dbda539845b4e83bc311cd4796ad9800bb31f8f718f5e",
+            "production/upload/b0/c98779d8c575cb9bc0bba0db8f4297c63d51d3": "d4ba5683c8bfe28ba34706e5b7266aa3862cdd79a46f259c39eb9efa5a27efd7",
+            "production/upload/c6/111f3fab99f98b9a5e5d0f437e7e04a2854696": "e220a3f8ae4fec96272033d7642764c7b0a12f5e7636db9cde42ea33e78c62dd",
+            "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a": "2212450f7940dd4d2c1e1870731e5ceef9c32ef1d043a81dc962a136fcd063fa",
+            "production/upload/ff/a71d173d805d94f3f0ac77f170378aecd0e235": "758719a4a6794e23bae7f120383a659bda67f86d06ecf8e274feb22578d08403"
+          }
         }
       ],
       "files": [
@@ -24573,14 +24579,72 @@
         "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
         "production/upload/ff/a71d173d805d94f3f0ac77f170378aecd0e235"
       ],
-      "changes": [
-        "像素小人帧、图集与特殊形态 6 个文件取自旧链最终状态（1.4.696 锚点修复 + 1.4.790 图集重打包），timeline 不变。"
-      ],
       "created_at": "2026-10-05",
       "audit": {
-        "directory": "assets/asset-patch/audit/empress-pixelart-pivot-fix-1.4.131",
+        "directory": "assets/asset-patch/audit/empress-pixelart-pivot-fix-candidate-20261005",
         "report": "report.json"
-      }
+      },
+      "candidate": {
+        "baseline": {
+          "repo_commit": "3995738ece25d3ea40ef27e4ae4eef191efb7fd5",
+          "manifest_cdn_version": "1.4.130",
+          "depends_on_archive": "pinball-1.4.129-1.4.130-1-five-boss-reward-preview.zip"
+        },
+        "contents": [
+          {
+            "path": "production/upload/3a/88ac92c4c19100308f4de8316ce3643575c7b8",
+            "logical_path": "(special-form pixel file, fixed in old 1.4.696)",
+            "kind": "animation"
+          },
+          {
+            "path": "production/upload/88/17ca5ba735ea49d1cb9f131f8c300785db2309",
+            "logical_path": "(special-form pixel file, fixed in old 1.4.696)",
+            "kind": "animation"
+          },
+          {
+            "path": "production/upload/ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+            "logical_path": "character/epuration_empress_playable/pixelart/sprite_sheet.png",
+            "kind": "image"
+          },
+          {
+            "path": "production/upload/b0/c98779d8c575cb9bc0bba0db8f4297c63d51d3",
+            "logical_path": "character/epuration_empress_playable/pixelart/pixelart.frame.amf3.deflate",
+            "kind": "animation"
+          },
+          {
+            "path": "production/upload/c6/111f3fab99f98b9a5e5d0f437e7e04a2854696",
+            "logical_path": "character/epuration_empress_playable/pixelart/pixelart.timeline.amf3.deflate",
+            "kind": "animation"
+          },
+          {
+            "path": "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+            "logical_path": "character/epuration_empress_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+            "kind": "animation"
+          },
+          {
+            "path": "production/upload/ff/a71d173d805d94f3f0ac77f170378aecd0e235",
+            "logical_path": "(special-form pixel file, fixed in old 1.4.696)",
+            "kind": "animation"
+          }
+        ],
+        "changed_tables_and_resources": [
+          "character/epuration_empress_playable/pixelart：frame、atlas、sprite_sheet.png 换成旧链修复版；3 个特殊形态像素文件同步换成 1.4.696 版；timeline 与现链相同。所有文件原样取自旧仓库链（帧与特殊形态来自 1.4.696，图集与 PNG 来自 1.4.790），未重新渲染。"
+        ],
+        "server_impact": "无",
+        "client_impact": "仅客户端资源，不改 SWF",
+        "save_impact": "无，不新增 ID、不动存档",
+        "test_scope": [
+          "本地 8001 以 1.4.131 启用该包，HTTP 200、146021 字节",
+          "scripts/check-hygiene.sh 退出码 0"
+        ],
+        "known_limitations": [
+          "尚未在真机确认分裂消失"
+        ],
+        "rollback": "删除候选 ZIP 与本条目即可；若已被采纳进主链，将对应条目 enabled 改为 false 并发下一版覆盖。"
+      },
+      "changes": [
+        "女帝歼灭者像素小人 7 个文件换回旧链 1.4.696 锚点修复版（图集取 1.4.790 重打包版）。"
+      ]
     }
   ],
   "generated_for": "official active chain"
