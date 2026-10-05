@@ -1034,6 +1034,17 @@ Client B → Broadcast(frameCmd) → Server → relayToBattleRoom → BattleServ
 客户端 master 证明的规则时默认放行，避免服务端凭推荐等级误封。规则数据见
 `assets/multi_guest_entry_requirements.json`。
 
+装备限制不在入房前拦截。非幻想房间在手动/自动准备、房主自动准备及最终开战前，
+检查当前 SET 和实际上传队伍中的幻想武器/魂珠。失败只回传
+`StateChanged(connectionId, [0])`，先保留房间，不因装备违规立即广播整房 `Disbanded`。
+违规队友连续 30 秒无有效换队或当前编队保存变化后单独移出；自 2026-10-06 起，
+若房主自身装备违规且同样超时，则解散整个房间。房主装备合法、仅被违规队友阻挡
+开战时不启动房主解散计时。换成合法队伍取消对应计时。
+心跳、重复准备和自动换队不刷新期限。纯服务端不能清除客户端本地自动准备倒计时
+及 `isForceReady`，强制准备后的部分客户端需要离房后换队。
+完整实现、验证与限制见
+[幻想装备共斗准备拦截与倒计时保护](../development/MULTI-EQUIPMENT-READY-GATE-20261005.md)。
+
 #### 9.9.2 关键协议格式
 
 ```json

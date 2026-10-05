@@ -24,6 +24,11 @@
 - [已知问题](./status/known-issues.md) · [变更日志](./status/changelog.md) · [测试进度](./status/test-progress.md)
 
 ## 性能与运维
+- [近期运行稳定性改进交付汇总](./development/RECENT-STABILITY-PR-20261006.md)
+- [服务器固定四小时日志](./development/SERVER-FOUR-HOUR-LOGS-20261005.md)
+- [幻想装备共斗准备拦截与倒计时保护](./development/MULTI-EQUIPMENT-READY-GATE-20261005.md)
+- [深渊自动续战逐层队伍变化排查（分析完成，未改代码）](./development/ABYSS-AUTOSTART-PARTY-INVESTIGATION-20261006.md)
+- [瞬时技能充能卡死排查（待复现，未修复）](./development/SKILL-GAUGE-FREEZE-INVESTIGATION-20261006.md)
 - [四核服务器 CPU 优化实施记录](./development/MULTICORE-CPU-OPTIMIZATION-20261002.md)
 - [多人共斗断线排查与修复记录](./development/MULTIPLAYER-DISCONNECT-INVESTIGATION-20261003.md)
 - [云服运行日志复盘与第二轮优化](./development/RUNTIME-LOG-FOLLOWUP-20261003.md)
