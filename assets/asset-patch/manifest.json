@@ -24533,6 +24533,53 @@
         "directory": "assets/asset-patch/audit/five-boss-reward-preview-1.4.130",
         "report": "report.json"
       }
+    },
+    {
+      "id": "mainboss-epuration-battle-candidate-20261006",
+      "type": "patch",
+      "name": "主线boss讨伐试点·歼灭者",
+      "description": "降临讨伐新增「歼灭者讨伐」节点80（5档，套用机兵节点60），首档需通关主线9-5-2；联机地形在主线9-5-2基础上补到9个复活位。仅客户端数据表与地形，不改SWF；服务端关卡数据在 assets/boss_battle_quest_cnmod.json。",
+      "version": "<由所有者分配>",
+      "depends_on": "1.4.130",
+      "enabled": false,
+      "candidate_only": true,
+      "archive": "pinball-1.4.130-1.4.131-2-mainboss-epuration-candidate.zip",
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.130-1.4.131-2-mainboss-epuration-candidate.zip",
+          "size": 359683,
+          "sha256": "9f2a4bd1a9b29cc1e18e710fe7fb065adc4e8b772364a94d7fe7efeabc9b6e19",
+          "members": 5,
+          "files": [
+            "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+            "production/upload/34/3d007e1e3a960f952d304f483fbb9372d90a92",
+            "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+            "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+            "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+          ],
+          "member_sha256": {
+            "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2": "eabd2ed1c79ee3d7199937f5bbab4f8ec6623ff52ee93f558434d74043ec964f",
+            "production/upload/34/3d007e1e3a960f952d304f483fbb9372d90a92": "842d0288657643f7014aa4d9ddeaf67c3bbbdde75bdedf0a5f75fdac592d0946",
+            "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b": "b8be451fa12af5567689f30eb41ef92eb0dd95254717f6b3288786e588ed611c",
+            "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e": "26133da75716b614ccda336f617d3312be736867b889ec6ff2960423d84bd536",
+            "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64": "680d80ba4ec69cd5d3dd43bedaecbe4e9385607f01ed735f5c038b4ab7e98fc5"
+          }
+        }
+      ],
+      "files": [
+        "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+        "production/upload/34/3d007e1e3a960f952d304f483fbb9372d90a92",
+        "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+        "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+      ],
+      "changes": [
+        "新增降临讨伐节点80「歼灭者讨伐」，关卡1080001-1080005（初级前置=主线9-5-2）",
+        "新增 field/zone mod_mainboss_epuration（boss=epuration_boss_single，与主线同配置）",
+        "新增联机地形 battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_epuration（9复活位）",
+        "节点横幅、商店分类、掉落展示暂借机兵节点60"
+      ],
+      "created_at": "2026-10-06"
     }
   ],
   "generated_for": "official active chain"

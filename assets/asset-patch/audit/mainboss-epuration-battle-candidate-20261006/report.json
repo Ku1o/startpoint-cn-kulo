@@ -1,0 +1,49 @@
+{
+  "status": "candidate",
+  "base_version": "1.4.130",
+  "target_version": "<由所有者分配>",
+  "archive": {
+    "name": "pinball-1.4.130-1.4.131-2-mainboss-epuration-candidate.zip",
+    "size": 359683,
+    "sha256": "9f2a4bd1a9b29cc1e18e710fe7fb065adc4e8b772364a94d7fe7efeabc9b6e19",
+    "members": 5,
+    "files": [
+      "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "production/upload/34/3d007e1e3a960f952d304f483fbb9372d90a92",
+      "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+    ]
+  },
+  "source": "tools/fantasy-gauntlet-mod-tools/build_mainboss_battle_candidate.py --boss epuration（读 .cdn 1.4.54 + active 链到 1.4.130 的 live 数据）",
+  "members": [
+    {
+      "file": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "logical_path": "master/battle/field_data.orderedmap",
+      "sha256": "eabd2ed1c79ee3d7199937f5bbab4f8ec6623ff52ee93f558434d74043ec964f"
+    },
+    {
+      "file": "production/upload/34/3d007e1e3a960f952d304f483fbb9372d90a92",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_epuration.amf3.deflate",
+      "sha256": "842d0288657643f7014aa4d9ddeaf67c3bbbdde75bdedf0a5f75fdac592d0946"
+    },
+    {
+      "file": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "logical_path": "master/quest/boss_battle_stage_node.orderedmap",
+      "sha256": "b8be451fa12af5567689f30eb41ef92eb0dd95254717f6b3288786e588ed611c"
+    },
+    {
+      "file": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "logical_path": "master/battle/zone.orderedmap",
+      "sha256": "26133da75716b614ccda336f617d3312be736867b889ec6ff2960423d84bd536"
+    },
+    {
+      "file": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "logical_path": "master/quest/boss_battle_quest.orderedmap",
+      "sha256": "680d80ba4ec69cd5d3dd43bedaecbe4e9385607f01ed735f5c038b4ab7e98fc5"
+    }
+  ],
+  "verification": [
+    "本地服 8001 以本机专用补丁挂载后，MuMu 真机：降临讨伐列表显示节点，单人中级通关并解锁高级，三人房（2 NPC）高级通关，服务端 single/multi finish 均 200"
+  ]
+}
