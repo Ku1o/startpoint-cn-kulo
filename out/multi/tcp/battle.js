@@ -57,6 +57,8 @@ function handleBattleNotify(socket, data, indexedClient) {
             if (client && (room === null || room === void 0 ? void 0 : room.five_boss_runtime))
                 (0, lobby_runtime_1.recordFiveBossSignal)(room, client, "finalize");
             if (client)
+                client.finalizeSent = true;
+            if (client)
                 sendToBattleClient(client, [1, [2]], "battle_finalize_ack");
             break;
         }

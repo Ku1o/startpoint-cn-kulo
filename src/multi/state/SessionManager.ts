@@ -38,6 +38,8 @@ export interface SessionClient {
     superseded: boolean
     connectedAt: number
     fiveBossBattleEntered: boolean
+    /** This battle connection sent Finalize: its battle ended normally. */
+    finalizeSent: boolean
     admissionClaimed: boolean
     admissionGeneration?: number
     clientState: ClientStateMachine
@@ -472,15 +474,19 @@ export class SessionManager {
     }
 
     private publishBattleDeparture(client: SessionClient): void {
-        if (client.fiveBossBattleEntered) {
-            // The CN five-boss client normally closes cooperation_battle after
-            // BattleStart and continues the fight client-side. Publishing the
-            // ordinary Leave frame here creates a false communication-loss
-            // dialog for peers. A later LevelNext barrier still owns its normal
-            // missing-seat grace and publishes Leave only after retiring the
-            // absent seat.
+        if (client.fiveBossBattleEntered && client.finalizeSent) {
+            // The client discards cooperation_battle as soon as Finalized
+            // arrives. That close ends a finished battle; a Leave here would
+            // only show teammates a false disconnect notice.
             return
         } else if (this.battleSceneStartedRooms.has(client.roomNumber)) {
+            // Any other close mid-battle (network loss, app killed, or the
+            // client isolating itself after a lag spike) must reach the
+            // teammates. The CN client runs battles in lockstep: without
+            // Leave, a silent peer's frame counter stands still, every
+            // teammate slows down and after ~240 frames isolates itself with
+            // "communication lost" (in the first dual-boss round it freezes
+            // instead). Leave turns that peer into a departed member at once.
             this.broadcastBattleLeave(client.roomNumber, client.connectionId)
         } else {
             this.queueBattleLeave(client.roomNumber, client.connectionId)
@@ -1039,6 +1045,7 @@ export class SessionManager {
             superseded: false,
             connectedAt: Date.now(),
             fiveBossBattleEntered: false,
+            finalizeSent: false,
             admissionClaimed: false,
             clientState: new ClientStateMachine(ClientState.Connecting),
             battleState: BattleState.Initializing,

@@ -1,4 +1,4 @@
-# 五重换场无限等待修复与每场联机战斗摘要
+# 五重换场无限等待、掉线不通知队友的修复与每场联机战斗摘要
 
 日期：2026-10-06
 
@@ -46,7 +46,56 @@
 - 默认逻辑下约 11 秒（10 秒截止 + 1 秒宽限）放行，两人收到 BattleStart 和第三人的
   `Leave`，第三人的连接被关闭。
 
-## 二、每场多人战斗一行摘要 `[MULTI-BATTLE]`
+## 二、五重队友中途掉线要通知其余成员（恢复 Leave）
+
+### 客户端实际行为（反编译 CN 客户端核实）
+
+依据旧 CN 客户端反编译（`pinball/scene/battle/state/BattleScenePlayingStateImpl`、
+`derailleur/BattleDerailleur`、`context/socket/battle/BattleSocketContact`、
+`battle/BattleConstants`）：
+
+- 联机战斗是帧同步。每个客户端在没有其他广播时至少每 8 帧广播一次 Heartbeat（其他人都离开后放宽到 100 帧），
+  每 600 帧发一次 Measurement。
+- 对每名队友维护“可处理帧”。队友的帧不再到达时，静止计数每帧 +1。落后超过 48 帧开始
+  减速（每 24 帧一级，每级减速 4%，即卡顿）；到第 8 级（约 240 帧）就调用
+  `isolateAsForceAbort()`：本机提示 `battle_message_disconnected`（与队友通信断开）、
+  关闭 battle socket，转为单人继续，之后照常提交 `/finish`。
+- 双 Boss（五重沿用）第一轮里，达到第 8 级只写日志“双boss battle之间帧数过大断线”，
+  不会自我隔离，等于一直卡住。
+- 客户端只在两种情况下主动关闭 battle socket：收到 `Finalized`（结算确认）后，或离开
+  战斗场景/自我隔离时。没有自动重连。
+- 收到服务器 `Leave(connectionId)` 后，客户端把该队友标为已离开，不再等他的帧。
+
+### 原问题
+
+`20261004` 的修复为避免“误报通信断开”，让已进入战斗的五重连接关闭时一律不广播
+`Leave`。按上面的客户端逻辑，这会让一名队友真实掉线（网络断开、应用被杀，或者他自己
+因为卡顿先隔离了）之后，其余人一直等他的帧：先卡顿，几秒后各自也“通信断开”，或者在
+第一轮直接卡死。当时日志里“同一房间多名成员在很短时间内先后 FIN、几分钟后又成功
+/finish”，就是这种连锁自我隔离。
+
+### 修复
+
+- battle 连接收到 `Finalize` 时记 `finalizeSent`；
+- 五重连接关闭时，只有已 `Finalize` 的（正常结束）不发 `Leave`；
+- 其他中途关闭按普通共斗处理：场景已开始就立即向其余成员广播 `Leave`，加载阶段则
+  进入原有的缺席宽限再转 AI。
+
+普通共斗行为不变。
+
+### 验证
+
+`tests/multi-battle-sim.test.cjs` 第二项：真实 TCP 下三人五重战斗中一人断开，另外两人
+约 5 ms 内收到该成员的 `Leave`；另一人先发 Finalize 并收到 `Finalized` 后再断开，
+不再产生 `Leave`。`tests/multi-barrier-recovery.test.js` 相应用例改为同样的语义。
+
+### 仍然存在、服务端无法消除的卡顿
+
+帧同步下全房间的速度取决于最慢的一台设备：模拟器 18–22 fps 时其他人会被拖慢，严重时
+触发上面的自我隔离。这需要客户端侧（性能、模拟器设置或真机）解决。`[MULTI-BATTLE]`
+里的 `lineSpeedWarnings` 和 `maxInboundGapMs` 可以看出是哪名成员拖慢了房间。
+
+## 三、每场多人战斗一行摘要 `[MULTI-BATTLE]`
 
 为测试服收集联机数据新增 `src/multi/battle-telemetry.ts`。房间进入 `BATTLE` 时开始，
 离开 `BATTLE`（结算、返回、解散）时输出一行 JSON：
@@ -78,20 +127,20 @@
 最近 100 条（`MULTI_BATTLE_TELEMETRY_RECENT`）同时保存在内存，可通过管理接口
 `GET /api/server/diagnostics/battles` 读取。
 
-## 改动文件
+## 四、改动文件
 
-- `src/multi/state/SessionManager.ts`：换场截止计时器；屏障等待、席位过期、连接计数上报
+- `src/multi/state/SessionManager.ts`：换场截止计时器；五重中途掉线恢复 `Leave`；屏障等待、席位过期、连接计数上报
 - `src/multi/tcp/disconnect-diagnostics.ts`：新增断线原因 `level_next_timeout`
 - `src/multi/five-boss/connection-diagnostic.ts`：新增诊断事件 `level_next_timeout`
 - `src/multi/battle-telemetry.ts`：新增
 - `src/multi/coordinator/embedded.ts`：进入/离开 `BATTLE` 时开始/结束摘要
-- `src/multi/tcp/battle.ts`、`relay.ts`、`reliable-send.ts`、`server.ts`：计数上报
+- `src/multi/tcp/battle.ts`：记录 `finalizeSent`；`battle.ts`、`relay.ts`、`reliable-send.ts`、`server.ts`：计数上报
 - `src/routes/web_api/diagnostics.ts`：`GET /battles`
 - `.env.example`：新增两个变量说明
 - 测试：`tests/multi-battle-sim.test.cjs`、`tests/multi-battle-telemetry.test.cjs`，
   `tests/multi-barrier-recovery.test.js` 新增两项，已加入 `npm run test:multiplayer-connectivity`
 
-## 回退
+## 五、回退
 
 服务端代码与对应 `out/` 一起回退即可；无数据库变更。只想关闭摘要可设
 `MULTI_BATTLE_TELEMETRY=false`；只想放宽换场截止可调大 `BATTLE_LEVEL_NEXT_DEADLINE_MS`。

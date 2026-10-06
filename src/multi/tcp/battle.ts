@@ -54,6 +54,7 @@ function handleBattleNotify(socket: net.Socket, data: unknown, indexedClient?: S
         case 2: { // Finalize
             const room = client && getRoom(client.roomNumber)
             if (client && room?.five_boss_runtime) recordFiveBossSignal(room, client, "finalize")
+            if (client) client.finalizeSent = true
             if (client) sendToBattleClient(client, [1, [2]], "battle_finalize_ack")
             break
         }

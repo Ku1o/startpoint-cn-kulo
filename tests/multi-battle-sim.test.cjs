@@ -1,6 +1,6 @@
 // Real-TCP simulation of a three-player five-boss battle against the session
-// server: SceneReady barrier, battle frame relay, then a LevelNext where one
-// teammate keeps its socket open but never starts the next scene.
+// server: SceneReady barrier, battle frame relay, a LevelNext where one teammate
+// keeps its socket open but never starts the next scene, and a mid-battle drop.
 const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const fs = require('node:fs')
@@ -93,7 +93,7 @@ function percentile(values, p) {
     return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]
 }
 
-test('five-boss: relay latency, then a silent teammate cannot stall the next scene', { timeout: 60000 }, async () => {
+async function startFiveBossBattle() {
     const members = [player(), player(), player()]
     const [host] = members
     const room = rooms.createRoom(host.viewerId, host.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
@@ -132,10 +132,23 @@ test('five-boss: relay latency, then a silent teammate cannot stall the next sce
     const originalWarn = console.warn
     console.warn = (...args) => { lines.push(args.join(' ')) }
     const sims = members.map(m => new SimClient(port, m, room))
+    const cleanup = async () => {
+        console.warn = originalWarn
+        for (const sim of sims) sim.socket.destroy()
+        await tcp.stopSessionServer()
+        for (const client of lobbyClients) manager.removeClient(client)
+        rooms.disbandRoom(room.room_number)
+        battleTelemetry.end(room.room_number, 'cleanup')
+    }
+    await Promise.all(sims.map(sim => sim.open()))
+    for (const sim of sims) sim.sceneReady()
+    await Promise.all(sims.map(sim => sim.until(() => sim.battleStarts() === 1)))
+    return { members, room, sims, lines, originalWarn, cleanup }
+}
+
+test('five-boss: relay latency, then a silent teammate cannot stall the next scene', { timeout: 60000 }, async () => {
+    const { members, room, sims, lines, cleanup } = await startFiveBossBattle()
     try {
-        await Promise.all(sims.map(sim => sim.open()))
-        for (const sim of sims) sim.sceneReady()
-        await Promise.all(sims.map(sim => sim.until(() => sim.battleStarts() === 1)))
 
         // ~30 frames/s per player for 1.5 s; one 300 ms main-thread stall in the middle.
         const sent = new Map()
@@ -200,12 +213,33 @@ test('five-boss: relay latency, then a silent teammate cannot stall the next sce
         assert.ok(summary.barriers.some(barrier => barrier.kind === 'next_scene' && barrier.waitMs >= 10000))
         assert.equal(summary.seatsExpired, 1)
     } finally {
-        console.warn = originalWarn
-        for (const sim of sims) sim.socket.destroy()
-        await tcp.stopSessionServer()
-        for (const client of lobbyClients) manager.removeClient(client)
-        rooms.disbandRoom(room.room_number)
-        battleTelemetry.end(room.room_number, 'cleanup')
-        fs.rmSync(dataDir, { recursive: true, force: true })
+        await cleanup()
     }
 })
+
+test('five-boss: a teammate dropping mid-battle reaches the others as Leave at once', { timeout: 30000 }, async () => {
+    const { members, room, sims, lines, cleanup } = await startFiveBossBattle()
+    try {
+        const [a, b, c] = sims
+        const droppedAt = performance.now()
+        c.socket.destroy()
+        await a.until(() => a.leaves().length === 1, 2000)
+        await b.until(() => b.leaves().length === 1, 2000)
+        console.log(`[SIM] Leave delivered ${(performance.now() - droppedAt).toFixed(1)}ms after the drop`)
+        assert.deepEqual(a.leaves(), [members[2].connectionId])
+        assert.deepEqual(b.leaves(), [members[2].connectionId])
+        // A finished member closing after Finalized is not a disconnect.
+        b.send([0, [2]])
+        await b.until(() => b.frames.some(frame => JSON.stringify(frame.data) === '[1,[2]]'))
+        b.socket.destroy()
+        await new Promise(resolve => setTimeout(resolve, 300))
+        assert.deepEqual(a.leaves(), [members[2].connectionId])
+        coordinator.commitDisband(room, 'sim_end')
+        const summary = JSON.parse(lines.find(value => value.startsWith('[MULTI-BATTLE]')).slice(15))
+        assert.equal(summary.members.find(m => m.viewer === members[1].viewerId).finalize, 1)
+    } finally {
+        await cleanup()
+    }
+})
+
+process.on('exit', () => fs.rmSync(dataDir, { recursive: true, force: true }))

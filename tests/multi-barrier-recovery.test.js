@@ -140,10 +140,20 @@ test('reconnect within grace cancels retirement and deferred Leave', async t => 
     assert.deepEqual(a.socket.frames, [[1,[1]]])
 })
 
-test('entered five-boss peer does not publish ordinary Leave', async t => {
+test('entered five-boss peer that drops mid-battle publishes Leave so teammates do not stall', async t => {
+    const x = setup(t), [a,b] = x.clients
+    x.ready(a); x.ready(b); a.socket.frames = []
+    a.fiveBossBattleEntered = true
+    b.fiveBossBattleEntered = true
+    x.drop(b)
+    assert.deepEqual(a.socket.frames, [[1,[0,b.connectionId]]])
+})
+
+test('entered five-boss peer closing after its own Finalize does not publish Leave', async t => {
     const x = setup(t), [a,b] = x.clients
     x.ready(a); x.ready(b); a.socket.frames = []
     b.fiveBossBattleEntered = true
+    b.finalizeSent = true
     x.drop(b)
     assert.deepEqual(a.socket.frames, [])
 })
@@ -156,7 +166,7 @@ test('five-boss replacement remains current after the old socket closes', async 
     const replacement = x.make(2)
     assert.equal(x.manager.addBattleClient(replacement.connectionId, replacement), true)
     x.manager.removeClient(b)
-    assert.deepEqual(a.socket.frames, [])
+    assert.deepEqual(a.socket.frames, [[1,[0,b.connectionId]]], 'one Leave for the drop, none for the stale close')
     assert.equal(x.manager.getBattleClient(replacement.connectionId), replacement)
 })
 
