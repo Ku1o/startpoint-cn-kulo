@@ -229,6 +229,42 @@ test('next-scene disconnected peer does not strand the remaining ready player', 
     assert.deepEqual(a.socket.frames, [[1,[1]], [1,[0,b.connectionId]]])
 })
 
+test('next-scene deadline releases teammates from a connected peer that never starts loading', async t => {
+    const x = setup(t, 3), [a,b,c] = x.clients
+    x.ready(a); x.ready(b); x.ready(c)
+    for (const client of x.clients) client.fiveBossBattleEntered = true
+    a.socket.frames = []
+    x.manager.beginBattleLevelNext(a.connectionId, x.roomNumber)
+    x.manager.beginBattleLevelNext(b.connectionId, x.roomNumber)
+    x.ready(a)
+    // c keeps an open socket but never sends LevelNext or SceneReady; with no
+    // heartbeat lease on an entered five-boss connection nothing else ends it.
+    const deadline = x.manager.battleBarrierCycles.get(x.roomNumber).timers.get('level_next_deadline')
+    assert.equal(deadline.ms, 90000)
+    await x.fire(deadline)
+    assert.equal(a.socket.destroyed, false)
+    assert.equal(b.socket.destroyed, false, 'a peer still loading keeps its own loading lease')
+    assert.equal(c.socket.destroyed, true)
+    assert.deepEqual(a.socket.frames, [])
+    x.manager.removeClient(c)
+    x.ready(b)
+    await x.fire(x.manager.battleBarrierCycles.get(x.roomNumber).timers.get('viewer:3'))
+    assert.deepEqual(a.socket.frames, [[1,[1]], [1,[0,c.connectionId]]])
+})
+
+test('next-scene deadline is inert once the barrier released or a new scene began', async t => {
+    const x = setup(t), [a,b] = x.clients
+    x.ready(a); x.ready(b)
+    x.manager.beginBattleLevelNext(a.connectionId, x.roomNumber)
+    const deadline = x.manager.battleBarrierCycles.get(x.roomNumber).timers.get('level_next_deadline')
+    x.manager.beginBattleLevelNext(b.connectionId, x.roomNumber)
+    x.ready(a); assert.equal(x.ready(b), true)
+    assert.equal(deadline.cancelled, true)
+    await x.fire(deadline)
+    assert.equal(a.socket.destroyed, false)
+    assert.equal(b.socket.destroyed, false)
+})
+
 test('a replacement connection can finish loading without replaying LevelNext', t => {
     const x = setup(t), [a,b] = x.clients
     x.ready(a); x.ready(b)

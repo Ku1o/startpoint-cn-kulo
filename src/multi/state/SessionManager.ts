@@ -19,6 +19,7 @@ import { registerMemoryCounters } from "../../lib/memory-diagnostics"
 import { recordServerWork } from "../../lib/server-work-performance"
 import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
 import { markTcpDisconnectReason } from "../tcp/disconnect-diagnostics"
+import { battleTelemetry } from "../battle-telemetry"
 
 export interface SessionClient {
     socket: net.Socket
@@ -371,6 +372,7 @@ export class SessionManager {
         const cycle = this.battleBarrierCycles.get(roomNumber)
         const waitMs = cycle ? performance.now() - cycle.startedAt : 0
         if (cycle) recordServerWork("multi.barrier", waitMs)
+        battleTelemetry.barrier(roomNumber, this.battleLevelNextClients.has(roomNumber) ? "next_scene" : "initial", waitMs)
         recordRealtimeDiagnostic(roomNumber, "barrier_released", {
             reason,
             expected,
@@ -431,6 +433,7 @@ export class SessionManager {
         retired.add(key)
         retired.add(`connection:${seat.connectionId}`)
         fiveBossConnectionDiagnostics.seatEvent(roomNumber, seat.viewerId, "seat_expired")
+        battleTelemetry.seatExpired(roomNumber)
         this.queueBattleLeave(roomNumber, seat.connectionId)
         this.battleExpectedCount.set(roomNumber, expected - 1)
         this.logBattleBarrierState(roomNumber, "missing_seat_expired")
@@ -1292,6 +1295,7 @@ export class SessionManager {
         this.indexClientSocket(client)
         this.armBattleLoadingLease(connectionId)
         fiveBossConnectionDiagnostics.socketEvent(client.socket, "accepted")
+        battleTelemetry.connected(client.roomNumber, client.viewerId)
         this.logBattleBarrierState(client.roomNumber, "connected")
         return true
     }
@@ -1398,9 +1402,10 @@ export class SessionManager {
             this.sceneReadyClients.set(roomNumber, new Set())
             const connected = this.battleClients.get(roomNumber)?.size ?? 0
             this.battleExpectedCount.set(roomNumber, connected)
-            this.beginBattleBarrierCycle(roomNumber)
+            const cycle = this.beginBattleBarrierCycle(roomNumber)
             this.battleSceneStartedRooms.delete(roomNumber)
             this.logBattleBarrierState(roomNumber, "level_next")
+            this.armLevelNextDeadline(roomNumber, cycle)
         }
         if (levelNextSet.has(connectionId)) return
         levelNextSet.add(connectionId)
@@ -1408,6 +1413,41 @@ export class SessionManager {
         // LevelNext starts its fixed loading deadline; duplicate packets cannot
         // reset that deadline or demote an already-ready connection.
         this.armBattleLoadingLease(connectionId)
+    }
+
+    /**
+     * Bound the next-scene barrier for peers that never start it.
+     *
+     * A peer that sends LevelNext owns a fixed loading lease, and a peer that
+     * closes its socket gets the missing-seat grace. A peer that keeps its
+     * socket open but sends neither LevelNext nor SceneReady (frozen or
+     * backgrounded app, half-open mobile link) had no deadline: an entered
+     * five-boss connection has no heartbeat lease, so every teammate waited
+     * on the transition screen indefinitely. After the deadline that peer is
+     * disconnected; the ordinary close path retires its seat to AI.
+     */
+    private armLevelNextDeadline(roomNumber: string, cycle: BattleBarrierCycle): void {
+        const deadlineMs = this.parsePositiveDuration("BATTLE_LEVEL_NEXT_DEADLINE_MS", 90_000, 10_000)
+        const timer = setTimeout(() => {
+            void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                if (cycle.timers.get("level_next_deadline") !== timer) return
+                cycle.timers.delete("level_next_deadline")
+                if (!this.isCurrentBattleBarrier(roomNumber, cycle)) return
+                if ((this.battleExpectedCount.get(roomNumber) ?? 0) <= 0) return
+                const started = this.battleLevelNextClients.get(roomNumber)
+                const ready = this.sceneReadyClients.get(roomNumber)
+                for (const client of this.getConnectedBattleClients(roomNumber)) {
+                    if (started?.has(client.connectionId) || ready?.has(client.connectionId)) continue
+                    console.warn(`[MULTI] next scene never started: room=${roomNumber}`
+                        + ` viewer=${client.viewerId} connection=${client.connectionId} timeoutMs=${deadlineMs}`)
+                    fiveBossConnectionDiagnostics.socketEvent(client.socket, "level_next_timeout", String(deadlineMs))
+                    markTcpDisconnectReason(client.socket, "level_next_timeout")
+                    client.socket.destroy()
+                }
+            }).catch(error => console.error(`[MULTI] next scene deadline failed: room=${roomNumber}`, error))
+        }, deadlineMs)
+        timer.unref()
+        cycle.timers.set("level_next_deadline", timer)
     }
 
     clearSceneReady(roomNumber: string): void {

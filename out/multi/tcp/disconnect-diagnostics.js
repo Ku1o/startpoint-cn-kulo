@@ -13,6 +13,7 @@ const reasons = [
     "message_error",
     "loading_timeout",
     "heartbeat_timeout",
+    "level_next_timeout",
     "send_backpressure",
     "send_queue_limit",
     "send_write_error",

@@ -16,6 +16,7 @@ import {
     markTcpDisconnectReason,
 } from "./disconnect-diagnostics"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { battleTelemetry } from "../battle-telemetry"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import {
     detachLoungeSocket,
@@ -234,6 +235,10 @@ export function startSessionServer(): Promise<void> {
 
             socket.on("close", (hadError: boolean) => {
                 const reason = finishTcpDisconnect(socket, hadError)
+                const closedClient = sessionManager.findClientBySocket(socket)
+                if (closedClient?.isBattle) {
+                    battleTelemetry.disconnected(closedClient.roomNumber, closedClient.viewerId, reason)
+                }
                 fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error")
                 clearHandshakeTimer()
                 gameVerboseLog(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`)

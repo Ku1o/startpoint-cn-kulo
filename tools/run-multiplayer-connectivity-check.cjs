@@ -13,6 +13,8 @@ const files = [
     'tests/multi-active-quest-recovery.test.js',
     'tests/active-quest-conditional-delete.test.cjs',
     'tests/tcp-disconnect-diagnostics.test.cjs',
+    'tests/multi-battle-telemetry.test.cjs',
+    'tests/multi-battle-sim.test.cjs',
     'tests/multi-room-admission.test.js',
     'tests/multi-guest-eligibility.test.js',
     'tests/multi-room-disband-protocol.test.js',

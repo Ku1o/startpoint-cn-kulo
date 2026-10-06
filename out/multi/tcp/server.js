@@ -38,6 +38,7 @@ const game_logging_1 = require("../../lib/game-logging");
 const reliable_send_1 = require("./reliable-send");
 const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 const embedded_1 = require("../coordinator/embedded");
+const battle_telemetry_1 = require("../battle-telemetry");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const tcp_1 = require("../../lounge/tcp");
 exports.SESSION_PORT = parseInt(process.env.SESSION_PORT || "8003");
@@ -246,6 +247,10 @@ function startSessionServer() {
             });
             socket.on("close", (hadError) => {
                 const reason = (0, disconnect_diagnostics_1.finishTcpDisconnect)(socket, hadError);
+                const closedClient = SessionManager_1.sessionManager.findClientBySocket(socket);
+                if (closedClient === null || closedClient === void 0 ? void 0 : closedClient.isBattle) {
+                    battle_telemetry_1.battleTelemetry.disconnected(closedClient.roomNumber, closedClient.viewerId, reason);
+                }
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error");
                 clearHandshakeTimer();
                 (0, game_logging_1.gameVerboseLog)(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`);
