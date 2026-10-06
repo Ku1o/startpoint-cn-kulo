@@ -1,0 +1,1561 @@
+{
+  "status": "candidate",
+  "base_version": "1.4.130",
+  "target_version": "<由所有者分配>",
+  "archives": [
+    {
+      "name": "pinball-1.4.130-1.4.131-2-mainboss-battles-weapons-candidate.zip",
+      "size": 5112261,
+      "sha256": "5baddbb6ac1a6b191acb2085bd36558e3c73f0d260d5575ca08bde04a84f2b70",
+      "members": 185
+    },
+    {
+      "name": "pinball-1.4.130-1.4.131-3-mainboss-battles-weapons-candidate.zip",
+      "size": 5054528,
+      "sha256": "61b7d12507aaed61defc099a2ca2f9741bce6d906e36c2a6c9ebbbc4d878669d",
+      "members": 176
+    },
+    {
+      "name": "pinball-1.4.130-1.4.131-4-mainboss-battles-weapons-candidate.zip",
+      "size": 1910473,
+      "sha256": "619176d51dbe97d0c653b36ef8143d3db716abe80232d014392679819bfb4bdd",
+      "members": 21
+    }
+  ],
+  "source": "tools/fantasy-gauntlet-mod-tools/build_boss_weapon_sets.py --out <dir> --archive-name bws.zip（内部调用 build_mainboss_battle_candidate.build 生成全部27个boss），再按≤5MiB拆包",
+  "members": [
+    {
+      "file": "production/upload/00/ae8a1e5fb7bafd4f1bc23b438cfa7ec71aecfe",
+      "logical_path": "item/equipment/mod/mainboss/5930161_lv0.png"
+    },
+    {
+      "file": "production/upload/01/0fdd05e27cce5952dd65ecd6b44b45367820a6",
+      "logical_path": "item/materials/mod/mainboss/core_dragon_dark.png"
+    },
+    {
+      "file": "production/upload/01/fbf90d98283f0d9351b67f68bf8d310a019d53",
+      "logical_path": "item/equipment/mod/mainboss/5930062_lv0.png"
+    },
+    {
+      "file": "production/upload/02/7cd869da31f19c6a0781a7401738ae5cf5efb1",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_dark/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/02/cfb10017bda510d1e0c91949b9b70dc6310827",
+      "logical_path": "item/equipment/mod/mainboss/5930032_lv0.png"
+    },
+    {
+      "file": "production/upload/03/cde572af811564eb16c4dafff2e926e9b51143",
+      "logical_path": "item/equipment/mod/mainboss/5930251_lv0.png"
+    },
+    {
+      "file": "production/upload/03/dc32ad82d20d62be19628d52b344ebc45f92f6",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_epu.png"
+    },
+    {
+      "file": "production/upload/03/e58f61ef6e6228c6aff0560d2076bf11152f8d",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_beast_light.png"
+    },
+    {
+      "file": "production/upload/04/4618f5faeb27ab15822788d58a24d627d6f208",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_cursed_blade.png"
+    },
+    {
+      "file": "production/upload/05/8f450e5c51ea85d377e4a19bc59c05e1bb62fa",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_wind/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/05/aae4a374b6f37147e7571edf2185338d6c38ac",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_wind/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/07/53ab82d464b0c94294ff1b1ac59b8735b6e47b",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_water/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/08/85500c89c9fddd115141a267c311caaa1a4cc1",
+      "logical_path": "item/equipment/mod/mainboss/5930072_lv0.png"
+    },
+    {
+      "file": "production/upload/09/7e246dae8c106e5ab19334b102442376455eee",
+      "logical_path": "item/materials/mod/mainboss/core_beast_water.png"
+    },
+    {
+      "file": "production/upload/09/e8f9e99e8f829206c119ec637704706c4bddcd",
+      "logical_path": "item/equipment/mod/mainboss/5930182_lv0.png"
+    },
+    {
+      "file": "production/upload/0a/46827431e29ca77621cf848443e2089ef81947",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_dark/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/0b/7eaf52d94db00d01560fd7a573d1c548810946",
+      "logical_path": "item/equipment/mod/mainboss/5930242_lv70.png"
+    },
+    {
+      "file": "production/upload/0c/12dc011062a32c7010212ce025bfefbd830853",
+      "logical_path": "item/equipment/mod/mainboss/5930041_lv70.png"
+    },
+    {
+      "file": "production/upload/0d/38c4696e77f4bda4d95c1ec4ba243eb3074f14",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_dragon_water.png"
+    },
+    {
+      "file": "production/upload/0d/39038cf4ac777dbea1e85dfab0d52842683f82",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_org/mod_mainboss_org.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/0d/39d5bde9b52a545ef3076cf15d53c20ecb2334",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_benzaiten/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/0d/9dfb9c29b7382854e4942f7b614f6153afeb7a",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_thunder/mod_mainboss_dragon_thunder.png"
+    },
+    {
+      "file": "production/upload/0e/db1d0525712930ced13ba246f179eef6d1087c",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_thunder/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/0e/dd18750e28a61fe8e63e11f9ad8b6521e621c4",
+      "logical_path": "item/materials/mod/mainboss/coin_org.png"
+    },
+    {
+      "file": "production/upload/0f/07c60c4338e8e3165204503a1e70ad8bec0c90",
+      "logical_path": "item/equipment/mod/mainboss/5930252_lv70.png"
+    },
+    {
+      "file": "production/upload/10/2dcdf7a8d54070d4429a18695f8dc81a52f5aa",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_dragon_dark.png"
+    },
+    {
+      "file": "production/upload/11/de981d85892a2713f276d0a453c420b76e4cb5",
+      "logical_path": "item/equipment/mod/mainboss/5930221_lv70.png"
+    },
+    {
+      "file": "production/upload/12/5f58b0c1a0a13d59fa5c0d1c377808caa04f57",
+      "logical_path": "item/equipment/mod/mainboss/5930011_lv70.png"
+    },
+    {
+      "file": "production/upload/12/d7be702baeb44385bbc71fab8dd5d1e1b66a20",
+      "logical_path": "item/equipment/mod/mainboss/5930151_lv0.png"
+    },
+    {
+      "file": "production/upload/12/ea272dab9f8023d965f733008f0c757c7bad62",
+      "logical_path": "item/materials/mod/mainboss/core_org.png"
+    },
+    {
+      "file": "production/upload/13/258b68a0255f49634ccf547a532cfa714da25e",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_fire/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/14/931c4a1dc7445ac73d7ec50a6487e3a8aea944",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_water/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/15/0ac1ebda51164a5ffe07a2e4f6de8773d84093",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_queen_wind.png"
+    },
+    {
+      "file": "production/upload/16/17e6d632eb20f016410ab9c69130e791675f03",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_beast_dark.png"
+    },
+    {
+      "file": "production/upload/16/50fb8dfb55a27da9f6f6674891aca4aa680b11",
+      "logical_path": "item/materials/mod/mainboss/core_beast_thunder.png"
+    },
+    {
+      "file": "production/upload/16/b657f69f99a517d516a3cc71bc54fd6ef24b4f",
+      "logical_path": "item/equipment/mod/mainboss/5930261_lv70.png"
+    },
+    {
+      "file": "production/upload/17/3de31a11898dad599654110f6f50428628fcad",
+      "logical_path": "item/equipment/mod/mainboss/5930012_lv0.png"
+    },
+    {
+      "file": "production/upload/17/dce31909b64d4966b4ab085333ebf21e46b542",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_water/mod_mainboss_beast_water.png"
+    },
+    {
+      "file": "production/upload/19/3ce04b312274fed822025a110d9e7147f471fb",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_beast_fire.png"
+    },
+    {
+      "file": "production/upload/1a/1b8e54188b1b648e15891305ad732053bf9c6f",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_maou2.png"
+    },
+    {
+      "file": "production/upload/1a/547009b6b8df6e1c4424046ff6d505be39ca6e",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_light/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/1c/b8eff508a73c7dd56323dbb5e016a369b3c4b3",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_queen_water.png"
+    },
+    {
+      "file": "production/upload/1d/496a792682935b6b61e243c64791820d8b1486",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_beast_light.png"
+    },
+    {
+      "file": "production/upload/1e/5b29b0a846aa05f670bd719b5c288309a0de44",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_beast_water.png"
+    },
+    {
+      "file": "production/upload/23/1c00ee0f7c66dcfe3e2f537e140d0645f69c59",
+      "logical_path": "item/equipment/mod/mainboss/5930212_lv70.png"
+    },
+    {
+      "file": "production/upload/24/322b23c6ea400a9edec261de05682092cd040e",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_dragon_dark.png"
+    },
+    {
+      "file": "production/upload/24/36cedc07d6366e5a250c206266ca0d48f68f85",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_origin_dragon.png"
+    },
+    {
+      "file": "production/upload/24/9323f2f153d71bde8711ceabbe5212e3260750",
+      "logical_path": "item/materials/mod/mainboss/core_dragon_thunder.png"
+    },
+    {
+      "file": "production/upload/24/9a5946a5ab889fa7b14e2dd38364f9ea11af2c",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_origin_dragon.amf3.deflate"
+    },
+    {
+      "file": "production/upload/24/9f1629daec20f3abd96bce441f6d8a215a3992",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_light/mod_mainboss_queen_light.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "logical_path": "master/shop/boss_coin_shop_category.orderedmap"
+    },
+    {
+      "file": "production/upload/26/4da5c26843ec0ed87ef89957f48d663b834b34",
+      "logical_path": "item/equipment/mod/mainboss/5930052_lv0.png"
+    },
+    {
+      "file": "production/upload/27/11de43f79c78233a7ff51e1ef34139bab252d4",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_fire/mod_mainboss_beast_fire.png"
+    },
+    {
+      "file": "production/upload/27/1c2cbcc2cc3ef95f2e8d058a97dd9dc6c855c7",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_benzaiten/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/27/4464ce59d7c6284dd989a5cabce176afe04a40",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_high_epu.png"
+    },
+    {
+      "file": "production/upload/28/5986aa6f5fb5eeefb79aed1dd86f7b03fe0208",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_star_devourer.png"
+    },
+    {
+      "file": "production/upload/28/61d7f6dd1fa099ad1faec1550a76f59dc58a3d",
+      "logical_path": "dynamic/equipment_enhancement/mod_boss_weapon_banner.png"
+    },
+    {
+      "file": "production/upload/2a/bf146c580884c75705be521df8327e19038ffc",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_dragon_water.png"
+    },
+    {
+      "file": "production/upload/2b/81b368a37c5b2b5b70395be061992fea11f88c",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_star_devourer/mod_mainboss_star_devourer.png"
+    },
+    {
+      "file": "production/upload/2c/e84bc0a72015ecf50bd6a21d1439b6d6f7f8cb",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_light/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/2c/ea5d406c285ee8bcc2095553a7a52ee9e1bd2b",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_fire/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/2d/0653e23ea5a8ea7448a9f1f6ced93002c5c90e",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_queen_thunder.png"
+    },
+    {
+      "file": "production/upload/2e/15b10b52aaae7f7887077fb16d90547fe50cee",
+      "logical_path": "item/materials/mod/mainboss/core_queen_wind.png"
+    },
+    {
+      "file": "production/upload/2f/219c41560af12475ab65ca674ce95a47c39bf6",
+      "logical_path": "item/equipment/mod/mainboss/5930141_lv0.png"
+    },
+    {
+      "file": "production/upload/30/1d19568d16b8d96e42a2f8bc6b073c9ee2e86e",
+      "logical_path": "item/materials/mod/mainboss/core_dragon_wind.png"
+    },
+    {
+      "file": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "logical_path": "master/battle/field_data.orderedmap"
+    },
+    {
+      "file": "production/upload/32/7af3ac43828d4082a0f7446e8732d6a08cfb0e",
+      "logical_path": "item/equipment/mod/mainboss/5930062_lv70.png"
+    },
+    {
+      "file": "production/upload/34/3d007e1e3a960f952d304f483fbb9372d90a92",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_epuration.amf3.deflate"
+    },
+    {
+      "file": "production/upload/34/4323a68954c15b797ea9bce1385d7b47775b6c",
+      "logical_path": "item/materials/mod/mainboss/core_beast_light.png"
+    },
+    {
+      "file": "production/upload/35/3f5f5f3ccc6600a76b87a096745deb742552d7",
+      "logical_path": "item/equipment/mod/mainboss/5930081_lv0.png"
+    },
+    {
+      "file": "production/upload/35/99bafdcc32185cb5e9b014e950ec0937a046bd",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_water/mod_mainboss_dragon_water.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/36/089c48c68a07ffb1dddd107c4410806b7a9d4d",
+      "logical_path": "item/equipment/mod/mainboss/5930061_lv70.png"
+    },
+    {
+      "file": "production/upload/36/ebd8e9e55605079d2bdb59751d0a264f711701",
+      "logical_path": "item/equipment/mod/mainboss/5930132_lv0.png"
+    },
+    {
+      "file": "production/upload/38/a708ea0559a13f0f9ba7d867d20fcaf44f8c34",
+      "logical_path": "item/equipment/mod/mainboss/5930031_lv70.png"
+    },
+    {
+      "file": "production/upload/39/e608524569550752b4ca67c20f365dda2f6fa4",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_variant_epu.amf3.deflate"
+    },
+    {
+      "file": "production/upload/3a/744b8dc8f18346e03b7e3d376365ddf2f90dc8",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_dark/mod_mainboss_queen_dark.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/3a/af72e20ddcdb34f2e466ee6d81afe108c48053",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_benzaiten.png"
+    },
+    {
+      "file": "production/upload/3b/3a3ed062f5b31cef4d5fb6e57b8e6d83c10d73",
+      "logical_path": "item/equipment/mod/mainboss/5930191_lv70.png"
+    },
+    {
+      "file": "production/upload/3d/588524d715868167a7743a6a8b14a2b47cffa0",
+      "logical_path": "item/equipment/mod/mainboss/5930172_lv70.png"
+    },
+    {
+      "file": "production/upload/3d/5d6968f4da530484f0804ca57248e7d2fab360",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_maou2/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/3d/bb2d09945f15b32b2cee111de87a441baf6048",
+      "logical_path": "item/equipment/mod/mainboss/5930031_lv0.png"
+    },
+    {
+      "file": "production/upload/3e/5d249f51b1f81714692e46022c0d6458be3af3",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_org.png"
+    },
+    {
+      "file": "production/upload/3f/7deacd3130269e59c5b44a9bd68901be13e960",
+      "logical_path": "master/equipment_enhancement/equipment_enhancement.orderedmap"
+    },
+    {
+      "file": "production/upload/40/19e1f898ff9eef09ccd95ed742d4108964235a",
+      "logical_path": "item/equipment/mod/mainboss/5930091_lv0.png"
+    },
+    {
+      "file": "production/upload/40/4ec21d209bbef1f051933db4f6342c1700f791",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_beast_wind.png"
+    },
+    {
+      "file": "production/upload/41/370174ad6aa22d1c1006febec30c7158552c40",
+      "logical_path": "item/equipment/mod/mainboss/5930111_lv0.png"
+    },
+    {
+      "file": "production/upload/42/371792f53e5b2e7347f6a74cfef9ea0c50a17d",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_beast_fire.png"
+    },
+    {
+      "file": "production/upload/43/5a0331521fd68722a2b1627ddfe398e9daa078",
+      "logical_path": "item/equipment/mod/mainboss/5930022_lv0.png"
+    },
+    {
+      "file": "production/upload/44/122c32a154745ab6c6d979deb92bb0912bbc42",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_maou2_exchange.png"
+    },
+    {
+      "file": "production/upload/44/c07eaa1ebddd4982215c468b82c5870defe5d7",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_queen_fire.png"
+    },
+    {
+      "file": "production/upload/45/42124feecdbbbd0fe2b6e6277fd36c6b4f6141",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_wind/mod_mainboss_queen_wind.png"
+    },
+    {
+      "file": "production/upload/45/754ebf41db51e48362358e5377dec4e5c256ee",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_wind/mod_mainboss_beast_wind.png"
+    },
+    {
+      "file": "production/upload/46/a2e6a4cb9251a2dd2604a897a54ce69a4f5e02",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_wind/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/47/6f79fa65e2a47035ccb7a74411b142fcce9420",
+      "logical_path": "item/equipment/mod/mainboss/5930001_lv70.png"
+    },
+    {
+      "file": "production/upload/47/9f1669606dc6640fb7a9e22ced8c3164d440af",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_dragon_water.png"
+    },
+    {
+      "file": "production/upload/47/d96d5cc62d5b2848d152a5a19c4e6754ce3397",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_cursed_blade.png"
+    },
+    {
+      "file": "production/upload/49/a073fdd109e00ac9daf801113cb5e19f64a8cf",
+      "logical_path": "master/item/equipment.orderedmap"
+    },
+    {
+      "file": "production/upload/4a/4db0227e7fc17c3c33242d2e15b646b0a5947e",
+      "logical_path": "item/materials/mod/mainboss/core_benzaiten.png"
+    },
+    {
+      "file": "production/upload/4b/048a201e573fc236322a7beac0f8dc0d4c4144",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_variant_epu_exchange.png"
+    },
+    {
+      "file": "production/upload/4b/59dd60da848af09cd77fcabae41b0e30d3546f",
+      "logical_path": "item/equipment/mod/mainboss/5930262_lv0.png"
+    },
+    {
+      "file": "production/upload/4b/def5a88919173cd1ac134a8e5eb0bfbb6564dc",
+      "logical_path": "item/equipment/mod/mainboss/5930211_lv0.png"
+    },
+    {
+      "file": "production/upload/4c/d319091c1a1724e5488b87025b4c585cd24af7",
+      "logical_path": "item/materials/mod/mainboss/core_cursed_blade.png"
+    },
+    {
+      "file": "production/upload/4c/dae7fba5a5d1c689545e8ed45adb3cc7e32ee8",
+      "logical_path": "item/equipment/mod/mainboss/5930011_lv0.png"
+    },
+    {
+      "file": "production/upload/4c/fbce1bf0921389e216db48ba63b92e5a119d4d",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_thunder/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/4d/bbf5c26d5cbede52b6b1ac37d63eb11edf3cbe",
+      "logical_path": "item/equipment/mod/mainboss/5930101_lv70.png"
+    },
+    {
+      "file": "production/upload/4d/c3f751fb74be22c8dc9fe1d4e6cea98b2a5d64",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_high_epu/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/4e/5e5ce854e46a264625b468ac4e07209449dcfd",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_queen_thunder.png"
+    },
+    {
+      "file": "production/upload/4f/f7055bcad4a135f79623b6c474abf4d58e63cb",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_water/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/50/74fce7ad27e289ff8afc14dfe00919a0ecc686",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_light/mod_mainboss_beast_light.png"
+    },
+    {
+      "file": "production/upload/51/d2aae475fef2fea84cbcc1d0e044af6e714f77",
+      "logical_path": "item/equipment/mod/mainboss/5930131_lv0.png"
+    },
+    {
+      "file": "production/upload/52/0818d158340468e57f089ed35cd54ec359c150",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_water/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/52/0d0a9d7bed0eb1659e00be4c03a5a2f99612c6",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_wind/mod_mainboss_dragon_wind.png"
+    },
+    {
+      "file": "production/upload/52/f4222105e1e4a55e3212aa5ff7befccc1a0ad7",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_epu/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/53/e22dc9cb53d3b5943723215e30ea9a87135cfe",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_variant_epu.png"
+    },
+    {
+      "file": "production/upload/54/627d2316d56f4af528acb6f1c832ceb72d9a6e",
+      "logical_path": "master/equipment_enhancement/equipment_enhancement_shop_category.orderedmap"
+    },
+    {
+      "file": "production/upload/54/7a173a1d264642f38dee9557a01f4311247493",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_epu.png"
+    },
+    {
+      "file": "production/upload/54/8b50b909bd2554f6705aac4683ae7e70670837",
+      "logical_path": "item/equipment/mod/mainboss/5930212_lv0.png"
+    },
+    {
+      "file": "production/upload/54/b878c7624c7eafa34f6ec27d8363a7d5c341bf",
+      "logical_path": "item/equipment/mod/mainboss/5930092_lv0.png"
+    },
+    {
+      "file": "production/upload/55/4e1c445c26b2a8b96f36a72b3e6f95411a385e",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_epu/mod_mainboss_epu.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/55/9039dcef62a27a2b2acde2393b8de185d18949",
+      "logical_path": "item/equipment/mod/mainboss/5930161_lv70.png"
+    },
+    {
+      "file": "production/upload/55/f2e6383e4e19aa0a4c11c8c9d805ceb3a9b175",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_thunder/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/56/31ad14757dfdcec810036dc90ab5bde1e97162",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_light/mod_mainboss_dragon_light.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/56/87d63b0e00213d6aa2cc38a9b7c326914d9b2a",
+      "logical_path": "item/equipment/mod/mainboss/5930121_lv0.png"
+    },
+    {
+      "file": "production/upload/57/fa2384d25eb50c5823a27ae1baff9674939b9f",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_dragon_fire.png"
+    },
+    {
+      "file": "production/upload/58/108d11ddab93125beaab1d3ec3d6bf302c151a",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_maou2/mod_mainboss_maou2.png"
+    },
+    {
+      "file": "production/upload/58/676169797b09b9ffb16ca36fac6ccb2736c3ca",
+      "logical_path": "item/materials/mod/mainboss/core_queen_dark.png"
+    },
+    {
+      "file": "production/upload/5a/890d396256dfa629d4ef299e1e130674892b98",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_dragon_wind.png"
+    },
+    {
+      "file": "production/upload/5a/e239f4cb129e57d2de901bcc13b80410f0cd51",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_wind/mod_mainboss_queen_wind.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/5b/22c6362113b1721099c0c723e90bea1a5766fa",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_high_epu/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/5d/bba9c86d2bb03eecf49571cc486fd65909a1cb",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_high_epu.png"
+    },
+    {
+      "file": "production/upload/5d/cc1c9ed5fe9eda915d83817093894bd7c945c5",
+      "logical_path": "item/equipment/mod/mainboss/5930102_lv70.png"
+    },
+    {
+      "file": "production/upload/5d/d0330f8aa78d04bf015b923c6fcb4c76f2825b",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_variant_epu/mod_mainboss_variant_epu.png"
+    },
+    {
+      "file": "production/upload/5d/f4465cd9ed0d5aa38a21b4f5e47bcd5ac8db37",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_high_epu/mod_mainboss_high_epu.png"
+    },
+    {
+      "file": "production/upload/5f/80564153f071df3c24419e9eeb393610c90266",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_wind/mod_mainboss_beast_wind.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/60/305fe578be72ca663cabee67612eb118082e2f",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_water/mod_mainboss_dragon_water.png"
+    },
+    {
+      "file": "production/upload/62/7a09a0d698e89325868f1580cba42ea1f59af2",
+      "logical_path": "item/equipment/mod/mainboss/5930101_lv0.png"
+    },
+    {
+      "file": "production/upload/63/4e1903075e079cbb12ed183c3737d18a682c0b",
+      "logical_path": "item/materials/mod/mainboss/core_star_devourer.png"
+    },
+    {
+      "file": "production/upload/63/bba56dc09663b5d4881c1e37c525b14e498133",
+      "logical_path": "item/equipment/mod/mainboss/5930122_lv0.png"
+    },
+    {
+      "file": "production/upload/63/bf832eded977c3528532a210535de5dbc3b743",
+      "logical_path": "dynamic/equipment_enhancement/mod_boss_weapon_header.png"
+    },
+    {
+      "file": "production/upload/64/d7c22300aab7fcd3f51ce811e040877f9ae53b",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_star_devourer.png"
+    },
+    {
+      "file": "production/upload/65/21ab48a8b7686a93d7dd0220c2bfcafcab86c9",
+      "logical_path": "item/materials/mod/mainboss/core_variant_epu.png"
+    },
+    {
+      "file": "production/upload/66/e49a2c740841ed5015fac049c1497b70d2ba39",
+      "logical_path": "item/equipment/mod/mainboss/5930112_lv70.png"
+    },
+    {
+      "file": "production/upload/67/541c732a947d6a18ad593d7f94b0a9f70c5ac2",
+      "logical_path": "item/materials/mod/mainboss/coin_high_epu.png"
+    },
+    {
+      "file": "production/upload/67/98e62deda16623cc010ac5ed9ff10c129cb0d5",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_thunder/mod_mainboss_queen_thunder.png"
+    },
+    {
+      "file": "production/upload/68/6c1822fcaa320f71e8245ae7be98d553b84cb7",
+      "logical_path": "master/reward/rare_score_reward.orderedmap"
+    },
+    {
+      "file": "production/upload/68/d330855867ca72cc1bc12377c869452b37c815",
+      "logical_path": "item/equipment/mod/mainboss/5930121_lv70.png"
+    },
+    {
+      "file": "production/upload/6a/a05793311cd1e9d7646129d2323912c590d2e1",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_dark/mod_mainboss_dragon_dark.png"
+    },
+    {
+      "file": "production/upload/6c/1ed192464d7281c4862eec6a638005ad22b519",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_light/mod_mainboss_queen_light.png"
+    },
+    {
+      "file": "production/upload/6d/8da631c3f0b22c8adf6924e55889ef51444d45",
+      "logical_path": "item/equipment/mod/mainboss/5930232_lv70.png"
+    },
+    {
+      "file": "production/upload/6d/f552916aec328969451b0fea39b9e3910c2dcd",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_cursed_blade/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/6e/aaa962a0c8a29ca87b97781b4c232c76b4df77",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_cursed_blade_exchange.png"
+    },
+    {
+      "file": "production/upload/6e/bdd48f05e242d1ca0805d91e444ad18f2dce1a",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_benzaiten/mod_mainboss_benzaiten.png"
+    },
+    {
+      "file": "production/upload/6f/ff94c8508fbb4286e4446ca6ca024c453958fd",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_dragon_thunder.png"
+    },
+    {
+      "file": "production/upload/70/8835a9fa40fedd611e1aa71807e3c9019ad89e",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_wind/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/71/03046088ef6e1d417390e4ab9db87429f71a73",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_beast_fire.png"
+    },
+    {
+      "file": "production/upload/71/9f015350c44bdc3a41dd711130540d3049e116",
+      "logical_path": "item/equipment/mod/mainboss/5930021_lv0.png"
+    },
+    {
+      "file": "production/upload/73/35ab4033559dcf903c67c9dee2f8bc7a2f3dc8",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_origin_dragon/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/73/8ce1061db2d9c1602a31a3094dc97805d66ef6",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_high_epu/mod_mainboss_high_epu.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/73/92929db9efb5cdff32f8c68a492ca9df0632fd",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_org.png"
+    },
+    {
+      "file": "production/upload/73/962059cf17cb30cf9045fe9ed99ee6dda5d42b",
+      "logical_path": "item/equipment/mod/mainboss/5930152_lv70.png"
+    },
+    {
+      "file": "production/upload/74/4c79474d377d90a79e0cabecfe61ed7c93d85d",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_benzaiten.png"
+    },
+    {
+      "file": "production/upload/74/e0634fe591519d402874a54b8ae1dc1b57b1c6",
+      "logical_path": "item/materials/mod/mainboss/coin_benzaiten.png"
+    },
+    {
+      "file": "production/upload/75/6622c8e82d3c0a9a6ba445f6cff7d7db98949f",
+      "logical_path": "item/equipment/mod/mainboss/5930181_lv70.png"
+    },
+    {
+      "file": "production/upload/75/be9a28bf4b11c2966da910674ed69c5ea9174b",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_water/mod_mainboss_beast_water.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/76/5b28f1a2091ceab667d620010dafa0efab42e7",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_dark/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/77/01c1428d889068ae454459745ea6fbfb379856",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_cursed_blade/mod_mainboss_cursed_blade.png"
+    },
+    {
+      "file": "production/upload/77/651168ac35c8254f357e7f80c0f31c4cd01c51",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_variant_epu/mod_mainboss_variant_epu.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/79/3346e830c16ed8abec29cb92e85c83316d095e",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_star_devourer_exchange.png"
+    },
+    {
+      "file": "production/upload/79/54c6561367adb11852d3e21044f6df4fb3bfa3",
+      "logical_path": "item/equipment/mod/mainboss/5930162_lv0.png"
+    },
+    {
+      "file": "production/upload/7a/ed69f80265c906b57b4f341639e34fe33d85ca",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_maou2/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/7a/ffd02d6098a76e1ac64c1b8d5fe999e7d5b8be",
+      "logical_path": "item/materials/mod/mainboss/coin_maou2.png"
+    },
+    {
+      "file": "production/upload/7c/50e43124f2ec2b61add8060a937f0c820c2cb3",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_dark/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/7c/b8add3f7b412a5ed7725c70d5ba6b074a909e0",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_dark/mod_mainboss_beast_dark.png"
+    },
+    {
+      "file": "production/upload/7d/3fefc6ea32f869fb7fec25a71fe82bc78e1e22",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_thunder/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/7d/529b7149dc44563a6e4cc617cb643ac53c3edc",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_cursed_blade.png"
+    },
+    {
+      "file": "production/upload/7d/6f017e78086d5583b5d450cd235c000de06bd1",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_wind/mod_mainboss_dragon_wind.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/80/32de0c10223bc41f73376e0d50b1b4c59663af",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_wind/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/81/c45b21718c16d9cdb162869db95a6d8fa117c1",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_water/mod_mainboss_queen_water.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/82/630848946294d38c0888579d7908cfd025e95e",
+      "logical_path": "item/equipment/mod/mainboss/5930221_lv0.png"
+    },
+    {
+      "file": "production/upload/82/af5218cb1a6a39c5b64ec0113287e964d8f53b",
+      "logical_path": "item/equipment/mod/mainboss/5930241_lv0.png"
+    },
+    {
+      "file": "production/upload/82/d764a5a05473fce0d171c08fe99c6b7cf1f3c2",
+      "logical_path": "item/equipment/mod/mainboss/5930102_lv0.png"
+    },
+    {
+      "file": "production/upload/83/48be518effad7011237fd38ca2e4d91f02b67c",
+      "logical_path": "item/equipment/mod/mainboss/5930182_lv70.png"
+    },
+    {
+      "file": "production/upload/85/6809b45894e745de4f8be9a5d13f50ffef9356",
+      "logical_path": "item/equipment/mod/mainboss/5930191_lv0.png"
+    },
+    {
+      "file": "production/upload/86/ae746f87122485ba012ccc002c45794a00fdee",
+      "logical_path": "item/equipment/mod/mainboss/5930142_lv70.png"
+    },
+    {
+      "file": "production/upload/87/1304471157da89e59ec26eb6df303c1eeafbe6",
+      "logical_path": "master/quest/event/hard_multi_event.orderedmap"
+    },
+    {
+      "file": "production/upload/87/5e2c2ca2f741b0ae665397b76dc40e0910689e",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_beast_wind.png"
+    },
+    {
+      "file": "production/upload/87/d605a935755d0f31aff74c4715381a4e42d199",
+      "logical_path": "item/equipment/mod/mainboss/5930141_lv70.png"
+    },
+    {
+      "file": "production/upload/88/37a06d41060f92695ece9d2a96468786e00f89",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_variant_epu/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/89/cf6738c72c2323d148fef451b0f5bcac275753",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_maou2.png"
+    },
+    {
+      "file": "production/upload/8a/b96162f1210de71fafa87333abe257dc619183",
+      "logical_path": "master/quest/event/hard_multi_event_quest.orderedmap"
+    },
+    {
+      "file": "production/upload/8b/832baad5ebef01aaec64595eb7020c6b142dc8",
+      "logical_path": "item/materials/mod/mainboss/coin_epu.png"
+    },
+    {
+      "file": "production/upload/8c/45aed4cb8d7ccf6217f41f5b071f0a564e4c1e",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_light/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/8c/7e24d89fce0a69a51f2f0043d8ea9b3e68abaa",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_dragon_light.png"
+    },
+    {
+      "file": "production/upload/8d/3f1e29cc5216d97b6cbaf28aacb3305ee451e3",
+      "logical_path": "item/materials/mod/mainboss/core_queen_fire.png"
+    },
+    {
+      "file": "production/upload/8d/50e7c2394c2ac6821652a97baa0f45215b062e",
+      "logical_path": "item/equipment/mod/mainboss/5930041_lv0.png"
+    },
+    {
+      "file": "production/upload/8d/d127a4e129d8c80dd3711704191738812f9181",
+      "logical_path": "master/equipment_enhancement/equipment_enhancement_ability.orderedmap"
+    },
+    {
+      "file": "production/upload/8e/32b0b1e65d4386080db6c5147ea52cc7c1bdd8",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_thunder/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/8e/ba1d99cfc39b8a03e5065c4f26bd4c82d06b67",
+      "logical_path": "item/materials/mod/mainboss/coin_cursed_blade.png"
+    },
+    {
+      "file": "production/upload/8f/14d0ad96c8967d8923cdef01e5fcdd2f8efe72",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_dragon_dark.png"
+    },
+    {
+      "file": "production/upload/90/c4e5e4a7013c570d6a5c7ca9b36d606578258f",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_beast_dark.png"
+    },
+    {
+      "file": "production/upload/91/06ffa04e7344c3f149ae37ab43d0edfd579bc3",
+      "logical_path": "item/equipment/mod/mainboss/5930171_lv0.png"
+    },
+    {
+      "file": "production/upload/91/8c75aa00498d5b49cd5a27cf89246ffa876258",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_star_devourer/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/91/b7361322e07da427ed67ef9f93432a6fcf2b24",
+      "logical_path": "item/equipment/mod/mainboss/5930202_lv0.png"
+    },
+    {
+      "file": "production/upload/91/bbae0abc45d836fefa3b5c9c441a3c46d8e7ad",
+      "logical_path": "item/equipment/mod/mainboss/5930231_lv70.png"
+    },
+    {
+      "file": "production/upload/92/0b06eb8d21af7459e855412d5345eb417c9c36",
+      "logical_path": "item/equipment/mod/mainboss/5930172_lv0.png"
+    },
+    {
+      "file": "production/upload/92/0b12d438a62666449acc3caf60f3ede04707dc",
+      "logical_path": "item/materials/mod/mainboss/core_queen_light.png"
+    },
+    {
+      "file": "production/upload/92/9785527f3942add2e9b84ad5ba12fffb73ba81",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_queen_fire.png"
+    },
+    {
+      "file": "production/upload/92/c87ce9b64a33a9bf155f4c336bd88d800ee012",
+      "logical_path": "item/equipment/mod/mainboss/5930071_lv0.png"
+    },
+    {
+      "file": "production/upload/93/5ba344c6d0f5cc531b96648683f7ff5f9020ce",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_variant_epu.png"
+    },
+    {
+      "file": "production/upload/93/a3763bc243c7178e1d97a3acd9dab2e9406a5e",
+      "logical_path": "master/reward/score_reward.orderedmap"
+    },
+    {
+      "file": "production/upload/94/69ca45f53da4b468c35d3638cc54dd22768ee2",
+      "logical_path": "item/equipment/mod/mainboss/5930111_lv70.png"
+    },
+    {
+      "file": "production/upload/94/e9b33fff8368a6d5b91a5857d21c21160c796b",
+      "logical_path": "item/materials/mod/mainboss/coin_star_devourer.png"
+    },
+    {
+      "file": "production/upload/95/c85a9f42c5eb970f462d3d3787effe5d9bca62",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_light/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/96/30fb694637bdfe18edbe28f5f854dae9c425b0",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_origin_dragon/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/97/5dfaf3c5459b889f87b5885e35b71814ef125e",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_org/mod_mainboss_org.png"
+    },
+    {
+      "file": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "logical_path": "master/quest/boss_battle_stage_node.orderedmap"
+    },
+    {
+      "file": "production/upload/99/e72a3df90625d922cb9f8d5cf05a83c2db6ad5",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_beast_water.png"
+    },
+    {
+      "file": "production/upload/9b/8c279d1908eebbee15e7144056a44352d8b081",
+      "logical_path": "item/equipment/mod/mainboss/5930142_lv0.png"
+    },
+    {
+      "file": "production/upload/9b/cc2abd4400531c93f742dc3c12ecd606ceb636",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_thunder/mod_mainboss_beast_thunder.png"
+    },
+    {
+      "file": "production/upload/9c/46b430a21897ec2e2ddc2f21f599cde9db64d9",
+      "logical_path": "item/materials/mod/mainboss/core_queen_water.png"
+    },
+    {
+      "file": "production/upload/9c/7a1be2a104a1c1f3b0b792c099b67ce5904043",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_dark/mod_mainboss_queen_dark.png"
+    },
+    {
+      "file": "production/upload/9d/7ccb2cfc890423dc9db3480df53d7f78f21612",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_high_epu.png"
+    },
+    {
+      "file": "production/upload/9d/85e1eb403f8597821fc060c336cf36dc806e71",
+      "logical_path": "item/equipment/mod/mainboss/5930042_lv70.png"
+    },
+    {
+      "file": "production/upload/9d/f1ce368368df81da1c20516df1aeb8f32a4e66",
+      "logical_path": "item/equipment/mod/mainboss/5930052_lv70.png"
+    },
+    {
+      "file": "production/upload/9e/5b467e2fce754b4068244133af48e498e6a917",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_dark/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/a0/d04e9acdb4824078d2f3e8225fe2804c777341",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_light/mod_mainboss_dragon_light.png"
+    },
+    {
+      "file": "production/upload/a1/7714bb1bab63fed49e36260f56c3bd9eb760f8",
+      "logical_path": "item/equipment/mod/mainboss/5930251_lv70.png"
+    },
+    {
+      "file": "production/upload/a1/d75d26a02553bbd53bfe0872f11ab847d453f3",
+      "logical_path": "item/equipment/mod/mainboss/5930061_lv0.png"
+    },
+    {
+      "file": "production/upload/a2/0083b16c410b3848751904e91efc9b28fb56fe",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_star_devourer.amf3.deflate"
+    },
+    {
+      "file": "production/upload/a3/af6395d5110d3c534633803535356645742d78",
+      "logical_path": "item/equipment/mod/mainboss/5930162_lv70.png"
+    },
+    {
+      "file": "production/upload/a3/b831e4b20ff8c6596c5b36269e5b3880d6860d",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_queen_dark.png"
+    },
+    {
+      "file": "production/upload/a4/357393c830539677011fc37ae76fb9bf666980",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_dragon_thunder.png"
+    },
+    {
+      "file": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "logical_path": "master/item/item.orderedmap"
+    },
+    {
+      "file": "production/upload/a4/7a6c1d5685d0ea6eda2680c33a509b24adb43c",
+      "logical_path": "item/equipment/mod/mainboss/5930201_lv70.png"
+    },
+    {
+      "file": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "logical_path": "master/shop/boss_coin_shop.orderedmap"
+    },
+    {
+      "file": "production/upload/a5/55ee466a799a013d21271d330e8fbf97837759",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_high_epu.amf3.deflate"
+    },
+    {
+      "file": "production/upload/a5/8fb5c51f39d81e45970b6d0e190bf64faf78c1",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_thunder/mod_mainboss_dragon_thunder.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/a5/b2d80b58fda01761f5f200291d9fbfec53b775",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_dragon_light.png"
+    },
+    {
+      "file": "production/upload/a6/7d9e19512a47ce4e6bda759f8019111096f116",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_dragon_wind.png"
+    },
+    {
+      "file": "production/upload/a8/5b06e896c58f648fa36d8b74b5b853763117c4",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_benzaiten.amf3.deflate"
+    },
+    {
+      "file": "production/upload/a8/f26d6d8d449201b7cb92eb301fa86de410031a",
+      "logical_path": "item/equipment/mod/mainboss/5930051_lv0.png"
+    },
+    {
+      "file": "production/upload/a9/fc6294bbae0cc564351e939c8bb7968d557c18",
+      "logical_path": "item/equipment/mod/mainboss/5930231_lv0.png"
+    },
+    {
+      "file": "production/upload/aa/09f36d95126dc9694f7d10064dd76c6adafcc7",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_fire/mod_mainboss_dragon_fire.png"
+    },
+    {
+      "file": "production/upload/aa/cdb5dba761287abb581bc632579a595b4b9e95",
+      "logical_path": "item/equipment/mod/mainboss/5930122_lv70.png"
+    },
+    {
+      "file": "production/upload/ad/363e04a4a3a44957b05317fd395beb11a511f7",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_org_exchange.png"
+    },
+    {
+      "file": "production/upload/ad/e3be3514dd7c78c8cea4cce8e77b76808eb92b",
+      "logical_path": "item/equipment/mod/mainboss/5930252_lv0.png"
+    },
+    {
+      "file": "production/upload/ae/23e6f0e5a9e15ba1f85ed98493d4d7fe9bd5e2",
+      "logical_path": "item/equipment/mod/mainboss/5930112_lv0.png"
+    },
+    {
+      "file": "production/upload/ae/3af9b6e71717e2907d36e055f92c47337d7355",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_dark/mod_mainboss_dragon_dark.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/ae/b7d23e5ad05dcafe0ea94cda4baa829b16da76",
+      "logical_path": "item/equipment/mod/mainboss/5930022_lv70.png"
+    },
+    {
+      "file": "production/upload/af/802ce91d97b3e6c40f3ee7df91fa3709646551",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_beast_dark.png"
+    },
+    {
+      "file": "production/upload/af/9c8a948531abb7e4edc0ccd035601f75eec9a2",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_water/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/af/a229c92bc94f1f010f97391b49c41a49989f55",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_origin_dragon.png"
+    },
+    {
+      "file": "production/upload/b1/534950dede52f5d58df4e87df3131b91f86b4a",
+      "logical_path": "item/equipment/mod/mainboss/5930072_lv70.png"
+    },
+    {
+      "file": "production/upload/b2/5bd0a0cb371e3b5e75c2ead871bddec5aac1df",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_maou2.png"
+    },
+    {
+      "file": "production/upload/b3/1af815114acaaf4d59050c73edcd3c157ed34c",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_beast_thunder.png"
+    },
+    {
+      "file": "production/upload/b3/8a058e405fb4e0399b9402c09527151d6c223a",
+      "logical_path": "item/equipment/mod/mainboss/5930262_lv70.png"
+    },
+    {
+      "file": "production/upload/b4/d3cfc1f7254e24f05f37290420f56635162910",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_dragon_light.png"
+    },
+    {
+      "file": "production/upload/b5/6f2adcb23e47c69300cbb694762b7462b6e67b",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_benzaiten.png"
+    },
+    {
+      "file": "production/upload/b6/9678e37ea613ad2e820e73b35291596000e03d",
+      "logical_path": "item/materials/mod/mainboss/core_epu.png"
+    },
+    {
+      "file": "production/upload/b9/c0573cabb225494cba11f062e68d5e5c90c757",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_dragon_wind.png"
+    },
+    {
+      "file": "production/upload/b9/dd3285661ddb8a8fe84b82398b205dbba44bc2",
+      "logical_path": "item/materials/mod/mainboss/core_dragon_light.png"
+    },
+    {
+      "file": "production/upload/ba/7b2305dac13042513a226a01a85cc00bce6fff",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_fire/mod_mainboss_queen_fire.png"
+    },
+    {
+      "file": "production/upload/ba/d09b6fa3eeee551d60f2eeef3fbdfc3fbd688e",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_epu/mod_mainboss_epu.png"
+    },
+    {
+      "file": "production/upload/bb/0ca1dd27eb8a057de4ac716a28e8aabc7a4a53",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_dark/mod_mainboss_beast_dark.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/bb/1c765ec3184aa5ffac53557a13a1fce26a5cc8",
+      "logical_path": "item/equipment/mod/mainboss/5930192_lv70.png"
+    },
+    {
+      "file": "production/upload/bc/28556da6d561fe313ba3a6a530fa5e80487d00",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_water/mod_mainboss_queen_water.png"
+    },
+    {
+      "file": "production/upload/bd/2e6ff297de3a477c22cecb1f6f8776baab22ff",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_light/mod_mainboss_beast_light.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/bd/2ff6518d6cca794a8ea99523d0a5617070b29d",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_origin_dragon/mod_mainboss_origin_dragon.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/bd/5cfaaf63fef7f154585deabd831ceb270473c8",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_fire/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/bd/b3b680adc7b46da970f04b83b039849f6d1699",
+      "logical_path": "item/materials/mod/mainboss/core_dragon_water.png"
+    },
+    {
+      "file": "production/upload/be/5ca0e2fa83b99cba4768bb72e60e7d8a2b780a",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_origin_dragon/mod_mainboss_origin_dragon.png"
+    },
+    {
+      "file": "production/upload/be/e1c38232e65b7ff08a0347cc9ebe5f5ed3b989",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_fire/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/bf/3fa8289a253b7270f525aa7fd580d51a424f6d",
+      "logical_path": "item/materials/mod/mainboss/core_origin_dragon.png"
+    },
+    {
+      "file": "production/upload/c2/03dcef4323aa559c8c3471bdcf378fa4ebf3e5",
+      "logical_path": "item/equipment/mod/mainboss/5930201_lv0.png"
+    },
+    {
+      "file": "production/upload/c3/0d7725812b49a3d2a4aa12a287d550f4a40ccf",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_star_devourer/mod_mainboss_star_devourer.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/c5/0a54666fa5892c6aa1eca6fef97ebde28eee0d",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_epu.png"
+    },
+    {
+      "file": "production/upload/c5/73c70e1be3421e4e9b979853ba8c1cca31d062",
+      "logical_path": "item/equipment/mod/mainboss/5930132_lv70.png"
+    },
+    {
+      "file": "production/upload/c6/bffcbe69041407e80f1c4a9eed5edcc177d95b",
+      "logical_path": "item/equipment/mod/mainboss/5930171_lv70.png"
+    },
+    {
+      "file": "production/upload/c6/c9388d5f5139954015f4c87d3efe5860fdb575",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_epu.png"
+    },
+    {
+      "file": "production/upload/c6/d275fc2e22bc88a5316e8d12574c67e03dee81",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_origin_dragon.png"
+    },
+    {
+      "file": "production/upload/c7/5fe334b7f0bc3064200eaf48f1847460ee4665",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_beast_thunder.png"
+    },
+    {
+      "file": "production/upload/c8/e0a3cac6085426326e764cc995c47b2febe132",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_origin_dragon.png"
+    },
+    {
+      "file": "production/upload/c9/59fb0bf1c8f08e59c2f33c0f30eb014db09020",
+      "logical_path": "item/materials/mod/mainboss/core_beast_fire.png"
+    },
+    {
+      "file": "production/upload/ca/d258e65f079efd59588b6452b51dadd442112a",
+      "logical_path": "item/equipment/mod/mainboss/5930241_lv70.png"
+    },
+    {
+      "file": "production/upload/ca/dfebd6d3c591045598a479d41f1b259b7aaed9",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_dragon_fire.png"
+    },
+    {
+      "file": "production/upload/ca/f616f202894d1166068500e08df6bd1f3b2709",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_maou2/mod_mainboss_maou2.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/cb/1ceb7c44e86e620cef8ae83486d195c1b9ff15",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_queen_water.png"
+    },
+    {
+      "file": "production/upload/cb/1e195679f0bcfafc406d5d79bd3a48c24cbe7e",
+      "logical_path": "item/equipment/mod/mainboss/5930042_lv0.png"
+    },
+    {
+      "file": "production/upload/cb/69863e1a4929cb2fbf54a4a8128ea19812b29b",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_epu/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/cb/de9470b85389168d000b974eabf76a396dfdff",
+      "logical_path": "item/materials/mod/mainboss/core_beast_dark.png"
+    },
+    {
+      "file": "production/upload/cd/330520a2ab52abe04ba48fe883d79a82e0923a",
+      "logical_path": "master/item/equipment_status.orderedmap"
+    },
+    {
+      "file": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "logical_path": "master/battle/zone.orderedmap"
+    },
+    {
+      "file": "production/upload/cd/9f404503f6d6f5063fb885694ef4de4f1fd6a6",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_org.png"
+    },
+    {
+      "file": "production/upload/cd/ad029ea306381dcb2aa00d0a4ef8aa2509904d",
+      "logical_path": "item/equipment/mod/mainboss/5930232_lv0.png"
+    },
+    {
+      "file": "production/upload/cd/fb2e051acf9fbd80de4059c155792b5e567974",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_queen_wind.png"
+    },
+    {
+      "file": "production/upload/cf/c3945b6c6e0b1a6119460aaf6c9891935102b5",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_queen_light.png"
+    },
+    {
+      "file": "production/upload/d0/3b9c0fce0687a2813501760bd4292d907077d4",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_benzaiten/mod_mainboss_benzaiten.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/d2/7b67eb4278745f31c6d2f57676a3040afefdd4",
+      "logical_path": "item/materials/mod/mainboss/core_beast_wind.png"
+    },
+    {
+      "file": "production/upload/d3/0f8af8be74a87e07ae1987944de97bd217c6a6",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_org/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/d3/1dc652f392ecf91a3619f980ab38aa7ada7caa",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_fire/mod_mainboss_dragon_fire.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/d4/f556dd33aef3762159aeca98624d2bbb3cb06c",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_variant_epu.png"
+    },
+    {
+      "file": "production/upload/d5/618bc7c3938117a8cd17f86c04bd365c4cef71",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_queen_dark.png"
+    },
+    {
+      "file": "production/upload/d5/80d0c1b12526cfeb9439f3237a6eda5104d83e",
+      "logical_path": "item/equipment/mod/mainboss/5930032_lv70.png"
+    },
+    {
+      "file": "production/upload/d5/a4c77ea30920bc6bd145d55e4fe7edb08b1d8f",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_thunder/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/d5/aa2b4efb653c584cc8cf1ae07983014295714f",
+      "logical_path": "item/equipment/mod/mainboss/5930082_lv0.png"
+    },
+    {
+      "file": "production/upload/d5/c668011cabcd86d48151f65616ad092b9a9233",
+      "logical_path": "item/equipment/mod/mainboss/5930222_lv0.png"
+    },
+    {
+      "file": "production/upload/d5/d2f9f8874b98b20e7445fa8df441f906649cce",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_queen_light.png"
+    },
+    {
+      "file": "production/upload/d6/a23f83f176b05f715a8504b8fc0fc1ffaff068",
+      "logical_path": "master/ability/ability_soul.orderedmap"
+    },
+    {
+      "file": "production/upload/d7/71847320950b01b7f65f41a90071e459882279",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_maou2.png"
+    },
+    {
+      "file": "production/upload/d8/5393e6e7cdb2c49d3a5333dc7b13a8cedb0d6a",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_epu_exchange.png"
+    },
+    {
+      "file": "production/upload/d8/8936331ec244eb36939707903f801e68dbfe56",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_maou2.amf3.deflate"
+    },
+    {
+      "file": "production/upload/d8/eece48dd4c96bd366b433afe0e779279a80f74",
+      "logical_path": "item/equipment/mod/mainboss/5930211_lv70.png"
+    },
+    {
+      "file": "production/upload/da/1d7204d0698cceeb43da073d49eada063509d1",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_org.png"
+    },
+    {
+      "file": "production/upload/da/733c6386f0a589059e790158475331e4eacfb7",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_fire/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/db/21052bfd006d941b31b1452ac9ed73e9595e52",
+      "logical_path": "item/equipment/mod/mainboss/5930051_lv70.png"
+    },
+    {
+      "file": "production/upload/db/a2d717b512f5a833329d22ad1359e78f8ccc05",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_org/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/dc/5a3399e826580765e012030ff44188d940143f",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_star_devourer.png"
+    },
+    {
+      "file": "production/upload/dc/a7071d2a54da858b2142d8a0d281e855ad857a",
+      "logical_path": "item/equipment/mod/mainboss/5930092_lv70.png"
+    },
+    {
+      "file": "production/upload/dd/d1972b60817a736894c73681e77d86f06c10d4",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_star_devourer.png"
+    },
+    {
+      "file": "production/upload/de/8618d187d249e8b3625f5cf46ae78d5b7134fa",
+      "logical_path": "item/equipment/mod/mainboss/5930091_lv70.png"
+    },
+    {
+      "file": "production/upload/de/8d1bf87f0680c608e159462d0b7ff8f24efc9a",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_dragon_thunder.png"
+    },
+    {
+      "file": "production/upload/df/dd445bc59032ff83c54e933a1a4d48c81a217a",
+      "logical_path": "item/equipment/mod/mainboss/5930001_lv0.png"
+    },
+    {
+      "file": "production/upload/e0/0b8f3476d143f31a93b461d5dc2e2ad16b99b5",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_dark/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/e0/8aebd882727fc5b6b00a4887e3b32af4d58954",
+      "logical_path": "item/equipment/mod/mainboss/5930222_lv70.png"
+    },
+    {
+      "file": "production/upload/e0/a0b7b8b3bb6be872ab84d5ee04564cbb7234d3",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_fire/mod_mainboss_queen_fire.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/e0/cf96cd759e7f16dccbdea2fd907e3083aefcbc",
+      "logical_path": "item/materials/mod/mainboss/core_maou2.png"
+    },
+    {
+      "file": "production/upload/e1/c9e8d9c74d7ba6af791e2da77270433a14d1f6",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_origin_dragon_exchange.png"
+    },
+    {
+      "file": "production/upload/e3/62580423158d6362b24ff8a21f603ed88da1d4",
+      "logical_path": "item/equipment/mod/mainboss/5930012_lv70.png"
+    },
+    {
+      "file": "production/upload/e3/ef959b85852427577252f1651c3a93a8d2dc1e",
+      "logical_path": "master/equipment_enhancement/equipment_enhancement_shop.orderedmap"
+    },
+    {
+      "file": "production/upload/e4/3fcede0408dc952d834a9a94f2a5b02b31cdaa",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_beast_water.png"
+    },
+    {
+      "file": "production/upload/e4/4adf7622f1f48e77463814a2d6d7c3c8bd6596",
+      "logical_path": "item/equipment/mod/mainboss/5930261_lv0.png"
+    },
+    {
+      "file": "production/upload/e4/ce196c40a59f64efbfeb2fc1010fd2e67c5e66",
+      "logical_path": "item/materials/mod/mainboss/core_high_epu.png"
+    },
+    {
+      "file": "production/upload/e4/e6e454812830fcfc490bb7c958a5a0308cbfef",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_high_epu.png"
+    },
+    {
+      "file": "production/upload/e6/8ae4959432a908e99ff56a00bb7f425fb171d0",
+      "logical_path": "item/equipment/mod/mainboss/5930242_lv0.png"
+    },
+    {
+      "file": "production/upload/e7/3ee4bd3f6fba56c417cec236f48bf76b512a91",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_queen_fire.png"
+    },
+    {
+      "file": "production/upload/e8/cfb7c3557131f3a7ccb7f69d75d02fe9344573",
+      "logical_path": "item/equipment/mod/mainboss/5930002_lv70.png"
+    },
+    {
+      "file": "production/upload/e9/70ab1c1d074e5af76a31d431cfc12fc4d187b6",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_cursed_blade.png"
+    },
+    {
+      "file": "production/upload/e9/944973f33cfb4ed8ce580a23f30d19aa9d0b6d",
+      "logical_path": "item/equipment/mod/mainboss/5930081_lv70.png"
+    },
+    {
+      "file": "production/upload/e9/a9df28e4202601953baf87bad8f8c6805b9e67",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_queen_dark.png"
+    },
+    {
+      "file": "production/upload/ea/19402d10ab47c60f0e659f7ad77d210187456f",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_variant_epu/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/ea/697de16a303111482c331fb785141da04d1ec8",
+      "logical_path": "item/equipment/mod/mainboss/5930071_lv70.png"
+    },
+    {
+      "file": "production/upload/eb/e68ceff099844c3bf0cf6a032d03f4c0f33321",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_thunder/mod_mainboss_queen_thunder.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "logical_path": "master/quest/boss_battle_quest.orderedmap"
+    },
+    {
+      "file": "production/upload/ec/ea7c5ef390fa658dc4f02b2a570ba2e753e7e8",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_fire/mod_mainboss_beast_fire.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/ec/f36b6b28daaadd4ff1ff2d911e446d84961686",
+      "logical_path": "item/materials/mod/mainboss/coin_variant_epu.png"
+    },
+    {
+      "file": "production/upload/ec/fff0486b55d5591d102ab4b8c2f17ffeced932",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_high_epu_exchange.png"
+    },
+    {
+      "file": "production/upload/ed/7327a4ecb8f5c6556caa4730c933a575ff7c99",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_water/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/ee/273c3d1b18781488d903216ffd319d088b31e0",
+      "logical_path": "item/materials/mod/mainboss/core_dragon_fire.png"
+    },
+    {
+      "file": "production/upload/ee/3e683e29c4fcf5dfe86d68fc2f29252d79b46b",
+      "logical_path": "item/materials/mod/mainboss/core_queen_thunder.png"
+    },
+    {
+      "file": "production/upload/ee/565a16b7af4bc06da6a6f6ed87500523c14aaa",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_fire/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/ee/5e9708dfceaa35c2d8e3cb4fa9bd47e62c2f67",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_dragon_fire.png"
+    },
+    {
+      "file": "production/upload/ee/a0c7297220d0a2ffad033abc4dd722a1cc80e3",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_beast_wind.png"
+    },
+    {
+      "file": "production/upload/ef/7433d6a4163e3870e2c21788cf93faeb14466a",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_cursed_blade/mod_mainboss_cursed_blade.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/f0/5e44e5670e971bfe7cc8ce1c1ef8256c6b4195",
+      "logical_path": "item/materials/mod/mainboss/coin_origin_dragon.png"
+    },
+    {
+      "file": "production/upload/f0/d3ed2a47c55250102348997cb5d34ab4724a14",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_queen_thunder.png"
+    },
+    {
+      "file": "production/upload/f1/13879844b8c33f871412fea9472876ffe3e9a7",
+      "logical_path": "quest/boss_battle/banner/mod_mainboss_benzaiten_exchange.png"
+    },
+    {
+      "file": "production/upload/f1/6bc68f738ebee05608269b4aef7e4b5c1d84fa",
+      "logical_path": "master/equipment_enhancement/equipment_enhancement_status.orderedmap"
+    },
+    {
+      "file": "production/upload/f1/8c211f2575c91b790a6ad1801dcdd7aec76cc8",
+      "logical_path": "item/equipment/mod/mainboss/5930021_lv70.png"
+    },
+    {
+      "file": "production/upload/f2/216cace2fffc823b09eff699027edadf83b036",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_queen_wind.png"
+    },
+    {
+      "file": "production/upload/f2/29b50d7c5c86ffe8ac0697b2901940078322c4",
+      "logical_path": "item/equipment/mod/mainboss/5930131_lv70.png"
+    },
+    {
+      "file": "production/upload/f2/a3f86357bba984a3c603f1ac913ca78929fe89",
+      "logical_path": "item/equipment/mod/mainboss/5930002_lv0.png"
+    },
+    {
+      "file": "production/upload/f3/760889c2b7864f199a0894a9de53191bd0b80c",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_queen_water.png"
+    },
+    {
+      "file": "production/upload/f3/c66c343383cc7be9be58fb055bbb45ab16262a",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_beast_light.png"
+    },
+    {
+      "file": "production/upload/f4/49d63feb2fd2f2fe1706a97ea6e38fc429f6de",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_wind/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/f4/699653b1d8016aa6cbd81e0f47e030787b40ea",
+      "logical_path": "quest/boss_battle/background/mod_mainboss_benzaiten.png"
+    },
+    {
+      "file": "production/upload/f4/7b227ebbdedc6de7c5f36fa0f96a3f80f9d9c3",
+      "logical_path": "master/quest/event/event_folder_events.orderedmap"
+    },
+    {
+      "file": "production/upload/f4/89d5208053eb408ff137693239a65a3c3f0ab5",
+      "logical_path": "item/equipment/mod/mainboss/5930181_lv0.png"
+    },
+    {
+      "file": "production/upload/f5/4f982ebdd874b7c15a844165f22649d829cc4e",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_org.amf3.deflate"
+    },
+    {
+      "file": "production/upload/f5/82be7dd056451cbe40813c1490e679ff235764",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_star_devourer/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/f5/9dbb797cdc0eab0ae10a64730aeb11d3d41b1c",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_beast_thunder/mod_mainboss_beast_thunder.atlas.amf3.deflate"
+    },
+    {
+      "file": "production/upload/f7/43112395c7cfc3cce1d38e627449615b120f5c",
+      "logical_path": "battle/terrain/multi_normal_quest/mod_main_boss/boss_battle_cursed_blade.amf3.deflate"
+    },
+    {
+      "file": "production/upload/f9/eb612c9e26a1814e9405062c32070919fafcb2",
+      "logical_path": "item/equipment/mod/mainboss/5930151_lv70.png"
+    },
+    {
+      "file": "production/upload/fa/047ac736e22cee8ec5235f1466acfb10eea3f5",
+      "logical_path": "item/equipment/mod/mainboss/5930152_lv0.png"
+    },
+    {
+      "file": "production/upload/fb/a132323a363dd59c633ff103af6a4620e9b0c8",
+      "logical_path": "item/equipment/mod/mainboss/5930082_lv70.png"
+    },
+    {
+      "file": "production/upload/fb/ae2575bd34fad1a874dc85f8c28a61025a7e5e",
+      "logical_path": "quest/event/banner/hard_multi/mod_mainboss_beast_thunder.png"
+    },
+    {
+      "file": "production/upload/fb/c0d9478391377b52fa49ac40a208e3fc14e202",
+      "logical_path": "item/equipment/mod/mainboss/5930202_lv70.png"
+    },
+    {
+      "file": "production/upload/fc/f56e6b119f23ae2a923548f45549889805550c",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_queen_light/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/fd/555be0b24958782f5662f312f3869dcd64c2e5",
+      "logical_path": "item/equipment/mod/mainboss/5930192_lv0.png"
+    },
+    {
+      "file": "production/upload/fd/9e4ac7f1c40c70b4427613d09987dd7c77dbd7",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_cursed_blade/background.parts.amf3.deflate"
+    },
+    {
+      "file": "production/upload/fe/00555542f4ddd497c3c85f870f52b97f517642",
+      "logical_path": "quest/event/logo/hard_multi/mod_mainboss_variant_epu.png"
+    },
+    {
+      "file": "production/upload/ff/4e4ac442e931dc1b7d58bfbad82db8e758a002",
+      "logical_path": "quest/event/animation_background/hard_multi/mod_mainboss_dragon_light/background.timeline.amf3.deflate"
+    },
+    {
+      "file": "production/upload/ff/7bbe98c9d7e0fde9fc67171315f3e684a7104f",
+      "logical_path": "quest/event/bossbattle_banner/hard_multi/mod_mainboss_queen_light.png"
+    }
+  ],
+  "verification": [
+    "本地服 8001 + MuMu：9个领主战与27个共同决战可进入并通关（咒剑、皓之女王、丑王奥格三人房），终始之龙中级/高级单人SS",
+    "领主战兑换道具：两把武器、强化核、记忆晶显示正常，领主币兑换终始之龙的崩山拳甲×5成功",
+    "装备觉醒到5，「领主武装·觉醒」强化 0→69→70→120 成功，满级 HP685/攻击203"
+  ]
+}
