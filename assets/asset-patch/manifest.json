@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.132",
+  "cdn_version": "1.4.133",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -25002,6 +25002,50 @@
         "remove pickup schedule 90000023 row"
       ],
       "created_at": "2026-10-07"
+    },
+    {
+      "id": "midautumn-mod-pool-migration-1.4.133",
+      "type": "patch",
+      "name": "中秋国庆 MOD 角色迁入深渊与竞速池",
+      "description": "关闭中秋国庆池后，将 12 名 MOD 角色迁入深渊池和竞速池；保持两池五星总概率不变，深渊轮换上一批 7 名角色开放兑换，本批 12 名仅可抽取，竞速池 12 名直接开放兑换。",
+      "version": "1.4.133",
+      "depends_on": "1.4.132",
+      "enabled": true,
+      "archive": "pinball-1.4.132-1.4.133-1-midautumn-mod-pool-migration-20261008.zip",
+      "archive_size": 10975,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.132-1.4.133-1-midautumn-mod-pool-migration-20261008.zip",
+          "size": 10975,
+          "sha256": "3fa8fc9887c681f6b03bbe6db60789d172ffad019428f799d6ac978e815d34cc",
+          "members": 4,
+          "files": [
+            "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+            "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+            "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+            "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+        "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+        "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+        "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
+      ],
+      "chain": [
+        "pinball-1.4.132-1.4.133-1-midautumn-mod-pool-migration-20261008.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/midautumn-mod-pool-migration-1.4.133",
+        "report": "report.json"
+      },
+      "changes": [
+        "gacha 990001：加入 12 名中秋国庆 MOD，各 0.200%；上一批 7 名角色改为可兑换；其他非 MOD ★5 按比例降权，五星总权重保持 150000。",
+        "gacha 990002：加入 12 名中秋国庆 MOD，各 1.000% 且可兑换；其他非 MOD ★5 按比例降权，五星总权重保持 950000。",
+        "同步两个池的五星 odds orderedmap、兑换标记与注意事项文本。"
+      ],
+      "created_at": "2026-10-08"
     }
   ],
   "generated_for": "official active chain"
