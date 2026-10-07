@@ -24,6 +24,7 @@
 - [已知问题](./status/known-issues.md) · [变更日志](./status/changelog.md) · [测试进度](./status/test-progress.md)
 
 ## 性能与运维
+- [服务器固定四小时日志](./development/SERVER-FOUR-HOUR-LOGS-20261005.md)
 - [幻想装备共斗准备拦截与倒计时保护](./development/MULTI-EQUIPMENT-READY-GATE-20261005.md)
 - [四核服务器 CPU 优化实施记录](./development/MULTICORE-CPU-OPTIMIZATION-20261002.md)
 - [多人共斗断线排查与修复记录](./development/MULTIPLAYER-DISCONNECT-INVESTIGATION-20261003.md)
