@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.131",
+  "cdn_version": "1.4.132",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -24957,6 +24957,51 @@
         ],
         "inactive_directory": "assets/asset-patch/inactive/liangyue-character-original-1.4.131-20261005"
       }
+    },
+    {
+      "id": "midautumn-orochi-event-closure-1.4.132",
+      "type": "patch",
+      "name": "中秋国庆与八岐大蛇活动收尾",
+      "description": "关闭中秋国庆限定扭蛋及八岐大蛇 pickup；八岐大蛇兑换商店下架月饼，其余限时商品改为常驻。",
+      "version": "1.4.132",
+      "depends_on": "1.4.131",
+      "enabled": true,
+      "archive": "pinball-1.4.131-1.4.132-1-midautumn-orochi-event-closure-20261007.zip",
+      "archive_size": 998400,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.131-1.4.132-1-midautumn-orochi-event-closure-20261007.zip",
+          "size": 998400,
+          "sha256": "5f4ea72e83c3395a69193cdaac5504705491f355f3c2bcb16247b97ab4d39f32",
+          "members": 4,
+          "files": [
+            "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+            "production/upload/15/83d96aad4b9a46d19d19b6555d3f4232b29e25",
+            "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+            "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+        "production/upload/15/83d96aad4b9a46d19d19b6555d3f4232b29e25",
+        "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+        "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d"
+      ],
+      "chain": [
+        "pinball-1.4.131-1.4.132-1-midautumn-orochi-event-closure-20261007.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/midautumn-orochi-event-closure-1.4.132",
+        "report": "report.json"
+      },
+      "changes": [
+        "gacha 990003 end date 2025-01-01 00:00:00",
+        "remove shop mooncake 202045; make 202046–202048 permanent",
+        "remove pickup event 90000023 row",
+        "remove pickup schedule 90000023 row"
+      ],
+      "created_at": "2026-10-07"
     }
   ],
   "generated_for": "official active chain"
