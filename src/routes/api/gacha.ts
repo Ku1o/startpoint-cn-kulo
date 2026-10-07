@@ -44,6 +44,17 @@ interface ExecBody {
 
 const MAX_GACHA_EXEC_COUNT = 10
 
+function parseGachaTimestamp(value: string): number {
+    // Master-data timestamps are expressed in China Standard Time without an offset.
+    return Date.parse(`${value.replace(" ", "T")}+08:00`)
+}
+
+function isGachaAvailableAt(gacha: { startDate: string, endDate: string }, now: number): boolean {
+    const start = parseGachaTimestamp(gacha.startDate)
+    const end = parseGachaTimestamp(gacha.endDate)
+    return Number.isFinite(start) && Number.isFinite(end) && now >= start && now <= end
+}
+
 interface ExchangeCharacterBody {
     character_id: number,
     api_count: number,
@@ -328,6 +339,13 @@ const routes = async (fastify: FastifyInstance) => {
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Gacha doesn't exist."
+            })
+        }
+        if (!isGachaAvailableAt(gachaData, Date.now())) {
+            gameVerboseLog(() => `[GACHA] gacha unavailable: gachaId=${gachaId}`);
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Gacha is not available."
             })
         }
         const isCharacterGacha = gachaData.type == GachaType.CHARACTER
