@@ -69,6 +69,9 @@ export interface MultiRoom {
     host_viewer_id: number
     host_player_id: number
     host_party_id: number
+    /** Party selections approved before this generation enters BATTLE. */
+    equipmentPartyIds?: Record<number, number>
+    readyCountdownPending?: boolean
     host_main_character_id: number
     accepted_type: number
     created_at: number
