@@ -1,0 +1,88 @@
+{
+  "evidence_scope": "Historical release/gate observations, not a post-cleanup rerun. Existing results and any generated_at are preserved. Directory listings, chain/source-edge data and manifest-related observations describe the recorded historical state; they do not assert that retired disabled manifest entries remain present. Documentation-only sanitation: no service, build, replay, HTTP probe or test execution. WF_PATHLIST_recovered.txt is a tracked development-tool input for the historical scan, not an active runtime/download attachment; its Git tracking state is not changed.",
+  "gate": "timeline-sounds",
+  "generated_at": "2026-10-06T19:02:40+08:00",
+  "edge": {
+    "version": "1.4.131",
+    "id": "liangyue-character-1.4.131",
+    "archives": [
+      "pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.zip"
+    ]
+  },
+  "required_logicals": [],
+  "pathlist_scan": {
+    "pathlist": "tools/fantasy-gauntlet-mod-tools/WF_PATHLIST_recovered.txt",
+    "timelines": 7849,
+    "found": 7841,
+    "missing_from_chain": [
+      "scene/general/animation/effect_drag_particle.timeline.amf3.deflate",
+      "scene/general/animation/effect_long_touch.timeline.amf3.deflate",
+      "scene/general/animation/effect_touch.timeline.amf3.deflate",
+      "scene/general/animation/effect_touch_particle.timeline.amf3.deflate",
+      "scene/minigame_bundled/explosion.timeline.amf3.deflate",
+      "scene/title_bundled/key_visual/key_visual.timeline.amf3.deflate",
+      "scene/title_bundled/logo/logo.timeline.amf3.deflate",
+      "scene/title_bundled/logo/touch_to_start.timeline.amf3.deflate"
+    ],
+    "problems": 0
+  },
+  "edge_member_scan": {
+    "members": 86,
+    "timeline_like": [
+      {
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.zip",
+        "member": "production/upload/11/cc4bdb2e5f4090c790c098cad22e2b4fe9ba13",
+        "sha256": "d8d857c406b4e665cb7d138622bad0ea119765171483869f831cd424b7f31b08",
+        "keys": [
+          "circles",
+          "points",
+          "sequences",
+          "sounds"
+        ]
+      },
+      {
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.zip",
+        "member": "production/upload/29/ecebb5399b98ba0316a38f0f641acc3707c265",
+        "sha256": "26dc240d90487135f9635a6df91bb2d4085de7a2634e1c77852b4e33c51dfe8b",
+        "keys": [
+          "circles",
+          "matrices",
+          "points",
+          "rectangles",
+          "sequences",
+          "sounds"
+        ]
+      },
+      {
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.zip",
+        "member": "production/upload/34/5d686472aa8e3fec49370b4d13586b3fd8c650",
+        "sha256": "bf7b142a2b5694fed7b8d05433624983e1f4ecdb605c1530228f1180f942309c",
+        "keys": [
+          "circles",
+          "matrices",
+          "points",
+          "rectangles",
+          "sequences",
+          "sounds"
+        ]
+      },
+      {
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.zip",
+        "member": "production/upload/b3/3f0ef2b2cd2ea1452a296756d707941a758c7d",
+        "sha256": "cdb3514cdb6c9a87f09cca673579bb7334678bf287c332d94d5f1f8f5a5a57a0",
+        "keys": [
+          "circles",
+          "points",
+          "sequences",
+          "sounds"
+        ]
+      }
+    ],
+    "undecoded": 5
+  },
+  "chain_payload_scan": null,
+  "problems": [],
+  "chain_tail": "1.4.131",
+  "expect_tail": "1.4.131",
+  "status": "passed"
+}
