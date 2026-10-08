@@ -97,6 +97,7 @@ export class EmbeddedMultiCoordinator {
         )
         room.raising_state = 4
         room.settlement_return_pending = false
+        room.readyCountdownPending = false
 
         const battle = this.transition(room, "BATTLE", "start_battle_committed")
         if (!battle.ok) {
@@ -145,6 +146,8 @@ export class EmbeddedMultiCoordinator {
             room.raising_state = 1
             room.settlement_return_pending = false
             lifecycle.battleSessionId = null
+            room.equipmentPartyIds = undefined
+            room.readyCountdownPending = false
         }
         return result
     }

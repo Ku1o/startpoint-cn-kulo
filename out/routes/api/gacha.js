@@ -33,6 +33,15 @@ const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const node_crypto_1 = require("node:crypto");
 const player_operation_receipt_1 = require("../../data/domains/player-operation-receipt");
 const MAX_GACHA_EXEC_COUNT = 10;
+function parseGachaTimestamp(value) {
+    // Master-data timestamps are expressed in China Standard Time without an offset.
+    return Date.parse(`${value.replace(" ", "T")}+08:00`);
+}
+function isGachaAvailableAt(gacha, now) {
+    const start = parseGachaTimestamp(gacha.startDate);
+    const end = parseGachaTimestamp(gacha.endDate);
+    return Number.isFinite(start) && Number.isFinite(end) && now >= start && now <= end;
+}
 var GachaPaymentType;
 (function (GachaPaymentType) {
     GachaPaymentType[GachaPaymentType["EMPTY"] = 0] = "EMPTY";
@@ -294,6 +303,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Gacha doesn't exist."
+            });
+        }
+        if (gachaData.enforceAvailabilityWindow === true
+            && !isGachaAvailableAt(gachaData, (0, utils_1.getServerTime)() * 1000)) {
+            (0, game_logging_1.gameVerboseLog)(() => `[GACHA] gacha unavailable: gachaId=${gachaId}`);
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Gacha is not available."
             });
         }
         const isCharacterGacha = gachaData.type == types_1.GachaType.CHARACTER;

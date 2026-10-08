@@ -4,7 +4,7 @@ import { getPlayerGachaCampaignSync, getPlayerGachaInfoListSync, getPlayerGachaI
 import { getPlayerItemSync, updatePlayerItemSync } from "../../data/domains/item"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
-import { generateDataHeaders } from "../../utils";
+import { generateDataHeaders, getServerTime } from "../../utils";
 import {
     commitPlannedCharacterGachaMovies,
     drawGachaWithMetadataSync,
@@ -43,6 +43,17 @@ interface ExecBody {
 }
 
 const MAX_GACHA_EXEC_COUNT = 10
+
+function parseGachaTimestamp(value: string): number {
+    // Master-data timestamps are expressed in China Standard Time without an offset.
+    return Date.parse(`${value.replace(" ", "T")}+08:00`)
+}
+
+function isGachaAvailableAt(gacha: { startDate: string, endDate: string }, now: number): boolean {
+    const start = parseGachaTimestamp(gacha.startDate)
+    const end = parseGachaTimestamp(gacha.endDate)
+    return Number.isFinite(start) && Number.isFinite(end) && now >= start && now <= end
+}
 
 interface ExchangeCharacterBody {
     character_id: number,
@@ -328,6 +339,14 @@ const routes = async (fastify: FastifyInstance) => {
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Gacha doesn't exist."
+            })
+        }
+        if (gachaData.enforceAvailabilityWindow === true
+            && !isGachaAvailableAt(gachaData, getServerTime() * 1000)) {
+            gameVerboseLog(() => `[GACHA] gacha unavailable: gachaId=${gachaId}`);
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Gacha is not available."
             })
         }
         const isCharacterGacha = gachaData.type == GachaType.CHARACTER

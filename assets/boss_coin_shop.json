@@ -64709,24 +64709,6 @@
       "availableUntil": null,
       "stock": 9999
     },
-    "202045": {
-      "costs": [
-        {
-          "id": 40193,
-          "amount": 1
-        }
-      ],
-      "rewards": [
-        {
-          "type": 0,
-          "id": 999019,
-          "count": 1
-        }
-      ],
-      "availableFrom": "2000-01-01 00:00:00",
-      "availableUntil": "2099-12-31 23:59:59",
-      "stock": 350
-    },
     "202046": {
       "costs": [
         {
@@ -64742,7 +64724,7 @@
         }
       ],
       "availableFrom": "2000-01-01 00:00:00",
-      "availableUntil": "2099-12-31 23:59:59",
+      "availableUntil": null,
       "stock": 12
     },
     "202047": {
@@ -64760,7 +64742,7 @@
         }
       ],
       "availableFrom": "2000-01-01 00:00:00",
-      "availableUntil": "2099-12-31 23:59:59",
+      "availableUntil": null,
       "stock": 3
     },
     "202048": {
@@ -64778,7 +64760,7 @@
         }
       ],
       "availableFrom": "2000-01-01 00:00:00",
-      "availableUntil": "2099-12-31 23:59:59",
+      "availableUntil": null,
       "stock": 1
     },
     "300064": {

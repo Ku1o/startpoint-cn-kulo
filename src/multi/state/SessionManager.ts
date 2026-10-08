@@ -20,6 +20,7 @@ import { recordServerWork } from "../../lib/server-work-performance"
 import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
 import { markTcpDisconnectReason } from "../tcp/disconnect-diagnostics"
 import { battleTelemetry } from "../battle-telemetry"
+import { clearEquipmentBlock } from "../room/equipment-ready"
 
 export interface SessionClient {
     socket: net.Socket
@@ -42,6 +43,13 @@ export interface SessionClient {
     finalizeSent: boolean
     admissionClaimed: boolean
     admissionGeneration?: number
+    equipmentSelectedPartyId?: number
+    equipmentReadyBlock?: {
+        instanceId: string
+        generation: number
+        deadline: number
+        timer: NodeJS.Timeout
+    }
     clientState: ClientStateMachine
     battleState: BattleState
 }
@@ -634,6 +642,7 @@ export class SessionManager {
     }
 
     beginRescueGuestWait(client: SessionClient): void {
+        if (client.equipmentReadyBlock) return
         if (!this.isRescueGuest(client.roomNumber, client.viewerId)) return
 
         const key = this.addr(client.viewerId, client.roomNumber)
@@ -721,7 +730,18 @@ export class SessionManager {
         gameVerboseLog(() => `[MULTI] rescue guest reconnect grace started: viewer=${client.viewerId} room=${client.roomNumber} graceMs=${reconnectMs}`)
     }
 
-    ejectRescueGuest(roomNumber: string, viewerId: number, reason: string): void {
+    /** Send the native leave message only to the offending guest, never to the room. */
+    ejectEquipmentGuest(roomNumber: string, viewerId: number): void {
+        const { getRoom } = require("../room/manager")
+        const room = getRoom(roomNumber)
+        if (!room || room.host_viewer_id === viewerId || room.lifecycle.phase !== "LOBBY") return
+        const client = this.getClient(viewerId, roomNumber)
+        if (!client || client.isBattle) return
+        const sent = this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]])
+        this.ejectRescueGuest(roomNumber, viewerId, "equipment_idle", sent !== "closed")
+    }
+
+    ejectRescueGuest(roomNumber: string, viewerId: number, reason: string, notified = false): void {
         this.clearRescueGuestWait(roomNumber, viewerId)
         this.clearRescueGuestReconnect(roomNumber, viewerId)
         this.rescueGuests.get(roomNumber)?.delete(viewerId)
@@ -746,11 +766,15 @@ export class SessionManager {
         const current = this.getClient(viewerId, roomNumber)
         if (current && !current.isBattle) {
             this.removeClient(current)
-            markTcpDisconnectReason(current.socket, "rescue_timeout")
-            try { current.socket.end() } catch (e) {}
-            setTimeout(() => {
-                try { current.socket.destroy() } catch (e) {}
-            }, 250).unref()
+            if (notified) {
+                this.retireDisbandedLobbySocket(current.socket, roomNumber)
+            } else {
+                markTcpDisconnectReason(current.socket, "rescue_timeout")
+                try { current.socket.end() } catch (e) {}
+                setTimeout(() => {
+                    try { current.socket.destroy() } catch (e) {}
+                }, 250).unref()
+            }
         }
         try {
             const lobby = require("../tcp/lobby")
@@ -1056,6 +1080,11 @@ export class SessionManager {
         return this.clients.get(this.addr(viewerId, roomNumber))
     }
 
+    getLobbyClientsForPlayer(playerId: number): SessionClient[] {
+        return [...this.clients.values()].filter(client =>
+            client.playerId === playerId && !client.isBattle && !client.superseded)
+    }
+
     getRoomClientByConnectionId(roomNumber: string, connectionId: string): SessionClient | undefined {
         for (const client of this.getClientsInRoom(roomNumber)) {
             if (!client.isBattle && client.connectionId === connectionId) return client
@@ -1072,6 +1101,7 @@ export class SessionManager {
         client.superseded = false
         this.clients.set(addr, client)
         if (previous && previous !== client && previous.socket !== client.socket) {
+            clearEquipmentBlock(previous)
             previous.superseded = true
             this.unindexClientSocket(previous)
             clearReliableSendState(previous.socket)
@@ -1102,6 +1132,7 @@ export class SessionManager {
     }
 
     removeClient(client: SessionClient): Result<void> {
+        clearEquipmentBlock(client)
         if (client.isBattle) fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed",
             this.cidToBattleClient.get(client.connectionId) === client ? "current_connection" : "stale_connection")
         this.unindexClientSocket(client)
@@ -1512,6 +1543,7 @@ export class SessionManager {
     }
 
     removeRoomState(roomNumber: string): void {
+        for (const client of this.getClientsInRoom(roomNumber)) clearEquipmentBlock(client)
         this.clearBattleBarrierCycle(roomNumber)
         this.retiredBattleSeats.delete(roomNumber)
         clearChainDiagnosticRoom(roomNumber)

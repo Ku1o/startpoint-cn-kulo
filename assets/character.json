@@ -3400,5 +3400,11 @@
     "name": "索恩",
     "rarity": 5,
     "skill_count": 6
+  },
+  "159992": {
+    "name": "凉月",
+    "rarity": 5,
+    "element": 3,
+    "skill_count": 6
   }
 }

@@ -18,6 +18,7 @@ const party_1 = require("../../data/domains/party");
 const db_1 = require("../../data/db");
 const active_mission_counters_1 = require("../../data/domains/active_mission_counters");
 const utils_1 = require("../../utils");
+const types_1 = require("../../data/types");
 const activeAccount_1 = require("../../data/activeAccount");
 const special_event_parties_1 = require("../../lib/special-event-parties");
 const publishedParty_1 = require("../../data/domains/publishedParty");
@@ -28,6 +29,7 @@ const degree_response_1 = require("../../lib/mission/degree-response");
 const ability_soul_facts_1 = require("../../lib/mission/ability-soul-facts");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const party_snapshot_1 = require("../../multi/party-snapshot");
+const equipment_ready_1 = require("../../multi/room/equipment-ready");
 const wiki_team_code_client_1 = require("../../lib/wiki-team-code-client");
 const wiki_team_code_inventory_1 = require("../../lib/wiki-team-code-inventory");
 function hasEditablePartyCategory(value) {
@@ -359,6 +361,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             && party.characterIds[0] === null)) {
             return sendPartyResponse(reply, viewerId, {}, 2330);
         }
+        const changedNormalPartyIds = [];
+        let normalSelectionChanged = false;
         const saved = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "player", playerId, operation: "edit_party",
         }, () => {
@@ -376,7 +380,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 FROM players_parties
                 WHERE player_id = ? AND group_id = ? AND slot = ? AND category = ?
             `);
+            const previousParty = (0, db_1.getDb)().prepare(`
+                SELECT character_id_1, character_id_2, character_id_3,
+                    unison_character_1, unison_character_2, unison_character_3,
+                    equipment_1, equipment_2, equipment_3,
+                    ability_soul_1, ability_soul_2, ability_soul_3
+                FROM players_parties
+                WHERE player_id = ? AND category = 1 AND group_id = ? AND slot = ?
+            `);
             for (const { parsed, party } of mappedParties) {
+                if (party.category === types_1.PartyCategory.NORMAL) {
+                    const previous = previousParty.get(playerId, parsed.groupId, parsed.slot);
+                    const ids = [...party.characterIds, ...party.unisonCharacterIds,
+                        ...party.equipmentIds, ...party.abilitySoulIds];
+                    if (!previous || Object.values(previous).some((id, i) => id !== ids[i])) {
+                        changedNormalPartyIds.push((parsed.groupId - 1) * 10 + parsed.slot);
+                    }
+                }
                 if (party.category !== profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY) {
                     const previous = getPreviousSouls.get(playerId, parsed.groupId, parsed.slot, party.category);
                     const previousIds = previous
@@ -394,6 +414,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 const currentPlayer = (0, player_1.getPlayerSync)(playerId);
                 if (normalPartySlot !== null && (currentPlayer === null || currentPlayer === void 0 ? void 0 : currentPlayer.partySlot) !== normalPartySlot) {
                     (0, player_1.updatePlayerSync)({ id: playerId, partySlot: normalPartySlot });
+                    normalSelectionChanged = true;
                 }
             }
             if (abilitySoulEquipCount > 0) {
@@ -419,6 +440,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // screen. Drop the pre-handshake snapshot so a later reconnect reads
         // the newly persisted party instead of waiting for its TTL.
         (0, party_snapshot_1.invalidateRealPartySnapshot)(playerId);
+        try {
+            yield (0, equipment_ready_1.notifyEquipmentPartySaved)(playerId, changedNormalPartyIds, normalSelectionChanged);
+        }
+        catch (error) {
+            // The save committed. Ready/Start will recheck authoritative data;
+            // a failed lobby refresh must not make the client retry this save.
+            console.error(`[PARTY] lobby equipment refresh failed: player=${playerId}`, error);
+        }
         const responseData = { mail_arrived: false };
         (0, degree_response_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [35]);
         reply.header("content-type", "application/x-msgpack");

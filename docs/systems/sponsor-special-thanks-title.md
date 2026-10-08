@@ -76,7 +76,7 @@
 - 输入：`F:/codex/work/sponsor-thanks-width-preview-20260910/degree_mod_special_thanks_wide_preview.png`，SHA-256 `91af3cc31e0cccdcfc50d3c11f660f5c1700c0aeaf1c2d1520da4beba63bbf29`。它是已选的内置 image_gen 白底构图。再次内置透明化输出仍是 RGB 假透明，已弃用，没有进入正式资源。
 - 正式宽版文件：`assets/asset-patch/artwork/sponsor-special-thanks/degree_mod_special_thanks_wide.png`，320×50、8-bit RGBA，SHA-256 `54c217185bb463354c8aed169746023ffa6a2b42a6fd022fc678435da66ed82a`。实际 alpha 区域 `[3,2,317,47]`，314×45；旧图为 `[52,1,267,49]`，215×48。保留旧正式图作为历史复现输入。
 - 仅从已选预览去除中性白底、处理轮廓白色混色、裁去空白，并预乘 alpha 等比整理至正式尺寸（整数像素取整）。四字、红金中国结、祥云、飘带构图没有重画；已检查原生尺寸及深灰、浅白、蓝灰、粉色背景，未见棋盘格或明显白晕。
-- 基于实际本地 `.106`（苍机兵及同类核心关联修复）追加 `.107`，不使用源仓库同号暂缓清单。增量文件：`assets/asset-patch/active/candidates/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip`，34,501 字节，SHA-256 `25598d1475baa39c98f66493b0c224cca73e7f1199c14e57d6633da6cf7e2c8b`，仅含 `production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce`。
+- 基于实际本地 `.106`（苍机兵及同类核心关联修复）追加 `.107`，不使用源仓库同号暂缓清单。增量文件：`assets/asset-patch/inactive/candidates/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip`，34,501 字节，SHA-256 `25598d1475baa39c98f66493b0c224cca73e7f1199c14e57d6633da6cf7e2c8b`，仅含 `production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce`。
 - 称号 ID 9900012、主表、发放机制不变；塔结果、诅咒、ban、血量、第二关及苍机兵修复不变。全部 303 个有效资源核验，仅该 PNG 改变。四项 PNG 存储回归通过；游戏存储头经严格解码与正式 PNG 相等，实际 HTTP ZIP 及直接资源回读一致，称号主表实际 HTTP 哈希不变。
 - Android/iOS 共用此 PNG，更新尾版均为 1.4.107；不是新增客户端平台能力，不重建 APK/IPA。实际客户端 UI 效果待用户更新资源后测试。
 - 已同步三个明确文件：新 ZIP、该 PNG 的直接资源、独立测试 manifest。备份为 `F:/startpoint-cn-main/.codex-backups/20260910-161724-sponsor-title-wide/`；精确前后哈希见 `assets/asset-patch/audit/sponsor-title-wide-1.4.107-test/local-sync-report.json`。提示词、授权记录、四背景检查图及接口审计也在该审计目录。

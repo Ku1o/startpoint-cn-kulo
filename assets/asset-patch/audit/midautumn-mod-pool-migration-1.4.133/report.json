@@ -1,0 +1,113 @@
+{
+  "status": "applied-local",
+  "version": "1.4.133",
+  "baseline": "1.4.132",
+  "work": "F:\\codex\\work\\mod-pool-migration-20261007-retry",
+  "server_files": [
+    "assets/gacha.json",
+    "assets/gacha_cnmod.json",
+    "assets/gacha_rank_p5b.json"
+  ],
+  "server_before_sha256": {
+    "assets/gacha.json": "73f9dc9eb93760587e62e5c500066ccb14e2f48a570ad6c9ec85dc369d68028d",
+    "assets/gacha_cnmod.json": "5a80fc25b0b0eef8a14b214e7789d81b4a232e7d560c65eb4a3f35b568adfae4",
+    "assets/gacha_rank_p5b.json": "3d196803666752759e312cfbc728833ca5c19181dc0ba831e031fc4e62378829"
+  },
+  "server_after_sha256": {
+    "assets/gacha.json": "3ca1f00f4e2f24a5072407ac9b4c3f0c23c266890078d8c8dc5ddc723fa63a46",
+    "assets/gacha_cnmod.json": "ee6bea96933701a034b7bf0adff5e3ba837586b5ed43ddfe321766362121d5e0",
+    "assets/gacha_rank_p5b.json": "a5b05856ecdbea2dfbd12bcb968bacfed417ec35d936a65dc71f819bccefbb1a"
+  },
+  "pools": {
+    "990001": {
+      "old_ordinary_weight": 92000,
+      "new_ordinary_weight": 68000,
+      "added_mod_weight": 24000,
+      "total_five_star_pool_weight": 150000,
+      "new_mod_ids": [
+        119992,
+        119990,
+        169988,
+        169991,
+        149987,
+        159995,
+        119991,
+        139992,
+        139991,
+        149986,
+        139990,
+        159994
+      ],
+      "previous_batch_exchangeable_ids": [
+        139994,
+        139993,
+        159998,
+        159997,
+        159996,
+        169992,
+        129991
+      ]
+    },
+    "990002": {
+      "old_ordinary_weight": 440000,
+      "new_ordinary_weight": 320000,
+      "added_mod_weight": 120000,
+      "total_five_star_pool_weight": 950000,
+      "new_mod_ids": [
+        119992,
+        119990,
+        169988,
+        169991,
+        149987,
+        159995,
+        119991,
+        139992,
+        139991,
+        149986,
+        139990,
+        159994
+      ],
+      "previous_batch_exchangeable_ids": []
+    }
+  },
+  "client_resources": {
+    "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap": {
+      "member": "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "before_sha256": "d00a17685f0d9a86f89f9840aef4e48cba1b193c7ba215d321456d470f9772b9",
+      "after_sha256": "1b4674e375b87efc873aa8b1a5bf37d71cf869226fb9072b6197b76e20fdcc90",
+      "rows_changed": 250
+    },
+    "master/gacha_odds/cnmod_ashen_verdict_gacha_character_5.orderedmap": {
+      "member": "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
+      "before_sha256": "cf95035aa8c97a931dcd3a18f7eaf53f66770def497ea3c711751c5569806fe9",
+      "after_sha256": "691f390d46973d16340145bc15701ce6eb62227e3bd7e8374bbadabcfd3d1ad9",
+      "rows_changed": 243
+    },
+    "rich_text/cnmod_abyss_limited_gacha_note.html.deflate": {
+      "member": "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "before_sha256": "160a288b9a6390684e5ae750cc8f5dc18b4731c7911f330d7d045c4636444e3d",
+      "after_sha256": "7533fac9d52b1ccfb3afc4b0a455f06ee5b3742d0a8ff9abbb26f9267fc1bf51",
+      "bytes_changed": true
+    },
+    "rich_text/cnmod_ashen_verdict_gacha_note.html.deflate": {
+      "member": "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+      "before_sha256": "cee6d514c473a3e3e13d7b1724944ef0a61219925f0fbbb88f684ff1d8f6ecec",
+      "after_sha256": "78dc2e3b007192757d1cdd4aea745b0744e759cb6982e6e4241731fdb630183d",
+      "bytes_changed": true
+    }
+  },
+  "archive": {
+    "name": "pinball-1.4.132-1.4.133-1-midautumn-mod-pool-migration-20261008.zip",
+    "size": 10975,
+    "sha256": "3fa8fc9887c681f6b03bbe6db60789d172ffad019428f799d6ac978e815d34cc",
+    "members": 4,
+    "files": [
+      "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+      "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
+    ]
+  },
+  "save_impact": "仅调整卡池抽取权重、MOD 标记和兑换资格；未改变角色 ID、玩家背包/卡池积分表结构或存档导入导出格式，无迁移。",
+  "runtime_scope": "未启动或重启本地服务，未同步兼容镜像，未制作云服覆盖包，未修改 .cdn。"
+}

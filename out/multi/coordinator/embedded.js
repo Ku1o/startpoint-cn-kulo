@@ -85,6 +85,7 @@ class EmbeddedMultiCoordinator {
         lifecycle.battleSessionId = (0, settlement_snapshot_1.buildBattleInstanceId)(room.room_number, room.lobby_generation, Number(room.category), room.quest_id);
         room.raising_state = 4;
         room.settlement_return_pending = false;
+        room.readyCountdownPending = false;
         const battle = this.transition(room, "BATTLE", "start_battle_committed");
         if (!battle.ok) {
             // This is unreachable while commands are serialized, but preserve
@@ -131,6 +132,8 @@ class EmbeddedMultiCoordinator {
             room.raising_state = 1;
             room.settlement_return_pending = false;
             lifecycle.battleSessionId = null;
+            room.equipmentPartyIds = undefined;
+            room.readyCountdownPending = false;
         }
         return result;
     }

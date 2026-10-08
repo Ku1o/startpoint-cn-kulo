@@ -41,6 +41,12 @@ bash scripts/start-cn.sh
 
 Windows 也可以使用仓库根目录的 `start-cn-production.bat`。首次运行前请按实际网络环境修改 `.env`：局域网真机需要填写服务器 LAN 地址，云服应填写 Cloudflare/CDN 公网地址和联机公网地址。
 
+上述启动脚本将 stdout/stderr 合并到 `.logs/cn-server-YYYYMMDD-HH00.log`，按北京时间
+00/04/08/12/16/20 点切分，每四小时一份，同一时段重启追加、不覆盖。当前文件与游戏
+PID 见 `.logs/cn-server-current.json`。生产 BAT 保留 7 天，普通日志入口保留 30 天，
+调试入口保留 3 天。直接运行游戏 JS 不自动轮转，详见
+[四小时日志说明](docs/development/SERVER-FOUR-HOUR-LOGS-20261005.md)。
+
 `.env.example` 列出全部运行参数及安全默认值。3 Mbps 上行云服建议保留以下 `/load` 压缩配置：
 
 ```env
@@ -63,6 +69,7 @@ CN_LOAD_HTTP_COMPRESSION_LOG=false
 |---|---|
 | `npm ci` | 按锁文件安装服务端依赖 |
 | `npm run typecheck` | 只执行 TypeScript 类型检查 |
+| `npm run test:server-logs` | 验证四小时轮转、日志分析与进程退出，自动清理临时数据 |
 | `npm run build` | 编译服务端并生成旧管理页面所需 CSS |
 | `npm run dev:cn` | 构建后使用 `.env` 启动 CN 服务 |
 | `npm run debug:cn` | 使用 TypeScript 热重载启动 CN 服务 |
