@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleBattleMessage = void 0;
+exports.handleBattleRelayActivity = exports.handleBattleMessage = void 0;
 const SessionManager_1 = require("../state/SessionManager");
 const relay_1 = require("./relay");
 const chain_diagnostic_1 = require("./chain-diagnostic");
@@ -123,3 +123,33 @@ function handleBattleMessage(socket, data) {
     }
 }
 exports.handleBattleMessage = handleBattleMessage;
+/**
+ * Applies what the battle relay child handled on its own (relayed frames and
+ * Heartbeat/Measurement acks) to the same lease, presence and telemetry state
+ * handleBattleMessage() updates per frame in the in-process path.
+ */
+function handleBattleRelayActivity(socket, activity) {
+    const client = findBattleClientBySocket(socket);
+    if (!client)
+        return;
+    const packets = activity.broadcasts + activity.sends + activity.heartbeats
+        + activity.measurements + activity.lineSpeedWarnings;
+    if (packets > 0) {
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.packet(socket, true);
+        SessionManager_1.sessionManager.noteBattleActivity(client.connectionId);
+        if (!socket.destroyed && SessionManager_1.sessionManager.isCurrentBattleClient(client)) {
+            (0, online_presence_1.markPlayerOnlineFromTcp)(client.viewerId);
+        }
+    }
+    battle_telemetry_1.battleTelemetry.relayActivity(client.roomNumber, client.viewerId, {
+        packets,
+        broadcasts: activity.broadcasts + activity.sends,
+        lineSpeedWarnings: activity.lineSpeedWarnings,
+        maxGapMs: activity.maxGapMs,
+        relayedOut: activity.relayedOut,
+    });
+    if (activity.maxBackpressureMs >= 100) {
+        battle_telemetry_1.battleTelemetry.backpressure(client.roomNumber, client.viewerId, activity.maxBackpressureMs);
+    }
+}
+exports.handleBattleRelayActivity = handleBattleRelayActivity;

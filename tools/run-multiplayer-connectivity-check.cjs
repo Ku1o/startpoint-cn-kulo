@@ -16,6 +16,7 @@ const files = [
     'tests/active-quest-conditional-delete.test.cjs',
     'tests/tcp-disconnect-diagnostics.test.cjs',
     'tests/tcp-battle-telemetry-cleanup.test.cjs',
+    'tests/multi-battle-relay-process.test.cjs',
     'tests/multi-room-admission.test.js',
     'tests/multi-guest-eligibility.test.js',
     'tests/multi-ai-fallback-roster.test.cjs',

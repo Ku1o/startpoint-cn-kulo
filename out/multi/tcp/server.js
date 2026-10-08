@@ -26,6 +26,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stopSessionServer = exports.startSessionServer = exports.SESSION_MAX_FRAMES_PER_TICK = exports.SESSION_TCP_KEEPALIVE_MS = exports.SESSION_MAX_BUFFER_BYTES = exports.SESSION_MAX_FRAME_BYTES = exports.SESSION_HANDSHAKE_TIMEOUT_MS = exports.SESSION_HOST = exports.SESSION_PORT = void 0;
 const net = __importStar(require("net"));
@@ -40,6 +49,8 @@ const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 const embedded_1 = require("../coordinator/embedded");
 const battle_telemetry_1 = require("../battle-telemetry");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const bridge_1 = require("./battle-relay/bridge");
+const battle_2 = require("./battle");
 const tcp_1 = require("../../lounge/tcp");
 exports.SESSION_PORT = parseInt(process.env.SESSION_PORT || "8003");
 exports.SESSION_HOST = process.env.SESSION_HOST || "0.0.0.0";
@@ -59,242 +70,306 @@ exports.SESSION_TCP_KEEPALIVE_MS = positiveInteger("SESSION_TCP_KEEPALIVE_MS", 1
 exports.SESSION_MAX_FRAMES_PER_TICK = positiveInteger("SESSION_MAX_FRAMES_PER_TICK", 128, 1);
 let server = null;
 const activeSockets = new Set();
-function startSessionServer() {
-    return new Promise((resolve, reject) => {
-        if (server) {
-            resolve();
+/**
+ * Wires one session socket: framing, handshake, dispatch and cleanup. With the
+ * battle relay process enabled, a battle socket is moved to the child right
+ * after its handshake frame and this function runs again for the
+ * RelayProxySocket that replaces it, with the frames read so far as `initial`.
+ */
+function attachSessionSocket(socket, initial) {
+    activeSockets.add(socket);
+    socket.once("close", () => activeSockets.delete(socket));
+    const remoteAddr = `${socket.remoteAddress}:${socket.remotePort}`;
+    (0, game_logging_1.gameVerboseLog)(() => `[TCP] new connection from ${remoteAddr}`);
+    socket.setNoDelay(true);
+    socket.setKeepAlive(true, exports.SESSION_TCP_KEEPALIVE_MS);
+    socket.setEncoding("utf8");
+    let buffer = "";
+    let handshakeDone = false;
+    let isBattleSocket = false;
+    let isLoungeSocket = false;
+    let socketRemoved = false;
+    let battleDisconnectRecorded = false;
+    let closedReason;
+    let protocolClosed = false;
+    let processingFrames = false;
+    let processFramesScheduled = false;
+    let handshakePending = null;
+    let admissionToken, admissionSession;
+    const closeForProtocolViolation = (reason) => {
+        if (protocolClosed)
+            return;
+        protocolClosed = true;
+        buffer = "";
+        (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, reason === "client build no longer admitted"
+            ? "admission" : "protocol");
+        console.warn(`[TCP] protocol violation from ${remoteAddr}: ${reason}`);
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "protocol_close", reason.split(":", 1)[0]);
+        socket.destroy();
+    };
+    const handshakeTimer = setTimeout(() => {
+        if (!handshakeDone)
+            closeForProtocolViolation(`handshake timeout after ${exports.SESSION_HANDSHAKE_TIMEOUT_MS}ms`);
+    }, exports.SESSION_HANDSHAKE_TIMEOUT_MS);
+    handshakeTimer.unref();
+    const clearHandshakeTimer = () => clearTimeout(handshakeTimer);
+    const recordBattleDisconnect = (client, reason) => {
+        if (battleDisconnectRecorded || !(client === null || client === void 0 ? void 0 : client.isBattle) || client.superseded
+            || !SessionManager_1.sessionManager.isCurrentBattleClient(client))
+            return;
+        battle_telemetry_1.battleTelemetry.disconnected(client.roomNumber, client.viewerId, reason);
+        battleDisconnectRecorded = true;
+    };
+    const removeSocketClient = () => {
+        (0, reliable_send_1.clearReliableSendState)(socket);
+        (0, tcp_1.detachLoungeSocket)(socket);
+        if (socketRemoved)
+            return;
+        try {
+            const client = SessionManager_1.sessionManager.findClientBySocket(socket);
+            if (client) {
+                socketRemoved = true;
+                void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
+                    // An error cleanup may remove the socket index
+                    // before close. Record its current owner once;
+                    // superseded cleanup must not reset a replacement.
+                    recordBattleDisconnect(client, closedReason !== null && closedReason !== void 0 ? closedReason : (0, disconnect_diagnostics_1.readTcpDisconnectReason)(socket));
+                    return SessionManager_1.sessionManager.removeClient(client);
+                }).catch(error => {
+                    console.error(`[TCP] queued socket cleanup failed: room=${client.roomNumber}`, error);
+                });
+            }
+        }
+        catch (_a) {
+            // Socket shutdown is best-effort. The room lease cleanup is
+            // still able to remove an already detached connection.
+        }
+    };
+    const processFrames = () => {
+        if (protocolClosed || processingFrames || processFramesScheduled || handshakePending)
+            return;
+        processingFrames = true;
+        let processed = 0;
+        try {
+            while (!protocolClosed && processed < exports.SESSION_MAX_FRAMES_PER_TICK) {
+                const idx = buffer.indexOf("\0");
+                if (idx < 0)
+                    break;
+                const raw = buffer.substring(0, idx);
+                buffer = buffer.substring(idx + 1);
+                processed++;
+                if (raw.trim().length === 0)
+                    continue;
+                const frameBytes = Buffer.byteLength(raw, "utf8");
+                if (frameBytes > exports.SESSION_MAX_FRAME_BYTES) {
+                    closeForProtocolViolation(`frame exceeded ${exports.SESSION_MAX_FRAME_BYTES} bytes`);
+                    return;
+                }
+                let data;
+                try {
+                    data = JSON.parse(raw);
+                }
+                catch (e) {
+                    closeForProtocolViolation(`invalid JSON frame: ${e.message}`);
+                    return;
+                }
+                try {
+                    if (!handshakeDone) {
+                        if (!data || typeof data !== "object" || typeof data.socklet !== "string") {
+                            closeForProtocolViolation("first frame was not a valid handshake");
+                            return;
+                        }
+                        admissionToken = data.sp_admission;
+                        admissionSession = data.sp_session;
+                        if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
+                            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "admission");
+                            socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0");
+                            protocolClosed = true;
+                            clearHandshakeTimer();
+                            return;
+                        }
+                        isBattleSocket = data.socklet === "cooperation_battle";
+                        isLoungeSocket = data.socklet === "multi_special_exchange_socklet";
+                        if (isBattleSocket && !(0, bridge_1.isRelayProxySocket)(socket) && bridge_1.battleRelayBridge.isReady) {
+                            const adopted = bridge_1.battleRelayBridge.adopt(socket);
+                            if (adopted) {
+                                // This closure no longer owns the socket. The
+                                // proxy replays the handshake and anything
+                                // after it through the normal path below.
+                                protocolClosed = true;
+                                clearHandshakeTimer();
+                                activeSockets.delete(socket);
+                                attachSessionSocket(adopted.proxy, raw + "\0" + buffer + adopted.pending);
+                                buffer = "";
+                                return;
+                            }
+                        }
+                        const handshake = isLoungeSocket
+                            ? (0, tcp_1.handleLoungeHandshake)(socket, data)
+                            : (0, handshake_1.handleHandshake)(socket, data);
+                        handshakePending = Promise.resolve(handshake).then(() => {
+                            handshakePending = null;
+                            clearHandshakeTimer();
+                            if (protocolClosed || socket.destroyed || socket.writableEnded) {
+                                // The peer can close while an uncached
+                                // handshake is still resolving. If the
+                                // handler indexed the socket after the
+                                // close callback ran, clean it now.
+                                removeSocketClient();
+                                return;
+                            }
+                            handshakeDone = true;
+                            processFrames();
+                        }, (err) => {
+                            handshakePending = null;
+                            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_error");
+                            console.error(`[TCP] handshake failed:`, err);
+                            removeSocketClient();
+                            socket.destroy();
+                        });
+                        // A client may coalesce Enter/heartbeat with its
+                        // handshake in one TCP chunk. Do not dispatch
+                        // those frames before the async handshake has
+                        // indexed this socket in SessionManager.
+                        return;
+                    }
+                    else if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
+                        closeForProtocolViolation("client build no longer admitted");
+                        return;
+                    }
+                    else if (isBattleSocket) {
+                        (0, battle_1.handleBattleMessage)(socket, data);
+                    }
+                    else if (isLoungeSocket) {
+                        (0, tcp_1.handleLoungeMessage)(socket, data);
+                    }
+                    else {
+                        const lobby = require("./lobby");
+                        lobby.handleMessage(socket, data);
+                    }
+                }
+                catch (e) {
+                    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "message_error");
+                    console.warn(`[TCP] message rejected from ${remoteAddr}:`, e.message);
+                    socket.destroy();
+                    return;
+                }
+            }
+        }
+        finally {
+            processingFrames = false;
+            if (!protocolClosed && !handshakePending
+                && buffer.includes("\0") && !processFramesScheduled) {
+                processFramesScheduled = true;
+                setImmediate(() => {
+                    processFramesScheduled = false;
+                    processFrames();
+                });
+            }
+        }
+        if (!protocolClosed && Buffer.byteLength(buffer, "utf8") > exports.SESSION_MAX_FRAME_BYTES) {
+            closeForProtocolViolation(`unterminated frame exceeded ${exports.SESSION_MAX_FRAME_BYTES} bytes`);
+        }
+    };
+    const onData = (chunk) => {
+        if (protocolClosed)
+            return;
+        buffer += chunk;
+        if (Buffer.byteLength(buffer, "utf8") > exports.SESSION_MAX_BUFFER_BYTES) {
+            closeForProtocolViolation(`receive buffer exceeded ${exports.SESSION_MAX_BUFFER_BYTES} bytes`);
             return;
         }
-        server = net.createServer((socket) => {
-            activeSockets.add(socket);
-            socket.once("close", () => activeSockets.delete(socket));
-            const remoteAddr = `${socket.remoteAddress}:${socket.remotePort}`;
-            (0, game_logging_1.gameVerboseLog)(() => `[TCP] new connection from ${remoteAddr}`);
-            socket.setNoDelay(true);
-            socket.setKeepAlive(true, exports.SESSION_TCP_KEEPALIVE_MS);
-            socket.setEncoding("utf8");
-            let buffer = "";
-            let handshakeDone = false;
-            let isBattleSocket = false;
-            let isLoungeSocket = false;
-            let socketRemoved = false;
-            let battleDisconnectRecorded = false;
-            let closedReason;
-            let protocolClosed = false;
-            let processingFrames = false;
-            let processFramesScheduled = false;
-            let handshakePending = null;
-            let admissionToken, admissionSession;
-            const closeForProtocolViolation = (reason) => {
-                if (protocolClosed)
-                    return;
-                protocolClosed = true;
-                buffer = "";
-                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, reason === "client build no longer admitted"
-                    ? "admission" : "protocol");
-                console.warn(`[TCP] protocol violation from ${remoteAddr}: ${reason}`);
-                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "protocol_close", reason.split(":", 1)[0]);
-                socket.destroy();
-            };
-            const handshakeTimer = setTimeout(() => {
-                if (!handshakeDone)
-                    closeForProtocolViolation(`handshake timeout after ${exports.SESSION_HANDSHAKE_TIMEOUT_MS}ms`);
-            }, exports.SESSION_HANDSHAKE_TIMEOUT_MS);
-            handshakeTimer.unref();
-            const clearHandshakeTimer = () => clearTimeout(handshakeTimer);
-            const recordBattleDisconnect = (client, reason) => {
-                if (battleDisconnectRecorded || !(client === null || client === void 0 ? void 0 : client.isBattle) || client.superseded
-                    || !SessionManager_1.sessionManager.isCurrentBattleClient(client))
-                    return;
-                battle_telemetry_1.battleTelemetry.disconnected(client.roomNumber, client.viewerId, reason);
-                battleDisconnectRecorded = true;
-            };
-            const removeSocketClient = () => {
-                (0, reliable_send_1.clearReliableSendState)(socket);
-                (0, tcp_1.detachLoungeSocket)(socket);
-                if (socketRemoved)
-                    return;
-                try {
-                    const client = SessionManager_1.sessionManager.findClientBySocket(socket);
-                    if (client) {
-                        socketRemoved = true;
-                        void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
-                            // An error cleanup may remove the socket index
-                            // before close. Record its current owner once;
-                            // superseded cleanup must not reset a replacement.
-                            recordBattleDisconnect(client, closedReason !== null && closedReason !== void 0 ? closedReason : (0, disconnect_diagnostics_1.readTcpDisconnectReason)(socket));
-                            return SessionManager_1.sessionManager.removeClient(client);
-                        }).catch(error => {
-                            console.error(`[TCP] queued socket cleanup failed: room=${client.roomNumber}`, error);
-                        });
-                    }
-                }
-                catch (_a) {
-                    // Socket shutdown is best-effort. The room lease cleanup is
-                    // still able to remove an already detached connection.
-                }
-            };
-            const processFrames = () => {
-                if (protocolClosed || processingFrames || processFramesScheduled || handshakePending)
-                    return;
-                processingFrames = true;
-                let processed = 0;
-                try {
-                    while (!protocolClosed && processed < exports.SESSION_MAX_FRAMES_PER_TICK) {
-                        const idx = buffer.indexOf("\0");
-                        if (idx < 0)
-                            break;
-                        const raw = buffer.substring(0, idx);
-                        buffer = buffer.substring(idx + 1);
-                        processed++;
-                        if (raw.trim().length === 0)
-                            continue;
-                        const frameBytes = Buffer.byteLength(raw, "utf8");
-                        if (frameBytes > exports.SESSION_MAX_FRAME_BYTES) {
-                            closeForProtocolViolation(`frame exceeded ${exports.SESSION_MAX_FRAME_BYTES} bytes`);
-                            return;
-                        }
-                        let data;
-                        try {
-                            data = JSON.parse(raw);
-                        }
-                        catch (e) {
-                            closeForProtocolViolation(`invalid JSON frame: ${e.message}`);
-                            return;
-                        }
-                        try {
-                            if (!handshakeDone) {
-                                if (!data || typeof data !== "object" || typeof data.socklet !== "string") {
-                                    closeForProtocolViolation("first frame was not a valid handshake");
-                                    return;
-                                }
-                                admissionToken = data.sp_admission;
-                                admissionSession = data.sp_session;
-                                if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
-                                    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "admission");
-                                    socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0");
-                                    protocolClosed = true;
-                                    clearHandshakeTimer();
-                                    return;
-                                }
-                                isBattleSocket = data.socklet === "cooperation_battle";
-                                isLoungeSocket = data.socklet === "multi_special_exchange_socklet";
-                                const handshake = isLoungeSocket
-                                    ? (0, tcp_1.handleLoungeHandshake)(socket, data)
-                                    : (0, handshake_1.handleHandshake)(socket, data);
-                                handshakePending = Promise.resolve(handshake).then(() => {
-                                    handshakePending = null;
-                                    clearHandshakeTimer();
-                                    if (protocolClosed || socket.destroyed || socket.writableEnded) {
-                                        // The peer can close while an uncached
-                                        // handshake is still resolving. If the
-                                        // handler indexed the socket after the
-                                        // close callback ran, clean it now.
-                                        removeSocketClient();
-                                        return;
-                                    }
-                                    handshakeDone = true;
-                                    processFrames();
-                                }, (err) => {
-                                    handshakePending = null;
-                                    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_error");
-                                    console.error(`[TCP] handshake failed:`, err);
-                                    removeSocketClient();
-                                    socket.destroy();
-                                });
-                                // A client may coalesce Enter/heartbeat with its
-                                // handshake in one TCP chunk. Do not dispatch
-                                // those frames before the async handshake has
-                                // indexed this socket in SessionManager.
-                                return;
-                            }
-                            else if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
-                                closeForProtocolViolation("client build no longer admitted");
-                                return;
-                            }
-                            else if (isBattleSocket) {
-                                (0, battle_1.handleBattleMessage)(socket, data);
-                            }
-                            else if (isLoungeSocket) {
-                                (0, tcp_1.handleLoungeMessage)(socket, data);
-                            }
-                            else {
-                                const lobby = require("./lobby");
-                                lobby.handleMessage(socket, data);
-                            }
-                        }
-                        catch (e) {
-                            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "message_error");
-                            console.warn(`[TCP] message rejected from ${remoteAddr}:`, e.message);
-                            socket.destroy();
-                            return;
-                        }
-                    }
-                }
-                finally {
-                    processingFrames = false;
-                    if (!protocolClosed && !handshakePending
-                        && buffer.includes("\0") && !processFramesScheduled) {
-                        processFramesScheduled = true;
-                        setImmediate(() => {
-                            processFramesScheduled = false;
-                            processFrames();
-                        });
-                    }
-                }
-                if (!protocolClosed && Buffer.byteLength(buffer, "utf8") > exports.SESSION_MAX_FRAME_BYTES) {
-                    closeForProtocolViolation(`unterminated frame exceeded ${exports.SESSION_MAX_FRAME_BYTES} bytes`);
-                }
-            };
-            socket.on("data", (chunk) => {
-                if (protocolClosed)
-                    return;
-                buffer += chunk;
-                if (Buffer.byteLength(buffer, "utf8") > exports.SESSION_MAX_BUFFER_BYTES) {
-                    closeForProtocolViolation(`receive buffer exceeded ${exports.SESSION_MAX_BUFFER_BYTES} bytes`);
-                    return;
-                }
-                processFrames();
-            });
-            socket.on("end", () => {
-                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "peer_fin");
-                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin");
-            });
-            socket.on("close", (hadError) => {
-                const reason = (0, disconnect_diagnostics_1.finishTcpDisconnect)(socket, hadError);
-                closedReason = reason;
-                const closedClient = SessionManager_1.sessionManager.findClientBySocket(socket);
-                recordBattleDisconnect(closedClient, reason);
-                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error");
-                clearHandshakeTimer();
-                (0, game_logging_1.gameVerboseLog)(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`);
-                removeSocketClient();
-            });
-            socket.on("error", (err) => {
-                var _a;
-                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "socket_error");
-                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_error", (_a = err.code) !== null && _a !== void 0 ? _a : "unknown");
-                clearHandshakeTimer();
-                console.warn(`[TCP] socket error from ${remoteAddr}:`, err.message);
-                removeSocketClient();
-            });
-        });
-        (0, memory_diagnostics_1.observeServerConnections)("tcp", server);
-        const handleListenError = (error) => {
-            if (server) {
-                try {
-                    server.close();
-                }
-                catch (_a) { }
-                server = null;
+        processFrames();
+    };
+    socket.on("data", onData);
+    if ((0, bridge_1.isRelayProxySocket)(socket)) {
+        // Frames the child relayed or acknowledged itself still count as
+        // battle activity, and the client build must remain admitted.
+        socket.on("relay-activity", (activity) => {
+            if (protocolClosed || !handshakeDone)
+                return;
+            if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
+                closeForProtocolViolation("client build no longer admitted");
+                return;
             }
-            reject(error);
-        };
-        server.once("error", handleListenError);
-        server.listen(exports.SESSION_PORT, exports.SESSION_HOST, () => {
-            server === null || server === void 0 ? void 0 : server.off("error", handleListenError);
-            console.log(`[TCP] session server listening on ${exports.SESSION_HOST}:${exports.SESSION_PORT}`);
-            resolve();
+            (0, battle_2.handleBattleRelayActivity)(socket, activity);
+        });
+        socket.on("relay-close-reason", (reason, detail) => {
+            if (reason === "protocol") {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "protocol");
+                console.warn(`[TCP] protocol violation from ${remoteAddr}: ${detail !== null && detail !== void 0 ? detail : "relay"}`);
+            }
+            else if (reason === "send_backpressure" || reason === "send_queue_limit") {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, reason);
+                console.warn(`[MULTI] slow battle connection removed by relay: reason=${reason} ${detail !== null && detail !== void 0 ? detail : ""}`
+                    + ` remote=${remoteAddr}`);
+            }
+            else if (reason === "relay_exit") {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "relay_exit");
+            }
+        });
+    }
+    if (initial !== undefined)
+        onData(initial);
+    socket.on("end", () => {
+        (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "peer_fin");
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin");
+    });
+    socket.on("close", (hadError) => {
+        const reason = (0, disconnect_diagnostics_1.finishTcpDisconnect)(socket, hadError);
+        closedReason = reason;
+        const closedClient = SessionManager_1.sessionManager.findClientBySocket(socket);
+        recordBattleDisconnect(closedClient, reason);
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error");
+        clearHandshakeTimer();
+        (0, game_logging_1.gameVerboseLog)(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`);
+        removeSocketClient();
+    });
+    socket.on("error", (err) => {
+        var _a;
+        (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "socket_error");
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_error", (_a = err.code) !== null && _a !== void 0 ? _a : "unknown");
+        clearHandshakeTimer();
+        console.warn(`[TCP] socket error from ${remoteAddr}:`, err.message);
+        removeSocketClient();
+    });
+}
+/** Starts the relay child when enabled; battle sockets stay in-process until it is ready. */
+function startBattleRelay() {
+    if (!(0, bridge_1.battleRelayProcessEnabled)())
+        return Promise.resolve();
+    const ready = bridge_1.battleRelayBridge.start().catch(error => {
+        console.error("[BATTLE-RELAY] failed to start; battle sockets stay in the main process", error);
+    });
+    const timeout = new Promise(resolve => setTimeout(resolve, 5000).unref());
+    return Promise.race([ready, timeout]);
+}
+function startSessionServer() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield startBattleRelay();
+        return new Promise((resolve, reject) => {
+            if (server) {
+                resolve();
+                return;
+            }
+            server = net.createServer((socket) => attachSessionSocket(socket));
+            (0, memory_diagnostics_1.observeServerConnections)("tcp", server);
+            const handleListenError = (error) => {
+                if (server) {
+                    try {
+                        server.close();
+                    }
+                    catch (_a) { }
+                    server = null;
+                }
+                reject(error);
+            };
+            server.once("error", handleListenError);
+            server.listen(exports.SESSION_PORT, exports.SESSION_HOST, () => {
+                server === null || server === void 0 ? void 0 : server.off("error", handleListenError);
+                console.log(`[TCP] session server listening on ${exports.SESSION_HOST}:${exports.SESSION_PORT}`);
+                resolve();
+            });
         });
     });
 }
@@ -315,7 +390,7 @@ function stopSessionServer() {
         }
         current.close(() => {
             server = null;
-            resolve();
+            void bridge_1.battleRelayBridge.stop().then(resolve);
         });
     });
 }

@@ -98,7 +98,8 @@ function percentile(values, p) {
     return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]
 }
 
-async function startFiveBossBattle() {
+async function startFiveBossBattle(relayProcess) {
+    process.env.MULTI_BATTLE_RELAY_PROCESS = relayProcess ? '1' : '0'
     const members = [player(), player(), player()]
     const [host] = members
     const room = rooms.createRoom(host.viewerId, host.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
@@ -164,8 +165,11 @@ async function startFiveBossBattle() {
     }
 }
 
-test('five-boss: relay latency, then a silent teammate cannot stall the next scene', { timeout: 60000 }, async () => {
-    const { members, room, sims, lines, cleanup } = await startFiveBossBattle()
+for (const relayProcess of [false, true]) {
+const label = relayProcess ? ' (relay process)' : ''
+
+test(`five-boss: relay latency, then a silent teammate cannot stall the next scene${label}`, { timeout: 60000 }, async () => {
+    const { members, room, sims, lines, cleanup } = await startFiveBossBattle(relayProcess)
     let ticker, stallTimer
     try {
 
@@ -248,8 +252,8 @@ test('five-boss: relay latency, then a silent teammate cannot stall the next sce
     }
 })
 
-test('five-boss: a teammate dropping mid-battle reaches the others as Leave at once', { timeout: 30000 }, async () => {
-    const { members, room, sims, lines, cleanup } = await startFiveBossBattle()
+test(`five-boss: a teammate dropping mid-battle reaches the others as Leave at once${label}`, { timeout: 30000 }, async () => {
+    const { members, room, sims, lines, cleanup } = await startFiveBossBattle(relayProcess)
     try {
         const [a, b, c] = sims
         const droppedAt = performance.now()
@@ -268,6 +272,26 @@ test('five-boss: a teammate dropping mid-battle reaches the others as Leave at o
         coordinator.commitDisband(room, 'sim_end')
         const summary = JSON.parse(lines.find(value => value.startsWith('[MULTI-BATTLE]')).slice(15))
         assert.equal(summary.members.find(m => m.viewer === members[1].viewerId).finalize, 1)
+    } finally {
+        await cleanup()
+    }
+})
+}
+
+test('five-boss: a crashed relay process closes its battle sockets and is restarted', { timeout: 30000 }, async () => {
+    const { members, room, sims, lines, cleanup } = await startFiveBossBattle(true)
+    const { battleRelayBridge } = load('multi/tcp/battle-relay/bridge')
+    try {
+        assert.equal(battleRelayBridge.activeSockets, 3)
+        battleRelayBridge['child'].kill('SIGKILL')
+        await Promise.all(sims.map(sim => sim.until(() => sim.closed, 3000)))
+        await sims[0].until(() => battleRelayBridge.isReady, 5000)
+        assert.equal(battleRelayBridge.activeSockets, 0)
+        coordinator.commitDisband(room, 'sim_end')
+        const summary = JSON.parse(lines.find(value => value.startsWith('[MULTI-BATTLE]')).slice(15))
+        for (const member of members) {
+            assert.deepEqual(summary.members.find(m => m.viewer === member.viewerId).disconnects, { relay_exit: 1 })
+        }
     } finally {
         await cleanup()
     }

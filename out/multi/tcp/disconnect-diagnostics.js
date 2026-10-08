@@ -23,6 +23,7 @@ const reasons = [
     "rescue_timeout",
     "room_disband",
     "server_shutdown",
+    "relay_exit",
     "unknown_close",
 ];
 const pending = new WeakMap();

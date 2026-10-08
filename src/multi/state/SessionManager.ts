@@ -21,6 +21,8 @@ import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
 import { markTcpDisconnectReason } from "../tcp/disconnect-diagnostics"
 import { battleTelemetry } from "../battle-telemetry"
 import { clearEquipmentBlock } from "../room/equipment-ready"
+import { battleRelayBridge, isRelayProxySocket } from "../tcp/battle-relay/bridge"
+import type { RelayMember } from "../tcp/battle-relay/protocol"
 
 export interface SessionClient {
     socket: net.Socket
@@ -896,6 +898,7 @@ export class SessionManager {
         this.closeSupersededSocketsForRoom(roomNumber)
         this.roomClients.delete(roomNumber)
         this.battleClients.delete(roomNumber)
+        this.battleRelayMembershipChanged(roomNumber)
         this.clearBattleExpectedCount(roomNumber)
         this.retiredBattleSeats.delete(roomNumber)
         gameVerboseLog(() => `[MULTI] room disbanded: room=${roomNumber} reason=${reason}`)
@@ -953,6 +956,7 @@ export class SessionManager {
             this.abandonedBattleTimers.delete(roomNumber)
             this.roomClients.delete(roomNumber)
             this.battleClients.delete(roomNumber)
+            this.battleRelayMembershipChanged(roomNumber)
             this.sceneReadyClients.delete(roomNumber)
             this.battleLevelNextClients.delete(roomNumber)
             this.battleExpectedCount.delete(roomNumber)
@@ -1168,6 +1172,7 @@ export class SessionManager {
                 this.cidToBattleClient.delete(client.connectionId)
                 this.sceneReadyClients.get(client.roomNumber)?.delete(client.connectionId)
                 this.battleLevelNextClients.get(client.roomNumber)?.delete(client.connectionId)
+                this.battleRelayMembershipChanged(client.roomNumber)
             }
             if (!superseded && isCurrentBattleConnection) this.scheduleMissingBattleSeat(client.roomNumber, client)
         }
@@ -1330,6 +1335,7 @@ export class SessionManager {
         if (pendingLeaves?.size === 0) this.pendingBattleLeaves.delete(client.roomNumber)
         set.add(connectionId)
         this.cidToBattleClient.set(connectionId, client)
+        this.battleRelayMembershipChanged(client.roomNumber)
         this.indexClientSocket(client)
         this.armBattleLoadingLease(connectionId)
         fiveBossConnectionDiagnostics.socketEvent(client.socket, "accepted")
@@ -1350,6 +1356,7 @@ export class SessionManager {
             this.battleLevelNextClients.get(client.roomNumber)?.delete(connectionId)
         }
         this.cidToBattleClient.delete(connectionId)
+        if (client) this.battleRelayMembershipChanged(client.roomNumber)
         if (client) this.scheduleMissingBattleSeat(client.roomNumber, client)
     }
 
@@ -1367,6 +1374,23 @@ export class SessionManager {
 
     isRetiredLobbySocket(socket: net.Socket): boolean {
         return this.retiredLobbySockets.has(socket)
+    }
+
+    /**
+     * Battle sockets adopted by the relay child relay Broadcast/Send there, so
+     * the child needs the same recipient set snapshotBattleRelayRecipients()
+     * uses. Called after every change to battleClients/cidToBattleClient.
+     */
+    private battleRelayMembershipChanged(roomNumber: string): void {
+        battleRelayBridge.scheduleMembership(roomNumber, () => {
+            const members: RelayMember[] = []
+            for (const connectionId of this.battleClients.get(roomNumber) ?? []) {
+                const client = this.cidToBattleClient.get(connectionId)
+                if (!client || client.superseded || !isRelayProxySocket(client.socket)) continue
+                members.push({ sid: client.socket.sid, cid: connectionId, gen: client.roomGeneration })
+            }
+            return members
+        })
     }
 
     isCurrentBattleClient(client: SessionClient): boolean {

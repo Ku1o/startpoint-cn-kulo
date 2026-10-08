@@ -22,6 +22,7 @@ export type TcpDisconnectReason =
     | "rescue_timeout"
     | "room_disband"
     | "server_shutdown"
+    | "relay_exit"
     | "unknown_close"
 
 const reasons: readonly TcpDisconnectReason[] = [
@@ -45,6 +46,7 @@ const reasons: readonly TcpDisconnectReason[] = [
     "rescue_timeout",
     "room_disband",
     "server_shutdown",
+    "relay_exit",
     "unknown_close",
 ]
 

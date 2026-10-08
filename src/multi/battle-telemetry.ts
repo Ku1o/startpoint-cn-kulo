@@ -192,6 +192,26 @@ export class BattleTelemetry {
         }
     }
 
+    /** Frames the battle relay child handled for this member since its last report. */
+    relayActivity(roomNumber: string, viewer: number, activity: {
+        packets: number
+        broadcasts: number
+        lineSpeedWarnings: number
+        maxGapMs: number
+        relayedOut: number
+    }): void {
+        const member = this.member(roomNumber, viewer)
+        if (!member) return
+        member.packets += activity.packets
+        member.broadcasts += activity.broadcasts
+        member.lineSpeedWarnings += activity.lineSpeedWarnings
+        member.relayedOut += activity.relayedOut
+        // The child timestamps frames on arrival; gaps measured here would
+        // include main event-loop stalls and the report interval.
+        if (activity.maxGapMs > member.maxInboundGapMs) member.maxInboundGapMs = activity.maxGapMs
+        if (activity.packets > 0) member.lastInboundAt = this.now()
+    }
+
     relayed(roomNumber: string, viewer: number): void {
         const member = this.member(roomNumber, viewer)
         if (member) member.relayedOut++
