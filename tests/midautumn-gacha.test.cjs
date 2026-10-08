@@ -16,6 +16,7 @@ const items = require('../out/data/domains/item');
 const gachaState = require('../out/data/domains/gacha');
 const assets = require('../out/lib/assets');
 const draws = require('../out/lib/gacha');
+const utils = require('../out/utils');
 const snapshots = require('../out/data/snapshots/player-snapshot');
 const { serverGachas, serverItemIds } = require('../out/lib/content-master');
 const seed = require('../out/lib/seed-validator').default;
@@ -46,9 +47,9 @@ async function player() {
     return {id,viewer,account:account.id};
 }
 const exec = (p,payment=3,type=4,count=1,gid=GID,now=Date.parse('2024-12-31T12:00:00+08:00')) => {
-    const originalNow=Date.now;Date.now=()=>now;
+    const originalOffset=utils.getTimeOffset();utils.setServerTimeOffset(now-Date.now());
     return app.inject({ method:'POST', url:'/gacha/exec', payload:{viewer_id:p.viewer,gacha_id:gid,payment_type:payment,type,number_of_exec:count} })
-        .finally(()=>{Date.now=originalNow;});
+        .finally(()=>{utils.setServerTimeOffset(originalOffset);});
 };
 function data(response) { assert.equal(response.statusCode,200,response.body);return unpack(Buffer.from(response.body,'base64')).data; }
 const state = id => snapshots.createPlayerSaveSnapshotV2Sync(id).data.tables;
@@ -72,6 +73,7 @@ test('winning runtime accessor has exactly twelve equal MOD pickups and the nati
     assert.deepEqual(Object.values(g.pool).flat().filter(x=>x.isExchangeable).map(x=>x.id),MODS);
     for (const bucket of ['1','2','3']) assert.deepEqual(g.pool[bucket].filter(x=>!x.isLimited).map(x=>x.id),assets.getGachaSync(1675).pool[bucket].map(x=>x.id));
     assert.equal(g.startDate,'2020-12-31 12:00:00');assert.equal(g.endDate,'2025-01-01 00:00:00');
+    assert.equal(g.enforceAvailabilityWindow,true);
 });
 
 test('Orochi shop removes mooncakes and keeps the other three exchange items permanent', () => {
@@ -91,6 +93,41 @@ test('the closed gacha rejects direct draws after the end time without changing 
     const response=await exec(p,3,4,1,GID,Date.parse('2025-01-02T00:00:00+08:00'));
     assert.equal(response.statusCode,400);
     assert.equal(response.json().message,'Gacha is not available.');
+    assert.deepEqual(state(p.id),before);
+});
+
+test('the virtual global clock includes both window boundaries and rejects adjacent seconds', async () => {
+    const p=await player();items.setPlayerItemSync(p.id,IID,3);
+    const start=Date.parse('2020-12-31T12:00:00+08:00'),end=Date.parse('2025-01-01T00:00:00+08:00');
+    for(const now of [start-1000,end+1000]) {
+        const before=state(p.id),response=await exec(p,3,4,1,GID,now);
+        assert.equal(response.statusCode,400);assert.equal(response.json().message,'Gacha is not available.');
+        assert.deepEqual(state(p.id),before);
+    }
+    for(const now of [start,end]) assert.equal(data(await exec(p,3,4,1,GID,now)).draw.length,10);
+    assert.equal(items.getPlayerItemSync(p.id,IID),1);
+});
+
+test('a nonzero global offset opens the historical window without replacing the real clock and is restored', async () => {
+    const p=await player();items.setPlayerItemSync(p.id,IID,1);
+    const originalNow=Date.now,originalOffset=utils.getTimeOffset();
+    try {
+        utils.setServerTimeOffset(123456);
+        const result=data(await exec(p));
+        assert.equal(result.draw.length,10);
+        assert.equal(utils.getTimeOffset(),123456);
+        assert.strictEqual(Date.now,originalNow);
+    } finally {utils.setServerTimeOffset(originalOffset);}
+});
+
+test('gacha availability follows the global clock despite a conflicting legacy player offset', async () => {
+    const p=await player();items.setPlayerItemSync(p.id,IID,2);
+    const open=Date.parse('2024-12-31T12:00:00+08:00'),closed=Date.parse('2025-01-02T00:00:00+08:00');
+    players.updatePlayerSync({id:p.id,timeOffset:closed-Date.now()});
+    assert.equal(data(await exec(p,3,4,1,GID,open)).draw.length,10);
+    players.updatePlayerSync({id:p.id,timeOffset:open-Date.now()});
+    const before=state(p.id),response=await exec(p,3,4,1,GID,closed);
+    assert.equal(response.statusCode,400);assert.equal(response.json().message,'Gacha is not available.');
     assert.deepEqual(state(p.id),before);
 });
 
