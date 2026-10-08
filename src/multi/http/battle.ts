@@ -62,6 +62,8 @@ import {
     getEligibleRescueFragmentReward,
 } from "../rescue-fragment-reward";
 import { isMode15RoomClosed } from "../mode15-room-gate";
+import { enforceRoomEquipmentReady, exclusiveWirePartyItems,
+    freezeEquipmentSelections, selectedPartyId } from "../room/equipment-ready";
 import {
     getMode15ExclusiveGlobalPartyItemsSync,
     isMode15EquipmentAllowedQuest,
@@ -276,20 +278,6 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             return sendMultiStartUnavailable(reply, viewer_id, "quest_missing")
         }
 
-        if (!isMode15EquipmentAllowedQuest(category, quest_id)) {
-            const restricted = getMode15ExclusiveGlobalPartyItemsSync(
-                ctx.playerId, 1, party_id,
-            );
-            if (restricted.length > 0) {
-                console.log(`[MODE15] exclusive equipment denied in multi start: player=${ctx.playerId} items=${restricted.join(",")}`);
-                reply.header("content-type", "application/x-msgpack");
-                return reply.status(200).send({
-                    data_headers: generateDataHeaders({ viewer_id, result_code: 4050 }),
-                    data: {},
-                });
-            }
-        }
-
         const roomStart = await embeddedMultiCoordinator.enqueueRoomCommand(room_number, () => {
             const currentRoom = getRoom(room_number);
             if (!currentRoom) return { status: "missing" as const };
@@ -306,10 +294,38 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             if (isMode15RoomClosed(currentRoom)) {
                 return { status: "mode15_closed" as const, room: currentRoom };
             }
+            if (currentRoom.lifecycle.phase === "LOBBY") {
+                // Validate the entire roster before HTTP can beat TCP to BATTLE.
+                if (!enforceRoomEquipmentReady(currentRoom)) return { status: "unavailable" as const };
+                const peers = sessionManager.getClientsInRoom(room_number, currentRoom.lobby_generation)
+                    .filter(peer => !peer.isBattle && peer.enterData !== null && peer.yourself);
+                if (peers.some(peer => peer.yourself.state?.[0] !== 1)) {
+                    return { status: "unavailable" as const };
+                }
+                const requester = peers.find(peer => peer.viewerId === viewer_id);
+                if (requester && selectedPartyId(requester) !== party_id) {
+                    return { status: "unavailable" as const };
+                }
+            }
+            if (!isMode15EquipmentAllowedQuest(category, quest_id)) {
+                const frozenPartyId = currentRoom.equipmentPartyIds?.[viewer_id];
+                // A later save must not invalidate a battle already approved
+                // for the same selection. Explicit request forgery still fails.
+                if ((frozenPartyId !== undefined && frozenPartyId !== party_id)
+                    || exclusiveWirePartyItems(body.client_battle_party).length > 0
+                    || body.mate_party_ids?.some(party => exclusiveWirePartyItems(party).length > 0)
+                    || (frozenPartyId === undefined
+                        && getMode15ExclusiveGlobalPartyItemsSync(ctx.playerId, 1, party_id).length > 0)) {
+                    return { status: "unavailable" as const };
+                }
+            }
             if (!freezeFiveBossLobby(currentRoom)) return { status: "unavailable" as const };
+            const sourceGeneration = currentRoom.lifecycle.phase === "BATTLE"
+                ? Math.max(0, currentRoom.lobby_generation - 1) : currentRoom.lobby_generation;
             if (!setRoomBattle(room_number)) {
                 return { status: "unavailable" as const };
             }
+            if (!currentRoom.equipmentPartyIds) freezeEquipmentSelections(currentRoom, sourceGeneration);
             return { status: "ready" as const, room: currentRoom };
         });
         if (roomStart.status === "forbidden") {

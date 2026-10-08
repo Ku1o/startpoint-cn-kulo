@@ -19,6 +19,7 @@ import { settleDegreeMissionResponse } from "../../lib/mission/degree-response";
 import { countNewAbilitySoulEquipments } from "../../lib/mission/ability-soul-facts";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { invalidateRealPartySnapshot } from "../../multi/party-snapshot";
+import { notifyEquipmentPartySaved } from "../../multi/room/equipment-ready";
 import { createTeamCodeClient, GAME_CODE_PATTERN, TeamCodeError, TeamCodeLimiter } from "../../lib/wiki-team-code-client";
 import { loadTeamCodeAssets, nativeBattleParty, resolvePublicTeam, TeamAssets, TeamInventory } from "../../lib/wiki-team-code-inventory";
 
@@ -764,6 +765,8 @@ const routes = async (fastify: FastifyInstance) => {
             return sendPartyResponse(reply, viewerId, {}, 2330)
         }
 
+        const changedNormalPartyIds: number[] = []
+        let normalSelectionChanged = false
         const saved = await runPersistenceTransaction({
             domain: "player", playerId, operation: "edit_party",
         }, () => {
@@ -785,7 +788,24 @@ const routes = async (fastify: FastifyInstance) => {
                 FROM players_parties
                 WHERE player_id = ? AND group_id = ? AND slot = ? AND category = ?
             `)
+            const previousParty = getDb().prepare(`
+                SELECT character_id_1, character_id_2, character_id_3,
+                    unison_character_1, unison_character_2, unison_character_3,
+                    equipment_1, equipment_2, equipment_3,
+                    ability_soul_1, ability_soul_2, ability_soul_3
+                FROM players_parties
+                WHERE player_id = ? AND category = 1 AND group_id = ? AND slot = ?
+            `)
             for (const { parsed, party } of mappedParties) {
+                if (party.category === PartyCategory.NORMAL) {
+                    const previous = previousParty.get(playerId, parsed.groupId, parsed.slot) as
+                        Record<string, number | null> | undefined
+                    const ids = [...party.characterIds, ...party.unisonCharacterIds,
+                        ...party.equipmentIds, ...party.abilitySoulIds]
+                    if (!previous || Object.values(previous).some((id, i) => id !== ids[i])) {
+                        changedNormalPartyIds.push((parsed.groupId - 1) * 10 + parsed.slot)
+                    }
+                }
                 if (party.category !== PROFILE_FAVORITE_PARTY_CATEGORY) {
                     const previous = getPreviousSouls.get(
                         playerId,
@@ -815,6 +835,7 @@ const routes = async (fastify: FastifyInstance) => {
                 const currentPlayer = getPlayerSync(playerId)
                 if (normalPartySlot !== null && currentPlayer?.partySlot !== normalPartySlot) {
                     updatePlayerSync({ id: playerId, partySlot: normalPartySlot })
+                    normalSelectionChanged = true
                 }
             }
             if (abilitySoulEquipCount > 0) {
@@ -839,6 +860,13 @@ const routes = async (fastify: FastifyInstance) => {
         // screen. Drop the pre-handshake snapshot so a later reconnect reads
         // the newly persisted party instead of waiting for its TTL.
         invalidateRealPartySnapshot(playerId)
+        try {
+            await notifyEquipmentPartySaved(playerId, changedNormalPartyIds, normalSelectionChanged)
+        } catch (error) {
+            // The save committed. Ready/Start will recheck authoritative data;
+            // a failed lobby refresh must not make the client retry this save.
+            console.error(`[PARTY] lobby equipment refresh failed: player=${playerId}`, error)
+        }
 
         const responseData: Record<string, any> = { mail_arrived: false }
         settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [35])

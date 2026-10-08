@@ -2,7 +2,7 @@
 
 StarPoint CN 是《世界弹射物语》国服（雷霆）客户端的非官方服务端实现。本仓库在[上游项目](https://github.com/dontbealarmed/startpoint-cn)基础上继续维护云服务器部署、管理后台、联机、活动内容、任务成就、客户端兼容和运行性能。
 
-> `staging` 是日常开发、集成测试和云服覆盖包的交付分支；`main` 只接收经过观察验证的稳定更新。自动测试和服务端构建通过不代表所有客户端流程都已完成人工验收。
+> `main` 是唯一长期开发与整合分支；正式交付使用 `release-YYYY.MM.DD-N` 标签固定包源提交。推送代码不代表上传覆盖包或部署云服。自动测试和服务端构建通过不代表所有客户端流程都已完成人工验收。
 
 ## 支持边界
 
@@ -41,6 +41,12 @@ bash scripts/start-cn.sh
 
 Windows 也可以使用仓库根目录的 `start-cn-production.bat`。首次运行前请按实际网络环境修改 `.env`：局域网真机需要填写服务器 LAN 地址，云服应填写 Cloudflare/CDN 公网地址和联机公网地址。
 
+上述启动脚本将 stdout/stderr 合并到 `.logs/cn-server-YYYYMMDD-HH00.log`，按北京时间
+00/04/08/12/16/20 点切分，每四小时一份，同一时段重启追加、不覆盖。当前文件与游戏
+PID 见 `.logs/cn-server-current.json`。生产 BAT 保留 7 天，普通日志入口保留 30 天，
+调试入口保留 3 天。直接运行游戏 JS 不自动轮转，详见
+[四小时日志说明](docs/development/SERVER-FOUR-HOUR-LOGS-20261005.md)。
+
 `.env.example` 列出全部运行参数及安全默认值。3 Mbps 上行云服建议保留以下 `/load` 压缩配置：
 
 ```env
@@ -63,6 +69,7 @@ CN_LOAD_HTTP_COMPRESSION_LOG=false
 |---|---|
 | `npm ci` | 按锁文件安装服务端依赖 |
 | `npm run typecheck` | 只执行 TypeScript 类型检查 |
+| `npm run test:server-logs` | 验证四小时轮转、日志分析与进程退出，自动清理临时数据 |
 | `npm run build` | 编译服务端并生成旧管理页面所需 CSS |
 | `npm run dev:cn` | 构建后使用 `.env` 启动 CN 服务 |
 | `npm run debug:cn` | 使用 TypeScript 热重载启动 CN 服务 |
@@ -111,7 +118,7 @@ Android 与 iOS 的详细流程见[客户端补丁说明](./client-patch/README.
 
 ## 开发与交付
 
-正常开发在 `staging` 进行；稳定发布由 `staging` 经过验证后合并到 `main`。服务端 TypeScript 改动需要同时验证并交付对应 `out/` 产物，云服覆盖包只包含运行必需文件，不包含 `.env`、数据库、日志、密钥或本地工作目录。
+正常开发与整合在 `main` 进行。普通协作者从最新 `main` 建立临时分支并向 `main` 提交 PR；仓库所有者在任务授权和保护规则允许时可验证后直接推送。正式交付标签按 `Asia/Singapore` 真实日期每日递增编号，标签只固定已有提交，不额外增加代码 commit。服务端 TypeScript 改动需要同时验证并交付对应 `out/` 产物，云服覆盖包只包含运行必需文件，不包含 `.env`、数据库、日志、密钥或本地工作目录。
 
 具体分支、同步与整合包规则见[开发与交付流程](./docs/development/branch-workflow.md)。私有仓库边界见[私有仓库说明](./PRIVATE_REPOSITORY.md)。
 

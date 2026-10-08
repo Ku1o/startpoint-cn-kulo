@@ -402,9 +402,15 @@
 - 当前可交付 ZIP 4 个成员，SHA-256 `2efdb302c36fc582a5fff4282a25e2d5af62a57d1290f1b9678498e4b753318d`。没有修改 SWF、APK/IPA；本地运行目录已同步并重启，云服仍待后续授权交付。
 - 后续授权交付时使用 source `assets/asset-patch/active/` 中的最终 ZIP、manifest 和商店服务端三份源文件；审计位于 `assets/asset-patch/audit/orochi-superplus-shop-ui-1.4.124/`。
 
-## 救援铃铛超级+难度条文字修复（1.4.131，待后续授权交付）
+## 救援铃铛超级+难度条文字修复（1.4.131，已作废 2026-10-06）
 
-- 已生成从 1.4.130 衔接的 1.4.131 候选增量 `pinball-1.4.130-1.4.131-1-orochi-rescue-bell-superplus-20261002.zip`；当前源 manifest 仍保持 1.4.130，1.4.131 未登记为 active。没有回改 1.4.124，也没有创建重复版本。
-- 修复 `battle/common/attention/hud_attention_label.parts.amf3.deflate` 的根节点第6帧缺段，复用现有“超/级/+”图集字形；不修改 SWF、APK/IPA、服务端或存档。
-- ZIP 成员 1 个，SHA-256 `8a0b30b3fb573ef5bbc19403cb49c000074b72ddb6a825979149a742b6e25e37`；离线结构回读、第6帧“超级+”渲染及本地 8001 Android/iOS 更新接口与 ZIP 哈希校验通过；设备冷启动画面尚待验证。
-- 审计位于 `assets/asset-patch/audit/orochi-rescue-bell-superplus-1.4.131/`；源仓库继续保持 candidate-only，本地运行镜像曾做定向验证，未制作云服整合包。
+- **本项已作废，不再列入任何交付范围、不再挂版本号。** 显示问题已由客户端内置 bundle 路线修复：`client-patch/orochi-rescue-bell-superplus/build_embedded_layout.py` 生成 480 字节紧凑排版 payload，随 APK 更新 `assets/bundle.zip` 与 `bundle.zip.sha1` 后发布，2026-10-02 用户内网实机验收通过（见 `client-patch/ACCEPTANCE-OROCHI-RESCUE-BELL-20261002.md`、`ACCEPTANCE-OROCHI-RESCUE-BELL-C8016-CACHE-20261002.md`）。
+- 历史候选（从未登记 manifest、从未下发）：`pinball-1.4.130-1.4.131-1-orochi-rescue-bell-superplus-20261002.zip`，698 字节，SHA-256 `8a0b30b3fb573ef5bbc19403cb49c000074b72ddb6a825979149a742b6e25e37`；其 1.4.124 旧尝试在模拟器复测仍显示空框（`assets/asset-patch/audit/orochi-superplus-shop-ui-1.4.124/rescue-bell-failure.json`），CDN 路线已无价值。
+- 原审计目录已移出 `audit/`，存于退役区 `assets/asset-patch/inactive/orochi-rescue-bell-superplus-1.4.131-obsolete/`（含 `STATUS.md` 与当时回执），仅供追溯；1.4.131~1.4.136 编号已被凉月角色包及其修复占用。
+
+## 深渊、竞速池与特殊装备强化美术（1.4.134，待云服交付）
+
+- 更新两池主视觉与独立选池横幅，接入原生Movie及配套时间线/图集；补齐羁绊武器、诅咒武器重宋碑刻、深渊武装各两张强化图，羁绊标题使用放大后的v2。
+- 运行文件为 `assets/asset-patch/active/pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip`、完整 `assets/asset-patch/manifest.json`、`assets/cdndata/gacha_feature_content.json`。ZIP共19成员、12,158,571字节；manifest内摘要与成品一致。外层不交付散装production，内层ZIP保持完整字节。
+- feature仅变更990001/990002第一页到Movie，其余586个外层条目保留；无概率、券、兑换、数据库、保存ID、准入或APK/IPA变更。离线资源检查通过，实际客户端播放待验收。审计：`assets/asset-patch/audit/abyss-race-gacha-art-1.4.134/`。
+- 当前仅完成本地资源接入；未制作云服覆盖包、未部署云服。已下载旧同版资源的调试客户端须备份资源版本记录后回退至1.4.133，再正常重下。此条仅记录本批运行依赖，不扩大未来覆盖包范围。

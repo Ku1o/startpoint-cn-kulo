@@ -22,7 +22,8 @@
 - 40,201,420 字节，**601 个成员**。原会话合并包的 600 项逐项不变，增加这一张 UI 文案表。
 - 新文案表 SHA-256：`9ca56e9fc89b868d18abaf7b839b8b84354b0c6193b55938f9ffeb57eecac62c`。
 - 原文案表 SHA-256：`a901379873ae114774f79b0fb4eada438e6e962c5fbcbe3ab2eb6ba76e85593d`。
-- 新旧合并包和原暂缓的单表 ZIP 都保留原字节；旧文件移至 `active/candidates/`，平铺 active 只启用新的合并包。
+- 新旧合并包和原暂缓的单表 ZIP 都保留原字节；旧文件移至 `inactive/candidates/`，平铺 active 只启用新的合并包。
+  （2026-10-06：本地测试候选统一从 `active/candidates/` 改放 `assets/asset-patch/inactive/candidates/`，字节未变；本文件路径已按新位置记录。）
 - 当前清单：`assets/asset-patch/manifest.json`，审计：`assets/asset-patch/audit/entry-condition-message-1.4.104-approved/`。原始构建报告保留生成时状态。
 
 生成器 `tools/lens-integration/merge_entry_condition_message.py` 从明确的原合并清单读取资源，锁定原 600 项载荷和 UI 表前像，验证后仅输出到新的工作目录。历史 `update_entry_condition_message.py` 保留原构建步骤，不能直接在新清单上运行。

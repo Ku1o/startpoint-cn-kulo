@@ -48,7 +48,7 @@
 - `wf_rogue_element_channel.py` 提供补足、精确百分比编码/回读和旧生成耐性程序迁移。`finalize_abyss_element_tower.py` 从已固定哈希的种子 46454236 稀疏预览生成配套结果，不重抽 Boss/领域或修改 HP。新结果保持全部原有合法卡，仅补缺失属性。
 - 原始结果第 20 层已有两种封锁，第 27 层已有一种，其余没有达到 `r>=99` 的封锁。因此本次 30 层补足后恰好都是两种，算法仍保留原有三至五种组合。第 1 层封锁水、风，额外耐性均对应剩余伤害 0.1%。
 - 17 条工具生成的 General Boss 载体行仅调整 c109 的旧生成程序引用；元素部分迁到关卡入口，纯元素程序引用移除，混合程序保留非元素部分。原生动作、领域、c110+、其他模式的语义保持。剩余四个生成耐性程序全部经严格签名和序列化回读。
-- 新包 `assets/asset-patch/active/candidates/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip`，29 个资源，3,778,769 字节，SHA-256 `d6cee14a122878c3c97f33c910ac8fd1b585de63d1b6e52860f195521dad5fc1`。特别鸣谢 9900012 与莱特 131182 兑换已合入，未发送真实玩家邮件。
+- 新包 `assets/asset-patch/inactive/candidates/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip`，29 个资源，3,778,769 字节，SHA-256 `d6cee14a122878c3c97f33c910ac8fd1b585de63d1b6e52860f195521dad5fc1`。特别鸣谢 9900012 与莱特 131182 兑换已合入，未发送真实玩家邮件。
 - 内网 APK 直接从登记的内网累计基线生成：`outputs/quest-element-channel-lan-test-20260910/StarPoint-CN-1.8.1-quest-element-channel-lan-test-20260910.apk`，SHA-256 `8e21b793091415be13d13ac170a1dc53e89fb92a3d688c135deb86644a71bbcb`；独立 96,404 方法检查与 351 项桌面 AIR 检查通过。
 - 资源 ZIP 内真实 30 条副标题已由同一份 APK helper 运行校验；另有五项 Python 通道回归、16 项称号/兑换回归、隔离 `npm run build`、31 条关卡引用链、HP 审计及全表语义范围检查。不能将这些静态/桌面证据称作 Android 实战验证。
 - `sync_abyss_element_local_test.py` 按用户本次“同步到本地”授权作未提交测试同步，备份后复制 36 个明确文件，未变化的两个服务端关卡 JSON 跳过。备份：`F:/startpoint-cn-main/.codex-backups/20260910-114620-abyss-element-local-test/`。具体文件清单和前后哈希见 `assets/asset-patch/audit/abyss-element-sponsor-laite-1.4.104-test/local-sync-report.json`。
@@ -62,7 +62,7 @@
 - 原因是最终生成器在移除纯元素初始化脚本后，把 General Boss c109 写成 `(None)`。`GeneralBossValues` 对该列按字符串数组解析，仅空字符串代表空列表；`GeneralBossSource` 会为数组中每项请求 ActionDSL。已将生成器改为正确的空字符串，并在生成和发布阶段拒绝非法列表成员。
 - 从固定哈希的原始种子 46454236 重新生成后比对，唯一资源变化是 General Boss 表的 13 个 c109 字段，对应第 2、3、4、5、8、13、17、20、27 关。其他列、30 层配置、HP 审计及其他资源均保持一致。保留的全部五种初始化脚本引用均能从有效补丁链读取。
 - 已增加三个聚焦回归，重现纯元素脚本移除、压缩 CSV 读回及非法占位符导致的资源请求，验证原生/非元素脚本保留。通道八项、属性保底十一项共 19 项通过；真实生成配置复现、30 条 General Boss 行、31 项关卡链检查通过。
-- 追加 `assets/asset-patch/active/candidates/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip`，279,544 字节，仅一个公共表资源，SHA-256 `6d696ccae176bed4ea048b47a9c19cce1d33b818e7b4906f436878756ef15b38`。已发布的 .104 包保持原字节，源仓库暂缓 .106 清单保持不动。
+- 追加 `assets/asset-patch/inactive/candidates/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip`，279,544 字节，仅一个公共表资源，SHA-256 `6d696ccae176bed4ea048b47a9c19cce1d33b818e7b4906f436878756ef15b38`。已发布的 .104 包保持原字节，源仓库暂缓 .106 清单保持不动。
 - 本次仅同步新 ZIP、General Boss 直接资源和独立本地测试清单三个路径。备份为 `F:/startpoint-cn-main/.codex-backups/20260910-121107-abyss-pre-action-repair/`；精确文件清单及前后哈希见 `assets/asset-patch/audit/abyss-pre-action-empty-1.4.105-test/local-sync-report.json`。
 - HTTP 验证 .103 返回连续两段升级，.104 返回一段修复，.105 无新增差分；实际下载 ZIP、直接资源与源修复字节一致。APK 保持原 SHA-256，无需重装。返回标题更新到 .105 后复测第二关，尚不宣称真机修复验收通过。
 - 分支、提交与先前交付一致，保持未提交/未推送；未部署云端或制作云服整合包。生成修复与同步脚本：`tools/fantasy-gauntlet-mod-tools/repair_abyss_pre_action_local_test.py`。审计目录：`assets/asset-patch/audit/abyss-pre-action-empty-1.4.105-test/`。
@@ -75,7 +75,7 @@
 - 工具新增 Standard Funnel ESDL 反向关联扫描，纳入普通与局部改名门禁，拒绝未经完整关联证明的单独 Boss 克隆。`wf_standard_enemy_links.py` 可在明确输入的完整实体集合上生成独立动作链；常规 roll 尚未自动接入该完整复制路径，不能把门禁修正描述为任意 Boss 自动修复。
 - 修正此前错误的试炼判别：Standard `state.e` 是动画编号，`state.m/T2` 才是 DamageCheck；animation 0 也可能有试炼。百分比 `a` 按既有绝对门槛规则缩放；脚本门槛 `h` 缺独立 HP 依赖证明时拒绝 HP 调整。旧 .104 HP 审计中漏记试炼的记录是历史缺陷，本次保留已发布配置并在新回执纠正语义，不追溯改变旧包。
 - 23 项不同聚焦回归通过（5 项本次核心关联、9 项 Standard HP、9 项载体与身份门禁）；237 份动作均经过完整签名校验与序列化回读。31 项关卡链检查通过。实际 HTTP 更新链及新包全部 268 个直接资源回读一致，四关本体/核心/召唤引用在实际下载包内闭合。真机击杀复测尚待用户反馈。
-- 追加 `assets/asset-patch/active/candidates/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip`，230,640 字节，SHA-256 `3bcf6c1c032db6d49ae837ba42c67e751e3d9f5c39c94552786db63ea6067ecf`。已发布 .104/.105 包保持原字节；第二关修复继续保留；源仓库暂缓 .106 清单未动。
+- 追加 `assets/asset-patch/inactive/candidates/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip`，230,640 字节，SHA-256 `3bcf6c1c032db6d49ae837ba42c67e751e3d9f5c39c94552786db63ea6067ecf`。已发布 .104/.105 包保持原字节；第二关修复继续保留；源仓库暂缓 .106 清单未动。
 - 已按此前本地测试授权同步新 archive、268 个直接资源和独立本地测试 manifest，共 270 个明确路径。备份：`F:/startpoint-cn-main/.codex-backups/20260910-125900-abyss-standard-links/`；精确路径及哈希见 `assets/asset-patch/audit/abyss-standard-links-1.4.106-test/local-sync-report.json`。
 - 用户继续使用原内网 APK，返回标题更新到资源 1.4.106 后重进第十二关；APK SHA-256 保持 `8e21b793091415be13d13ac170a1dc53e89fb92a3d688c135deb86644a71bbcb`。说明见 `outputs/quest-element-channel-lan-test-20260910/1.4.106修复说明.txt`。
 - 分支 `staging`、HEAD `8f6252bb31c7f18a8cb61f11fa699282e68ebc4b`，与跟踪的 `origin/staging` 无提交分歧；修复保持未提交/未推送。未部署云端、未制作云服整合包、未修改 IPA；其他用户既有修改保留。发布复现脚本为 `tools/fantasy-gauntlet-mod-tools/repair_abyss_standard_links_local_test.py`。

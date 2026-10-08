@@ -12,10 +12,10 @@ import {
 } from "../npc/player-party-pool"
 import { isMode15RoomClosed } from "../mode15-room-gate"
 import {
-    getMode15ExclusiveGlobalPartyItemsSync,
-    isMode15EquipmentAllowedQuest,
     isMode15Quest,
 } from "../../lib/mode15-optional"
+import { enforceEquipmentReady, enforceRoomEquipmentReady, freezeEquipmentSelections,
+    legalNpcParty, recordEquipmentPartyChange, setPreparation } from "../room/equipment-ready"
 import { getPlayerSync, updatePlayerPartySlotAsync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { handleAutoplayModeChange } from "./autoplay-mode"
@@ -257,58 +257,9 @@ function collectCanonicalRoomRoster(
     return synchronizeRoomRoster(roomNumber, candidates, false, preserveNpcCount, expectedGeneration)
 }
 
-function preflightBattleRoster(room: any, members: any[], roomGeneration = room.lobby_generation): number[] {
-    if (isMode15EquipmentAllowedQuest(Number(room.category), Number(room.quest_id))) {
-        return []
-    }
-
-    const lobbyClients = sessionManager.getClientsInRoom(room.room_number, roomGeneration)
-    const clientsByViewerId = new Map(lobbyClients.map(current => [current.viewerId, current]))
-    const rejectedViewerIds: number[] = []
-
-    for (const member of members) {
-        if (member?.comId) continue
-        const viewerId = Number(member?.viewerId)
-        if (!Number.isFinite(viewerId) || viewerId <= 0) continue
-        const current = clientsByViewerId.get(viewerId)
-        const playerId = Number(current?.playerId)
-        // /party/edit persists the actually selected global party before the
-        // lobby emits StartBattle.  The Mate cached by the room handshake can
-        // still contain the previous/default slot, so the persisted player
-        // value must be authoritative for admission.
-        const persistedPartyId = Number(getPlayerSync(playerId)?.partySlot)
-        const partyId = Number(
-            (Number.isFinite(persistedPartyId) && persistedPartyId > 0
-                ? persistedPartyId
-                : undefined)
-            ?? member?.currentPartyId
-            ?? current?.yourself?.currentPartyId
-            ?? 1,
-        )
-        if (!current || !Number.isFinite(playerId) || playerId <= 0
-            || !Number.isFinite(partyId) || partyId <= 0) continue
-        try {
-            const restricted = getMode15ExclusiveGlobalPartyItemsSync(playerId, 1, partyId)
-            if (restricted.length > 0) {
-                rejectedViewerIds.push(viewerId)
-                console.warn(`[MODE15] lobby preflight rejected exclusive equipment: room=${room.room_number}`
-                    + ` viewer=${viewerId} player=${playerId} party=${partyId}`
-                    + ` items=${restricted.join(",")}`)
-            }
-        } catch (e) {
-            // Fail open if the optional Mode15 module is unavailable. The HTTP
-            // start boundary remains the authoritative final validation.
-            console.warn(`[MODE15] lobby preflight lookup failed: room=${room.room_number}`
-                + ` viewer=${viewerId}`, e)
-        }
-    }
-
-    return rejectedViewerIds
-}
-
 export function checkHostAutoReady(roomNumber: string): void {
     const room = getRoom(roomNumber)
-    if (!room) return
+    if (!room || room.lifecycle.phase !== "LOBBY") return
     const hostClient = findHostClient(roomNumber)
     if (!hostClient) return
     const hostMate = hostClient.mates.find(m => m.viewerId === hostClient.viewerId)
@@ -323,13 +274,19 @@ export function checkHostAutoReady(roomNumber: string): void {
         m.viewerId === hostClient.viewerId || m.state?.[0] === 1
     )
     if (nonHostReady) {
+        if (!enforceRoomEquipmentReady(room)) {
+            room.readyCountdownPending = false
+            return
+        }
         if (hostMate.state?.[0] !== 1) {
+            hostClient.isReady = true
             hostMate.state = [1]
             sessionManager.broadcastToRoom(roomNumber, [1, [2, hostMate.connectionId, [1]]])
             gameVerboseLog(() => `[LOBBY] host auto-ready: room=${roomNumber}`)
         }
     } else {
-        autoStartingRooms.delete(roomNumber)
+        room.readyCountdownPending = false
+        hostClient.isReady = false
         if (hostMate.state?.[0] === 1) {
             hostMate.state = [0]
             sessionManager.broadcastToRoom(roomNumber, [1, [2, hostMate.connectionId, [0]]])
@@ -339,14 +296,17 @@ export function checkHostAutoReady(roomNumber: string): void {
     checkAllReadyAndStart(roomNumber)
 }
 
-const autoStartingRooms = new Set<string>()
+export function refreshEquipmentReadiness(roomNumber: string): void {
+    const room = getRoom(roomNumber)
+    if (room) room.readyCountdownPending = false
+    checkHostAutoReady(roomNumber)
+}
 
 function checkAllReadyAndStart(roomNumber: string): void {
-    if (autoStartingRooms.has(roomNumber)) return
     const hostClient = findHostClient(roomNumber)
     if (!hostClient) return
     const room = getRoom(roomNumber)
-    if (!room) return
+    if (!room || room.lifecycle.phase !== "LOBBY" || room.readyCountdownPending) return
     if (isMode15RoomClosed(room)) {
         stopRandomRecruitment(roomNumber)
         sessionManager.commitRoomDisband(roomNumber, "mode15_room_completed")
@@ -383,8 +343,12 @@ function checkAllReadyAndStart(roomNumber: string): void {
 
     const allReady = hostClient.mates.every(m => m.state?.[0] === 1)
     if (!allReady) return
+    if (!enforceRoomEquipmentReady(room)) {
+        room.readyCountdownPending = false
+        return
+    }
 
-    autoStartingRooms.add(roomNumber)
+    room.readyCountdownPending = true
     gameVerboseLog(() => `[LOBBY] all ready — StartRemainingTime float: room=${roomNumber}`)
     sessionManager.broadcastToRoom(roomNumber, [1, [10, 2]])
 }
@@ -487,12 +451,10 @@ async function handleEnterComs(
         // custom-asset combination and make the AIR client's 4096 atlas packer
         // fail with U_1d93f4 during auto-repeat.
         const partyKey = String(comId)
-        const party = room.npc_party_by_com_id?.[partyKey]
+        const party = legalNpcParty(room, room.npc_party_by_com_id?.[partyKey]
             ?? npcParties[nextPartyIndex++]
-            ?? hostMate.party
-        if (!room.npc_party_by_com_id[partyKey]) {
-            room.npc_party_by_com_id[partyKey] = party
-        }
+            ?? hostMate.party)
+        room.npc_party_by_com_id[partyKey] = party
 
         npcMates.push({
             viewerId: viewerId,
@@ -527,10 +489,11 @@ async function handleEnterComs(
             if (!embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
                 || currentRoom.lobby_generation !== roomGeneration
                 || currentRoom.lifecycle.phase !== "LOBBY") return
-            // Publish the same completed roster to every connected client.
+            // A host reconnect may replace client before this delayed broadcast.
+            const roster = collectCanonicalRoomRoster(client.roomNumber, true, roomGeneration)
             sessionManager.broadcastToRoom(
                 client.roomNumber,
-                [1, [1, client.mates]],
+                [1, [1, roster]],
                 undefined,
                 roomGeneration,
             )
@@ -821,8 +784,16 @@ function commitClaimedAdmission(socket: net.Socket, client: SessionClient): bool
 }
 
 function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): void {
+    const existingRoom = getRoom(client.roomNumber)
+    if (existingRoom?.lifecycle.phase === "BATTLE") return
     const ed = data[1] ?? {}
     if (!client.yourself) return
+
+    const entryPartyId = Number(data[2] ?? ed.currentPartyId)
+    if (Number.isSafeInteger(entryPartyId) && entryPartyId >= 1 && entryPartyId <= 120) {
+        client.equipmentSelectedPartyId = entryPartyId
+        client.yourself.currentPartyId = entryPartyId
+    }
 
     // Reconnect Enter packets may omit party.  The handshake already built a
     // valid DB-backed party, so still complete Welcome instead of silently
@@ -1001,8 +972,13 @@ function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): vo
 }
 
 function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any[]): void {
+    const currentRoom = getRoom(client.roomNumber)
+    if (!currentRoom || currentRoom.lifecycle.phase !== "LOBBY"
+        || client.roomGeneration !== currentRoom.lobby_generation) return
     const pd = data[1]
     const currentPartyId = data[3] ?? pd?.currentPartyId
+    const changed = (currentPartyId !== undefined && currentPartyId !== client.yourself?.currentPartyId)
+        || (!!pd?.party && JSON.stringify(pd.party) !== JSON.stringify(client.yourself?.party))
     if (pd && client.yourself) {
         // ChangeParty carries the complete Mate object, not only the party.
         // In particular, the "allow healing from teammates" toggle updates
@@ -1033,6 +1009,13 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
     }
     const mate = client.mates.find(m => m.viewerId === client.viewerId)
     if (mate) {
+        if (changed) {
+            currentRoom.readyCountdownPending = false
+            recordEquipmentPartyChange(client, Number(currentPartyId), data[2] !== true)
+            // Automatic rematches with legal parties retain their Ready state.
+            // Invalid automatic changes were already reset by the shared gate.
+            if (data[2] !== true) setPreparation(client, true)
+        }
         if (client.playerId && currentPartyId !== undefined) {
             const playerId = client.playerId
             const partySlot = currentPartyId
@@ -1040,6 +1023,11 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
             // Defer the low-priority save so the TCP callback can broadcast the
             // roster without synchronously waiting on SQLite.
             setImmediate(() => {
+                if (sessionManager.getClient(client.viewerId, client.roomNumber) !== client
+                    || client.superseded || getRoom(client.roomNumber) !== currentRoom
+                    || currentRoom.lifecycle.phase !== "LOBBY"
+                    || client.roomGeneration !== currentRoom.lobby_generation
+                    || client.yourself?.currentPartyId !== partySlot) return
                 void updatePlayerPartySlotAsync(playerId, partySlot).catch(error => {
                     console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error)
                 })
@@ -1050,6 +1038,7 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
         const roster = collectCanonicalRoomRoster(client.roomNumber)
         sessionManager.broadcastToRoom(client.roomNumber, [1, [1, roster]])
     }
+    checkHostAutoReady(client.roomNumber)
     gameVerboseLog(() => `[LOBBY] client ${client.viewerId} changed party: party=${currentPartyId ?? "unchanged"} allowHeal=${client.yourself?.allowHealFromOtherPlayers ?? "unchanged"}`)
 }
 
@@ -1060,7 +1049,14 @@ function handleReady(_socket: net.Socket, client: SessionClient, data: any[]): v
         && room.host_viewer_id === client.viewerId) {
         sessionManager.completeSettlementReturn(client.roomNumber)
     }
+    if (!room || room.lifecycle.phase !== "LOBBY"
+        || client.roomGeneration !== room.lobby_generation) return
     const readyState = Array.isArray(data[1]) ? data[1][0] : data[1]
+    if (readyState === 1 && !enforceEquipmentReady(room, client, true)) {
+        room.readyCountdownPending = false
+        checkHostAutoReady(client.roomNumber)
+        return
+    }
     client.isReady = readyState === 1
     if (sessionManager.isRescueGuest(client.roomNumber, client.viewerId)) {
         sessionManager.beginRescueGuestWait(client)
@@ -1068,7 +1064,7 @@ function handleReady(_socket: net.Socket, client: SessionClient, data: any[]): v
 
     const mate = client.mates.find(m => m.viewerId === client.viewerId)
     if (mate) {
-        mate.state = data[1] ?? [1]
+        mate.state = [client.isReady ? 1 : 0]
         sessionManager.broadcastToRoom(client.roomNumber, [1, [2, mate.connectionId, mate.state]])
     }
 
@@ -1103,17 +1099,8 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
     // StartBattle may be sent first by any participant. Always use the
     // canonical host roster instead of that sender's potentially older copy.
     const members = collectCanonicalRoomRoster(client.roomNumber, false, sourceGeneration)
-    const rejectedViewerIds = preflightBattleRoster(room, members, sourceGeneration)
-    if (rejectedViewerIds.length > 0) {
-        // CN Disbanded(reason) opens the same OkDialog/Text used by HTTP 4050.
-        // Cancel the whole start before allocating battle seats: letting the
-        // other members start would leave them waiting for a rejected peer.
-        // The disband path lets clients close their own lobby sockets after
-        // consuming the reason, avoiding S1000/C5805 from a premature FIN.
-        autoStartingRooms.delete(client.roomNumber)
-        sessionManager.commitRoomDisband(
-            client.roomNumber, "mode15_exclusive_equipment", "quest_start_out_of_period_error",
-        )
+    if (!room.equipmentPartyIds && !enforceRoomEquipmentReady(room, sourceGeneration)) {
+        room.readyCountdownPending = false
         return
     }
 
@@ -1163,7 +1150,7 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
     for (const viewerId of realViewerIds) {
         sessionManager.clearRescueGuestLobbyWait(client.roomNumber, viewerId)
     }
-    autoStartingRooms.delete(client.roomNumber)
+    room.readyCountdownPending = false
     room.expected_real_viewer_ids = realViewerIds
     room.npc_count = members.filter(mate => !!mate.comId).length
     room.rematch_ai_count = room.npc_count
@@ -1185,6 +1172,7 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
             battleSessionId: room.lifecycle.battleSessionId ?? "",
         }
     if (!battleStart.ok) return
+    if (!room.equipmentPartyIds) freezeEquipmentSelections(room, sourceGeneration)
     const expectedBattleSeats = sessionManager.getClientsInRoom(client.roomNumber, battleStart.previousGeneration)
         .filter(current => realViewerIds.includes(current.viewerId))
         .map(current => ({ viewerId: current.viewerId, connectionId: current.connectionId }))
@@ -1196,7 +1184,7 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
     // Lobby wait timers were already cleared above; the membership itself is
     // removed only when the guest is ejected or the room is disbanded.
 
-    autoStartingRooms.delete(client.roomNumber)
+    room.readyCountdownPending = false
     const eligibleViewerIds = new Set(realViewerIds)
     for (const current of sessionManager.getClientsInRoom(client.roomNumber, battleStart.previousGeneration)) {
         if (eligibleViewerIds.has(current.viewerId)) {
