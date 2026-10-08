@@ -305,7 +305,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "Gacha doesn't exist."
             });
         }
-        if (!isGachaAvailableAt(gachaData, Date.now())) {
+        if (gachaData.enforceAvailabilityWindow === true
+            && !isGachaAvailableAt(gachaData, (0, utils_1.getServerTime)() * 1000)) {
             (0, game_logging_1.gameVerboseLog)(() => `[GACHA] gacha unavailable: gachaId=${gachaId}`);
             return reply.status(400).send({
                 "error": "Bad Request",
