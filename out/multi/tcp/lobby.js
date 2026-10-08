@@ -463,8 +463,9 @@ function handleEnterComs(client, coms, maxNpcCount) {
                     || currentRoom.lobby_generation !== roomGeneration
                     || currentRoom.lifecycle.phase !== "LOBBY")
                     return;
-                // Publish the same completed roster to every connected client.
-                SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, client.mates]], undefined, roomGeneration);
+                // A host reconnect may replace client before this delayed broadcast.
+                const roster = collectCanonicalRoomRoster(client.roomNumber, true, roomGeneration);
+                SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, roster]], undefined, roomGeneration);
             }).catch(e => console.error("[LOBBY] EnterComs send-mates error", e));
         }, NPC_JOIN_DELAY_MS);
         joinTimer.unref();

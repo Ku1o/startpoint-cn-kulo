@@ -15,6 +15,7 @@ const files = [
     'tests/tcp-disconnect-diagnostics.test.cjs',
     'tests/multi-room-admission.test.js',
     'tests/multi-guest-eligibility.test.js',
+    'tests/multi-ai-fallback-roster.test.cjs',
     'tests/multi-room-disband-protocol.test.js',
     'tests/multi-equipment-entry-dialog.test.js',
     'tests/multi-equipment-ready-http.test.cjs',

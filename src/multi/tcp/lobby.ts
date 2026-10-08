@@ -489,10 +489,11 @@ async function handleEnterComs(
             if (!embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
                 || currentRoom.lobby_generation !== roomGeneration
                 || currentRoom.lifecycle.phase !== "LOBBY") return
-            // Publish the same completed roster to every connected client.
+            // A host reconnect may replace client before this delayed broadcast.
+            const roster = collectCanonicalRoomRoster(client.roomNumber, true, roomGeneration)
             sessionManager.broadcastToRoom(
                 client.roomNumber,
-                [1, [1, client.mates]],
+                [1, [1, roster]],
                 undefined,
                 roomGeneration,
             )
