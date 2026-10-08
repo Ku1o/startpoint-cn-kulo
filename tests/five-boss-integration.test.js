@@ -446,6 +446,8 @@ test('AI auto-repeat keeps the first successful COM parties stable in the room',
             party: {
                 characters: [[0, { id: 111001 }], [0, { id: 111001 }], [0, { id: 111001 }]],
                 unison_characters: [],
+                equipments: [[0, { equipmentId: 300101 }], [1], [1]],
+                abilitySoulIds: [[0, 300201], [1], [1]],
                 marker: `${prefix}-${index}`,
             },
         }))
@@ -465,7 +467,6 @@ test('AI auto-repeat keeps the first successful COM parties stable in the room',
             Object.values(room.npc_party_by_com_id).map(party => party.marker),
             ['first-1', 'first-2'],
         )
-
         room.lobby_generation = 1
         client.roomGeneration = 1
         room.expected_real_viewer_ids = [p.viewerId]
@@ -484,6 +485,102 @@ test('AI auto-repeat keeps the first successful COM parties stable in the room',
             client.mates.some(mate => mate.party?.marker?.startsWith('rerolled')),
             false,
         )
+    } finally {
+        manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
+test('AI rejects an invalid host fallback and uses legal fixed templates', async t => {
+    const p = player()
+    const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    room.is_npc_mode = true
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const pool = load('multi/npc/player-party-pool')
+    t.mock.method(pool, 'getRandomPlayerNpcPartiesSync', () => [])
+    const socket = new (require('node:events').EventEmitter)()
+    Object.assign(socket, { destroyed: false, readable: true, writable: true, remoteAddress: '127.0.0.1',
+        write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+    const client = manager.createClient(socket, p.viewerId, room.room_number, `fallback-party-${p.id}`, p.id)
+    client.yourself = { viewerId: p.viewerId, playerId: p.id, comId: 0, state: [1], rank: 1,
+        party: {
+            characters: [[0, { id: 111001 }]],
+            unison_characters: [],
+            equipments: [[0, { equipmentId: 100013 }], [0, { equipmentId: 300101 }], [1]],
+            abilitySoulIds: [[0, 100023], [0, 300201], [1]],
+            marker: 'host-fallback',
+        } }
+    client.mates = [client.yourself]
+    manager.addClientToRoom(client)
+    const lobby = load('multi/tcp/lobby')
+    try {
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        const npcs = client.mates.filter(mate => mate.comId)
+        assert.equal(npcs.length, 2)
+        for (const mate of npcs) {
+            assert.notEqual(mate.party.marker, 'host-fallback')
+            assert.equal(
+                mate.party.equipments.some(slot => slot?.equipment_id >= 100013
+                    && slot?.equipment_id <= 100023),
+                false,
+            )
+            assert.equal(
+                mate.party.ability_soul_ids.some(id => id >= 100013 && id <= 100023),
+                false,
+            )
+        }
+        assert.equal(client.yourself.party.equipments[0][0], 0)
+        assert.deepEqual(client.yourself.party.abilitySoulIds[0], [0, 100023])
+    } finally {
+        manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
+test('invalid rematch cache is discarded and replaced with a legal pool party', async t => {
+    const p = player()
+    const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    room.is_npc_mode = true
+    room.npc_party_by_com_id['1'] = {
+        characters: [[0, { id: 111001 }]],
+        equipments: [[0, { equipmentId: 100013 }]],
+        abilitySoulIds: [[0, 100023]],
+        marker: 'invalid-cache',
+    }
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const pool = load('multi/npc/player-party-pool')
+    t.mock.method(pool, 'getRandomPlayerNpcPartiesSync', (_host, count) =>
+        Array.from({ length: count }, (_, index) => ({
+            sourcePlayerId: 900 + index,
+            party: {
+                characters: [[0, { id: 111001 }], [0, { id: 111001 }], [0, { id: 111001 }]],
+                equipments: [[0, { equipmentId: 300101 }], [1], [1]],
+                abilitySoulIds: [[0, 300201], [1], [1]],
+                marker: `replacement-${index}`,
+            },
+        })))
+    const socket = new (require('node:events').EventEmitter)()
+    Object.assign(socket, { destroyed: false, readable: true, writable: true, remoteAddress: '127.0.0.1',
+        write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+    const client = manager.createClient(socket, p.viewerId, room.room_number, `invalid-cache-${p.id}`, p.id)
+    client.yourself = { viewerId: p.viewerId, playerId: p.id, comId: 0, state: [1], rank: 1,
+        party: { characters: [[0, { id: 111001 }]], equipments: [], abilitySoulIds: [] } }
+    client.mates = [client.yourself]
+    manager.addClientToRoom(client)
+    const lobby = load('multi/tcp/lobby')
+    try {
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.equal(
+            Object.values(room.npc_party_by_com_id).some(party => party.marker === 'invalid-cache'),
+            false,
+        )
+        assert.equal(client.mates.filter(mate => mate.comId).length, 2)
+        assert.ok(client.mates.filter(mate => mate.comId)
+            .every(mate => mate.party.marker?.startsWith('replacement-')))
     } finally {
         manager.removeClient(client)
         load('multi/room/manager').disbandRoom(room.room_number)

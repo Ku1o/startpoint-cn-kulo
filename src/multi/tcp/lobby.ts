@@ -10,6 +10,7 @@ import {
     getNpcPartySelectionOptions,
     getRandomPlayerNpcPartiesSync,
 } from "../npc/player-party-pool"
+import { isNpcPartyAllowedInRoom } from "../npc/equipment-policy"
 import { isMode15RoomClosed } from "../mode15-room-gate"
 import {
     getMode15ExclusiveGlobalPartyItemsSync,
@@ -459,6 +460,13 @@ async function handleEnterComs(
     const npcMates: any[] = []
     const recruitedMates = selectStableNpcSlots(recruitResult.recruitedMates, needNPCs)
     room.npc_party_by_com_id ??= {}
+    for (const recruited of recruitedMates) {
+        const partyKey = String(recruited.com_id)
+        const cached = room.npc_party_by_com_id[partyKey]
+        if (cached && !isNpcPartyAllowedInRoom(room.category, room.quest_id, cached)) {
+            delete room.npc_party_by_com_id[partyKey]
+        }
+    }
     const missingPartyCount = recruitedMates.filter(recruited =>
         !room.npc_party_by_com_id[String(recruited.com_id)]).length
     // Select only parties for COM seats this room has never used. A rematch
@@ -476,6 +484,9 @@ async function handleEnterComs(
             console.error(`[LOBBY] player NPC party pool selection failed room=${client.roomNumber}`, error)
         }
     }
+    const fixedParties = new Map(
+        npcProvider.getMates(client.roomNumber).map(mate => [mate.com_id, mate.party]),
+    )
     const firstFallbackComId = 3 - needNPCs
     let nextPartyIndex = 0
     for (let i = 0; i < needNPCs; i++) {
@@ -487,12 +498,25 @@ async function handleEnterComs(
         // custom-asset combination and make the AIR client's 4096 atlas packer
         // fail with U_1d93f4 during auto-repeat.
         const partyKey = String(comId)
-        const party = room.npc_party_by_com_id?.[partyKey]
-            ?? npcParties[nextPartyIndex++]
-            ?? hostMate.party
-        if (!room.npc_party_by_com_id[partyKey]) {
-            room.npc_party_by_com_id[partyKey] = party
+        let party = room.npc_party_by_com_id[partyKey]
+        while (!party && nextPartyIndex < npcParties.length) {
+            const candidate = npcParties[nextPartyIndex++]
+            if (isNpcPartyAllowedInRoom(room.category, room.quest_id, candidate)) {
+                party = candidate
+            }
         }
+        // A legal host party remains a compatible last-resort source. Never
+        // copy an invalid one into a COM slot; use a legal fixed template.
+        if (!party && isNpcPartyAllowedInRoom(room.category, room.quest_id, hostMate.party)) {
+            party = hostMate.party
+        }
+        party ??= fixedParties.get(comId)
+        if (!party || !isNpcPartyAllowedInRoom(room.category, room.quest_id, party)) {
+            delete room.npc_party_by_com_id[partyKey]
+            console.warn(`[LOBBY] skipped AI with no eligible party: room=${room.room_number} com=${comId}`)
+            continue
+        }
+        room.npc_party_by_com_id[partyKey] = party
 
         npcMates.push({
             viewerId: viewerId,
@@ -517,6 +541,7 @@ async function handleEnterComs(
         })
     }
 
+    room.npc_count = npcMates.length
     client.mates = synchronizeRoomRoster(client.roomNumber, [...realMates, ...npcMates])
 
     gameVerboseLog(() => `[LOBBY] EnterComs: room=${client.roomNumber} real=${realMates.length} npc=${npcMates.length} total=${client.mates.length}`)

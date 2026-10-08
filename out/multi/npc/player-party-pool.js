@@ -25,6 +25,7 @@ const quest_1 = require("../../lib/types/quest");
 const special_event_parties_1 = require("../../lib/special-event-parties");
 const content_master_1 = require("../../lib/content-master");
 const handshake_1 = require("../tcp/handshake");
+const equipment_policy_1 = require("./equipment-policy");
 const quest_party_pool_shared_1 = require("./quest-party-pool-shared");
 const STEAM_ROBOT_DECISIVE_ELEMENTS = {
     1001001: 1, // fire robot -> water
@@ -401,7 +402,8 @@ function getRandomPlayerNpcPartiesSync(hostPlayerId, count, options = {}) {
     if (targetCount > 0 && historicalParties.length > 0) {
         const available = historicalParties.filter(candidate => candidate.battlePower >= minimumBattlePower
             && (options.requiredElement === undefined
-                || candidate.partyElement === options.requiredElement));
+                || candidate.partyElement === options.requiredElement)
+            && (0, equipment_policy_1.isNpcPartyAllowedInRoom)(options.questCategory, options.questId, candidate.party));
         const selected = [];
         while (available.length > 0 && selected.length < targetCount) {
             const offset = Math.floor(Math.random() * available.length);
@@ -446,7 +448,8 @@ function getRandomPlayerNpcPartiesSync(hostPlayerId, count, options = {}) {
             continue;
         }
         const party = (0, handshake_1.buildRealParty)(candidate.player_id, toPlayerParty(candidate));
-        if (!hasCompleteMainCharacters(party))
+        if (!hasCompleteMainCharacters(party)
+            || !(0, equipment_policy_1.isNpcPartyAllowedInRoom)(options.questCategory, options.questId, party))
             continue;
         selected.push({ sourcePlayerId: candidate.player_id, party });
         usedSourcePlayers.add(candidate.player_id);
@@ -457,7 +460,8 @@ function getRandomPlayerNpcPartiesSync(hostPlayerId, count, options = {}) {
         const pickedOffset = Math.floor(Math.random() * deferredSamePlayer.length);
         const [candidate] = deferredSamePlayer.splice(pickedOffset, 1);
         const party = (0, handshake_1.buildRealParty)(candidate.player_id, toPlayerParty(candidate));
-        if (!hasCompleteMainCharacters(party))
+        if (!hasCompleteMainCharacters(party)
+            || !(0, equipment_policy_1.isNpcPartyAllowedInRoom)(options.questCategory, options.questId, party))
             continue;
         selected.push({ sourcePlayerId: candidate.player_id, party });
     }

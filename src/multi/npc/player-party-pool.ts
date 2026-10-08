@@ -11,6 +11,7 @@ import { QuestCategory } from "../../lib/types/quest"
 import { parseGlobalPartyId } from "../../lib/special-event-parties"
 import { serverCharacters as characterTable } from "../../lib/content-master"
 import { buildRealParty } from "../tcp/handshake"
+import { isNpcPartyAllowedInRoom } from "./equipment-policy"
 import {
     getQuestNpcPartyPoolKey,
     isQuestNpcPartyPoolEligibleCategory,
@@ -437,7 +438,12 @@ export function getRandomPlayerNpcPartiesSync(
         const available = historicalParties.filter(candidate =>
             candidate.battlePower >= minimumBattlePower
             && (options.requiredElement === undefined
-                || candidate.partyElement === options.requiredElement),
+                || candidate.partyElement === options.requiredElement)
+            && isNpcPartyAllowedInRoom(
+                options.questCategory,
+                options.questId,
+                candidate.party,
+            ),
         )
         const selected: RandomNpcParty[] = []
         while (available.length > 0 && selected.length < targetCount) {
@@ -485,7 +491,8 @@ export function getRandomPlayerNpcPartiesSync(
         }
 
         const party = buildRealParty(candidate.player_id, toPlayerParty(candidate))
-        if (!hasCompleteMainCharacters(party)) continue
+        if (!hasCompleteMainCharacters(party)
+            || !isNpcPartyAllowedInRoom(options.questCategory, options.questId, party)) continue
         selected.push({ sourcePlayerId: candidate.player_id, party })
         usedSourcePlayers.add(candidate.player_id)
     }
@@ -496,7 +503,8 @@ export function getRandomPlayerNpcPartiesSync(
         const pickedOffset = Math.floor(Math.random() * deferredSamePlayer.length)
         const [candidate] = deferredSamePlayer.splice(pickedOffset, 1)
         const party = buildRealParty(candidate.player_id, toPlayerParty(candidate))
-        if (!hasCompleteMainCharacters(party)) continue
+        if (!hasCompleteMainCharacters(party)
+            || !isNpcPartyAllowedInRoom(options.questCategory, options.questId, party)) continue
         selected.push({ sourcePlayerId: candidate.player_id, party })
     }
 

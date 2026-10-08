@@ -24,6 +24,7 @@
 - [已知问题](./status/known-issues.md) · [变更日志](./status/changelog.md) · [测试进度](./status/test-progress.md)
 
 ## 性能与运维
+- [光暗龙觉醒能力刷新与共斗 AI 幻想装备过滤](./development/DRAGON-AWAKE-AI-EQUIPMENT-FIX-20261008.md)
 - [四核服务器 CPU 优化实施记录](./development/MULTICORE-CPU-OPTIMIZATION-20261002.md)
 - [多人共斗断线排查与修复记录](./development/MULTIPLAYER-DISCONNECT-INVESTIGATION-20261003.md)
 - [云服运行日志复盘与第二轮优化](./development/RUNTIME-LOG-FOLLOWUP-20261003.md)
