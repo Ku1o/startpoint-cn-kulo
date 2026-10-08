@@ -41533,9 +41533,9 @@
   "990001": {
     "1": [
       [
-        "1",
-        "dynamic/gacha_banner/cnmod_abyss_limited_gacha",
+        "0",
         "",
+        "gacha/feature_movie/cnmod_abyss_limited_gacha/top/feature",
         "",
         "",
         "",
@@ -41548,9 +41548,9 @@
   "990002": {
     "1": [
       [
-        "1",
-        "dynamic/gacha_banner/cnmod_ashen_verdict_gacha",
+        "0",
         "",
+        "gacha/feature_movie/cnmod_ashen_verdict_gacha/top/feature",
         "",
         "",
         "",

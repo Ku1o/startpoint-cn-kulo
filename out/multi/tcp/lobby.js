@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleMessage = exports.scheduleRematchDisconnectCleanup = exports.recruitNpcMatesForRoom = exports.scheduleNpcReconcile = exports.notifyRoomDisbanded = exports.checkHostAutoReady = void 0;
+exports.handleMessage = exports.scheduleRematchDisconnectCleanup = exports.recruitNpcMatesForRoom = exports.scheduleNpcReconcile = exports.notifyRoomDisbanded = exports.refreshEquipmentReadiness = exports.checkHostAutoReady = void 0;
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const SessionManager_1 = require("../state/SessionManager");
 const manager_1 = require("../room/manager");
@@ -20,7 +20,7 @@ const online_presence_1 = require("../../lib/online-presence");
 const player_party_pool_1 = require("../npc/player-party-pool");
 const equipment_policy_1 = require("../npc/equipment-policy");
 const mode15_room_gate_1 = require("../mode15-room-gate");
-const mode15_optional_1 = require("../../lib/mode15-optional");
+const equipment_ready_1 = require("../room/equipment-ready");
 const player_1 = require("../../data/domains/player");
 const embedded_1 = require("../coordinator/embedded");
 const autoplay_mode_1 = require("./autoplay-mode");
@@ -245,55 +245,10 @@ function collectCanonicalRoomRoster(roomNumber, preserveNpcCount = false, roomGe
     }
     return synchronizeRoomRoster(roomNumber, candidates, false, preserveNpcCount, expectedGeneration);
 }
-function preflightBattleRoster(room, members, roomGeneration = room.lobby_generation) {
-    var _a, _b, _c, _d, _e;
-    if ((0, mode15_optional_1.isMode15EquipmentAllowedQuest)(Number(room.category), Number(room.quest_id))) {
-        return [];
-    }
-    const lobbyClients = SessionManager_1.sessionManager.getClientsInRoom(room.room_number, roomGeneration);
-    const clientsByViewerId = new Map(lobbyClients.map(current => [current.viewerId, current]));
-    const rejectedViewerIds = [];
-    for (const member of members) {
-        if (member === null || member === void 0 ? void 0 : member.comId)
-            continue;
-        const viewerId = Number(member === null || member === void 0 ? void 0 : member.viewerId);
-        if (!Number.isFinite(viewerId) || viewerId <= 0)
-            continue;
-        const current = clientsByViewerId.get(viewerId);
-        const playerId = Number(current === null || current === void 0 ? void 0 : current.playerId);
-        // /party/edit persists the actually selected global party before the
-        // lobby emits StartBattle.  The Mate cached by the room handshake can
-        // still contain the previous/default slot, so the persisted player
-        // value must be authoritative for admission.
-        const persistedPartyId = Number((_a = (0, player_1.getPlayerSync)(playerId)) === null || _a === void 0 ? void 0 : _a.partySlot);
-        const partyId = Number((_e = (_c = (_b = (Number.isFinite(persistedPartyId) && persistedPartyId > 0
-            ? persistedPartyId
-            : undefined)) !== null && _b !== void 0 ? _b : member === null || member === void 0 ? void 0 : member.currentPartyId) !== null && _c !== void 0 ? _c : (_d = current === null || current === void 0 ? void 0 : current.yourself) === null || _d === void 0 ? void 0 : _d.currentPartyId) !== null && _e !== void 0 ? _e : 1);
-        if (!current || !Number.isFinite(playerId) || playerId <= 0
-            || !Number.isFinite(partyId) || partyId <= 0)
-            continue;
-        try {
-            const restricted = (0, mode15_optional_1.getMode15ExclusiveGlobalPartyItemsSync)(playerId, 1, partyId);
-            if (restricted.length > 0) {
-                rejectedViewerIds.push(viewerId);
-                console.warn(`[MODE15] lobby preflight rejected exclusive equipment: room=${room.room_number}`
-                    + ` viewer=${viewerId} player=${playerId} party=${partyId}`
-                    + ` items=${restricted.join(",")}`);
-            }
-        }
-        catch (e) {
-            // Fail open if the optional Mode15 module is unavailable. The HTTP
-            // start boundary remains the authoritative final validation.
-            console.warn(`[MODE15] lobby preflight lookup failed: room=${room.room_number}`
-                + ` viewer=${viewerId}`, e);
-        }
-    }
-    return rejectedViewerIds;
-}
 function checkHostAutoReady(roomNumber) {
     var _a, _b;
     const room = (0, manager_1.getRoom)(roomNumber);
-    if (!room)
+    if (!room || room.lifecycle.phase !== "LOBBY")
         return;
     const hostClient = findHostClient(roomNumber);
     if (!hostClient)
@@ -308,14 +263,20 @@ function checkHostAutoReady(roomNumber) {
     const hasPlayableParty = hostClient.mates.length >= 2;
     const nonHostReady = hasPlayableParty && hostClient.mates.every(m => { var _a; return m.viewerId === hostClient.viewerId || ((_a = m.state) === null || _a === void 0 ? void 0 : _a[0]) === 1; });
     if (nonHostReady) {
+        if (!(0, equipment_ready_1.enforceRoomEquipmentReady)(room)) {
+            room.readyCountdownPending = false;
+            return;
+        }
         if (((_a = hostMate.state) === null || _a === void 0 ? void 0 : _a[0]) !== 1) {
+            hostClient.isReady = true;
             hostMate.state = [1];
             SessionManager_1.sessionManager.broadcastToRoom(roomNumber, [1, [2, hostMate.connectionId, [1]]]);
             (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] host auto-ready: room=${roomNumber}`);
         }
     }
     else {
-        autoStartingRooms.delete(roomNumber);
+        room.readyCountdownPending = false;
+        hostClient.isReady = false;
         if (((_b = hostMate.state) === null || _b === void 0 ? void 0 : _b[0]) === 1) {
             hostMate.state = [0];
             SessionManager_1.sessionManager.broadcastToRoom(roomNumber, [1, [2, hostMate.connectionId, [0]]]);
@@ -325,15 +286,19 @@ function checkHostAutoReady(roomNumber) {
     checkAllReadyAndStart(roomNumber);
 }
 exports.checkHostAutoReady = checkHostAutoReady;
-const autoStartingRooms = new Set();
+function refreshEquipmentReadiness(roomNumber) {
+    const room = (0, manager_1.getRoom)(roomNumber);
+    if (room)
+        room.readyCountdownPending = false;
+    checkHostAutoReady(roomNumber);
+}
+exports.refreshEquipmentReadiness = refreshEquipmentReadiness;
 function checkAllReadyAndStart(roomNumber) {
-    if (autoStartingRooms.has(roomNumber))
-        return;
     const hostClient = findHostClient(roomNumber);
     if (!hostClient)
         return;
     const room = (0, manager_1.getRoom)(roomNumber);
-    if (!room)
+    if (!room || room.lifecycle.phase !== "LOBBY" || room.readyCountdownPending)
         return;
     if ((0, mode15_room_gate_1.isMode15RoomClosed)(room)) {
         (0, recruitment_1.stopRandomRecruitment)(roomNumber);
@@ -369,7 +334,11 @@ function checkAllReadyAndStart(roomNumber) {
     const allReady = hostClient.mates.every(m => { var _a; return ((_a = m.state) === null || _a === void 0 ? void 0 : _a[0]) === 1; });
     if (!allReady)
         return;
-    autoStartingRooms.add(roomNumber);
+    if (!(0, equipment_ready_1.enforceRoomEquipmentReady)(room)) {
+        room.readyCountdownPending = false;
+        return;
+    }
+    room.readyCountdownPending = true;
     (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] all ready — StartRemainingTime float: room=${roomNumber}`);
     SessionManager_1.sessionManager.broadcastToRoom(roomNumber, [1, [10, 2]]);
 }
@@ -477,8 +446,6 @@ function handleEnterComs(client, coms, maxNpcCount) {
                     party = candidate;
                 }
             }
-            // A legal host party remains a compatible last-resort source. Never
-            // copy an invalid one into a COM slot; use a legal fixed template.
             if (!party && (0, equipment_policy_1.isNpcPartyAllowedInRoom)(room.category, room.quest_id, hostMate.party)) {
                 party = hostMate.party;
             }
@@ -776,10 +743,18 @@ function commitClaimedAdmission(socket, client) {
     return false;
 }
 function handleEnter(socket, client, data) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
+    const existingRoom = (0, manager_1.getRoom)(client.roomNumber);
+    if ((existingRoom === null || existingRoom === void 0 ? void 0 : existingRoom.lifecycle.phase) === "BATTLE")
+        return;
     const ed = (_a = data[1]) !== null && _a !== void 0 ? _a : {};
     if (!client.yourself)
         return;
+    const entryPartyId = Number((_b = data[2]) !== null && _b !== void 0 ? _b : ed.currentPartyId);
+    if (Number.isSafeInteger(entryPartyId) && entryPartyId >= 1 && entryPartyId <= 120) {
+        client.equipmentSelectedPartyId = entryPartyId;
+        client.yourself.currentPartyId = entryPartyId;
+    }
     // Reconnect Enter packets may omit party.  The handshake already built a
     // valid DB-backed party, so still complete Welcome instead of silently
     // returning and leaving the client without its own mate entry (C15202).
@@ -811,7 +786,7 @@ function handleEnter(socket, client, data) {
         return;
     }
     if (client.admissionClaimed) {
-        const admissionGeneration = (_b = client.admissionGeneration) !== null && _b !== void 0 ? _b : client.roomGeneration;
+        const admissionGeneration = (_c = client.admissionGeneration) !== null && _c !== void 0 ? _c : client.roomGeneration;
         const roomPhase = embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase;
         if (admissionGeneration !== room.lobby_generation || roomPhase !== "LOBBY") {
             rejectClaimedAdmission(socket, client, admissionGeneration !== room.lobby_generation
@@ -905,7 +880,7 @@ function handleEnter(socket, client, data) {
         checkHostAutoReady(client.roomNumber);
     }
     else {
-        const mates = (_c = hostClient === null || hostClient === void 0 ? void 0 : hostClient.mates) !== null && _c !== void 0 ? _c : client.mates;
+        const mates = (_d = hostClient === null || hostClient === void 0 ? void 0 : hostClient.mates) !== null && _d !== void 0 ? _d : client.mates;
         SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, mates]], undefined);
         checkHostAutoReady(client.roomNumber);
         SessionManager_1.sessionManager.beginRescueGuestWait(client);
@@ -955,9 +930,15 @@ function handleBye(_socket, client, _data) {
     (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] client ${client.viewerId} left room ${client.roomNumber}`);
 }
 function handleChangeParty(_socket, client, data) {
-    var _a;
+    var _a, _b, _c;
+    const currentRoom = (0, manager_1.getRoom)(client.roomNumber);
+    if (!currentRoom || currentRoom.lifecycle.phase !== "LOBBY"
+        || client.roomGeneration !== currentRoom.lobby_generation)
+        return;
     const pd = data[1];
     const currentPartyId = (_a = data[3]) !== null && _a !== void 0 ? _a : pd === null || pd === void 0 ? void 0 : pd.currentPartyId;
+    const changed = (currentPartyId !== undefined && currentPartyId !== ((_b = client.yourself) === null || _b === void 0 ? void 0 : _b.currentPartyId))
+        || (!!(pd === null || pd === void 0 ? void 0 : pd.party) && JSON.stringify(pd.party) !== JSON.stringify((_c = client.yourself) === null || _c === void 0 ? void 0 : _c.party));
     if (pd && client.yourself) {
         // ChangeParty carries the complete Mate object, not only the party.
         // In particular, the "allow healing from teammates" toggle updates
@@ -989,6 +970,14 @@ function handleChangeParty(_socket, client, data) {
     }
     const mate = client.mates.find(m => m.viewerId === client.viewerId);
     if (mate) {
+        if (changed) {
+            currentRoom.readyCountdownPending = false;
+            (0, equipment_ready_1.recordEquipmentPartyChange)(client, Number(currentPartyId), data[2] !== true);
+            // Automatic rematches with legal parties retain their Ready state.
+            // Invalid automatic changes were already reset by the shared gate.
+            if (data[2] !== true)
+                (0, equipment_ready_1.setPreparation)(client, true);
+        }
         if (client.playerId && currentPartyId !== undefined) {
             const playerId = client.playerId;
             const partySlot = currentPartyId;
@@ -996,6 +985,13 @@ function handleChangeParty(_socket, client, data) {
             // Defer the low-priority save so the TCP callback can broadcast the
             // roster without synchronously waiting on SQLite.
             setImmediate(() => {
+                var _a;
+                if (SessionManager_1.sessionManager.getClient(client.viewerId, client.roomNumber) !== client
+                    || client.superseded || (0, manager_1.getRoom)(client.roomNumber) !== currentRoom
+                    || currentRoom.lifecycle.phase !== "LOBBY"
+                    || client.roomGeneration !== currentRoom.lobby_generation
+                    || ((_a = client.yourself) === null || _a === void 0 ? void 0 : _a.currentPartyId) !== partySlot)
+                    return;
                 void (0, player_1.updatePlayerPartySlotAsync)(playerId, partySlot).catch(error => {
                     console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error);
                 });
@@ -1007,24 +1003,32 @@ function handleChangeParty(_socket, client, data) {
         const roster = collectCanonicalRoomRoster(client.roomNumber);
         SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, roster]]);
     }
+    checkHostAutoReady(client.roomNumber);
     (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[LOBBY] client ${client.viewerId} changed party: party=${currentPartyId !== null && currentPartyId !== void 0 ? currentPartyId : "unchanged"} allowHeal=${(_b = (_a = client.yourself) === null || _a === void 0 ? void 0 : _a.allowHealFromOtherPlayers) !== null && _b !== void 0 ? _b : "unchanged"}`; });
 }
 function handleReady(_socket, client, data) {
-    var _a;
     const room = (0, manager_1.getRoom)(client.roomNumber);
     if (room
         && room.lifecycle.phase === "RETURNING"
         && room.host_viewer_id === client.viewerId) {
         SessionManager_1.sessionManager.completeSettlementReturn(client.roomNumber);
     }
+    if (!room || room.lifecycle.phase !== "LOBBY"
+        || client.roomGeneration !== room.lobby_generation)
+        return;
     const readyState = Array.isArray(data[1]) ? data[1][0] : data[1];
+    if (readyState === 1 && !(0, equipment_ready_1.enforceEquipmentReady)(room, client, true)) {
+        room.readyCountdownPending = false;
+        checkHostAutoReady(client.roomNumber);
+        return;
+    }
     client.isReady = readyState === 1;
     if (SessionManager_1.sessionManager.isRescueGuest(client.roomNumber, client.viewerId)) {
         SessionManager_1.sessionManager.beginRescueGuestWait(client);
     }
     const mate = client.mates.find(m => m.viewerId === client.viewerId);
     if (mate) {
-        mate.state = (_a = data[1]) !== null && _a !== void 0 ? _a : [1];
+        mate.state = [client.isReady ? 1 : 0];
         SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [2, mate.connectionId, mate.state]]);
     }
     checkHostAutoReady(client.roomNumber);
@@ -1059,15 +1063,8 @@ function handleStartBattle(_socket, client, _data) {
     // StartBattle may be sent first by any participant. Always use the
     // canonical host roster instead of that sender's potentially older copy.
     const members = collectCanonicalRoomRoster(client.roomNumber, false, sourceGeneration);
-    const rejectedViewerIds = preflightBattleRoster(room, members, sourceGeneration);
-    if (rejectedViewerIds.length > 0) {
-        // CN Disbanded(reason) opens the same OkDialog/Text used by HTTP 4050.
-        // Cancel the whole start before allocating battle seats: letting the
-        // other members start would leave them waiting for a rejected peer.
-        // The disband path lets clients close their own lobby sockets after
-        // consuming the reason, avoiding S1000/C5805 from a premature FIN.
-        autoStartingRooms.delete(client.roomNumber);
-        SessionManager_1.sessionManager.commitRoomDisband(client.roomNumber, "mode15_exclusive_equipment", "quest_start_out_of_period_error");
+    if (!room.equipmentPartyIds && !(0, equipment_ready_1.enforceRoomEquipmentReady)(room, sourceGeneration)) {
+        room.readyCountdownPending = false;
         return;
     }
     // checkAllReadyAndStart already waits for the previous battle's real
@@ -1109,7 +1106,7 @@ function handleStartBattle(_socket, client, _data) {
     for (const viewerId of realViewerIds) {
         SessionManager_1.sessionManager.clearRescueGuestLobbyWait(client.roomNumber, viewerId);
     }
-    autoStartingRooms.delete(client.roomNumber);
+    room.readyCountdownPending = false;
     room.expected_real_viewer_ids = realViewerIds;
     room.npc_count = members.filter(mate => !!mate.comId).length;
     room.rematch_ai_count = room.npc_count;
@@ -1136,6 +1133,8 @@ function handleStartBattle(_socket, client, _data) {
         };
     if (!battleStart.ok)
         return;
+    if (!room.equipmentPartyIds)
+        (0, equipment_ready_1.freezeEquipmentSelections)(room, sourceGeneration);
     const expectedBattleSeats = SessionManager_1.sessionManager.getClientsInRoom(client.roomNumber, battleStart.previousGeneration)
         .filter(current => realViewerIds.includes(current.viewerId))
         .map(current => ({ viewerId: current.viewerId, connectionId: current.connectionId }));
@@ -1146,7 +1145,7 @@ function handleStartBattle(_socket, client, _data) {
     // guest who remains for auto-repeat is still a rescue guest next round.
     // Lobby wait timers were already cleared above; the membership itself is
     // removed only when the guest is ejected or the room is disbanded.
-    autoStartingRooms.delete(client.roomNumber);
+    room.readyCountdownPending = false;
     const eligibleViewerIds = new Set(realViewerIds);
     for (const current of SessionManager_1.sessionManager.getClientsInRoom(client.roomNumber, battleStart.previousGeneration)) {
         if (eligibleViewerIds.has(current.viewerId)) {

@@ -1,0 +1,1018 @@
+{
+  "evidence_scope": "Historical release/gate observations, not a post-cleanup rerun. Existing results and any generated_at are preserved. Directory listings, chain/source-edge data and manifest-related observations describe the recorded historical state; they do not assert that retired disabled manifest entries remain present. Documentation-only sanitation: no service, build, replay, HTTP probe or test execution.",
+  "status": "verified_and_live_probed",
+  "edge": {
+    "id": "liangyue-character-1.4.131",
+    "version": "1.4.131",
+    "depends_on": "1.4.130",
+    "enabled": true,
+    "role": "single enabled final-state merge edge"
+  },
+  "archive": {
+    "name": "pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.zip",
+    "size": 12786532,
+    "sha256": "8914511c9460c735a1cdd1f3f578397217ad56dcfa0cf357188fe60652a357c6",
+    "members": 86
+  },
+  "source_edges": [
+    {
+      "id": "liangyue-character-1.4.131",
+      "version": "1.4.131",
+      "depends_on": "1.4.130",
+      "archives": [
+        {
+          "name": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+          "size": 5066270,
+          "sha256": "e8659a144baa7d3de8867ece8f88661ec4f6889f51e8fc6a0db2fb0363b9745b",
+          "members": 55
+        },
+        {
+          "name": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-medium.zip",
+          "size": 6386605,
+          "sha256": "892ec495b700fd4b1ea2f52468f9faf5ba5cc4f33945908274c600e68bb3cc0d",
+          "members": 26
+        },
+        {
+          "name": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-android.zip",
+          "size": 218223,
+          "sha256": "4abffc403a731559b73f9a5a53701b876408aea4825e381c6d736852fe7a14aa",
+          "members": 2
+        },
+        {
+          "name": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-ios.zip",
+          "size": 266897,
+          "sha256": "ec7a8ef4291f79c39dac4325caf5c33641be1cf52f6bbffd046c17981a5e6a10",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-character-1.4.132",
+      "version": "1.4.132",
+      "depends_on": "1.4.131",
+      "archives": [
+        {
+          "name": "pinball-1.4.131-1.4.132-1-liangyue-character-20261005-common.zip",
+          "size": 2572367,
+          "sha256": "a70e42ec0e1eace0b4449c2d97e9d343816da59572cf6e5dbea4866e53c79c50",
+          "members": 17
+        },
+        {
+          "name": "pinball-1.4.131-1.4.132-1-liangyue-character-20261005-android.zip",
+          "size": 218223,
+          "sha256": "4abffc403a731559b73f9a5a53701b876408aea4825e381c6d736852fe7a14aa",
+          "members": 2
+        },
+        {
+          "name": "pinball-1.4.131-1.4.132-1-liangyue-character-20261005-ios.zip",
+          "size": 266897,
+          "sha256": "ec7a8ef4291f79c39dac4325caf5c33641be1cf52f6bbffd046c17981a5e6a10",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-character-1.4.133",
+      "version": "1.4.133",
+      "depends_on": "1.4.132",
+      "archives": [
+        {
+          "name": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+          "size": 2572367,
+          "sha256": "a70e42ec0e1eace0b4449c2d97e9d343816da59572cf6e5dbea4866e53c79c50",
+          "members": 17
+        },
+        {
+          "name": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-android.zip",
+          "size": 218223,
+          "sha256": "4abffc403a731559b73f9a5a53701b876408aea4825e381c6d736852fe7a14aa",
+          "members": 2
+        },
+        {
+          "name": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-ios.zip",
+          "size": 266897,
+          "sha256": "ec7a8ef4291f79c39dac4325caf5c33641be1cf52f6bbffd046c17981a5e6a10",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-f1009-fix-1.4.134",
+      "version": "1.4.134",
+      "depends_on": "1.4.133",
+      "archives": [
+        {
+          "name": "pinball-1.4.133-1.4.134-1-liangyue-f1009-fix-common.zip",
+          "size": 859,
+          "sha256": "5b88d5ccf88e6836cf41eeeac5a73283cd5090490240981765f721cdbdd7ed15",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-c7101-fix-1.4.135",
+      "version": "1.4.135",
+      "depends_on": "1.4.134",
+      "archives": [
+        {
+          "name": "pinball-1.4.134-1.4.135-1-liangyue-c7101-fix-common.zip",
+          "size": 243534,
+          "sha256": "961106ab562468afba9cc2f08eed5a2ef4246d87b80a38e127fd87ed3c3f10e5",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-ability-description-fix-1.4.136",
+      "version": "1.4.136",
+      "depends_on": "1.4.135",
+      "archives": [
+        {
+          "name": "pinball-1.4.135-1.4.136-1-liangyue-ability-description-fix-common.zip",
+          "size": 243541,
+          "sha256": "3e97fa76def73cf2960d81d6e81959166120c015939baacf8645e71e8dd858b5",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-group-nullrole-fix-1.4.137",
+      "version": "1.4.137",
+      "depends_on": "1.4.136",
+      "archives": [
+        {
+          "name": "pinball-1.4.136-1.4.137-1-liangyue-group-nullrole-fix-common.zip",
+          "size": 195196,
+          "sha256": "d0c3b0c4e89f9304553a8c0c59537ee8263e80712de9c2f66a1eafd016f5fc4e",
+          "members": 1
+        }
+      ]
+    },
+    {
+      "id": "liangyue-zero-value-fix-1.4.138",
+      "version": "1.4.138",
+      "depends_on": "1.4.137",
+      "archives": [
+        {
+          "name": "pinball-1.4.137-1.4.138-1-liangyue-zero-value-fix-common.zip",
+          "size": 243537,
+          "sha256": "811e91b5dfa3c9c8629bd08fdf7ea545aee30e2c55a37eed2e8039d8a537c541",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-unison-icon-spacing-fix-1.4.139",
+      "version": "1.4.139",
+      "depends_on": "1.4.138",
+      "archives": [
+        {
+          "name": "pinball-1.4.138-1.4.139-1-liangyue-unison-icon-spacing-fix-common.zip",
+          "size": 119796,
+          "sha256": "b58a15e2b422606ff8359f5ecf9324fbfdcb842140f0b8753bff7c36590d533a",
+          "members": 1
+        }
+      ]
+    },
+    {
+      "id": "liangyue-tier2-full-effect-fix-1.4.140",
+      "version": "1.4.140",
+      "depends_on": "1.4.139",
+      "archives": [
+        {
+          "name": "pinball-1.4.139-1.4.140-1-liangyue-tier2-full-effect-fix-common.zip",
+          "size": 531909,
+          "sha256": "753515602560c75c049b96c602e6ce9263355e44b25be7d1c2b038291ff36e08",
+          "members": 3
+        }
+      ]
+    },
+    {
+      "id": "liangyue-forward-area-fix-1.4.141",
+      "version": "1.4.141",
+      "depends_on": "1.4.140",
+      "archives": [
+        {
+          "name": "pinball-1.4.140-1.4.141-1-liangyue-forward-area-fix-common.zip",
+          "size": 533703,
+          "sha256": "5fda6f4234ebb47e11fc81e14ced4550ae415d0d64c989b992b3abf984298825",
+          "members": 5
+        }
+      ]
+    },
+    {
+      "id": "liangyue-illustration-crop-mask-fix-1.4.142",
+      "version": "1.4.142",
+      "depends_on": "1.4.141",
+      "archives": [
+        {
+          "name": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-common.zip",
+          "size": 148605,
+          "sha256": "764a35134582ca02b657138cdb41876073c76af1cc75dcc1182a5fdb022b400b",
+          "members": 1
+        },
+        {
+          "name": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+          "size": 2414464,
+          "sha256": "e53f0c41c9f655babfb5f3acec821c1402ad4b70fb28126d3c7affe858b5199b",
+          "members": 22
+        },
+        {
+          "name": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-android.zip",
+          "size": 282373,
+          "sha256": "68a128788fb6220320acb2321ae4c3e59ae146cbc3b0f4e39f9a47e46c752326",
+          "members": 2
+        },
+        {
+          "name": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-ios.zip",
+          "size": 348356,
+          "sha256": "8f4908f50cf55ff2f71d3203024070c476de859c2cd034e3a2526ec3017f96c2",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-base-frame-fix-1.4.143",
+      "version": "1.4.143",
+      "depends_on": "1.4.142",
+      "archives": [
+        {
+          "name": "pinball-1.4.142-1.4.143-1-liangyue-base-frame-fix-common.zip",
+          "size": 11875,
+          "sha256": "a9d5636fddf750ef65ef1018e2e01e04323cea4750660262319e2c0a6900fb96",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-revert-base-frame-fix-1.4.144",
+      "version": "1.4.144",
+      "depends_on": "1.4.143",
+      "archives": [
+        {
+          "name": "pinball-1.4.143-1.4.144-1-liangyue-revert-base-frame-fix-common.zip",
+          "size": 13771,
+          "sha256": "c40569ad8ac494c76512f163815a3aa892c0d6758cd442ce9ef2b13f53f8d10f",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "liangyue-base-frame-fix-v2-1.4.145",
+      "version": "1.4.145",
+      "depends_on": "1.4.144",
+      "archives": [
+        {
+          "name": "pinball-1.4.144-1.4.145-1-liangyue-base-frame-fix-v2-common.zip",
+          "size": 11872,
+          "sha256": "17c5778aec9052c4f3da44f8cdd361732595b789fd44031883e892c4ccd8befc",
+          "members": 2
+        }
+      ]
+    }
+  ],
+  "final_state": {
+    "members": 86,
+    "roots": {
+      "android_upload": 2,
+      "ios_upload": 2,
+      "medium_upload": 26,
+      "upload": 56
+    },
+    "member_sha256": {
+      "production/android_upload/63/61740a358a4159496d55a443a58744f9bab790": "044c74bdcb6ee8ff4b6927612ef9ff03f11c61c1fe938a81466d12f29a59cd6c",
+      "production/android_upload/ec/cfd4e782adb2b8dac9f3c2049e519307c3b9ea": "a736c1b8df2518785f83c07d0e2ba8343cdf788772d6d325d795d1fb20dc6d5c",
+      "production/ios_upload/63/61740a358a4159496d55a443a58744f9bab790": "8d76335f4e97b39c68b307ab73f5102f7962a020d956a2a972e7612b19dd7ef5",
+      "production/ios_upload/ec/cfd4e782adb2b8dac9f3c2049e519307c3b9ea": "3848ecd23d4d7a1e519984962b76e25256fb97bd7191f53e994003c4b999908d",
+      "production/medium_upload/03/4e88fe4097196ff108225130d4c975503f090f": "6dd3748f959402f4953b84778c7a0f13a2f0ea225d519427e9872eb58a2633af",
+      "production/medium_upload/0e/6c5a8f2299030eed4d4dcdf97587c3e81abe11": "59a65f50210da91fb2eb390fbf289104aab60ad17a900cf1fb419fb1c243293b",
+      "production/medium_upload/13/fbb740c72e4576a19cb41cb77f1568f29994b7": "07bd32a29a32a9925d1c38728661ffbb8dfe6be39b837e6faac6b6186683e265",
+      "production/medium_upload/1e/8971291be6cc8e750f20b9b34022afcdb6cfd6": "344061e8d7967cbd63f3498e59a1f50473391b1c6fcc746332095236d9406164",
+      "production/medium_upload/26/c6297427ec5102261cf26d33b26dfe6b5e3e1d": "91a206281ca0e9533bf93eaafda0f9dfe7d2dd7e5912c406be07659c41ac24c7",
+      "production/medium_upload/30/35243e432693d6a20012ee6727bb3b39fea19a": "bdff1e4910f248c4a22229ad349527555e18082ae28e2c1c61a8975e54a63d92",
+      "production/medium_upload/3b/17dbdad4109ead92094e3e318f3e36bd003f25": "23cdbf5a58d42fa7d8d447574f0b28024d89211221ec5bea061c24c11c938daf",
+      "production/medium_upload/3d/1fcafadcbadaba0c0f594557fcbd9859182672": "138bec36d987c0e6f7b993cad9335f219481eab7c10c17cc830eb34fc2b93148",
+      "production/medium_upload/42/03b955ecfd22694dacc3ea6fb8038078c9a5ce": "5cc11d9755416f4c7310de7b93c2d5f612c3318c7d68515d06c91c206513f7dd",
+      "production/medium_upload/51/de72cf3498e66dce822efcbf5af76af8a7dc50": "a67e9708d4064dea523cc1e3982fcfe9fef260b20ecc6c7f0706c9e2cf8dd883",
+      "production/medium_upload/55/58dd30a49eab99cc0edd10dac53a3ffbb21840": "8322fd391f08e9598e23e6f7146a0bb19981365e4da90335e2177bb07598b8b9",
+      "production/medium_upload/57/f422800a9ec2a139f1e9eda03726980d401cc0": "adebd611d7519a313dec0dda9b8ef296457c7c9e6de9a7db9e87493a6a1e74ff",
+      "production/medium_upload/5e/e7eae51863370ad5c02ac27065d17bb9924058": "28c1e7c37be724b916a102a752d508ccd7dd36ca702ef5b740ce1ac02318d7b0",
+      "production/medium_upload/61/f3c316f3970296f147c5e7618b90ae2cfc0cc0": "61ced89cac3ae0967e22adf99ace78025bd81ce5322dffcf05c8aeee5a02b8f2",
+      "production/medium_upload/86/2c68137b3ecdbaed92eb955dbf50426a4552cb": "92f207e9287c23ee8f9cdfcb0feac87871bdfd6e8eacb8ed53fa69d700ab6736",
+      "production/medium_upload/89/6d0a583d35230bd7879a693f02becb6f0118a0": "99321e222db99231d88ef556531b83d5329bd9cb83163d7883bb259597bd2f62",
+      "production/medium_upload/9d/47d866e73df053a595c5a5b1fa870089cc0086": "8984a18bc4579f7eb631d07385ecd549faa18bdced83ae6ae88b28ba242197fc",
+      "production/medium_upload/9e/84ae836511fffbd042cc285b078418e1184bde": "877e4176bd304b6cb5ba7ca8cd601fa916c3e3007cc3a5612c18cd257ec489f0",
+      "production/medium_upload/a2/5007e50559bbe41ddbfc18d8578f76e52b3e31": "63126b089260bc4e717425a0ccfb3b79df3bcb0ca293adf1c7aa71480d7d3663",
+      "production/medium_upload/a6/c3f574bcbd3077533442e4ea27fcc9d4f01485": "601132783209a93cae87cfe39af52cd69ba50af68b808b2e98d2f9ef8e1fb6b5",
+      "production/medium_upload/bd/3c011106ab0290e3501abaffc752da701747a4": "aeeffef0d7be6ff59d0e4756706bdcd1b174ab2a731dc691d7b826babf9b885e",
+      "production/medium_upload/d4/d54c3edfc2ac2afa79e55512dfce0c8afb91d8": "02446f31ba514c47eaec455568a61a5151173fe87d20b140a701561533897d2d",
+      "production/medium_upload/e3/1b471dae181892f2e3ee89e88bb24cc69fb805": "094d23e92d4e458f78027f236915f86cbfa4c5f35c172d8fd5fb1a581b2d284a",
+      "production/medium_upload/ef/5fc197fb6e99260bf060196ec0a2c1f120df42": "f878560fa8fb8f20fa61a18783ecd52ac153b77b395c4e6b02b6c9b2b71573a9",
+      "production/medium_upload/f4/1c536ba9d0e3efb7633b2be53d07fef61e0f8a": "9de0568e606cc2300350baa7ea42966bf7e9ca597eddab4f05eb945d5d2382fd",
+      "production/medium_upload/f6/6d23811f001cb167a906cb7b5d099b15687f41": "823bcbecb1b15c3c1ca895b2f167cb4ef56bd54fa8f5dcc02d660c54a5c4a331",
+      "production/upload/0d/129d2926927a1725c083cab571257d03783f41": "e13c05c968307ee07025f817f1e446bb84d796a9db1515f9283ebf7d080a7704",
+      "production/upload/11/cc4bdb2e5f4090c790c098cad22e2b4fe9ba13": "d8d857c406b4e665cb7d138622bad0ea119765171483869f831cd424b7f31b08",
+      "production/upload/1c/601b1b954726400af5b5b89562d4604d932318": "6ef5d18f38e73492e5bb2350bda2bec7c6182a94352db35b240d3e4e36c015af",
+      "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f": "e708001ede5c897cc45a419d12474bed78b161dd9d37ae58902385bf3aaa86fd",
+      "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001": "413129be259ad4c3686489649ed6c4bbc143c722f595e126b9cbccec9dcfca74",
+      "production/upload/23/2a83833ca9e972df50d66df801ca247fbd6d02": "09c3f1effc2179d87dcb4b61c00c6da9b44e6cc5c7b3f557934a61b98310d15c",
+      "production/upload/24/a125b05584af1585d47ca25676d764b29d85bd": "890b6088728d8067b8bda57067b80f42ca92a5d2f9a5e422511845394dd778ec",
+      "production/upload/27/7b65484214436114201ae654fefa60fdc822ea": "c3ce8931976fbd64c6b7afc0a4e99b5ca64ebf54819e506f8b99e91005a46018",
+      "production/upload/29/ecebb5399b98ba0316a38f0f641acc3707c265": "26dc240d90487135f9635a6df91bb2d4085de7a2634e1c77852b4e33c51dfe8b",
+      "production/upload/2c/f357e68edf401eda53c0cfd84035df19eb2c27": "0b34bfc455a6954b6eb706f96fc185ab6b3f1327c5f7988bef3aa93af101e30b",
+      "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc": "0329a268aa477e9d3c103c0823792d2a8625c51b7ff439d4519b4d663334f9b3",
+      "production/upload/31/f39b0dd56f79d30e0a06f699e2d27d1dc68044": "271291a7310cbd03fad9856df93c3d5213ae080ff5fdfbb52ebd5feb93679800",
+      "production/upload/34/5d686472aa8e3fec49370b4d13586b3fd8c650": "bf7b142a2b5694fed7b8d05433624983e1f4ecdb605c1530228f1180f942309c",
+      "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e": "97671814cc930b816afd6db073289e549c8faff0f8899b7e2574410903e9f36a",
+      "production/upload/47/2db252ae5a7adeb6dd48ea7cfa5bad08397d06": "5b835d531aa7e2a1b2d13e8bd1653a19539a655486fb9ca10fe00bdeb1ec7090",
+      "production/upload/48/b81179fd177f13bb77551ebb5d40395dd3f7fb": "e9af7932e8e80b8dde552813432d4c4233a05547025ec05de3d6b313d964df33",
+      "production/upload/4b/248a00a396209fd2568dabf763704e19ffa1b8": "12c134b75dac7280dfa0e7448b69cbd3c66c47689de6e37222c9c37b0dde6c7b",
+      "production/upload/53/e27dd1ddea05e4d0602d0b67fcad67db56907d": "a16fe539722d7d5e4e1ac45fa43882544368a84ed10f7d5fbc65a0c8db0b21b8",
+      "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce": "c9d782dba24af6058132dadfa6bb526746ff022cc0c7a589871ac1efddca5f07",
+      "production/upload/58/dfe9edff8202e9ddbde4312504a549632659ae": "78f7f4458e7ce3997cd17975e7592dda6a98286c71f114846037a993d28e7823",
+      "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9": "f00b8ee7b90b8f5ad32a1e0d3d627692e604cab824bf4812b8cfc782dc2e1db4",
+      "production/upload/66/84851d8e6328b7955f3d17cece5abaeab03168": "3a1e1df38e346a5b0b8d0f8f984c44b4ef4a24cb82960eca6f674c97871f858d",
+      "production/upload/75/b85bacf0239998239bee580d077f5a55dd9b54": "13697c50752cbf6f8e9e5926b06e7a3268a4937a15d2c77d94ddbb493f2cf4fa",
+      "production/upload/7f/de73a8b8db0b1ed3d48e0d8b722e4f355b78da": "0d9c88ad687cd755eb7ecdb4faa1787f917d0b5c5e292b22fddf7a622aac2d8b",
+      "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab": "856a438a1e041c716eaf1ad4004fb0d524b92775e25c23957119bb1e5dfa4208",
+      "production/upload/8c/ae2d579dee99acb049bb0967efafbc242c101d": "0b7d340faa21f06cfd70ed33914de05ebc38b0dc0c8540b8abefc96a155deab9",
+      "production/upload/91/79892d704f88d98191c00548bce106402ad5b5": "61297c59a87d0c25fa39d17927a5e9b9dba31f7296a56f88e7b76d9cb872afa3",
+      "production/upload/96/f9f0123304910970d54a5b2562b43f4d31e431": "a16fe539722d7d5e4e1ac45fa43882544368a84ed10f7d5fbc65a0c8db0b21b8",
+      "production/upload/98/8d918ffeeab38e49b60f5235e3cecc91152db3": "17a4dfa166da5684d85424e27caca2f2a9af545617af84f0876e117ed1f27854",
+      "production/upload/a3/93aa45111ae908523cc8d200d6fca8d84371e5": "864f067750a2b2ab5e34a999b0bbedd63d0dbd34b29e0ed1d043cfcb7d76fc34",
+      "production/upload/a7/b704299bb8209473d3c0f54ca6d9c007536f6a": "c36cc62fee0572f94de15b8ee3e63102e96a681efe3d18d95efb677cd94e50b6",
+      "production/upload/aa/abdd2e178d62dba4997034aab8c236a4422154": "6272da8f57dd4f940f653af34e28cd32f1a02c2d1167c7d5d380d28ad7593809",
+      "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c": "e429d7a19f73c3c6997322ec45ffbf9eef1efc4bcfc81347b7bbbe1214db7f92",
+      "production/upload/b3/3f0ef2b2cd2ea1452a296756d707941a758c7d": "cdb3514cdb6c9a87f09cca673579bb7334678bf287c332d94d5f1f8f5a5a57a0",
+      "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415": "8e5490d682f2725a1d82a8b42b5a4e71b26ba1626aef7ff3ff7e09a08739dcea",
+      "production/upload/b5/8b40e46bc576a6cd1d6bcf5642c96c1f0547fa": "d00e8c1bd6db2d46e519ccf8a39c13e05ae36b67365e8f246338deff7fb7f80e",
+      "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5": "a5c7fc7d363ffe50f5d7beac0ce17d170d9935f3206e4518d132c0195798e45a",
+      "production/upload/bb/0e9307795ce0abac9fa7798be16ad2c3579f1d": "b0489ed21d873f5ab105abacb4b022771a34b8677141ed9af625aa64f85763b0",
+      "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04": "1d7dd77c4e6ab5febb66682592a90706cb366d43f104f91e6d39f17c10083233",
+      "production/upload/bc/1a73a8ec6630c894fe8c15d8d60caf8e2d16a6": "7a0d5a8233cb8fcbcfe40c6c19cf696e64c3b0305204b03c2c516a25d50cba83",
+      "production/upload/be/aaf8210174cde70726f31aaf068868bbd2916c": "a944d5934b6707fcf7cee671f1a202fb95ae0dad33e7c5514f674e847acf3d97",
+      "production/upload/c0/24772865dae85fa59b9e4b07666b078632ced7": "2f7cff899f0701e40200be49e8999a7e4b546dc2dfb46e897a34a8fdf6bf6852",
+      "production/upload/c3/16871ed249bc01e9d34fb27f1d06d2ed671b7d": "e8fdca58ae22861ba90bc23ba29a6e0ed2216699630b380a1e68b87364d1c23e",
+      "production/upload/c9/47449df717e75970f28587faed118349aab5a4": "71e8fc6f1d737d68834a9e57d1f8546d5af9b6e8a120bf424e4bceb094ecef2a",
+      "production/upload/cc/a8580b2489eb88e7399c2ed3820948be530f0f": "b7e065a35223499cec5a1f72ed686600152ad5ab8d77f1557bc3d292c9a54a68",
+      "production/upload/d0/6bae005b339709b4196e3acc0e6801c79de86f": "e70e9d45e3416a8aaf1ace1ee670cbf35eb35b018aad9c0c88f4ec77be2b94d0",
+      "production/upload/d2/3ed684e4a2bb44e8c2bdb1512098323cb59f95": "50e91aecf084aaf8e0e43c97657bdff979c80d6575c1ca8c2ba24441ee0a76c3",
+      "production/upload/d3/be0de5b1023b2837e866b33bdad17081d23533": "1f11c08aea01422efa5636ba08ad0ad8e769b3cf53c7ef6a024e40428a8b2323",
+      "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670": "e59f4d48fb11d355840a81b45b5cb7482845886503808e3aa3a0d369b5e7d477",
+      "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb": "2e61537dee7dc4331fe1a7404c6a798888efb4ec4bd0658552bef026d78fa204",
+      "production/upload/db/2edd479b83b34cb1600b990a0d21d4b2d8f249": "73b4ab3c1113f69119d020db88ac0c42fef2d53b9c861511e0481f9551165ee1",
+      "production/upload/dd/ef01e0b8df5c71fc6a14b229ce8b986672797c": "3e7e1a6e9f2e6cb15af024370798eb02ad083412cea3dd272a1b3da7af9b1cd6",
+      "production/upload/f6/3855fdf1f1429da9c44c3e8cff77238df42583": "26fbade3bc2372bea8e8a2a49dbef24fb8f2e6cdfe0604ca854ff0dcd7267e6d",
+      "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395": "865f167a5c97aa9234adaf6a21888e0278ef384cb75e6d0144d61c8c8ed42e14",
+      "production/upload/fd/26298df808a93185de1380b7530f2c60d96cfb": "5bcfa712db9bcd36be91ea1195318aa13111bccfcab587fc094d5b964d82281f",
+      "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5": "ec4c114997c69904150241e7b5b95d3a3a56843089467207e4dcf9cd097ad0fa"
+    },
+    "winners": {
+      "production/android_upload/63/61740a358a4159496d55a443a58744f9bab790": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-android.zip",
+        "member_sha256": "044c74bdcb6ee8ff4b6927612ef9ff03f11c61c1fe938a81466d12f29a59cd6c",
+        "member_size": 107854
+      },
+      "production/android_upload/ec/cfd4e782adb2b8dac9f3c2049e519307c3b9ea": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-android.zip",
+        "member_sha256": "a736c1b8df2518785f83c07d0e2ba8343cdf788772d6d325d795d1fb20dc6d5c",
+        "member_size": 174260
+      },
+      "production/ios_upload/63/61740a358a4159496d55a443a58744f9bab790": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-ios.zip",
+        "member_sha256": "8d76335f4e97b39c68b307ab73f5102f7962a020d956a2a972e7612b19dd7ef5",
+        "member_size": 133637
+      },
+      "production/ios_upload/ec/cfd4e782adb2b8dac9f3c2049e519307c3b9ea": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-ios.zip",
+        "member_sha256": "3848ecd23d4d7a1e519984962b76e25256fb97bd7191f53e994003c4b999908d",
+        "member_size": 215312
+      },
+      "production/medium_upload/03/4e88fe4097196ff108225130d4c975503f090f": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "6dd3748f959402f4953b84778c7a0f13a2f0ea225d519427e9872eb58a2633af",
+        "member_size": 20820
+      },
+      "production/medium_upload/0e/6c5a8f2299030eed4d4dcdf97587c3e81abe11": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "59a65f50210da91fb2eb390fbf289104aab60ad17a900cf1fb419fb1c243293b",
+        "member_size": 86014
+      },
+      "production/medium_upload/13/fbb740c72e4576a19cb41cb77f1568f29994b7": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "07bd32a29a32a9925d1c38728661ffbb8dfe6be39b837e6faac6b6186683e265",
+        "member_size": 9098
+      },
+      "production/medium_upload/1e/8971291be6cc8e750f20b9b34022afcdb6cfd6": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "344061e8d7967cbd63f3498e59a1f50473391b1c6fcc746332095236d9406164",
+        "member_size": 39587
+      },
+      "production/medium_upload/26/c6297427ec5102261cf26d33b26dfe6b5e3e1d": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "91a206281ca0e9533bf93eaafda0f9dfe7d2dd7e5912c406be07659c41ac24c7",
+        "member_size": 54494
+      },
+      "production/medium_upload/30/35243e432693d6a20012ee6727bb3b39fea19a": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "bdff1e4910f248c4a22229ad349527555e18082ae28e2c1c61a8975e54a63d92",
+        "member_size": 39115
+      },
+      "production/medium_upload/3b/17dbdad4109ead92094e3e318f3e36bd003f25": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "23cdbf5a58d42fa7d8d447574f0b28024d89211221ec5bea061c24c11c938daf",
+        "member_size": 21189
+      },
+      "production/medium_upload/3d/1fcafadcbadaba0c0f594557fcbd9859182672": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "138bec36d987c0e6f7b993cad9335f219481eab7c10c17cc830eb34fc2b93148",
+        "member_size": 59516
+      },
+      "production/medium_upload/42/03b955ecfd22694dacc3ea6fb8038078c9a5ce": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "5cc11d9755416f4c7310de7b93c2d5f612c3318c7d68515d06c91c206513f7dd",
+        "member_size": 61861
+      },
+      "production/medium_upload/51/de72cf3498e66dce822efcbf5af76af8a7dc50": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "a67e9708d4064dea523cc1e3982fcfe9fef260b20ecc6c7f0706c9e2cf8dd883",
+        "member_size": 85358
+      },
+      "production/medium_upload/55/58dd30a49eab99cc0edd10dac53a3ffbb21840": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "8322fd391f08e9598e23e6f7146a0bb19981365e4da90335e2177bb07598b8b9",
+        "member_size": 568713
+      },
+      "production/medium_upload/57/f422800a9ec2a139f1e9eda03726980d401cc0": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "adebd611d7519a313dec0dda9b8ef296457c7c9e6de9a7db9e87493a6a1e74ff",
+        "member_size": 37038
+      },
+      "production/medium_upload/5e/e7eae51863370ad5c02ac27065d17bb9924058": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "28c1e7c37be724b916a102a752d508ccd7dd36ca702ef5b740ce1ac02318d7b0",
+        "member_size": 145573
+      },
+      "production/medium_upload/61/f3c316f3970296f147c5e7618b90ae2cfc0cc0": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "61ced89cac3ae0967e22adf99ace78025bd81ce5322dffcf05c8aeee5a02b8f2",
+        "member_size": 48273
+      },
+      "production/medium_upload/86/2c68137b3ecdbaed92eb955dbf50426a4552cb": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-medium.zip",
+        "member_sha256": "92f207e9287c23ee8f9cdfcb0feac87871bdfd6e8eacb8ed53fa69d700ab6736",
+        "member_size": 101468
+      },
+      "production/medium_upload/89/6d0a583d35230bd7879a693f02becb6f0118a0": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "99321e222db99231d88ef556531b83d5329bd9cb83163d7883bb259597bd2f62",
+        "member_size": 37414
+      },
+      "production/medium_upload/9d/47d866e73df053a595c5a5b1fa870089cc0086": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "8984a18bc4579f7eb631d07385ecd549faa18bdced83ae6ae88b28ba242197fc",
+        "member_size": 9032
+      },
+      "production/medium_upload/9e/84ae836511fffbd042cc285b078418e1184bde": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-medium.zip",
+        "member_sha256": "877e4176bd304b6cb5ba7ca8cd601fa916c3e3007cc3a5612c18cd257ec489f0",
+        "member_size": 2248960
+      },
+      "production/medium_upload/a2/5007e50559bbe41ddbfc18d8578f76e52b3e31": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-medium.zip",
+        "member_sha256": "63126b089260bc4e717425a0ccfb3b79df3bcb0ca293adf1c7aa71480d7d3663",
+        "member_size": 1840328
+      },
+      "production/medium_upload/a6/c3f574bcbd3077533442e4ea27fcc9d4f01485": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-medium.zip",
+        "member_sha256": "601132783209a93cae87cfe39af52cd69ba50af68b808b2e98d2f9ef8e1fb6b5",
+        "member_size": 387621
+      },
+      "production/medium_upload/bd/3c011106ab0290e3501abaffc752da701747a4": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "aeeffef0d7be6ff59d0e4756706bdcd1b174ab2a731dc691d7b826babf9b885e",
+        "member_size": 154337
+      },
+      "production/medium_upload/d4/d54c3edfc2ac2afa79e55512dfce0c8afb91d8": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "02446f31ba514c47eaec455568a61a5151173fe87d20b140a701561533897d2d",
+        "member_size": 370868
+      },
+      "production/medium_upload/e3/1b471dae181892f2e3ee89e88bb24cc69fb805": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "094d23e92d4e458f78027f236915f86cbfa4c5f35c172d8fd5fb1a581b2d284a",
+        "member_size": 154745
+      },
+      "production/medium_upload/ef/5fc197fb6e99260bf060196ec0a2c1f120df42": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "f878560fa8fb8f20fa61a18783ecd52ac153b77b395c4e6b02b6c9b2b71573a9",
+        "member_size": 129048
+      },
+      "production/medium_upload/f4/1c536ba9d0e3efb7633b2be53d07fef61e0f8a": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "9de0568e606cc2300350baa7ea42966bf7e9ca597eddab4f05eb945d5d2382fd",
+        "member_size": 141359
+      },
+      "production/medium_upload/f6/6d23811f001cb167a906cb7b5d099b15687f41": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-medium.zip",
+        "member_sha256": "823bcbecb1b15c3c1ca895b2f167cb4ef56bd54fa8f5dcc02d660c54a5c4a331",
+        "member_size": 138052
+      },
+      "production/upload/0d/129d2926927a1725c083cab571257d03783f41": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "e13c05c968307ee07025f817f1e446bb84d796a9db1515f9283ebf7d080a7704",
+        "member_size": 382
+      },
+      "production/upload/11/cc4bdb2e5f4090c790c098cad22e2b4fe9ba13": {
+        "version": "1.4.134",
+        "edge": "liangyue-f1009-fix-1.4.134",
+        "archive": "pinball-1.4.133-1.4.134-1-liangyue-f1009-fix-common.zip",
+        "member_sha256": "d8d857c406b4e665cb7d138622bad0ea119765171483869f831cd424b7f31b08",
+        "member_size": 105
+      },
+      "production/upload/1c/601b1b954726400af5b5b89562d4604d932318": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "6ef5d18f38e73492e5bb2350bda2bec7c6182a94352db35b240d3e4e36c015af",
+        "member_size": 310065
+      },
+      "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "e708001ede5c897cc45a419d12474bed78b161dd9d37ae58902385bf3aaa86fd",
+        "member_size": 1215500
+      },
+      "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001": {
+        "version": "1.4.138",
+        "edge": "liangyue-zero-value-fix-1.4.138",
+        "archive": "pinball-1.4.137-1.4.138-1-liangyue-zero-value-fix-common.zip",
+        "member_sha256": "413129be259ad4c3686489649ed6c4bbc143c722f595e126b9cbccec9dcfca74",
+        "member_size": 389061
+      },
+      "production/upload/23/2a83833ca9e972df50d66df801ca247fbd6d02": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "09c3f1effc2179d87dcb4b61c00c6da9b44e6cc5c7b3f557934a61b98310d15c",
+        "member_size": 76531
+      },
+      "production/upload/24/a125b05584af1585d47ca25676d764b29d85bd": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "890b6088728d8067b8bda57067b80f42ca92a5d2f9a5e422511845394dd778ec",
+        "member_size": 37660
+      },
+      "production/upload/27/7b65484214436114201ae654fefa60fdc822ea": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "c3ce8931976fbd64c6b7afc0a4e99b5ca64ebf54819e506f8b99e91005a46018",
+        "member_size": 968239
+      },
+      "production/upload/29/ecebb5399b98ba0316a38f0f641acc3707c265": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "26dc240d90487135f9635a6df91bb2d4085de7a2634e1c77852b4e33c51dfe8b",
+        "member_size": 173
+      },
+      "production/upload/2c/f357e68edf401eda53c0cfd84035df19eb2c27": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "0b34bfc455a6954b6eb706f96fc185ab6b3f1327c5f7988bef3aa93af101e30b",
+        "member_size": 9228
+      },
+      "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "0329a268aa477e9d3c103c0823792d2a8625c51b7ff439d4519b4d663334f9b3",
+        "member_size": 87762
+      },
+      "production/upload/31/f39b0dd56f79d30e0a06f699e2d27d1dc68044": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "271291a7310cbd03fad9856df93c3d5213ae080ff5fdfbb52ebd5feb93679800",
+        "member_size": 140045
+      },
+      "production/upload/34/5d686472aa8e3fec49370b4d13586b3fd8c650": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "bf7b142a2b5694fed7b8d05433624983e1f4ecdb605c1530228f1180f942309c",
+        "member_size": 150
+      },
+      "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "97671814cc930b816afd6db073289e549c8faff0f8899b7e2574410903e9f36a",
+        "member_size": 48361
+      },
+      "production/upload/47/2db252ae5a7adeb6dd48ea7cfa5bad08397d06": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "5b835d531aa7e2a1b2d13e8bd1653a19539a655486fb9ca10fe00bdeb1ec7090",
+        "member_size": 107877
+      },
+      "production/upload/48/b81179fd177f13bb77551ebb5d40395dd3f7fb": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "e9af7932e8e80b8dde552813432d4c4233a05547025ec05de3d6b313d964df33",
+        "member_size": 63051
+      },
+      "production/upload/4b/248a00a396209fd2568dabf763704e19ffa1b8": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "12c134b75dac7280dfa0e7448b69cbd3c66c47689de6e37222c9c37b0dde6c7b",
+        "member_size": 56155
+      },
+      "production/upload/53/e27dd1ddea05e4d0602d0b67fcad67db56907d": {
+        "version": "1.4.141",
+        "edge": "liangyue-forward-area-fix-1.4.141",
+        "archive": "pinball-1.4.140-1.4.141-1-liangyue-forward-area-fix-common.zip",
+        "member_sha256": "a16fe539722d7d5e4e1ac45fa43882544368a84ed10f7d5fbc65a0c8db0b21b8",
+        "member_size": 709
+      },
+      "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "c9d782dba24af6058132dadfa6bb526746ff022cc0c7a589871ac1efddca5f07",
+        "member_size": 24871
+      },
+      "production/upload/58/dfe9edff8202e9ddbde4312504a549632659ae": {
+        "version": "1.4.141",
+        "edge": "liangyue-forward-area-fix-1.4.141",
+        "archive": "pinball-1.4.140-1.4.141-1-liangyue-forward-area-fix-common.zip",
+        "member_sha256": "78f7f4458e7ce3997cd17975e7592dda6a98286c71f114846037a993d28e7823",
+        "member_size": 549
+      },
+      "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "f00b8ee7b90b8f5ad32a1e0d3d627692e604cab824bf4812b8cfc782dc2e1db4",
+        "member_size": 65731
+      },
+      "production/upload/66/84851d8e6328b7955f3d17cece5abaeab03168": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "3a1e1df38e346a5b0b8d0f8f984c44b4ef4a24cb82960eca6f674c97871f858d",
+        "member_size": 143
+      },
+      "production/upload/75/b85bacf0239998239bee580d077f5a55dd9b54": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "13697c50752cbf6f8e9e5926b06e7a3268a4937a15d2c77d94ddbb493f2cf4fa",
+        "member_size": 28883
+      },
+      "production/upload/7f/de73a8b8db0b1ed3d48e0d8b722e4f355b78da": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "0d9c88ad687cd755eb7ecdb4faa1787f917d0b5c5e292b22fddf7a622aac2d8b",
+        "member_size": 180602
+      },
+      "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab": {
+        "version": "1.4.141",
+        "edge": "liangyue-forward-area-fix-1.4.141",
+        "archive": "pinball-1.4.140-1.4.141-1-liangyue-forward-area-fix-common.zip",
+        "member_sha256": "856a438a1e041c716eaf1ad4004fb0d524b92775e25c23957119bb1e5dfa4208",
+        "member_size": 220152
+      },
+      "production/upload/8c/ae2d579dee99acb049bb0967efafbc242c101d": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "0b7d340faa21f06cfd70ed33914de05ebc38b0dc0c8540b8abefc96a155deab9",
+        "member_size": 103175
+      },
+      "production/upload/91/79892d704f88d98191c00548bce106402ad5b5": {
+        "version": "1.4.141",
+        "edge": "liangyue-forward-area-fix-1.4.141",
+        "archive": "pinball-1.4.140-1.4.141-1-liangyue-forward-area-fix-common.zip",
+        "member_sha256": "61297c59a87d0c25fa39d17927a5e9b9dba31f7296a56f88e7b76d9cb872afa3",
+        "member_size": 365768
+      },
+      "production/upload/96/f9f0123304910970d54a5b2562b43f4d31e431": {
+        "version": "1.4.141",
+        "edge": "liangyue-forward-area-fix-1.4.141",
+        "archive": "pinball-1.4.140-1.4.141-1-liangyue-forward-area-fix-common.zip",
+        "member_sha256": "a16fe539722d7d5e4e1ac45fa43882544368a84ed10f7d5fbc65a0c8db0b21b8",
+        "member_size": 709
+      },
+      "production/upload/98/8d918ffeeab38e49b60f5235e3cecc91152db3": {
+        "version": "1.4.145",
+        "edge": "liangyue-base-frame-fix-v2-1.4.145",
+        "archive": "pinball-1.4.144-1.4.145-1-liangyue-base-frame-fix-v2-common.zip",
+        "member_sha256": "17a4dfa166da5684d85424e27caca2f2a9af545617af84f0876e117ed1f27854",
+        "member_size": 10822
+      },
+      "production/upload/a3/93aa45111ae908523cc8d200d6fca8d84371e5": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "864f067750a2b2ab5e34a999b0bbedd63d0dbd34b29e0ed1d043cfcb7d76fc34",
+        "member_size": 231698
+      },
+      "production/upload/a7/b704299bb8209473d3c0f54ca6d9c007536f6a": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "c36cc62fee0572f94de15b8ee3e63102e96a681efe3d18d95efb677cd94e50b6",
+        "member_size": 83
+      },
+      "production/upload/aa/abdd2e178d62dba4997034aab8c236a4422154": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "6272da8f57dd4f940f653af34e28cd32f1a02c2d1167c7d5d380d28ad7593809",
+        "member_size": 31747
+      },
+      "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "e429d7a19f73c3c6997322ec45ffbf9eef1efc4bcfc81347b7bbbe1214db7f92",
+        "member_size": 116992
+      },
+      "production/upload/b3/3f0ef2b2cd2ea1452a296756d707941a758c7d": {
+        "version": "1.4.134",
+        "edge": "liangyue-f1009-fix-1.4.134",
+        "archive": "pinball-1.4.133-1.4.134-1-liangyue-f1009-fix-common.zip",
+        "member_sha256": "cdb3514cdb6c9a87f09cca673579bb7334678bf287c332d94d5f1f8f5a5a57a0",
+        "member_size": 334
+      },
+      "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "8e5490d682f2725a1d82a8b42b5a4e71b26ba1626aef7ff3ff7e09a08739dcea",
+        "member_size": 416388
+      },
+      "production/upload/b5/8b40e46bc576a6cd1d6bcf5642c96c1f0547fa": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "d00e8c1bd6db2d46e519ccf8a39c13e05ae36b67365e8f246338deff7fb7f80e",
+        "member_size": 55842
+      },
+      "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "a5c7fc7d363ffe50f5d7beac0ce17d170d9935f3206e4518d132c0195798e45a",
+        "member_size": 47434
+      },
+      "production/upload/bb/0e9307795ce0abac9fa7798be16ad2c3579f1d": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "b0489ed21d873f5ab105abacb4b022771a34b8677141ed9af625aa64f85763b0",
+        "member_size": 79
+      },
+      "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "1d7dd77c4e6ab5febb66682592a90706cb366d43f104f91e6d39f17c10083233",
+        "member_size": 29255
+      },
+      "production/upload/bc/1a73a8ec6630c894fe8c15d8d60caf8e2d16a6": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "7a0d5a8233cb8fcbcfe40c6c19cf696e64c3b0305204b03c2c516a25d50cba83",
+        "member_size": 215711
+      },
+      "production/upload/be/aaf8210174cde70726f31aaf068868bbd2916c": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "a944d5934b6707fcf7cee671f1a202fb95ae0dad33e7c5514f674e847acf3d97",
+        "member_size": 70888
+      },
+      "production/upload/c0/24772865dae85fa59b9e4b07666b078632ced7": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "2f7cff899f0701e40200be49e8999a7e4b546dc2dfb46e897a34a8fdf6bf6852",
+        "member_size": 242669
+      },
+      "production/upload/c3/16871ed249bc01e9d34fb27f1d06d2ed671b7d": {
+        "version": "1.4.145",
+        "edge": "liangyue-base-frame-fix-v2-1.4.145",
+        "archive": "pinball-1.4.144-1.4.145-1-liangyue-base-frame-fix-v2-common.zip",
+        "member_sha256": "e8fdca58ae22861ba90bc23ba29a6e0ed2216699630b380a1e68b87364d1c23e",
+        "member_size": 986
+      },
+      "production/upload/c9/47449df717e75970f28587faed118349aab5a4": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "71e8fc6f1d737d68834a9e57d1f8546d5af9b6e8a120bf424e4bceb094ecef2a",
+        "member_size": 23241
+      },
+      "production/upload/cc/a8580b2489eb88e7399c2ed3820948be530f0f": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "b7e065a35223499cec5a1f72ed686600152ad5ab8d77f1557bc3d292c9a54a68",
+        "member_size": 736
+      },
+      "production/upload/d0/6bae005b339709b4196e3acc0e6801c79de86f": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "e70e9d45e3416a8aaf1ace1ee670cbf35eb35b018aad9c0c88f4ec77be2b94d0",
+        "member_size": 55528
+      },
+      "production/upload/d2/3ed684e4a2bb44e8c2bdb1512098323cb59f95": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "50e91aecf084aaf8e0e43c97657bdff979c80d6575c1ca8c2ba24441ee0a76c3",
+        "member_size": 8715
+      },
+      "production/upload/d3/be0de5b1023b2837e866b33bdad17081d23533": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "1f11c08aea01422efa5636ba08ad0ad8e769b3cf53c7ef6a024e40428a8b2323",
+        "member_size": 185618
+      },
+      "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670": {
+        "version": "1.4.139",
+        "edge": "liangyue-unison-icon-spacing-fix-1.4.139",
+        "archive": "pinball-1.4.138-1.4.139-1-liangyue-unison-icon-spacing-fix-common.zip",
+        "member_sha256": "e59f4d48fb11d355840a81b45b5cb7482845886503808e3aa3a0d369b5e7d477",
+        "member_size": 181280
+      },
+      "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb": {
+        "version": "1.4.133",
+        "edge": "liangyue-character-1.4.133",
+        "archive": "pinball-1.4.132-1.4.133-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "2e61537dee7dc4331fe1a7404c6a798888efb4ec4bd0658552bef026d78fa204",
+        "member_size": 16041
+      },
+      "production/upload/db/2edd479b83b34cb1600b990a0d21d4b2d8f249": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "73b4ab3c1113f69119d020db88ac0c42fef2d53b9c861511e0481f9551165ee1",
+        "member_size": 88129
+      },
+      "production/upload/dd/ef01e0b8df5c71fc6a14b229ce8b986672797c": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "3e7e1a6e9f2e6cb15af024370798eb02ad083412cea3dd272a1b3da7af9b1cd6",
+        "member_size": 153
+      },
+      "production/upload/f6/3855fdf1f1429da9c44c3e8cff77238df42583": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "26fbade3bc2372bea8e8a2a49dbef24fb8f2e6cdfe0604ca854ff0dcd7267e6d",
+        "member_size": 16793
+      },
+      "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395": {
+        "version": "1.4.142",
+        "edge": "liangyue-illustration-crop-mask-fix-1.4.142",
+        "archive": "pinball-1.4.141-1.4.142-1-liangyue-illustration-crop-mask-fix-common.zip",
+        "member_sha256": "865f167a5c97aa9234adaf6a21888e0278ef384cb75e6d0144d61c8c8ed42e14",
+        "member_size": 359372
+      },
+      "production/upload/fd/26298df808a93185de1380b7530f2c60d96cfb": {
+        "version": "1.4.131",
+        "edge": "liangyue-character-1.4.131",
+        "archive": "pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip",
+        "member_sha256": "5bcfa712db9bcd36be91ea1195318aa13111bccfcab587fc094d5b964d82281f",
+        "member_size": 203486
+      },
+      "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5": {
+        "version": "1.4.138",
+        "edge": "liangyue-zero-value-fix-1.4.138",
+        "archive": "pinball-1.4.137-1.4.138-1-liangyue-zero-value-fix-common.zip",
+        "member_sha256": "ec4c114997c69904150241e7b5b95d3a3a56843089467207e4dcf9cd097ad0fa",
+        "member_size": 70290
+      }
+    }
+  },
+  "terminal_verification": {
+    "method": "Historical pre-final-merge observation: prepare_content.Chain terminal replay from official baseline plus enabled 1.4.55..1.4.145 edges",
+    "chain_tail": "1.4.145",
+    "indexed_locations": 147570,
+    "merged_members": 86,
+    "merged_members_match_terminal": true
+  },
+  "superseded": {
+    "original_1_4_131_partial_archives": [
+      "local_only / not_in_repository; ignored historical inactive archive; source_identity=pinball-1.4.130-1.4.131-1-liangyue-character-20261005-common.zip; not an active runtime or repository attachment.",
+      "local_only / not_in_repository; ignored historical inactive archive; source_identity=pinball-1.4.130-1.4.131-1-liangyue-character-20261005-medium.zip; not an active runtime or repository attachment.",
+      "local_only / not_in_repository; ignored historical inactive archive; source_identity=pinball-1.4.130-1.4.131-1-liangyue-character-20261005-android.zip; not an active runtime or repository attachment.",
+      "local_only / not_in_repository; ignored historical inactive archive; source_identity=pinball-1.4.130-1.4.131-1-liangyue-character-20261005-ios.zip; not an active runtime or repository attachment."
+    ],
+    "previous_1_4_146_plan": "local_only / not_in_repository; ignored historical inactive backup directory; source_identity=liangyue-1.4.146-plan-20261006; not an active runtime or repository attachment."
+  },
+  "limits": [
+    "No device or client runtime test is recorded for the original release verification; documentation sanitation does not rerun historical runtime checks.",
+    "The original partial 1.4.131 archives and the 1.4.146 plan archives are intentionally inactive local-only historical backups, not repository attachments."
+  ],
+  "live_verification": {
+    "merge_from_1_4_130": {
+      "status": "passed",
+      "target_version": "1.4.131",
+      "diff_groups": 1,
+      "archives": [
+        "pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.zip"
+      ],
+      "receipt": "local_only / not_in_repository; historical HTTP get_path receipt; source_identity=live-get-path-1.4.130-pinball-1.4.130-1.4.131-1-liangyue-character-final-merged.json; evidence_file_sha256=46a68fe9b989a3a3a217026d6e5da20485fbe15885ea791ab7c7649d93fcb7fd; not a repository attachment; retained summary is an earlier observation, not a rerun."
+    },
+    "base_1_4_0_to_1_4_131": {
+      "status": "passed",
+      "target_version": "1.4.131",
+      "diff_groups": 131,
+      "chain_complete": true,
+      "receipt": "local_only / not_in_repository; historical HTTP get_path receipt; source_identity=live-get-path-1.4.0-chain-to-1.4.131.json; evidence_file_sha256=caad9adf05d15bfbefbbd03a840fca2473e6a3d42afbe11613d950d07311e93f; not a repository attachment; retained summary is an earlier observation, not a rerun."
+    }
+  },
+  "gate_receipts": {
+    "character_edge": "assets/asset-patch/audit/liangyue-character-final-merge-1.4.131/gate-character-edge.json",
+    "timeline_sounds": "assets/asset-patch/audit/liangyue-character-final-merge-1.4.131/gate-timeline-sounds.json",
+    "ability_strong_fields": "assets/asset-patch/audit/liangyue-character-final-merge-1.4.131/gate-ability-strong-fields.json"
+  }
+}

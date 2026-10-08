@@ -1,0 +1,538 @@
+{
+  "schema": "gacha-equipment-art-increment/v4",
+  "base_version": "1.4.133",
+  "target_version": "1.4.134",
+  "archive": {
+    "name": "pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip",
+    "size": 12158571,
+    "sha256": "e52e774e2ae29f939ecf1f8b2953d5a08a4c0cd8a02f411b4acd6d4cabbbd605",
+    "members": 19,
+    "files": [
+      "production/medium_upload/2e/90dc513fa80bd0379f05c2c7cc9726b0095b91",
+      "production/medium_upload/a6/b5535a3f19f3e5b25e424539855a6f98329c6a",
+      "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+      "production/upload/3a/e3b5640308a14d625b6e145dc0e6d644b1d665",
+      "production/upload/48/b6568681569b6093086ec66a8c1cf7d11d9974",
+      "production/upload/53/6f7b4ab3337d4e69e96031a8a6225fb2992039",
+      "production/upload/57/1cc27e74bea16bd735ed63e735677f48b586ec",
+      "production/upload/5d/d1b0c8d4b7f784df0458f374de40eb6b9eb2b8",
+      "production/upload/6b/6e638ae42a1fbe5c30d9bea763030353908802",
+      "production/upload/76/6b00cfc98f76a10d78c5db4b0790ba4ddf5d67",
+      "production/upload/7c/f800d476d22c358cfb636336c73c9d606e4987",
+      "production/upload/9e/586e8f71ece28e40b14901b4b0733f88dc895b",
+      "production/upload/ae/8021ebe46ff88449645a35eab0c80118614c55",
+      "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+      "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea",
+      "production/upload/ca/b606ba358f48b1f4f5641c225517175b73d417",
+      "production/upload/cd/7d47ee3d63ab7bdfd36985a11436281dfbeeb0",
+      "production/upload/d4/70daa9156982b7604d2389beffb540cfb9afb3",
+      "production/upload/f4/ac70b4f3c74ff03f77ac1054fbd9a2dc6d58f0"
+    ]
+  },
+  "artwork_revision": "v17",
+  "artwork_acceptance": "accepted",
+  "images": [
+    {
+      "pool": "990001",
+      "role": "top",
+      "logical": "dynamic/gacha_banner/cnmod_abyss_limited_gacha.png",
+      "member": "production/medium_upload/2e/90dc513fa80bd0379f05c2c7cc9726b0095b91",
+      "size": [
+        1440,
+        1789
+      ],
+      "mode": "RGBA",
+      "donor_file": "990001-top.png",
+      "donor_sha256": "00aa0c37dd7633ab1172eb0de35a207cb1eb64d2e8fbcdc6a45ff2f94854f8f1",
+      "stored_sha256": "872c363e7771d18368d5af4cfbcc1a088ce6b1678729c4bdce95b0036aa2dcad",
+      "pixel_sha256": "efbb672c4ff4912a9f98eb450f2df68d0d611d9da626eb4afaacb01a503c84fb",
+      "previous_archive": "pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip",
+      "previous_stored_sha256": "34d3ae10a06eada3254622b63522aaf2cb5767fb74c71741bc9950d16e497e00",
+      "previous_loose_sha256": "34d3ae10a06eada3254622b63522aaf2cb5767fb74c71741bc9950d16e497e00",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true
+    },
+    {
+      "pool": "990001",
+      "role": "list",
+      "logical": "dynamic/gacha_list_banner/cnmod_abyss_limited_gacha.png",
+      "member": "production/upload/6b/6e638ae42a1fbe5c30d9bea763030353908802",
+      "size": [
+        510,
+        180
+      ],
+      "mode": "RGBA",
+      "donor_file": "990001-list.png",
+      "donor_sha256": "d702dcdde86839b3ef3d1511f4f73a2f7cde9d0683d6d641c94209e3c3440614",
+      "stored_sha256": "c51e5ad1ecb291b205e71a60bc15c7d3af2f5e18b0d1fddb95768118e28ab981",
+      "pixel_sha256": "59d5c8c9ac503f7095510c529ac54f26a49954ad64dd27cc81b7cd11eca9d1b9",
+      "previous_archive": "pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip",
+      "previous_stored_sha256": "2f9fce137e7fe8d5ed9e77b665e99f3e7cec5a84443ea653669389f6fe93f42a",
+      "previous_loose_sha256": "2f9fce137e7fe8d5ed9e77b665e99f3e7cec5a84443ea653669389f6fe93f42a",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true
+    },
+    {
+      "pool": "990002",
+      "role": "top",
+      "logical": "dynamic/gacha_banner/cnmod_ashen_verdict_gacha.png",
+      "member": "production/medium_upload/a6/b5535a3f19f3e5b25e424539855a6f98329c6a",
+      "size": [
+        1440,
+        1789
+      ],
+      "mode": "RGBA",
+      "donor_file": "990002-top.png",
+      "donor_sha256": "471247c1b128cbc2b5c7546a85ec0d150fb0f4f6fff14f35ad3fd6911d576d82",
+      "stored_sha256": "40355527c0a164ea4fbdb4ed1665fa65830e142d9062249f3f09377b4d342478",
+      "pixel_sha256": "3a132aca5002b60e854daf2827b97d359973ff8fb910afc307fcf27a1b322c3c",
+      "previous_archive": "pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "previous_stored_sha256": "1f6dab7bc47259a8f7e8a81c0efb0b57a8bf0f2751f6ad0baec99fa0d9fb28d7",
+      "previous_loose_sha256": null,
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true
+    },
+    {
+      "pool": "990002",
+      "role": "list",
+      "logical": "dynamic/gacha_list_banner/cnmod_ashen_verdict_gacha.png",
+      "member": "production/upload/cd/7d47ee3d63ab7bdfd36985a11436281dfbeeb0",
+      "size": [
+        510,
+        180
+      ],
+      "mode": "RGBA",
+      "donor_file": "990002-list.png",
+      "donor_sha256": "3a2a7aa6a615cf4a05d883ca3ec94a719bcd037b1721f5ed10079dab70fe24cc",
+      "stored_sha256": "e7501775373a40807748a13d0ccb499de05afa8770d44b695a919b16f1bd3e41",
+      "pixel_sha256": "0e12c6c88cbea92a7e96b7e395c92b624e27f57d0269a68b6b293bfaf1cadea7",
+      "previous_archive": "pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "previous_stored_sha256": "d3903bebe6e8ba68e5392422aa9beec0dcece2cab3c6465e4b4facd06f67b88d",
+      "previous_loose_sha256": null,
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true
+    }
+  ],
+  "equipment_images": [
+    {
+      "category": "bond_weapon",
+      "label": "羁绊武器",
+      "variant": "v2_typography",
+      "role": "entrance_banner",
+      "logical": "dynamic/equipment_enhancement/bond_weapon_banner.png",
+      "member": "production/upload/76/6b00cfc98f76a10d78c5db4b0790ba4ddf5d67",
+      "root": "common",
+      "size": [
+        1000,
+        184
+      ],
+      "mode": "RGBA",
+      "donor_file": "bond_weapon_banner_v2.png",
+      "donor_sha256": "b94c74ae001569b3ba0e71796e4f0386ad201c7972bfaf5ceabd6a102178e48a",
+      "stored_sha256": "78aad12a3f1f338c88dd5bbb8bfbd129f033d3e93e9f4ac94c81c93400db3d66",
+      "pixel_sha256": "9f4e6497ceb44262046a3b585f58a74855af33afe214f61282fd56496ca764ef",
+      "previous_archive": "pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip",
+      "previous_stored_sha256": "ab519bdaa23702fe672d38a8590574b21184858df3761eb4740ddf5fe03d64e1",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true,
+      "existing_master_reference_verified": true
+    },
+    {
+      "category": "bond_weapon",
+      "label": "羁绊武器",
+      "variant": "v2_typography",
+      "role": "exchange_header",
+      "logical": "dynamic/equipment_enhancement/bond_weapon_header.png",
+      "member": "production/upload/57/1cc27e74bea16bd735ed63e735677f48b586ec",
+      "root": "common",
+      "size": [
+        1440,
+        556
+      ],
+      "mode": "RGBA",
+      "donor_file": "bond_weapon_header_v2.png",
+      "donor_sha256": "dea3d30a8b4fc7c97dce48c9001efa9aa6e55b2cf61702ee02a8506b76cca54f",
+      "stored_sha256": "709ef01711c3f0b9a74f30dd99acaeb9e5091140e470aaf580960decd77012e5",
+      "pixel_sha256": "7cdac12e5f27bd7976cf0343b26a38fc066d5fb94bc30eaef8ea1f38a5d4bbcb",
+      "previous_archive": "pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip",
+      "previous_stored_sha256": "667a78be6f165634af85200971befdb3695b0149b8cf51d3f7c9efbf01e4d948",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true,
+      "existing_master_reference_verified": true
+    },
+    {
+      "category": "cursed_weapon",
+      "label": "诅咒武器",
+      "variant": "v2_alt_重宋碑刻",
+      "role": "entrance_banner",
+      "logical": "dynamic/equipment_enhancement/cursed_weapon_banner.png",
+      "member": "production/upload/48/b6568681569b6093086ec66a8c1cf7d11d9974",
+      "root": "common",
+      "size": [
+        1000,
+        184
+      ],
+      "mode": "RGBA",
+      "donor_file": "cursed_weapon_banner_v2_alt.png",
+      "donor_sha256": "50fe97a65c3dd0416ae50161c68cdb6357c395dab7a41d4b7b1c9395d9eab275",
+      "stored_sha256": "305b4cb5958d0ce07498e1cb3854e2a486e7a835e86c0c8b41d5c4ccbad21d17",
+      "pixel_sha256": "42b4ef26d7bbdabcff59f6a91182663467466fac9df831d4e6d71dca2fd95158",
+      "previous_archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+      "previous_stored_sha256": "c9f37623e99fc0461027dffa89a9c8bcab2293a9a5e2ba6eeaf7209b6f705f51",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true,
+      "existing_master_reference_verified": true
+    },
+    {
+      "category": "cursed_weapon",
+      "label": "诅咒武器",
+      "variant": "v2_alt_重宋碑刻",
+      "role": "exchange_header",
+      "logical": "dynamic/equipment_enhancement/cursed_weapon_header.png",
+      "member": "production/upload/53/6f7b4ab3337d4e69e96031a8a6225fb2992039",
+      "root": "common",
+      "size": [
+        1440,
+        556
+      ],
+      "mode": "RGBA",
+      "donor_file": "cursed_weapon_header_v2_alt.png",
+      "donor_sha256": "ca4ef8140375c5b784f05ef5377e724d0fe6b1211ad2f01a0409af477e89687c",
+      "stored_sha256": "06441fb38fbd4c9b45cca39e23008f1910cdae88843d09b0a71019f37f8b734f",
+      "pixel_sha256": "10d2e830764236466b2e90c26f879a7d639c8b26b55311b7aab1e722a026dea4",
+      "previous_archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+      "previous_stored_sha256": "76f284da2e71cfbf970463b2c00f624d53d4bbf7aaeed162d863dfc02f2c7f22",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true,
+      "existing_master_reference_verified": true
+    },
+    {
+      "category": "abyss_weapon",
+      "label": "深渊武装",
+      "variant": "v1",
+      "role": "entrance_banner",
+      "logical": "dynamic/equipment_enhancement/abyss_weapon_banner.png",
+      "member": "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+      "root": "common",
+      "size": [
+        1000,
+        184
+      ],
+      "mode": "RGBA",
+      "donor_file": "abyss_weapon_banner.png",
+      "donor_sha256": "157a923fe51f8579d542472bce042cc726b839dda5c606e48e741c95dbdf61d9",
+      "stored_sha256": "6edcb414b41f1ce945b4d6dfc09ca0da3e64cb18752717b257bd8a87562429d4",
+      "pixel_sha256": "b6fbc92597ef59cf93e739263a3ad6adc90bbb43ec7115b8805d064546cd8c7d",
+      "previous_archive": "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip",
+      "previous_stored_sha256": "69d642b7066c984864478724509270cb127118a87c363ad538588f0941f0e386",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true,
+      "existing_master_reference_verified": true
+    },
+    {
+      "category": "abyss_weapon",
+      "label": "深渊武装",
+      "variant": "v1",
+      "role": "exchange_header",
+      "logical": "dynamic/equipment_enhancement/abyss_weapon_header.png",
+      "member": "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+      "root": "common",
+      "size": [
+        1440,
+        556
+      ],
+      "mode": "RGBA",
+      "donor_file": "abyss_weapon_header.png",
+      "donor_sha256": "fbc2ee4b1f33e07ab307460c77f8cb75d783b092bba5ec0907c73aafef8e3e3f",
+      "stored_sha256": "f5cc09b7c769e16cd2a07c33868fb73c1c052cf6c5ca3ebf68c92ac598963327",
+      "pixel_sha256": "9ecb73283db4771ea9f7fabeb86a141dd3d582923bb2961b783091faef494d29",
+      "previous_archive": "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip",
+      "previous_stored_sha256": "6b8d6937c5133f2cf631cb861a6071bc5e7247e31d4edf32b62d4cea456591a4",
+      "strict_decode_byte_identical": true,
+      "shared_android_ios": true,
+      "existing_master_reference_verified": true
+    }
+  ],
+  "native_resources": [
+    {
+      "logical": "gacha/feature_movie/cnmod_abyss_limited_gacha/top/feature.movie.amf3.deflate",
+      "member": "production/upload/f4/ac70b4f3c74ff03f77ac1054fbd9a2dc6d58f0",
+      "sha256": "5c5126eaa25aee9b1da4248aa8ffdbd791282b7a620145eab0d23db8c2978a7c"
+    },
+    {
+      "logical": "gacha/feature_movie/cnmod_abyss_limited_gacha/top/feature.timeline.amf3.deflate",
+      "member": "production/upload/ca/b606ba358f48b1f4f5641c225517175b73d417",
+      "sha256": "9e8d77c9d5bbeb0761cbc6467d52d0d9e1e014bf838a11e2d58f76363d412c7f"
+    },
+    {
+      "logical": "gacha/feature_movie/cnmod_abyss_limited_gacha/top/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/upload/5d/d1b0c8d4b7f784df0458f374de40eb6b9eb2b8",
+      "sha256": "cb42b43fe7bcbccbce0ca1f22f7ffa212c1660e23aceac353bbc56046101f35c"
+    },
+    {
+      "logical": "gacha/feature_movie/cnmod_abyss_limited_gacha/top/sprite_sheet.png",
+      "member": "production/upload/7c/f800d476d22c358cfb636336c73c9d606e4987",
+      "sha256": "48c3a1d469955b6d8b5f0b2a5e3f95f7ec86c0932966f1e45c8563ed3ac37627"
+    },
+    {
+      "logical": "gacha/feature_movie/cnmod_ashen_verdict_gacha/top/feature.movie.amf3.deflate",
+      "member": "production/upload/3a/e3b5640308a14d625b6e145dc0e6d644b1d665",
+      "sha256": "11839560b0ac35ad12da180d36f266b4ae216a941a540aafe93d1cb3713bd152"
+    },
+    {
+      "logical": "gacha/feature_movie/cnmod_ashen_verdict_gacha/top/feature.timeline.amf3.deflate",
+      "member": "production/upload/d4/70daa9156982b7604d2389beffb540cfb9afb3",
+      "sha256": "9e8d77c9d5bbeb0761cbc6467d52d0d9e1e014bf838a11e2d58f76363d412c7f"
+    },
+    {
+      "logical": "gacha/feature_movie/cnmod_ashen_verdict_gacha/top/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/upload/9e/586e8f71ece28e40b14901b4b0733f88dc895b",
+      "sha256": "f04a33a024ac3154ae0186b59cdd1a60ad1dfc5c3d322c162275be19cbc46ad7"
+    },
+    {
+      "logical": "gacha/feature_movie/cnmod_ashen_verdict_gacha/top/sprite_sheet.png",
+      "member": "production/upload/ae/8021ebe46ff88449645a35eab0c80118614c55",
+      "sha256": "783be48e2463455bce6de0f1e090c9f09ffbccfb1e0c96719f4adcae42d71ff4"
+    },
+    {
+      "logical": "master/gacha/gacha_feature_content.orderedmap",
+      "member": "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea",
+      "sha256": "36a946115ffddf8d034b51092d7c5bef1a11875df7845f606f3ecaf2a8b46a2d"
+    }
+  ],
+  "feature_table_change": {
+    "source_sha256": "ab16e280b5c048c98093b5bd640ddb16d893e71d5864202f0bd052794401da11",
+    "outer_rows": 588,
+    "changed_outer_keys": [
+      "990001",
+      "990002"
+    ],
+    "other_rows_byte_exact": true,
+    "target_sha256": "36a946115ffddf8d034b51092d7c5bef1a11875df7845f606f3ecaf2a8b46a2d",
+    "effective_table_published": true
+  },
+  "native_motion_checks": {
+    "990001": {
+      "profile": {
+        "frames": 302,
+        "per_image_peaks": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "visible_instance_peak": 9,
+        "visible_instance_total": 2718,
+        "peak_frame": 0
+      },
+      "geometry": {
+        "all_frames": 302,
+        "visible_head_checks": 837,
+        "minimum_carousel_clearance_native_px": 30.0,
+        "failures": [],
+        "head_scene_ranges": {
+          "20_character_black_wolf_knight_wt26": [
+            295.79,
+            363.0,
+            536.0,
+            568.96
+          ],
+          "21_character_dimension_witch_smr20_ex": [
+            704.0,
+            386.0,
+            908.77,
+            598.96
+          ],
+          "22_character_touyakiren_ceo_ny26": [
+            506.0,
+            556.0,
+            693.0,
+            709.96
+          ]
+        }
+      },
+      "loop_seam": {
+        "maximum_translation_step_px": 0.091552734375,
+        "maximum_alpha_step": 0.0117647058823529
+      },
+      "gif_samples": 40,
+      "native_runtime_verified": false,
+      "source_revision": "v17",
+      "image_paths_resolved": 9,
+      "lettering_texture_scale": 1,
+      "lettering_pixels_preserved": true
+    },
+    "990002": {
+      "profile": {
+        "frames": 302,
+        "per_image_peaks": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "visible_instance_peak": 9,
+        "visible_instance_total": 2718,
+        "peak_frame": 0
+      },
+      "geometry": {
+        "all_frames": 302,
+        "visible_head_checks": 837,
+        "minimum_carousel_clearance_native_px": 25.0,
+        "failures": [],
+        "head_scene_ranges": {
+          "20_character_rec_android_seaside": [
+            240.79,
+            360.0,
+            436.0,
+            540.96
+          ],
+          "21_character_resistance_princess_ex": [
+            798.0,
+            358.0,
+            1005.77,
+            614.96
+          ],
+          "22_character_wind_spgirl_swim": [
+            465.0,
+            560.0,
+            614.0,
+            715.96
+          ]
+        }
+      },
+      "loop_seam": {
+        "maximum_translation_step_px": 0.091552734375,
+        "maximum_alpha_step": 0.0117647058823529
+      },
+      "gif_samples": 40,
+      "native_runtime_verified": false,
+      "source_revision": "v17",
+      "image_paths_resolved": 9,
+      "lettering_texture_scale": 1,
+      "lettering_pixels_preserved": true
+    }
+  },
+  "equipment_typography_revision": {
+    "category": "bond_weapon",
+    "revision": "v2_typography",
+    "checks": {
+      "revision": "bond_typography_v2",
+      "status": "offline_typography_checks_passed",
+      "text": "羁绊武器「强化」",
+      "font": "方正粗黑宋简体.ttf",
+      "native_images": [
+        {
+          "role": "entrance_banner",
+          "path": "bond_weapon_banner_v2.png",
+          "dimensions": [
+            1000,
+            184
+          ],
+          "sha256": "b94c74ae001569b3ba0e71796e4f0386ad201c7972bfaf5ceabd6a102178e48a"
+        },
+        {
+          "role": "exchange_header",
+          "path": "bond_weapon_header_v2.png",
+          "dimensions": [
+            1440,
+            556
+          ],
+          "sha256": "dea3d30a8b4fc7c97dce48c9001efa9aa6e55b2cf61702ee02a8506b76cca54f"
+        }
+      ],
+      "banner_font_size_display": {
+        "before": 39,
+        "after": 79
+      },
+      "banner_title_layer_size": {
+        "before": [
+          321,
+          50
+        ],
+        "after": [
+          625,
+          88
+        ]
+      },
+      "header_font_size_native": {
+        "before": 86,
+        "after": 114
+      },
+      "header_title_layer_size": {
+        "before": [
+          689,
+          96
+        ],
+        "after": [
+          901,
+          122
+        ]
+      },
+      "editable_v1_source_reproduction_pixel_exact": true,
+      "banner_checks": {
+        "changed_pixel_bounds": [
+          197,
+          46,
+          792,
+          126
+        ],
+        "protected_background_and_weapon_pixels_byte_exact": true
+      },
+      "header_checks": {
+        "changed_pixel_bounds": [
+          270,
+          206,
+          1159,
+          320
+        ],
+        "protected_background_and_weapon_pixels_byte_exact": true
+      },
+      "game_runtime_acceptance": "pending"
+    },
+    "visual_review_passed": true
+  },
+  "master_tables_preserved": {
+    "master/gacha/gacha.orderedmap": "b413c6a68b0fcc2309622860a5a8b0ca3a42ba4095a3f136f47a284326656fa2"
+  },
+  "equipment_category_table_preserved": {
+    "logical": "master/equipment_enhancement/equipment_enhancement_shop_category.orderedmap",
+    "sha256": "4d4f265e51dceb08bb4f3fe5a6095e09b8c33c99ebc9c27c28c85990ffbaa8d0",
+    "source_archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+    "referenced_category_keys": [
+      "5",
+      "6",
+      "7"
+    ]
+  },
+  "android_ios_shared_png": true,
+  "base_platform_tails": {
+    "android": "1.4.133",
+    "ios": "1.4.133"
+  },
+  "validation": {
+    "native_master_references_verified": true,
+    "strict_png_zip_readback_passed": true,
+    "zip_crc_passed": true,
+    "source_json_feature_rows_match_native_table": true,
+    "source_json_other_rows_preserved": true,
+    "loose_resources_match_archive": true,
+    "offline_terminal_replay_passed": true,
+    "prior_manifest_records_preserved": true,
+    "other_active_archives_unchanged": true,
+    "pristine_cdn_written": false
+  },
+  "save_impact": "none; no persisted ID, schema, probability, ticket or exchange rule changes",
+  "http_verification": "not_run; ordinary artwork update",
+  "game_runtime_acceptance": "pending"
+}

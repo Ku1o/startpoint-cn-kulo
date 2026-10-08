@@ -22,18 +22,18 @@ for (const platform of ["common", "medium", "android", "ios"]) {
 const root = path.resolve(__dirname, "..")
 const manifest = require("../assets/asset-patch/manifest.json")
 const patch = manifest.patches.find(
-    entry => entry.id === "dragon-awake-ability-refresh-1.4.131",
+    entry => entry.id === "dragon-awake-ability-refresh-1.4.135",
 )
 const assetRoutes = require("../out/routes/cn/asset").default
 const sha256 = raw => crypto.createHash("sha256").update(raw).digest("hex")
 
 test.after(() => fs.rmSync(temporary, { recursive: true, force: true }))
 
-test("the .131 refresh archive contains only the current terminal ability table", async () => {
+test("the .135 refresh archive contains only the current terminal ability table", async () => {
     assert.ok(patch)
-    assert.equal(manifest.cdn_version, "1.4.131")
-    assert.equal(patch.depends_on, "1.4.130")
-    assert.equal(patch.version, "1.4.131")
+    assert.equal(manifest.cdn_version, "1.4.135")
+    assert.equal(patch.depends_on, "1.4.134")
+    assert.equal(patch.version, "1.4.135")
     assert.equal(patch.enabled, true)
     assert.deepEqual(patch.chain, [patch.archive])
     assert.equal(patch.files.length, 1)
@@ -47,7 +47,7 @@ test("the .131 refresh archive contains only the current terminal ability table"
     assert.deepEqual(archive.files.map(file => file.path), patch.files)
     const payload = await archive.files[0].buffer()
     const report = require(
-        "../assets/asset-patch/audit/dragon-awake-ability-refresh-1.4.131/report.json"
+        "../assets/asset-patch/audit/dragon-awake-ability-refresh-1.4.135/report.json"
     )
     assert.equal(payload.length, report.resource.payload_bytes)
     assert.equal(sha256(payload), report.resource.payload_sha256)
@@ -55,7 +55,7 @@ test("the .131 refresh archive contains only the current terminal ability table"
 })
 
 for (const device of ["Android", "iOS"]) {
-    test(`${device}: .130 downloads the .131 ability refresh and .131 is current`, async t => {
+    test(`${device}: .134 downloads the .135 ability refresh and .135 is current`, async t => {
         const app = Fastify({ logger: false })
         await app.register(assetRoutes, { prefix: "/asset" })
         await app.register(require("@fastify/static"), {
@@ -68,7 +68,7 @@ for (const device of ["Android", "iOS"]) {
         const headers = {
             host: "127.0.0.1:8001",
             device,
-            res_ver: "1.4.130",
+            res_ver: "1.4.134",
             asset_size: "fulfill",
         }
         const response = await app.inject({
@@ -80,10 +80,10 @@ for (const device of ["Android", "iOS"]) {
         assert.equal(response.statusCode, 200)
         const update = response.json()
         assert.equal(update.data_headers.asset_update, true)
-        assert.equal(update.data.info.target_asset_version, "1.4.131")
-        const edge = update.data.diff.find(group => group.version === "1.4.131")
+        assert.equal(update.data.info.target_asset_version, "1.4.135")
+        const edge = update.data.diff.find(group => group.version === "1.4.135")
         assert.ok(edge)
-        assert.equal(edge.original_version, "1.4.130")
+        assert.equal(edge.original_version, "1.4.134")
         assert.deepEqual(
             edge.archive.map(file => path.posix.basename(file.location)),
             [patch.archive],
@@ -108,7 +108,7 @@ for (const device of ["Android", "iOS"]) {
         const current = await app.inject({
             method: "POST",
             url: "/asset/get_path",
-            headers: { ...headers, res_ver: "1.4.131" },
+            headers: { ...headers, res_ver: "1.4.135" },
             payload: {},
         })
         assert.equal(current.statusCode, 200)
@@ -117,12 +117,12 @@ for (const device of ["Android", "iOS"]) {
     })
 }
 
-test("the asset route publishes no unregistered .131 archive", async () => {
+test("the asset route publishes no unregistered .135 archive", async () => {
     const source = fs.readFileSync(path.join(root, "out/routes/cn/asset.js"), "utf8")
     const output = { exports: {} }
     const files = [
         { filename: patch.archive, size: patch.archive_size },
-        { filename: "pinball-1.4.130-1.4.131-1-held.zip", size: 1 },
+        { filename: "pinball-1.4.134-1.4.135-2-held.zip", size: 1 },
     ]
     const localRequire = name => {
         if (name.endsWith("/file-exists")) return { existsSync: () => false }
@@ -135,9 +135,9 @@ test("the asset route publishes no unregistered .131 archive", async () => {
         if (name.endsWith("/version")) return {
             getPatchManifest: () => manifest,
             computeAssetTarget: () => ({
-                targetVersion: "1.4.131",
+                targetVersion: "1.4.135",
                 isFirstTime: false,
-                fullVersion: "1.4.130",
+                fullVersion: "1.4.134",
             }),
         }
         return require(name)
@@ -157,7 +157,7 @@ test("the asset route publishes no unregistered .131 archive", async () => {
         const response = await app.inject({
             method: "POST",
             url: "/get_path",
-            headers: { device: "Android", res_ver: "1.4.130" },
+            headers: { device: "Android", res_ver: "1.4.134" },
             payload: {},
         })
         assert.equal(response.statusCode, 200)

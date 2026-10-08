@@ -40,13 +40,13 @@
 
 新增确定性生成器：
 
-`tools/fantasy-gauntlet-mod-tools/publish_dragon_awake_ability_refresh_1_4_131.py`
+`tools/fantasy-gauntlet-mod-tools/publish_dragon_awake_ability_refresh_1_4_135.py`
 
 生成新的资源版本边：
 
 ```text
-1.4.130 -> 1.4.131
-pinball-1.4.130-1.4.131-2-dragon-awake-ability-refresh-20261008.zip
+1.4.134 -> 1.4.135
+pinball-1.4.134-1.4.135-1-dragon-awake-ability-refresh-20261008.zip
 ```
 
 包内只有当前终态的一个成员：
@@ -58,26 +58,27 @@ production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001
 对应 `ability.orderedmap` 原始载荷 SHA-256：
 
 ```text
-6001908d0100bf8bfd2f71454499d0421d93d37ca38d162346ce13d87ff9995a
+413129be259ad4c3686489649ed6c4bbc143c722f595e126b9cbccec9dcfca74
 ```
 
 ZIP SHA-256：
 
 ```text
-c8b90780725cd7612cd0c4b8a6cd4242035ffaaef7406d64e828fb81ae11ab27
+05c76f648e4f7f5e4e09f5b58f113e60015e143b0d1b9443a80499baf214abf8
 ```
 
-该包不修改能力数值，只通过新版本号让 `.130` 客户端自动重新下载当前整表。
-Android 与 iOS 共用这张 common 主表。`.131` 客户端返回无更新。
+该包不修改能力数值，只通过新版本号让 `.134` 客户端自动重新下载当前整表。
+Android 与 iOS 共用这张 common 主表。`.135` 客户端返回无更新。
 
 详细回读证据：
 
-- `assets/asset-patch/audit/dragon-awake-ability-refresh-1.4.131/report.json`
-- `assets/asset-patch/audit/dragon-awake-ability-refresh-1.4.131/manifest-entry.json`
+- `assets/asset-patch/audit/dragon-awake-ability-refresh-1.4.135/report.json`
+- `assets/asset-patch/audit/dragon-awake-ability-refresh-1.4.135/manifest-entry.json`
 
-仓库另有一个未启用、未投放的 `.131` 救援铃铛候选，使用序号 1；本包使用序号 2。
-若未来序号 1 获批，两包可位于同一版本边并列下载，成员不重叠。其他开放资源 PR 仍是
-`candidate_only` 且没有分配版本，本次没有覆盖它们。
+同步最新 `staging` 后，资源链已由凉月与活动收尾推进到 `.134`，且凉月 `.131` 包内
+包含更新后的整张能力表。旧方案若继续在 `.130 -> .131` 以序号 2 重发较早整表，
+会覆盖凉月等新角色能力。因此刷新包重锚到链尾 `.134 -> .135`，并直接复用凉月之后
+的最新能力整表；`.131-.134` 的资源内容不会被回退。
 
 ## 问题二：普通共斗 AI 携带幻想装备
 
@@ -132,7 +133,7 @@ PR #24 分支中曾实现过 AI 发布前卸下违规装备，但该 PR 尚未�
 资源生成与内容检查：
 
 ```bash
-python3 -B tools/fantasy-gauntlet-mod-tools/publish_dragon_awake_ability_refresh_1_4_131.py
+python3 -B tools/fantasy-gauntlet-mod-tools/publish_dragon_awake_ability_refresh_1_4_135.py
 env PYTHONPATH=tools/fantasy-gauntlet-mod-tools python3 -B -m unittest \
   tools/fantasy-gauntlet-mod-tools/tests/test_dragon_awake_ability_refresh.py -v
 ```
@@ -148,8 +149,8 @@ node tools/run-isolated-check.cjs --test \
   tests/asset-manifest-publication.test.cjs
 ```
 
-结果：资源专项 4/4、manifest 发布边界 2/2。Android/iOS `.130` 均只取得已登记的
-`.131` 刷新包，下载字节和 SHA-256 匹配；`.131` 不重复下载；未登记同边 ZIP 不发布。
+结果：资源专项 4/4、manifest 发布边界 2/2。Android/iOS `.134` 均只取得已登记的
+`.135` 刷新包，下载字节和 SHA-256 匹配；`.135` 不重复下载；未登记同边 ZIP 不发布。
 
 AI 与多人：
 
@@ -179,16 +180,16 @@ node tools/run-isolated-check.cjs --test \
 部署需要同时更新：
 
 - `assets/asset-patch/manifest.json`；
-- `.131` 资源 ZIP；
+- `.135` 资源 ZIP；
 - AI 过滤相关 `src` 与受版本控制的 `out`；
 - 新增 AI 运行模块 `out/multi/npc/equipment-policy.js`。
 
 更新后需要重启服务端，使新代码和 manifest 生效。玩家无需重新安装客户端；
-从 `.130` 进入时会下载约 193 KiB 的能力表刷新包。已是错误同版本 `.131` 的测试设备
+从 `.134` 进入时会下载约 191 KiB 的能力表刷新包。已是错误同版本 `.135` 的测试设备
 仍不会重复拉取，需要先确认其资源版本来源后单独处理，不能通过同版本换包解决。
 
-回退服务端代码需恢复上一完整版本并重启。资源版本一旦正式投放，不应仅删除 `.131`
-包或把 manifest 静默退回 `.130`，否则已上报 `.131` 的客户端会形成断链；应发布新的
+回退服务端代码需恢复上一完整版本并重启。资源版本一旦正式投放，不应仅删除 `.135`
+包或把 manifest 静默退回 `.134`，否则已上报 `.135` 的客户端会形成断链；应发布新的
 前向修复版本。
 
 当前随独立修复 PR 提交评审，尚未部署或真机验收；PR 目标为 `staging`，

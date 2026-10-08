@@ -17,6 +17,8 @@ const files = [
     'tests/multi-guest-eligibility.test.js',
     'tests/multi-room-disband-protocol.test.js',
     'tests/multi-equipment-entry-dialog.test.js',
+    'tests/multi-equipment-ready-http.test.cjs',
+    'tests/c2330-party-edit-guard.test.cjs',
     'tests/npc-fantasy-equipment-filter.test.cjs',
     'tests/npc-party-pool-equipment-admission.test.cjs',
     'tests/fantasy-equipment-party-gate.test.cjs',

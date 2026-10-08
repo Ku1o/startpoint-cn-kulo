@@ -1,0 +1,52 @@
+{
+  "status": "built_verified",
+  "base": "1.4.131",
+  "version": "1.4.132",
+  "created_at": "2026-10-07",
+  "archive": {
+    "name": "pinball-1.4.131-1.4.132-1-midautumn-orochi-event-closure-20261007.zip",
+    "size": 998400,
+    "sha256": "5f4ea72e83c3395a69193cdaac5504705491f355f3c2bcb16247b97ab4d39f32",
+    "members": 4,
+    "files": [
+      "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+      "production/upload/15/83d96aad4b9a46d19d19b6555d3f4232b29e25",
+      "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d"
+    ]
+  },
+  "source_resources": {
+    "master/gacha/gacha.orderedmap": {
+      "archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+      "version": "1.4.123"
+    },
+    "master/shop/boss_coin_shop.orderedmap": {
+      "archive": "pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip",
+      "version": "1.4.124"
+    },
+    "master/quest/boss_battle/boss_battle_multi_pickup_event.orderedmap": {
+      "archive": "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip",
+      "version": "1.4.120"
+    },
+    "master/quest/boss_battle/boss_battle_multi_pickup_event_schedule.orderedmap": {
+      "archive": "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip",
+      "version": "1.4.120"
+    }
+  },
+  "changes": [
+    "gacha 990003 end date 2025-01-01 00:00:00",
+    "remove shop mooncake 202045; make 202046–202048 permanent",
+    "remove pickup event 90000023 row",
+    "remove pickup schedule 90000023 row"
+  ],
+  "validation": {
+    "zip_reopened": true,
+    "member_bytes_match": true,
+    "orderedmap_target_rows_validated": true,
+    "untouched_rows_preserved": true,
+    "pristine_cdn_written": false,
+    "server_runtime_tested": false,
+    "deployed": false,
+    "pickup_event_and_schedule_rows_absent": true
+  }
+}

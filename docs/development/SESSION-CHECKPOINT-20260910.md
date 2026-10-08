@@ -10,7 +10,8 @@
 - 文件：`assets/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-lens0910-consolidated.zip`。
 - 40,081,641 字节；600 个成员；SHA-256：`2af51b045cf16766c0dcaaa9239564d8e383201695a187a515826858ef98d971`。
 - 原本地 1.4.104 至 1.4.112 的九个测试增量按版本顺序覆盖，同名资源取最后版本；600 个成员逐项等于旧测试链终态。连同九个未变的原生资源，最终有效清单验证 609 项。
-- 历史测试 ZIP、独立称号和莱特增量只在 `active/candidates/` 中保留作追溯输入，不放入实际扫描的 `active/*.zip`。源工作区的暂缓内容另见下文。
+- 历史测试 ZIP、独立称号和莱特增量只在 `inactive/candidates/` 中保留作追溯输入，不放入实际扫描的 `active/*.zip`。源工作区的暂缓内容另见下文。
+  （2026-10-06：该目录已从 `active/candidates/` 移至 `assets/asset-patch/inactive/candidates/`，字节未变；`active/` 树内不再放本地测试候选。）
 - 合并器：`tools/lens-integration/consolidate_session_cdn.py`；输入哈希、逻辑路径、终态哈希及新清单在 `assets/asset-patch/audit/session-consolidated-1.4.104/`。
 - 合并后下一项新内容必须基于已提交的 1.4.104 终态追加，不能拿历史 1.4.112 清单或旧测试 ZIP 当发布链。
 
