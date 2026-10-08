@@ -230,13 +230,14 @@
 
 ### 8.1 版本边与 manifest 纪律
 
-- 新边版本必须高于客户端当前 `res_ver`；同批替换旧边不会触发已更新客户端重新下载；
+- 新边从实际已启用链尾顺序推进，不能改写已发布边；需要确认指定设备的升级范围时，使用其真实请求 `RES_VER`，不把服务端边起点当作设备状态；同批替换旧边不会触发已更新客户端重新下载；
 - 全表 payload 新增 outer key 必须同步进 manifest 的 `tables[].outer_keys`，否则出现 unclaimed_change 冲突；
 - 发布前必须先跑 `wf_character_flow preflight`（刷新 `release_ready`），不允许跳过 preflight 直接 publish；
 - 发布脚本写盘前执行门禁 1（路径断言）与门禁 2（key union），对 live store 漂移 fail-closed；
 - 已发布边不改写；补漏与纠错用新边；一版多包按 `pinball-<from>-<to>-<seq>-<suffix>.zip` 协议拆分，客户端全量下载；
 - `package_version` 按字符串比较，版本规划避免降序；
-- 发布后校验：ZIP 成员/CRC/字节回读；loose 端点字节；真实准入 HTTP（get_path、version_info、下载哈希）；轻量与完整握手按第 9 节分层选择。
+- 发布后必要检查：资源格式与原生路径、ZIP 成员/CRC/字节回读、manifest 对应关系、受影响资源的离线终态，以及本地 loose 资源与 ZIP 字节一致性（存在单文件交付路径时）。这些检查不要求另行 HTTP 下载。
+- HTTP 是按需证据层：下载/版本故障、受影响 HTTP 路由或准入改动、无客户端且确需确认下发、或明确要求 HTTP 验收时，复用 `tools/cdn-http-probe.cjs`；普通增量及普通开服不自动触发。客户端正在实际下载并验收时，不重复下载同批资源；清单查询、下载哈希与游戏内验收分别记录。
 
 落地状态注记：截至本文档成稿，`tools/fantasy-gauntlet-mod-tools/wf_character_flow.py` 的路径断言 / outer key union / live store fail-closed 硬化尚未落地，先由本清单与任务侧发布脚本（各批次 `build_edge_*.py`、`finalize_*.py`）执行；硬化完成后回填本节与 SKILL。
 
@@ -250,7 +251,7 @@
 ### 8.3 事故回滚与重做
 
 - 发布后出现崩溃或表现事故时，先发逐字节回滚边：从事故前的有效来源取回受影响成员字节，断言全部成员逐字节一致、既有修复不受影响、本边不含新内容；
-- 回滚边同样走正式流程：active + manifest + audit + HTTP 回执；
+- 回滚边同样走正式资源流程：active + manifest + audit、逐字节恢复与离线终态检查；HTTP 按上述触发条件执行，另记客户端回归验收的实际状态；
 - 回滚后用客户端语义做根因复核，再把修正作为新边重做；事故样本保留为负例校验样本；
 - 案例：1.4.143 基础帧修正事故 → 1.4.144 逐字节回滚（2 个成员恢复到 1.4.142 行为，6 个未变成员与 1.4.134 `sounds` 修复保持原字节）→ 根因定位（客户端锚点公式）→ 1.4.145 v2 修正（复用 1.4.143 的 sheet、修正 atlas），并以负例重放验证。
 
@@ -260,11 +261,11 @@
 | --- | --- | --- | --- |
 | L0 静态/结构 | key 集、AMF3 往返、成员/CRC、格式与路径断言 | validation-report、candidate-verification | 客户端能加载 |
 | L1 离线回放 | 有效链终态、客户端存储模拟、解析器/描述链回放、客户端语义渲染、存档引用解析 | keys-union.json、replay-*.json、client-semantics-verification.json、account-save-resolution.json | 服务端下发正确 |
-| L2 服务端 | 源仓库 8001：get_path/version_info、active ZIP 与 loose 下载字节 | live-http-verification-*.json | 客户端加载与表现 |
+| L2 服务端（按需） | 源仓库 8001：更新清单；明确需要时再核对下载字节 | cdn-http-probe 结果、live-http-verification-*.json | 客户端加载与表现；仅查清单也不代表下载哈希通过 |
 | L3 客户端运行 | MuMu/设备：领取演出、详情页、练习战、语音 | latest.log、服务端 `/crash` 观察、练习战记录 | 另一平台或全部路径 |
 | L4 真机验收 | 人工确认的可见行为与体验 | 验收登记 | 未覆盖的分支 |
 
-规则：低层级不能替代高层级；HTTP 200 ≠ 客户端加载；Android 通过 ≠ iOS 通过；离线预览 ≠ 训练场/真机表现；每项结论必须标注覆盖的机制与平台。
+规则：证据层用于说明覆盖范围，不表示每个任务都必须逐层执行。低层级不能冒充高层级；HTTP 200 ≠ 客户端加载；Android 通过 ≠ iOS 通过；离线预览 ≠ 训练场/真机表现；每项结论必须标注覆盖的机制与平台。纯开服确认就绪后交给客户端测试，不补跑全部层级。
 
 ## 10. 案例索引（凉月 159992 / `liangyue_onmyoji`，2026-10）
 
@@ -330,5 +331,5 @@
 | 工坊 | 声明行 schema 与先例（Bool/枚举/`(None)`） | `StarPoint-Character-Studio:core/wf_client_legality.py`、`StarPoint-Character-Studio:core/wf_ability_composer.py` | 问题清单 |
 | 工坊 | 包内必读、声明字段、三段式检查 | `StarPoint-Character-Studio:studio_core.py` | 检查报告 |
 | 服务端 | 输出路径断言（禁 `.cdn`；`active/` + manifest + `audit/`）、outer key union、结构契约、解析器契约 | `tools/fantasy-gauntlet-mod-tools/wf_character_gates.py` + CLI `tools/lens-integration/check_character_edge.py` | fail-closed CLI 输出 / 逐键 diff |
-| 服务端 | 发布链（边号、manifest、audit、HTTP 轻量复核）与 `wf_character_flow` preflight | `tools/fantasy-gauntlet-mod-tools/wf_character_flow.py` + 发布脚本 | manifest/audit/回执 |
+| 服务端 | 发布链（边号、manifest、audit、离线终态）与 `wf_character_flow` preflight；HTTP 按需 | `tools/fantasy-gauntlet-mod-tools/wf_character_flow.py` + 发布脚本；`tools/cdn-http-probe.cjs` | manifest/audit/实际检查回执 |
 | 客户端（按需） | SWF/APK/IPA 构建与准入推进 | 本仓库 `client-patch/`（需单独授权） | 客户端验收登记 |
