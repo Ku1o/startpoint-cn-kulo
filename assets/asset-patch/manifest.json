@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.133",
+  "cdn_version": "1.4.134",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -25044,6 +25044,83 @@
         "gacha 990001：加入 12 名中秋国庆 MOD，各 0.200%；上一批 7 名角色改为可兑换；其他非 MOD ★5 按比例降权，五星总权重保持 150000。",
         "gacha 990002：加入 12 名中秋国庆 MOD，各 1.000% 且可兑换；其他非 MOD ★5 按比例降权，五星总权重保持 950000。",
         "同步两个池的五星 odds orderedmap、兑换标记与注意事项文本。"
+      ],
+      "created_at": "2026-10-08"
+    },
+    {
+      "id": "abyss-race-gacha-art-1.4.134",
+      "type": "patch",
+      "name": "两池美术及原生动效、特殊装备强化美术更新",
+      "description": "两池V17美术及原生动效、三类特殊装备强化六图；羁绊入口及页头标题按原生尺寸放大。",
+      "version": "1.4.134",
+      "depends_on": "1.4.133",
+      "enabled": true,
+      "archive": "pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip",
+      "archive_size": 12158571,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip",
+          "size": 12158571,
+          "sha256": "e52e774e2ae29f939ecf1f8b2953d5a08a4c0cd8a02f411b4acd6d4cabbbd605",
+          "members": 19,
+          "files": [
+            "production/medium_upload/2e/90dc513fa80bd0379f05c2c7cc9726b0095b91",
+            "production/medium_upload/a6/b5535a3f19f3e5b25e424539855a6f98329c6a",
+            "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+            "production/upload/3a/e3b5640308a14d625b6e145dc0e6d644b1d665",
+            "production/upload/48/b6568681569b6093086ec66a8c1cf7d11d9974",
+            "production/upload/53/6f7b4ab3337d4e69e96031a8a6225fb2992039",
+            "production/upload/57/1cc27e74bea16bd735ed63e735677f48b586ec",
+            "production/upload/5d/d1b0c8d4b7f784df0458f374de40eb6b9eb2b8",
+            "production/upload/6b/6e638ae42a1fbe5c30d9bea763030353908802",
+            "production/upload/76/6b00cfc98f76a10d78c5db4b0790ba4ddf5d67",
+            "production/upload/7c/f800d476d22c358cfb636336c73c9d606e4987",
+            "production/upload/9e/586e8f71ece28e40b14901b4b0733f88dc895b",
+            "production/upload/ae/8021ebe46ff88449645a35eab0c80118614c55",
+            "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+            "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea",
+            "production/upload/ca/b606ba358f48b1f4f5641c225517175b73d417",
+            "production/upload/cd/7d47ee3d63ab7bdfd36985a11436281dfbeeb0",
+            "production/upload/d4/70daa9156982b7604d2389beffb540cfb9afb3",
+            "production/upload/f4/ac70b4f3c74ff03f77ac1054fbd9a2dc6d58f0"
+          ]
+        }
+      ],
+      "files": [
+        "production/medium_upload/2e/90dc513fa80bd0379f05c2c7cc9726b0095b91",
+        "production/medium_upload/a6/b5535a3f19f3e5b25e424539855a6f98329c6a",
+        "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+        "production/upload/3a/e3b5640308a14d625b6e145dc0e6d644b1d665",
+        "production/upload/48/b6568681569b6093086ec66a8c1cf7d11d9974",
+        "production/upload/53/6f7b4ab3337d4e69e96031a8a6225fb2992039",
+        "production/upload/57/1cc27e74bea16bd735ed63e735677f48b586ec",
+        "production/upload/5d/d1b0c8d4b7f784df0458f374de40eb6b9eb2b8",
+        "production/upload/6b/6e638ae42a1fbe5c30d9bea763030353908802",
+        "production/upload/76/6b00cfc98f76a10d78c5db4b0790ba4ddf5d67",
+        "production/upload/7c/f800d476d22c358cfb636336c73c9d606e4987",
+        "production/upload/9e/586e8f71ece28e40b14901b4b0733f88dc895b",
+        "production/upload/ae/8021ebe46ff88449645a35eab0c80118614c55",
+        "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+        "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea",
+        "production/upload/ca/b606ba358f48b1f4f5641c225517175b73d417",
+        "production/upload/cd/7d47ee3d63ab7bdfd36985a11436281dfbeeb0",
+        "production/upload/d4/70daa9156982b7604d2389beffb540cfb9afb3",
+        "production/upload/f4/ac70b4f3c74ff03f77ac1054fbd9a2dc6d58f0"
+      ],
+      "chain": [
+        "pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/abyss-race-gacha-art-1.4.134",
+        "report": "report.json"
+      },
+      "changes": [
+        "更新两池主视觉避开顶部轮播，保留已确认510×180横幅。",
+        "接入两池原生Movie、时间线及共享图集；背光、星芒与轻微浮动。",
+        "feature主表仅变更990001/990002第一页，其余586行字节保留。",
+        "版本及依赖仍为1.4.133→1.4.134，不改池概率、券、兑换或客户端安装包。",
+        "补入羁绊武器、诅咒武器（重宋碑刻）、深渊武装的入口横幅及兑换页头，共六张；原13项逐字节保留。",
+        "放大羁绊武器强化入口与页头标题，保持棕金背景、武器及其余17个资源成员字节不变。"
       ],
       "created_at": "2026-10-08"
     }
