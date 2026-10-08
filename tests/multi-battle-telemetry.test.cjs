@@ -47,6 +47,11 @@ test('one summary per battle with per-member gaps, warnings, disconnects and bar
     assert.equal(host.levelNext, 1)
     assert.equal(host.lineSpeedWarnings, 1)
     assert.equal(host.maxInboundGapMs, 31_000)
+    assert.deepEqual(host.longGaps, [
+        { ms: 5_000, atMs: 5_200, scene: 0 },
+        { ms: 31_000, atMs: 36_200, scene: 0 },
+        { ms: 1_000, atMs: 37_210, scene: 1 },
+    ], 'the silence up to battle end counts too')
     assert.equal('lastInboundAt' in host, false)
     const guest = summary.members.find(member => member.viewer === 12)
     assert.equal(guest.relayedOut, 1)
@@ -80,6 +85,7 @@ test('disconnect includes final silence without counting time after the connecti
     const summary = telemetry.end('880001', 'disbanded:test')
     assert.equal(summary.members[0].maxInboundGapMs, 90_000)
     assert.deepEqual(summary.members[0].disconnects, { level_next_timeout: 1 })
+    assert.deepEqual(summary.members[0].longGaps, [{ ms: 90_000, atMs: 90_100, scene: 0 }])
 })
 
 test('a live connection replacement preserves silence before the replacement was accepted', () => {
@@ -118,6 +124,27 @@ test('a connection with no inbound packet still reports silence through battle e
     const summary = telemetry.end('880001', 'disbanded:test')
     assert.equal(summary.members[0].maxInboundGapMs, 90_000)
     assert.equal(summary.members[0].packets, 0)
+})
+
+test('long inbound gaps keep the three longest in time order with their scene', () => {
+    let now = 1_000
+    const telemetry = new BattleTelemetry(() => now, () => {}, 2)
+    telemetry.begin(room())
+    const report = maxGapMs => telemetry.relayActivity('880001', 11,
+        { packets: 1, broadcasts: 1, lineSpeedWarnings: 0, maxGapMs, relayedOut: 2 })
+    now += 1_000; report(2_000)
+    now += 1_000; report(999)
+    now += 1_000; telemetry.packet('880001', 11, 0, 1)
+    now += 1_000; report(6_000)
+    now += 1_000; report(1_500)
+    now += 1_000; report(4_000)
+    const host = telemetry.end('880001', 'returning:settlement').members.find(member => member.viewer === 11)
+    assert.equal(host.maxInboundGapMs, 6_000)
+    assert.deepEqual(host.longGaps, [
+        { ms: 2_000, atMs: 1_000, scene: 0 },
+        { ms: 6_000, atMs: 4_000, scene: 1 },
+        { ms: 4_000, atMs: 6_000, scene: 1 },
+    ])
 })
 
 test('events for rooms without an active battle are ignored and recent history is bounded', () => {

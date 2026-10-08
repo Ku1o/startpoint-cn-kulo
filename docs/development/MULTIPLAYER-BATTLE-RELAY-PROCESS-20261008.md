@@ -86,7 +86,8 @@ CN 客户端联机战斗是帧同步（`pinball/scene/battle/derailleur/BattleDe
   即生效。
 - **Windows 需要实测**：socket 句柄跨进程传递依赖 Node 的 IPC 句柄传递，在 Windows 上 Node/libuv 支持 TCP
   句柄，但本 PR 只在 Linux 上跑过测试。测试服要先确认三人联机能进战斗、能正常结算。
-- 观察指标：`[MULTI-BATTLE]` 的 `maxInboundGapMs`（开启后由子进程按到达时间测量，不再包含主线程卡顿）、
+- 观察指标：`[MULTI-BATTLE]` 的 `maxInboundGapMs`（开启后由子进程按到达时间测量，不再包含主线程卡顿）和
+  `longGaps`（每名成员最长的 3 段 ≥1 秒静默：时长 `ms`、距开战 `atMs`、发生时已换场次数 `scene`）、
   `tcpDisconnects.relay_exit`（应为 0）、`[BATTLE-RELAY]` 日志。
 - 回退：删除该变量或设为 0 后重启，回到原来的主进程转发。代码回退连同 `out/` 一起回退即可，无数据库变更。
 

@@ -31,6 +31,9 @@ function enabled() {
 }
 const LAG_SAMPLE_MS = 1000;
 const MAX_BARRIERS = 8;
+/** Inbound silences at least this long are listed per member (top MAX_LONG_GAPS by length). */
+const LONG_GAP_MS = 1000;
+const MAX_LONG_GAPS = 3;
 class BattleTelemetry {
     constructor(now = Date.now, emit = line => console.warn(line), maxRecent = positiveInteger("MULTI_BATTLE_TELEMETRY_RECENT", 100, 0, 1000)) {
         this.now = now;
@@ -69,7 +72,7 @@ class BattleTelemetry {
             return undefined;
         const endedAt = this.now();
         for (const member of session.members.values())
-            this.observeInboundGap(member, endedAt);
+            this.observeInboundGap(roomNumber, member, endedAt);
         this.sampleLag();
         this.sessions.delete(roomNumber);
         if (this.sessions.size === 0)
@@ -115,7 +118,7 @@ class BattleTelemetry {
                 return undefined;
             member = {
                 viewer, connections: 0, packets: 0, broadcasts: 0, sceneReady: 0, levelNext: 0, finalize: 0,
-                lineSpeedWarnings: 0, maxInboundGapMs: 0, lastInboundAt: 0, relayedOut: 0,
+                lineSpeedWarnings: 0, maxInboundGapMs: 0, longGaps: [], lastInboundAt: 0, relayedOut: 0,
                 backpressureEpisodes: 0, maxBackpressureMs: 0, disconnects: {},
             };
             session.members.set(viewer, member);
@@ -127,14 +130,14 @@ class BattleTelemetry {
         if (!member)
             return;
         const now = this.now();
-        this.observeInboundGap(member, now);
+        this.observeInboundGap(roomNumber, member, now);
         member.connections++;
         member.lastInboundAt = now;
     }
-    observeInboundGap(member, at) {
+    observeInboundGap(roomNumber, member, at) {
         if (member.lastInboundAt <= 0)
             return;
-        member.maxInboundGapMs = Math.max(member.maxInboundGapMs, at - member.lastInboundAt);
+        this.noteGap(roomNumber, member, at - member.lastInboundAt);
     }
     /** transportTag: Client2Server index; notifyTag: BattleNotifyMessage index for Notify frames. */
     packet(roomNumber, viewer, transportTag, notifyTag) {
@@ -142,7 +145,7 @@ class BattleTelemetry {
         if (!member)
             return;
         const now = this.now();
-        this.observeInboundGap(member, now);
+        this.observeInboundGap(roomNumber, member, now);
         member.lastInboundAt = now;
         member.packets++;
         if (transportTag === 1 || transportTag === 2)
@@ -169,10 +172,28 @@ class BattleTelemetry {
         member.relayedOut += activity.relayedOut;
         // The child timestamps frames on arrival; gaps measured here would
         // include main event-loop stalls and the report interval.
-        if (activity.maxGapMs > member.maxInboundGapMs)
-            member.maxInboundGapMs = activity.maxGapMs;
+        this.noteGap(roomNumber, member, activity.maxGapMs);
         if (activity.packets > 0)
             member.lastInboundAt = this.now();
+    }
+    noteGap(roomNumber, member, gapMs) {
+        if (gapMs > member.maxInboundGapMs)
+            member.maxInboundGapMs = gapMs;
+        if (gapMs < LONG_GAP_MS)
+            return;
+        const session = this.sessions.get(roomNumber);
+        if (!session)
+            return;
+        member.longGaps.push({
+            ms: Math.round(gapMs),
+            atMs: Math.round(this.now() - session.startedAt),
+            scene: member.levelNext,
+        });
+        if (member.longGaps.length > MAX_LONG_GAPS) {
+            member.longGaps.sort((a, b) => b.ms - a.ms);
+            member.longGaps.length = MAX_LONG_GAPS;
+            member.longGaps.sort((a, b) => a.atMs - b.atMs);
+        }
     }
     relayed(roomNumber, viewer) {
         const member = this.member(roomNumber, viewer);
@@ -194,7 +215,7 @@ class BattleTelemetry {
         const member = this.member(roomNumber, viewer);
         if (!member)
             return;
-        this.observeInboundGap(member, this.now());
+        this.observeInboundGap(roomNumber, member, this.now());
         // A departed member is no longer silent on an open battle connection.
         // Reconnecting begins a fresh interval in connected().
         member.lastInboundAt = 0;

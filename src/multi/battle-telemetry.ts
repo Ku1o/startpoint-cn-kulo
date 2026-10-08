@@ -18,6 +18,13 @@ interface MemberStats {
     lineSpeedWarnings: number
     /** Longest inbound silence, including the tail up to disconnect or battle end. */
     maxInboundGapMs: number
+    /**
+     * The longest inbound silences of at least 1 s, including the tail up to
+     * disconnect or battle end: length, when it ended (ms since the battle started) and which scene the member was in (0 = first,
+     * counted by its LevelNext frames). Locates a silence at a scene change or
+     * mid-fight.
+     */
+    longGaps: Array<{ ms: number; atMs: number; scene: number }>
     lastInboundAt: number
     relayedOut: number
     backpressureEpisodes: number
@@ -71,6 +78,9 @@ function enabled(): boolean {
 
 const LAG_SAMPLE_MS = 1_000
 const MAX_BARRIERS = 8
+/** Inbound silences at least this long are listed per member (top MAX_LONG_GAPS by length). */
+const LONG_GAP_MS = 1_000
+const MAX_LONG_GAPS = 3
 
 export class BattleTelemetry {
     private readonly sessions = new Map<string, BattleSession>()
@@ -116,7 +126,7 @@ export class BattleTelemetry {
         const session = this.sessions.get(roomNumber)
         if (!session) return undefined
         const endedAt = this.now()
-        for (const member of session.members.values()) this.observeInboundGap(member, endedAt)
+        for (const member of session.members.values()) this.observeInboundGap(roomNumber, member, endedAt)
         this.sampleLag()
         this.sessions.delete(roomNumber)
         if (this.sessions.size === 0) this.stopLagSampler()
@@ -153,7 +163,7 @@ export class BattleTelemetry {
             if (session.members.size >= 8) return undefined
             member = {
                 viewer, connections: 0, packets: 0, broadcasts: 0, sceneReady: 0, levelNext: 0, finalize: 0,
-                lineSpeedWarnings: 0, maxInboundGapMs: 0, lastInboundAt: 0, relayedOut: 0,
+                lineSpeedWarnings: 0, maxInboundGapMs: 0, longGaps: [], lastInboundAt: 0, relayedOut: 0,
                 backpressureEpisodes: 0, maxBackpressureMs: 0, disconnects: {},
             }
             session.members.set(viewer, member)
@@ -165,14 +175,14 @@ export class BattleTelemetry {
         const member = this.member(roomNumber, viewer)
         if (!member) return
         const now = this.now()
-        this.observeInboundGap(member, now)
+        this.observeInboundGap(roomNumber, member, now)
         member.connections++
         member.lastInboundAt = now
     }
 
-    private observeInboundGap(member: MemberStats, at: number): void {
+    private observeInboundGap(roomNumber: string, member: MemberStats, at: number): void {
         if (member.lastInboundAt <= 0) return
-        member.maxInboundGapMs = Math.max(member.maxInboundGapMs, at - member.lastInboundAt)
+        this.noteGap(roomNumber, member, at - member.lastInboundAt)
     }
 
     /** transportTag: Client2Server index; notifyTag: BattleNotifyMessage index for Notify frames. */
@@ -180,7 +190,7 @@ export class BattleTelemetry {
         const member = this.member(roomNumber, viewer)
         if (!member) return
         const now = this.now()
-        this.observeInboundGap(member, now)
+        this.observeInboundGap(roomNumber, member, now)
         member.lastInboundAt = now
         member.packets++
         if (transportTag === 1 || transportTag === 2) member.broadcasts++
@@ -208,8 +218,25 @@ export class BattleTelemetry {
         member.relayedOut += activity.relayedOut
         // The child timestamps frames on arrival; gaps measured here would
         // include main event-loop stalls and the report interval.
-        if (activity.maxGapMs > member.maxInboundGapMs) member.maxInboundGapMs = activity.maxGapMs
+        this.noteGap(roomNumber, member, activity.maxGapMs)
         if (activity.packets > 0) member.lastInboundAt = this.now()
+    }
+
+    private noteGap(roomNumber: string, member: MemberStats, gapMs: number): void {
+        if (gapMs > member.maxInboundGapMs) member.maxInboundGapMs = gapMs
+        if (gapMs < LONG_GAP_MS) return
+        const session = this.sessions.get(roomNumber)
+        if (!session) return
+        member.longGaps.push({
+            ms: Math.round(gapMs),
+            atMs: Math.round(this.now() - session.startedAt),
+            scene: member.levelNext,
+        })
+        if (member.longGaps.length > MAX_LONG_GAPS) {
+            member.longGaps.sort((a, b) => b.ms - a.ms)
+            member.longGaps.length = MAX_LONG_GAPS
+            member.longGaps.sort((a, b) => a.atMs - b.atMs)
+        }
     }
 
     relayed(roomNumber: string, viewer: number): void {
@@ -228,7 +255,7 @@ export class BattleTelemetry {
     disconnected(roomNumber: string, viewer: number, reason: string): void {
         const member = this.member(roomNumber, viewer)
         if (!member) return
-        this.observeInboundGap(member, this.now())
+        this.observeInboundGap(roomNumber, member, this.now())
         // A departed member is no longer silent on an open battle connection.
         // Reconnecting begins a fresh interval in connected().
         member.lastInboundAt = 0
