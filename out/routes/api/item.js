@@ -40,22 +40,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(session.accountId);
         if (!playerId)
             return reply.status(500).send({ "error": "Internal Server Error", "message": "No player bound to account." });
-        const player = (0, player_1.getPlayerSync)(playerId);
-        if (!player)
+        if (!(0, player_1.getPlayerSync)(playerId))
             return reply.status(500).send({ "error": "Internal Server Error", "message": "Player not found." });
         const config = (0, assets_1.getConfigSync)();
         const maxOverflow = config.max_stamina_overflow;
         let totalStaminaRecovery = 0;
-        const itemUpdates = [];
+        // Aggregate repeated entries for the same item so ownership is checked
+        // against the combined amount, not once per entry.
+        const requestedCounts = new Map();
         let hasStaminaItem = false;
         for (const itemReq of body.items) {
-            const itemId = itemReq.id;
-            const requestCount = itemReq.number;
-            if (!Number.isInteger(itemId) || itemId <= 0) {
+            const itemId = itemReq === null || itemReq === void 0 ? void 0 : itemReq.id;
+            const requestCount = itemReq === null || itemReq === void 0 ? void 0 : itemReq.number;
+            if (!Number.isSafeInteger(itemId) || itemId <= 0) {
                 console.warn(`[ITEM-USE] invalid item id: ${itemId}`);
                 continue;
             }
-            if (!Number.isInteger(requestCount) || requestCount <= 0) {
+            if (!Number.isSafeInteger(requestCount) || requestCount <= 0) {
                 console.warn(`[ITEM-USE] invalid count: ${requestCount} for item ${itemId}`);
                 continue;
             }
@@ -70,10 +71,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 console.warn(`[ITEM-USE] item ${itemId} effectKind=${effectKind}, not a stamina item, skipping`);
                 continue;
             }
-            // Verify ownership
-            const currentCount = (_a = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _a !== void 0 ? _a : 0;
-            if (currentCount < requestCount) {
-                console.warn(`[ITEM-USE] player ${playerId} has ${currentCount} of item ${itemId}, requested ${requestCount}`);
+            const combinedCount = ((_a = requestedCounts.get(itemId)) !== null && _a !== void 0 ? _a : 0) + requestCount;
+            if (!Number.isSafeInteger(combinedCount)) {
                 return reply.status(400).send({ "error": "Bad Request", "message": "Insufficient items." });
             }
             let recoveryAmount;
@@ -91,7 +90,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 recoveryAmount = 0;
             }
             totalStaminaRecovery += recoveryAmount * requestCount;
-            itemUpdates.push({ id: itemId, newCount: currentCount - requestCount });
+            requestedCounts.set(itemId, combinedCount);
             hasStaminaItem = true;
         }
         if (!hasStaminaItem) {
@@ -102,18 +101,30 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             console.warn(`[ITEM-USE] zero total recovery`);
             return reply.status(400).send({ "error": "Bad Request", "message": "Zero recovery." });
         }
-        const currentStamina = (0, stamina_1.computeRealTimeStamina)(player);
-        if (currentStamina >= maxOverflow) {
-            console.log(`[ITEM-USE] player ${playerId} already at max stamina (${currentStamina} >= ${maxOverflow})`);
-            return reply.status(400).send({ "error": "Bad Request", "code": 2102, "message": "Already at max stamina." });
-        }
-        const afterStamina = Math.min(currentStamina + totalStaminaRecovery, maxOverflow);
-        // Keep item consumption and stamina recovery in one player-owned
-        // persistence transaction so a partial batch cannot consume items
-        // without applying the corresponding recovery.
-        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+        // Ownership, current stamina, item consumption and stamina recovery are
+        // all handled inside one player-owned persistence transaction so
+        // overlapping requests cannot consume the same items twice and a partial
+        // batch cannot consume items without applying the recovery.
+        const outcome = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "player", playerId, operation: "use_stamina_items",
         }, () => {
+            var _a;
+            const player = (0, player_1.getPlayerSync)(playerId);
+            if (!player)
+                return { kind: "missing" };
+            const itemUpdates = [];
+            for (const [itemId, requestCount] of requestedCounts) {
+                const currentCount = (_a = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _a !== void 0 ? _a : 0;
+                if (currentCount < requestCount) {
+                    console.warn(`[ITEM-USE] player ${playerId} has ${currentCount} of item ${itemId}, requested ${requestCount}`);
+                    return { kind: "insufficient" };
+                }
+                itemUpdates.push({ id: itemId, newCount: currentCount - requestCount });
+            }
+            const currentStamina = (0, stamina_1.computeRealTimeStamina)(player);
+            if (currentStamina >= maxOverflow)
+                return { kind: "full", currentStamina };
+            const afterStamina = Math.min(currentStamina + totalStaminaRecovery, maxOverflow);
             for (const upd of itemUpdates) {
                 (0, item_1.updatePlayerItemSync)(playerId, upd.id, upd.newCount);
             }
@@ -122,7 +133,19 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 stamina: afterStamina,
                 staminaHealTime: new Date()
             });
+            return { kind: "applied", itemUpdates, currentStamina, afterStamina };
         });
+        if (outcome.kind === "missing") {
+            return reply.status(500).send({ "error": "Internal Server Error", "message": "Player not found." });
+        }
+        if (outcome.kind === "insufficient") {
+            return reply.status(400).send({ "error": "Bad Request", "message": "Insufficient items." });
+        }
+        if (outcome.kind === "full") {
+            console.log(`[ITEM-USE] player ${playerId} already at max stamina (${outcome.currentStamina} >= ${maxOverflow})`);
+            return reply.status(400).send({ "error": "Bad Request", "code": 2102, "message": "Already at max stamina." });
+        }
+        const { itemUpdates, currentStamina, afterStamina } = outcome;
         (0, game_logging_1.gameVerboseLog)(() => `[ITEM-USE] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${totalStaminaRecovery}), items: ${JSON.stringify(itemUpdates)}`);
         // Build item_list as IntMap<int> (client expects { itemId: count })
         const itemListMap = {};
@@ -157,7 +180,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(accountId);
         if (!playerId)
             return reply.status(500).send({ "error": "Internal Server Error", "message": "No player bound to account." });
-        const result = (0, item_sell_1.sellItemSync)(playerId, itemId, sellNumber);
+        // Ownership and mana checks must read the same state the write commits.
+        const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "sell_item",
+        }, () => (0, item_sell_1.sellItemSync)(playerId, itemId, sellNumber));
         if (!result.ok) {
             const code = 'errorCode' in result ? result.errorCode : undefined;
             return reply.status(400).send({ "error": "Bad Request", "code": code, "message": result.error });

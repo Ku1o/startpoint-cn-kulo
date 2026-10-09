@@ -316,7 +316,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const isCharacterGacha = gachaData.type == types_1.GachaType.CHARACTER;
         const previewPlayer = (0, player_1.getPlayerSync)(playerId);
         if (previewPlayer === null)
-            return;
+            return reply.status(500).send({ "error": "Internal Server Error", "message": "Player not found." });
         const previewGachaData = (_c = (0, gacha_1.getPlayerGachaInfoSync)(playerId, gachaId)) !== null && _c !== void 0 ? _c : {
             gachaId,
             isAccountFirst: true,
