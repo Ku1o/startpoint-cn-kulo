@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.drainPersistence = exports.runPersistenceTransactionSync = exports.runWriterCommand = exports.runPersistenceSqlCommand = exports.runPersistenceTransaction = exports.configurePersistenceSqlExecutor = void 0;
+exports.drainPersistence = exports.runPersistenceTransactionSync = exports.runWriterCommand = exports.runPersistenceSqlCommand = exports.runPersistenceWriteScope = exports.runPersistenceTransaction = exports.configurePersistenceSqlExecutor = void 0;
 const node_perf_hooks_1 = require("node:perf_hooks");
 const db_1 = require("../data/db");
 const memory_diagnostics_1 = require("./memory-diagnostics");
@@ -17,6 +17,7 @@ const command_registry_1 = require("./persistence/command-registry");
 const writer_client_1 = require("./persistence/writer-client");
 const server_work_performance_1 = require("./server-work-performance");
 const sqlite_write_coordinator_1 = require("./sqlite-write-coordinator");
+const sqlite_commit_diagnostics_1 = require("./sqlite-commit-diagnostics");
 let globalWriteTail = Promise.resolve();
 // The first migration step keeps SQLite in the main process. Nested domain
 // transactions belong to the outer command for metrics, but retain savepoints
@@ -148,6 +149,114 @@ function runPersistenceTransaction(context_1, operation_1) {
     });
 }
 exports.runPersistenceTransaction = runPersistenceTransaction;
+/**
+ * Run a synchronous request section with a lazily opened write transaction.
+ *
+ * Ordering matches `runPersistenceTransaction`: the section waits for the
+ * player's (or the global) write queue and yields once before it starts. The
+ * transaction opens only when `scope.write` is first called, and commits when
+ * `scope.finish` is called or the section returns. A failure rolls back every
+ * write of the section. `SQLITE_BUSY` while opening the transaction re-runs
+ * the whole section, which must therefore stay read-only until its first
+ * `scope.write`.
+ */
+function runPersistenceWriteScope(context_1, operation_1) {
+    return __awaiter(this, arguments, void 0, function* (context, operation, maxAttempts = 3) {
+        const queuedAt = node_perf_hooks_1.performance.now();
+        const stats = statsFor(context.domain);
+        const execute = () => __awaiter(this, void 0, void 0, function* () {
+            yield yieldToEventLoop();
+            (0, server_work_performance_1.recordServerWork)("persistence.queue", node_perf_hooks_1.performance.now() - queuedAt);
+            const db = (0, db_1.getDb)();
+            let lastError;
+            for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+                let began = false;
+                let finished = false;
+                let beginFailed = false;
+                let commitFailed = false;
+                let startedAt = 0;
+                const settle = (committed) => {
+                    const transactionMs = node_perf_hooks_1.performance.now() - startedAt;
+                    if (committed)
+                        stats.committed++;
+                    else
+                        stats.failed++;
+                    stats.transactionMs += transactionMs;
+                    stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs);
+                    (0, server_work_performance_1.recordServerWork)("persistence.transaction", transactionMs);
+                };
+                const scope = {
+                    get began() { return began; },
+                    write(mutation) {
+                        if (finished)
+                            return runPersistenceTransactionSync(context, mutation);
+                        if (!began) {
+                            stats.queued++;
+                            stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed);
+                            startedAt = node_perf_hooks_1.performance.now();
+                            try {
+                                (0, server_work_performance_1.measureServerWork)("db.begin", () => db.exec("BEGIN IMMEDIATE"));
+                            }
+                            catch (error) {
+                                beginFailed = true;
+                                settle(false);
+                                throw error;
+                            }
+                            began = true;
+                        }
+                        // A savepoint per mutation keeps the previous contract that
+                        // a caught failure inside one repair does not keep its
+                        // partial writes.
+                        return withPersistenceContext(context, () => db.transaction(mutation)());
+                    },
+                    finish() {
+                        if (finished)
+                            return;
+                        finished = true;
+                        if (!began)
+                            return;
+                        const probe = (0, sqlite_commit_diagnostics_1.beginCommitProbe)(db, "immediate");
+                        try {
+                            (0, server_work_performance_1.measureServerWork)("db.commit", () => db.exec("COMMIT"));
+                            (0, sqlite_commit_diagnostics_1.endCommitProbe)(db, probe, true);
+                        }
+                        catch (error) {
+                            (0, sqlite_commit_diagnostics_1.endCommitProbe)(db, probe, false, error);
+                            commitFailed = true;
+                            throw error;
+                        }
+                        settle(true);
+                    },
+                };
+                try {
+                    const result = operation(scope);
+                    scope.finish();
+                    return result;
+                }
+                catch (error) {
+                    if (began && db.inTransaction) {
+                        try {
+                            db.exec("ROLLBACK");
+                        }
+                        catch (_a) { }
+                    }
+                    if (began && (!finished || commitFailed))
+                        settle(false);
+                    if (!(beginFailed && (0, sqlite_write_coordinator_1.isSqliteBusyError)(error)) || attempt >= maxAttempts)
+                        throw error;
+                    lastError = error;
+                    yield new Promise(resolve => setTimeout(resolve, 10 * (2 ** (attempt - 1))));
+                }
+            }
+            throw lastError;
+        });
+        if (context.playerId !== undefined) {
+            return (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(context.playerId, execute);
+        }
+        return enqueueGlobalWrite(execute);
+    });
+}
+exports.runPersistenceWriteScope = runPersistenceWriteScope;
 /**
  * Execute a serializable write command through the optional persistence
  * worker. When the worker is disabled, use the same in-process coordinator so

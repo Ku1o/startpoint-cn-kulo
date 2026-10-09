@@ -14,6 +14,7 @@ const character_clear_1 = require("../../data/domains/character_clear");
 const active_mission_battle_condition_facts_1 = require("../../data/domains/active_mission_battle_condition_facts");
 const active_mission_battle_facts_1 = require("../../data/domains/active_mission_battle_facts");
 const persistence_coordinator_1 = require("../persistence-coordinator");
+const db_1 = require("../../data/db");
 const active_master_data_1 = require("./active-master-data");
 const active_core_1 = require("./active-core");
 const rewards_1 = require("./rewards");
@@ -945,112 +946,123 @@ function getReconciliationPlan(input) {
     return plan;
 }
 function reconcileActiveMissionFacts(input) {
-    const { definitions, definitionById, questReadPlan, requirements } = getReconciliationPlan(input);
-    if (definitions.length === 0)
+    const plan = getReconciliationPlan(input);
+    if (plan.definitions.length === 0)
         return [];
+    // Outside a transaction, settle without writing first. When no mission
+    // changes (the usual case) the result is final and no write transaction
+    // is opened; otherwise settlement is recomputed under the write lock.
+    if (!(0, db_1.getDb)().inTransaction) {
+        const preview = settleActiveMissionFacts(input, plan, false);
+        if (preview.length === 0)
+            return preview;
+    }
     return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
         domain: "mission", playerId: input.playerId, operation: "reconcile_active_mission_facts",
-    }, () => {
-        var _a, _b, _c, _d, _e, _f;
-        const player = (_a = input.player) !== null && _a !== void 0 ? _a : (0, player_1.getPlayerSync)(input.playerId);
-        if (!player)
-            throw new Error(`Player ${input.playerId} does not exist.`);
-        if (player.id !== input.playerId) {
-            throw new Error(`Player snapshot ${player.id} does not match ${input.playerId}.`);
-        }
-        const questProgress = (_b = input.questProgress) !== null && _b !== void 0 ? _b : ((questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.full)
-            ? (0, quest_1.getPlayerQuestProgressSync)(input.playerId)
-            : (0, quest_1.getPlayerQuestProgressSubsetSync)(input.playerId, {
-                sections: [...((_c = questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.sections) !== null && _c !== void 0 ? _c : [])],
-                questIds: [...((_d = questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.questIds) !== null && _d !== void 0 ? _d : [])],
-            }));
-        const questProgressFacts = [];
-        const finishedQuestIds = new Set();
-        for (const [categoryText, progressList] of Object.entries(questProgress)) {
-            const category = Number(categoryText);
-            for (const progress of progressList) {
-                questProgressFacts.push({
-                    category,
-                    questId: progress.questId,
-                    finished: progress.finished,
-                    clearRank: progress.clearRank,
-                    leaderCharacterId: progress.leaderCharacterId,
-                    multiClearCount: Math.max(0, (_e = progress.multiClearCount) !== null && _e !== void 0 ? _e : 0),
-                });
-                if (progress.finished) {
-                    finishedQuestIds.add(normalizeActiveMissionQuestId(category, progress.questId));
-                }
+    }, () => settleActiveMissionFacts(input, plan, true));
+}
+exports.reconcileActiveMissionFacts = reconcileActiveMissionFacts;
+function settleActiveMissionFacts(input, { definitions, definitionById, questReadPlan, requirements }, persist) {
+    var _a, _b, _c, _d, _e, _f;
+    const player = (_a = input.player) !== null && _a !== void 0 ? _a : (0, player_1.getPlayerSync)(input.playerId);
+    if (!player)
+        throw new Error(`Player ${input.playerId} does not exist.`);
+    if (player.id !== input.playerId) {
+        throw new Error(`Player snapshot ${player.id} does not match ${input.playerId}.`);
+    }
+    const questProgress = (_b = input.questProgress) !== null && _b !== void 0 ? _b : ((questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.full)
+        ? (0, quest_1.getPlayerQuestProgressSync)(input.playerId)
+        : (0, quest_1.getPlayerQuestProgressSubsetSync)(input.playerId, {
+            sections: [...((_c = questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.sections) !== null && _c !== void 0 ? _c : [])],
+            questIds: [...((_d = questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.questIds) !== null && _d !== void 0 ? _d : [])],
+        }));
+    const questProgressFacts = [];
+    const finishedQuestIds = new Set();
+    for (const [categoryText, progressList] of Object.entries(questProgress)) {
+        const category = Number(categoryText);
+        for (const progress of progressList) {
+            questProgressFacts.push({
+                category,
+                questId: progress.questId,
+                finished: progress.finished,
+                clearRank: progress.clearRank,
+                leaderCharacterId: progress.leaderCharacterId,
+                multiClearCount: Math.max(0, (_e = progress.multiClearCount) !== null && _e !== void 0 ? _e : 0),
+            });
+            if (progress.finished) {
+                finishedQuestIds.add(normalizeActiveMissionQuestId(category, progress.questId));
             }
         }
-        const activeMissions = normalizeActiveMissions((0, mission_1.getPlayerActiveMissionsSync)(input.playerId));
-        const factState = buildActiveMissionFactState(input.playerId, player, finishedQuestIds, questProgressFacts, input.repository, requirements, input);
-        const deltas = new Map();
-        // Every definition runs once. A changed mission only requeues definitions
-        // that can observe it through phase or target-mission dependencies.
-        const dependents = getActiveMissionDependents(input.repository);
-        const queue = definitions.map(definition => definition.missionId);
-        const queued = new Set(queue);
-        let processed = 0;
-        const maximumProcessed = Math.max(definitions.length, definitions.length * definitions.length * 2);
-        let cursor = 0;
-        while (cursor < queue.length) {
-            if (++processed > maximumProcessed) {
-                throw new Error("Active Mission reconciliation did not converge.");
-            }
-            const missionId = queue[cursor++];
-            queued.delete(missionId);
-            const definition = definitionById.get(missionId);
-            if (!definition)
+    }
+    const activeMissions = normalizeActiveMissions((0, mission_1.getPlayerActiveMissionsSync)(input.playerId));
+    const factState = buildActiveMissionFactState(input.playerId, player, finishedQuestIds, questProgressFacts, input.repository, requirements, input);
+    const deltas = new Map();
+    // Every definition runs once. A changed mission only requeues definitions
+    // that can observe it through phase or target-mission dependencies.
+    const dependents = getActiveMissionDependents(input.repository);
+    const queue = definitions.map(definition => definition.missionId);
+    const queued = new Set(queue);
+    let processed = 0;
+    const maximumProcessed = Math.max(definitions.length, definitions.length * definitions.length * 2);
+    let cursor = 0;
+    while (cursor < queue.length) {
+        if (++processed > maximumProcessed) {
+            throw new Error("Active Mission reconciliation did not converge.");
+        }
+        const missionId = queue[cursor++];
+        queued.delete(missionId);
+        const definition = definitionById.get(missionId);
+        if (!definition)
+            continue;
+        let authoritativeProgress;
+        try {
+            const mission = (0, active_core_1.getParsedActiveMissionDefinition)(definition.missionId, input.repository);
+            if (!mission)
                 continue;
-            let authoritativeProgress;
-            try {
-                const mission = (0, active_core_1.getParsedActiveMissionDefinition)(definition.missionId, input.repository);
-                if (!mission)
-                    continue;
-                if (!isEligibleEvent(input, mission.eventId))
-                    continue;
-                if (!(0, active_core_1.isActiveMissionAvailable)(definition.missionId, {
-                    repository: input.repository,
-                    now: input.now,
-                    activeMissions,
-                    questProgress,
-                }))
-                    continue;
-                authoritativeProgress = computeAuthoritativeProgress(definition.missionId, definition.row, player, finishedQuestIds, activeMissions, input.repository, factState);
-            }
-            catch (_g) {
+            if (!isEligibleEvent(input, mission.eventId))
                 continue;
-            }
-            if (authoritativeProgress === null)
+            if (!(0, active_core_1.isActiveMissionAvailable)(definition.missionId, {
+                repository: input.repository,
+                now: input.now,
+                activeMissions,
+                questProgress,
+            }))
                 continue;
-            if (activeMissions[String(definition.missionId)] === undefined
-                && authoritativeProgress <= 0)
-                continue;
-            const settlement = (0, active_core_1.settleActiveMissionProgress)(definition.missionId, activeMissions[String(definition.missionId)], authoritativeProgress, { repository: input.repository });
-            if (settlement.delta === null)
-                continue;
+            authoritativeProgress = computeAuthoritativeProgress(definition.missionId, definition.row, player, finishedQuestIds, activeMissions, input.repository, factState);
+        }
+        catch (_g) {
+            continue;
+        }
+        if (authoritativeProgress === null)
+            continue;
+        if (activeMissions[String(definition.missionId)] === undefined
+            && authoritativeProgress <= 0)
+            continue;
+        const settlement = (0, active_core_1.settleActiveMissionProgress)(definition.missionId, activeMissions[String(definition.missionId)], authoritativeProgress, { repository: input.repository });
+        if (settlement.delta === null)
+            continue;
+        if (persist) {
             (0, mission_1.updatePlayerActiveMissionSync)(input.playerId, definition.missionId, settlement.state.progress);
             for (const stage of settlement.delta.stages) {
                 (0, mission_1.updatePlayerActiveMissionStageSync)(input.playerId, stage.stage, definition.missionId, false);
             }
-            activeMissions[String(definition.missionId)] = settlement.state;
-            mergeDelta(deltas, settlement.delta);
-            for (const dependentMissionId of (_f = dependents.get(definition.missionId)) !== null && _f !== void 0 ? _f : []) {
-                if (!definitionById.has(dependentMissionId) || queued.has(dependentMissionId))
-                    continue;
-                queue.push(dependentMissionId);
-                queued.add(dependentMissionId);
-            }
         }
-        return [...deltas.entries()]
-            .sort(([left], [right]) => left - right)
-            .map(([missionId, delta]) => ({
-            mission_id: missionId,
-            progress_value: delta.progress,
-            stages: [...delta.stages]
-                .sort((left, right) => left - right)
-                .map(stage => ({ stage, received: false })),
-        }));
-    });
+        activeMissions[String(definition.missionId)] = settlement.state;
+        mergeDelta(deltas, settlement.delta);
+        for (const dependentMissionId of (_f = dependents.get(definition.missionId)) !== null && _f !== void 0 ? _f : []) {
+            if (!definitionById.has(dependentMissionId) || queued.has(dependentMissionId))
+                continue;
+            queue.push(dependentMissionId);
+            queued.add(dependentMissionId);
+        }
+    }
+    return [...deltas.entries()]
+        .sort(([left], [right]) => left - right)
+        .map(([missionId, delta]) => ({
+        mission_id: missionId,
+        progress_value: delta.progress,
+        stages: [...delta.stages]
+            .sort((left, right) => left - right)
+            .map(stage => ({ stage, received: false })),
+    }));
 }
-exports.reconcileActiveMissionFacts = reconcileActiveMissionFacts;

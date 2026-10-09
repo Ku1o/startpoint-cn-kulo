@@ -99,7 +99,7 @@ function getClientSerializedData(playerId, options) {
 exports.getClientSerializedData = getClientSerializedData;
 function prepareClientSerializedData(playerId, options) {
     var _a, _b, _c, _d;
-    const { preloadedPlayer, preloadedCharacterList, preloadedCharacterManaNodeList, preloadedEquipmentList, preloadedPartyGroupList, preloadedQuestProgress } = options, serializeOptions = __rest(options, ["preloadedPlayer", "preloadedCharacterList", "preloadedCharacterManaNodeList", "preloadedEquipmentList", "preloadedPartyGroupList", "preloadedQuestProgress"]);
+    const { preloadedPlayer, preloadedCharacterList, preloadedCharacterManaNodeList, preloadedEquipmentList, preloadedPartyGroupList, preloadedQuestProgress, afterRepairs } = options, serializeOptions = __rest(options, ["preloadedPlayer", "preloadedCharacterList", "preloadedCharacterManaNodeList", "preloadedEquipmentList", "preloadedPartyGroupList", "preloadedQuestProgress", "afterRepairs"]);
     if (preloadedPlayer && preloadedPlayer.id !== playerId) {
         throw new Error(`Player snapshot ${preloadedPlayer.id} does not match ${playerId}.`);
     }
@@ -112,8 +112,10 @@ function prepareClientSerializedData(playerId, options) {
         }
         : undefined);
     const playerData = preloadedPlayer !== null && preloadedPlayer !== void 0 ? preloadedPlayer : (0, player_1.getPlayerSync)(playerId);
-    if (playerData === null)
+    if (playerData === null) {
+        afterRepairs === null || afterRepairs === void 0 ? void 0 : afterRepairs();
         return null;
+    }
     const characterList = preloadedCharacterList !== null && preloadedCharacterList !== void 0 ? preloadedCharacterList : (0, character_1.getPlayerCharactersSync)(playerId);
     const learnedManaNodes = preloadedCharacterManaNodeList !== null && preloadedCharacterManaNodeList !== void 0 ? preloadedCharacterManaNodeList : (0, character_1.getPlayerCharactersManaNodesSync)(playerId);
     const playerQuestProgress = preloadedQuestProgress !== null && preloadedQuestProgress !== void 0 ? preloadedQuestProgress : (0, quest_1.getPlayerQuestProgressSync)(playerId);
@@ -152,6 +154,7 @@ function prepareClientSerializedData(playerId, options) {
             }
         });
     }
+    afterRepairs === null || afterRepairs === void 0 ? void 0 : afterRepairs();
     const missionAwakeMap = new Map();
     for (const [characterId, levels] of awakeSummary.manaBoardAwakeMap) {
         const visible = (0, character_helpers_1.filterCharacterManaBoardAwakeLevels)(Number(characterId), levels, (_d = learnedManaNodes[characterId]) !== null && _d !== void 0 ? _d : []);
