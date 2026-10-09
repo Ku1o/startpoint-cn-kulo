@@ -127,6 +127,29 @@ function delta(before, after) {
     return { rankPoint: after.rankPoint - before.rankPoint, expPool: after.expPool - before.expPool }
 }
 
+
+const http = require('node:http')
+
+/** Send a finish over a real socket and destroy the socket before any response. */
+function sendAndAbandon(port, url, payload) {
+    return new Promise(resolve => {
+        const request = http.request({ host: '127.0.0.1', port, path: url, method: 'POST',
+            headers: { 'content-type': 'application/json' } })
+        request.on('error', () => resolve())
+        request.end(JSON.stringify(payload))
+        // Give the server time to parse the body and park on the finish queue.
+        setTimeout(() => { request.destroy(); setTimeout(resolve, 100) }, 150)
+    })
+}
+
+function withinTimeout(promise, ms, label) {
+    let timer
+    return Promise.race([
+        promise.finally(() => clearTimeout(timer)),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${label} did not complete`)), ms) }),
+    ])
+}
+
 test('single: concurrent identical finishes after /start settle once and share one response', async () => {
     // Control: one ordinary first clear.
     const control = makePlayer()
@@ -187,6 +210,26 @@ test('single: tokenless finishes are serialized per player and never lose an upd
     assert.equal(totals(p.id).rankPoint - before.rankPoint, 42)
 })
 
+test('single: a client that disconnects while queued does not block later finishes', async () => {
+    const p = makePlayer()
+    const port = await (async () => {
+        const app = Fastify()
+        await app.register(singleRoutes, { prefix: '/single' })
+        await app.listen({ host: '127.0.0.1', port: 0 })
+        test.after(() => app.close())
+        return app.server.address().port
+    })()
+    const hold = await cache.acquireFinishExecution(`single:${p.id}`)
+    await sendAndAbandon(port, '/single/finish', {
+        viewer_id: p.viewerId, quest_id: QUEST_ID, category: CATEGORY, continue_count: 0,
+        elapsed_time_ms: 60_000, score: 100, add_mana: 0, is_accomplished: true, is_restored: false,
+        statistics: statistics(), play_id: 'abandoned', api_count: 2,
+    })
+    hold()
+    const next = await withinTimeout(singleFinish(p, { play_id: 'after-abandon', api_count: 3 }), 5000, 'next finish')
+    decode(next)
+})
+
 test('single: a write landing after the request read is preserved by the settlement', async t => {
     const control = makePlayer()
     const controlBefore = totals(control.id)
@@ -213,10 +256,14 @@ test('response cache key normalizes numeric fields and keeps the established for
     assert.equal(key('single', 9, { category: 2, quest_id: 1001001, play_id: 'p' }), 'single:9:2:1001001:p')
     assert.equal(key('single', 9, { category: '2', quest_id: ' 1001001', api_count: '5' }), 'single:9:2:1001001:api:5')
     assert.equal(key('single', 9, { category: 2, quest_id: 1001001, api_count: 5 }), 'single:9:2:1001001:api:5')
-    assert.equal(key('single', 9, { category: 2, api_count: 'x' }), null)
+    // A non-numeric token keeps its previous form so stored receipts still match.
+    assert.equal(key('single', 9, { category: 2, quest_id: 1001001, api_count: '' }), 'single:9:2:1001001:api:')
+    assert.equal(key('single', 9, { category: 2, api_count: 'x' }), 'single:9:2::api:x')
     assert.equal(key('single', 9, { category: 2 }), null)
-    assert.equal(key('multi', 9, { play_id: 'p', api_count: 1 }, { playerId: 4 }),
-        key('multi', 9, { play_id: 'p', api_count: 2, category: 3 }, { playerId: 4 }))
+    assert.equal(key('multi', 9, { play_id: 'p', api_count: 1, category: 3, quest_id: 5 }, { playerId: 4 }),
+        key('multi', 8, { play_id: 'p', api_count: 2, category: '3.0', quest_id: '5' }, { playerId: 4 }))
+    assert.notEqual(key('multi', 9, { play_id: 'p', category: 3, quest_id: 5 }, { playerId: 4 }),
+        key('multi', 9, { play_id: 'p', category: 3, quest_id: 6 }, { playerId: 4 }))
     assert.equal(cache.buildFinishExecutionKey('single', 4, {}), 'single:4')
     assert.equal(cache.buildFinishExecutionKey('multi', 4, {}), 'multi:4:')
 })
@@ -270,16 +317,17 @@ async function multiSetup(t) {
             mate_player_ids: [], mate_party_ids: [],
         },
     })
-    const finish = (extra = {}) => app.inject({
-        method: 'POST', url: '/multi/finish', payload: {
-            viewer_id: host.viewerId, play_id: `mplay-${host.id}`,
-            category: CATEGORY, quest_id: QUEST_ID, room_number: room.room_number,
-            is_accomplished: true, elapsed_time_ms: 30_000, score: 100,
-            add_mana: 0, continue_count: 0, api_count: 2, mate_player_result: [],
-            statistics: statistics(), ...extra,
-        },
+    const finishPayload = (extra = {}) => ({
+        viewer_id: host.viewerId, play_id: `mplay-${host.id}`,
+        category: CATEGORY, quest_id: QUEST_ID, room_number: room.room_number,
+        is_accomplished: true, elapsed_time_ms: 30_000, score: 100,
+        add_mana: 0, continue_count: 0, api_count: 2, mate_player_result: [],
+        statistics: statistics(), ...extra,
     })
-    return { host, room, start, finish }
+    const finish = (extra = {}) => app.inject({
+        method: 'POST', url: '/multi/finish', payload: finishPayload(extra),
+    })
+    return { host, room, app, start, finish, finishPayload }
 }
 
 test('multi: concurrent finishes for one play with different request fields pay once', async t => {
@@ -324,6 +372,20 @@ test('multi: a retry after the response cache dropped the entry replays without 
     assert.deepEqual(retry.json().data, first.json().data)
     assert.deepEqual(totals(x.host.id), settled)
     delete single.activeQuests[x.host.id]
+})
+
+test('multi: a client that disconnects while queued does not block the retry', async t => {
+    const x = await multiSetup(t)
+    assert.equal((await x.start()).json().data.play_id, `mplay-${x.host.id}`)
+    await x.app.listen({ host: '127.0.0.1', port: 0 })
+    const port = x.app.server.address().port
+    const before = totals(x.host.id)
+    const hold = await cache.acquireFinishExecution(`multi:${x.host.id}:mplay-${x.host.id}`)
+    await sendAndAbandon(port, '/multi/finish', x.finishPayload())
+    hold()
+    const retry = await withinTimeout(x.finish({ api_count: 5 }), 5000, 'retry finish')
+    assert.equal(retry.statusCode, 200, retry.body)
+    assert.equal(totals(x.host.id).rankPoint - before.rankPoint, 14, 'the play still settles exactly once')
 })
 
 // Runs last: the writer switch stays latched for the rest of the process.

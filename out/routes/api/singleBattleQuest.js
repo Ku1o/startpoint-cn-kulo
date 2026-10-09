@@ -105,144 +105,150 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // One finish per player at a time. Retries and concurrent duplicates
         // wait here and then observe the first request's cached response.
         const releaseFinishExecution = yield (0, finish_response_cache_1.acquireFinishExecution)((0, finish_response_cache_1.buildFinishExecutionKey)("single", playerId, body));
-        reply.raw.once("finish", releaseFinishExecution);
-        reply.raw.once("close", releaseFinishExecution);
-        const coalescedFinishResponse = (_b = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _b !== void 0 ? _b : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
-        if (coalescedFinishResponse !== undefined) {
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send(coalescedFinishResponse);
-        }
-        // Resolve the active quest from memory, persisted recovery state, or
-        // (for patched clients that skipped /start) a validated request hint.
-        const resolvedActiveQuest = (0, active_quest_resolver_1.resolveActiveQuest)({
-            playerId,
-            hint: body,
-            memory: exports.activeQuests,
-        });
-        const activeQuestData = resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.quest;
-        (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[FINISH] req: playerId=${playerId} questId=${body.quest_id} category=${body.category} activeExists=${activeQuestData !== undefined} source=${(_a = resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== null && _a !== void 0 ? _a : "none"} multi=${(_b = activeQuestData === null || activeQuestData === void 0 ? void 0 : activeQuestData.isMulti) !== null && _b !== void 0 ? _b : false}`; });
-        if (activeQuestData === undefined)
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "No active quest to finish."
-            });
-        if ((resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "memory") {
-            console.warn(`[FINISH] recovered active quest from ${resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source}: playerId=${playerId} questId=${activeQuestData.questId} category=${activeQuestData.category}`);
-        }
-        const questCategory = activeQuestData.category;
-        const questId = activeQuestData.questId;
-        if ((0, contract_1.isFiveBossHiddenQuest)(questCategory, questId)) {
-            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene cannot settle separately." });
-        }
-        const fiveBossSoloQuest = (0, contract_1.isFiveBossGauntletQuest)(questCategory, questId);
-        if (fiveBossSoloQuest && (activeQuestData.isMulti || (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt"
-            || !finishCacheKey || !(0, solo_runtime_1.isActiveFiveBossSoloSync)(playerId, activeQuestData.playId))) {
-            return reply.status(400).send({ error: "Bad Request", message: "No registered five-boss solo run." });
-        }
-        if ((resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt" && (0, abyss_time_revision_1.isAbyssFiniteQuest)(questCategory, questId)) {
-            // Preserve the patched client's no-/start recovery, but never
-            // assume a missing registration belongs to the newly published tower.
-            activeQuestData.questTimeRevision = (0, abyss_time_revision_1.getAbyssTimeRevisionAtVersion)(request.headers.res_ver, Math.floor(questId / 1000));
-        }
-        // A restored/late finish from the old tower cannot seed the new record.
-        if ((0, abyss_time_revision_1.isStaleAbyssBattle)(activeQuestData) || (0, abyss_time_revision_1.isStaleAbyssClient)(questCategory, questId, request.headers.res_ver)
-            || !(0, abyss_tower_progress_1.canStartAbyssQuestSync)(playerId, questCategory, questId)) {
-            (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
-            delete exports.activeQuests[playerId];
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send({
-                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
-                data: {},
-            });
-        }
-        (0, game_logging_1.gameVerboseLog)(() => `[FINISH] active: category=${questCategory} questId=${questId}`);
-        const questData = (0, assets_1.getQuestFromCategorySync)(questCategory, questId);
-        if (questData === null || !('rankPointReward' in questData)) {
-            console.warn(`[BATTLE] finish failed: category=${questCategory} questId=${questId} found=${!!questData} hasRankReward=${questData ? ('rankPointReward' in questData) : 'N/A'}`);
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Quest doesn't exist."
-            });
-        }
-        // calculate clear rank
-        const clearTime = body.elapsed_time_ms;
-        const isScoreAttackEvent = questCategory === types_1.QuestCategory.SCORE_ATTACK_EVENT;
-        if (isScoreAttackEvent && (questData.bRankScore === undefined
-            || questData.aRankScore === undefined
-            || questData.sRankScore === undefined
-            || questData.ssRankScore === undefined)) {
-            return reply.status(500).send({
-                "error": "Internal Server Error",
-                "message": "Score attack rank thresholds are missing."
-            });
-        }
-        const clearRank = isScoreAttackEvent
-            ? (0, score_attack_handler_1.calculateScoreAttackClearRank)(body.score, {
-                bRankScore: questData.bRankScore,
-                aRankScore: questData.aRankScore,
-                sRankScore: questData.sRankScore,
-                ssRankScore: questData.ssRankScore,
-            })
-            : (0, quest_calc_1.calculateClearRank)(clearTime, questData);
-        // calculate player rewards. Player totals (rank point, mana, boost
-        // points, stamina) are re-read and written inside the settlement
-        // transaction so a concurrent write is never overwritten.
-        const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
-        const manaObtained = (0, abyss_modes_1.isAbyssExEndlessQuest)(questCategory, questId) ? 0 : questData.manaReward + body.add_mana;
-        // check current quest progress
-        // This lookup refreshes published Abyss best-time revisions and is
-        // therefore a write-capable operation. Keep it under the same
-        // persistence coordinator as settlement preparation.
-        // 深渊最好成绩刷新是"读+写"，整段按注册命令执行：开启写线程时在写线程内
-        // 完成，关闭时保持原进程内语义。结算事务内会再读一次进度行作为发奖依据。
-        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_REFRESH_QUEST_PROGRESS, { playerId, section: questCategory, questId }, { domain: "single-quest", playerId, operation: "progress_refresh" })));
-        let questAccomplished = body.is_accomplished;
-        let scoreAttackBorderTiers = [];
-        if (isScoreAttackEvent) {
-            try {
-                scoreAttackBorderTiers = (0, score_attack_handler_1.resolveScoreAttackBorderTiers)(questData.eventId, questData.scoreAttackQuestId, score_attack_border_reward_json_1.default);
+        // Released when this handler's own work ends, never on socket
+        // events: a closed client must neither leak the lock nor let a
+        // retry run beside a settlement that is still in progress.
+        try {
+            const coalescedFinishResponse = (_b = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _b !== void 0 ? _b : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
+            if (coalescedFinishResponse !== undefined) {
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(coalescedFinishResponse);
             }
-            catch (error) {
-                console.error(`[SCORE_ATTACK] invalid configuration: ${error.message}`);
-                return reply.status(500).send({
-                    "error": "Internal Server Error",
-                    "message": "Score attack reward configuration is missing."
+            // Resolve the active quest from memory, persisted recovery state, or
+            // (for patched clients that skipped /start) a validated request hint.
+            const resolvedActiveQuest = (0, active_quest_resolver_1.resolveActiveQuest)({
+                playerId,
+                hint: body,
+                memory: exports.activeQuests,
+            });
+            const activeQuestData = resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.quest;
+            (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[FINISH] req: playerId=${playerId} questId=${body.quest_id} category=${body.category} activeExists=${activeQuestData !== undefined} source=${(_a = resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== null && _a !== void 0 ? _a : "none"} multi=${(_b = activeQuestData === null || activeQuestData === void 0 ? void 0 : activeQuestData.isMulti) !== null && _b !== void 0 ? _b : false}`; });
+            if (activeQuestData === undefined)
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "No active quest to finish."
+                });
+            if ((resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "memory") {
+                console.warn(`[FINISH] recovered active quest from ${resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source}: playerId=${playerId} questId=${activeQuestData.questId} category=${activeQuestData.category}`);
+            }
+            const questCategory = activeQuestData.category;
+            const questId = activeQuestData.questId;
+            if ((0, contract_1.isFiveBossHiddenQuest)(questCategory, questId)) {
+                return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene cannot settle separately." });
+            }
+            const fiveBossSoloQuest = (0, contract_1.isFiveBossGauntletQuest)(questCategory, questId);
+            if (fiveBossSoloQuest && (activeQuestData.isMulti || (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt"
+                || !finishCacheKey || !(0, solo_runtime_1.isActiveFiveBossSoloSync)(playerId, activeQuestData.playId))) {
+                return reply.status(400).send({ error: "Bad Request", message: "No registered five-boss solo run." });
+            }
+            if ((resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt" && (0, abyss_time_revision_1.isAbyssFiniteQuest)(questCategory, questId)) {
+                // Preserve the patched client's no-/start recovery, but never
+                // assume a missing registration belongs to the newly published tower.
+                activeQuestData.questTimeRevision = (0, abyss_time_revision_1.getAbyssTimeRevisionAtVersion)(request.headers.res_ver, Math.floor(questId / 1000));
+            }
+            // A restored/late finish from the old tower cannot seed the new record.
+            if ((0, abyss_time_revision_1.isStaleAbyssBattle)(activeQuestData) || (0, abyss_time_revision_1.isStaleAbyssClient)(questCategory, questId, request.headers.res_ver)
+                || !(0, abyss_tower_progress_1.canStartAbyssQuestSync)(playerId, questCategory, questId)) {
+                (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
+                delete exports.activeQuests[playerId];
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send({
+                    data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                    data: {},
                 });
             }
-            questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
-        }
-        const finishResponse = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "transaction", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_SETTLE_FINISH, {
-            playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body,
-            clearTime, clearRank, questAccomplished,
-            // The patched client may skip /start; a rebuilt active quest must
-            // not seed Abyss records as a registered run.
-            fiveBossSoloQuest, registered: (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt",
-            scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop,
-            finishCacheKey,
-        }, { domain: "single-quest", playerId, operation: "finish" })));
-        if (finishResponse.timing !== null)
-            (0, single_settlement_diagnostics_1.recordSingleSettlementBodyTiming)(finishResponse.timing);
-        if (finishResponse.response === null) {
-            // The registered play was already consumed by an earlier finish:
-            // nothing was written. Replay that finish's response when it is
-            // still cached; otherwise report that no play is active.
-            if (((_c = exports.activeQuests[playerId]) === null || _c === void 0 ? void 0 : _c.playId) === activeQuestData.playId)
-                delete exports.activeQuests[playerId];
-            console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} questId=${questId} category=${questCategory}`);
-            const replay = (_d = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _d !== void 0 ? _d : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
-            if (replay !== undefined) {
-                reply.header("content-type", "application/x-msgpack");
-                return reply.status(200).send(replay);
+            (0, game_logging_1.gameVerboseLog)(() => `[FINISH] active: category=${questCategory} questId=${questId}`);
+            const questData = (0, assets_1.getQuestFromCategorySync)(questCategory, questId);
+            if (questData === null || !('rankPointReward' in questData)) {
+                console.warn(`[BATTLE] finish failed: category=${questCategory} questId=${questId} found=${!!questData} hasRankReward=${questData ? ('rankPointReward' in questData) : 'N/A'}`);
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "Quest doesn't exist."
+                });
             }
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "No active quest to finish."
-            });
+            // calculate clear rank
+            const clearTime = body.elapsed_time_ms;
+            const isScoreAttackEvent = questCategory === types_1.QuestCategory.SCORE_ATTACK_EVENT;
+            if (isScoreAttackEvent && (questData.bRankScore === undefined
+                || questData.aRankScore === undefined
+                || questData.sRankScore === undefined
+                || questData.ssRankScore === undefined)) {
+                return reply.status(500).send({
+                    "error": "Internal Server Error",
+                    "message": "Score attack rank thresholds are missing."
+                });
+            }
+            const clearRank = isScoreAttackEvent
+                ? (0, score_attack_handler_1.calculateScoreAttackClearRank)(body.score, {
+                    bRankScore: questData.bRankScore,
+                    aRankScore: questData.aRankScore,
+                    sRankScore: questData.sRankScore,
+                    ssRankScore: questData.ssRankScore,
+                })
+                : (0, quest_calc_1.calculateClearRank)(clearTime, questData);
+            // calculate player rewards. Player totals (rank point, mana, boost
+            // points, stamina) are re-read and written inside the settlement
+            // transaction so a concurrent write is never overwritten.
+            const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
+            const manaObtained = (0, abyss_modes_1.isAbyssExEndlessQuest)(questCategory, questId) ? 0 : questData.manaReward + body.add_mana;
+            // check current quest progress
+            // This lookup refreshes published Abyss best-time revisions and is
+            // therefore a write-capable operation. Keep it under the same
+            // persistence coordinator as settlement preparation.
+            // 深渊最好成绩刷新是"读+写"，整段按注册命令执行：开启写线程时在写线程内
+            // 完成，关闭时保持原进程内语义。结算事务内会再读一次进度行作为发奖依据。
+            yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_REFRESH_QUEST_PROGRESS, { playerId, section: questCategory, questId }, { domain: "single-quest", playerId, operation: "progress_refresh" })));
+            let questAccomplished = body.is_accomplished;
+            let scoreAttackBorderTiers = [];
+            if (isScoreAttackEvent) {
+                try {
+                    scoreAttackBorderTiers = (0, score_attack_handler_1.resolveScoreAttackBorderTiers)(questData.eventId, questData.scoreAttackQuestId, score_attack_border_reward_json_1.default);
+                }
+                catch (error) {
+                    console.error(`[SCORE_ATTACK] invalid configuration: ${error.message}`);
+                    return reply.status(500).send({
+                        "error": "Internal Server Error",
+                        "message": "Score attack reward configuration is missing."
+                    });
+                }
+                questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
+            }
+            const finishResponse = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "transaction", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_SETTLE_FINISH, {
+                playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body,
+                clearTime, clearRank, questAccomplished,
+                // The patched client may skip /start; a rebuilt active quest must
+                // not seed Abyss records as a registered run.
+                fiveBossSoloQuest, registered: (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt",
+                scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop,
+                finishCacheKey,
+            }, { domain: "single-quest", playerId, operation: "finish" })));
+            if (finishResponse.timing !== null)
+                (0, single_settlement_diagnostics_1.recordSingleSettlementBodyTiming)(finishResponse.timing);
+            if (finishResponse.response === null) {
+                // The registered play was already consumed by an earlier finish:
+                // nothing was written. Replay that finish's response when it is
+                // still cached; otherwise report that no play is active.
+                if (((_c = exports.activeQuests[playerId]) === null || _c === void 0 ? void 0 : _c.playId) === activeQuestData.playId)
+                    delete exports.activeQuests[playerId];
+                console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} questId=${questId} category=${questCategory}`);
+                const replay = (_d = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _d !== void 0 ? _d : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
+                if (replay !== undefined) {
+                    reply.header("content-type", "application/x-msgpack");
+                    return reply.status(200).send(replay);
+                }
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "No active quest to finish."
+                });
+            }
+            delete exports.activeQuests[playerId];
+            (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse.response);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send(finishResponse.response);
         }
-        delete exports.activeQuests[playerId];
-        (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse.response);
-        reply.header("content-type", "application/x-msgpack");
-        return reply.status(200).send(finishResponse.response);
+        finally {
+            releaseFinishExecution();
+        }
     }));
     fastify.post("/abort", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;

@@ -444,458 +444,464 @@ function registerBattleRoutes(fastify) {
         const executionWaitStartedAt = process.hrtime.bigint();
         const releaseFinishExecution = yield (0, finish_response_cache_1.acquireFinishExecution)((0, finish_response_cache_1.buildFinishExecutionKey)("multi", playerId, body));
         (0, settlement_performance_1.recordSettlementPhase)("multi", "finish_execution_wait", Number(process.hrtime.bigint() - executionWaitStartedAt) / 1000000);
-        reply.raw.once("finish", releaseFinishExecution);
-        reply.raw.once("close", releaseFinishExecution);
-        // A matching request may have completed while this one waited.
-        const coalescedFinishResponse = (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
-        if (coalescedFinishResponse !== undefined) {
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send(coalescedFinishResponse);
-        }
-        const settlementSnapshot = (0, settlement_snapshot_1.getMultiSettlementSnapshot)(playerId, body.play_id);
-        if (settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.settled) {
-            // This play already paid out (for example a retry after the
-            // response cache entry was evicted). Replay, never settle again.
-            const replay = (_b = settlementSnapshot.settledResponse) !== null && _b !== void 0 ? _b : buildTerminalMultiFinishAcknowledgement((_c = (0, player_1.getPlayerSync)(playerId)) !== null && _c !== void 0 ? _c : player, body);
-            (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, replay);
-            console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
-                + ` play=${body.play_id} reason=already_settled`);
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send(replay);
-        }
-        const currentActiveQuest = singleBattleQuest_1.activeQuests[playerId];
-        const persistentActiveQuest = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
-        // A delayed finish from the previous generation must use its frozen
-        // snapshot. Taking the current active quest first can settle or clear a
-        // rematch that merely happens to belong to the same player.
-        const persistentMatches = (persistentActiveQuest === null || persistentActiveQuest === void 0 ? void 0 : persistentActiveQuest.isMulti)
-            && persistentActiveQuest.playId === body.play_id;
-        const activeQuestData = (_d = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.activeQuest) !== null && _d !== void 0 ? _d : (persistentMatches
-            ? activeQuestFromPersistent(persistentActiveQuest)
-            : persistentActiveQuest === null
-                && (currentActiveQuest === null || currentActiveQuest === void 0 ? void 0 : currentActiveQuest.playId) === body.play_id
-                ? currentActiveQuest
-                : undefined);
-        if (activeQuestData === undefined) {
-            const terminal = buildTerminalMultiFinishAcknowledgement(player, body);
-            (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, terminal);
-            console.warn(`[MULTI] stale finish acknowledged: viewer=${viewerId}`
-                + ` play=${body.play_id} reason=active_quest_missing`);
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send(terminal);
-        }
-        const finishRoom = activeQuestData.roomNumber
-            ? (0, manager_1.getRoom)(activeQuestData.roomNumber)
-            : undefined;
-        const settlementGeneration = (_f = (_e = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.roomGeneration) !== null && _e !== void 0 ? _e : finishRoom === null || finishRoom === void 0 ? void 0 : finishRoom.lobby_generation) !== null && _f !== void 0 ? _f : 0;
-        const settlementKey = (_g = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.battleInstanceId) !== null && _g !== void 0 ? _g : `${activeQuestData.roomNumber || body.room_number || "missing"}:${settlementGeneration}:${body.play_id}`;
-        const settlementParticipants = (_h = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.participants) !== null && _h !== void 0 ? _h : ((finishRoom === null || finishRoom === void 0 ? void 0 : finishRoom.mates) || [])
-            .map(mate => ({
-            viewerId: Number(mate.viewer_id),
-            comId: Number(mate.com_id || 0),
-        }))
-            .filter(mate => Number.isFinite(mate.viewerId) && mate.viewerId > 0);
-        const expectedRealViewerIds = (_j = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.expectedRealViewerIds) !== null && _j !== void 0 ? _j : ((finishRoom === null || finishRoom === void 0 ? void 0 : finishRoom.expected_real_viewer_ids) || [])
-            .map(Number)
-            .filter(expectedViewerId => Number.isFinite(expectedViewerId) && expectedViewerId > 0);
-        const finishedAsRescueGuest = (_k = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isRescueGuest) !== null && _k !== void 0 ? _k : (activeQuestData.roomNumber
-            ? SessionManager_1.sessionManager.isRescueGuest(activeQuestData.roomNumber, viewerId)
-            : false);
-        const finishedAsRescueFragmentEligible = (_l = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isRescueFragmentEligible) !== null && _l !== void 0 ? _l : (activeQuestData.roomNumber
-            ? SessionManager_1.sessionManager.isRescueFragmentEligibleGuest(activeQuestData.roomNumber, viewerId)
-            : false);
-        const finishedAsNewbieRescueGuest = (_m = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isNewbieRescueGuest) !== null && _m !== void 0 ? _m : (activeQuestData.roomNumber
-            ? SessionManager_1.sessionManager.isNewbieRescueGuest(activeQuestData.roomNumber, viewerId)
-            : false);
-        const questCategory = activeQuestData.category;
-        const questId = activeQuestData.questId;
-        const questData = (0, assets_1.getQuestFromCategorySync)(questCategory, questId);
-        if (questData === null || !('rankPointReward' in questData)) {
-            yield clearMatchingMultiActiveQuest(playerId, body.play_id, "stale_finish_unknown_quest");
-            const terminal = buildTerminalMultiFinishAcknowledgement(player, body);
-            (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, terminal);
-            console.warn(`[MULTI] stale finish acknowledged: viewer=${viewerId}`
-                + ` play=${body.play_id} reason=quest_missing category=${questCategory} quest=${questId}`);
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send(terminal);
-        }
-        (0, settlement_performance_1.recordSettlementPhase)("multi", "preflight", Number(process.hrtime.bigint() - finishHandlerStartedAt) / 1000000);
-        const coreStartedAt = process.hrtime.bigint();
-        const settlementWasAlreadyInLobby = (settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.lifecycle) === "LOBBY";
-        const settlingSnapshot = (0, settlement_snapshot_1.transitionMultiSettlementSnapshot)(playerId, body.play_id, "SETTLING");
-        const finishedAsHost = (_o = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isHost) !== null && _o !== void 0 ? _o : (activeQuestData.roomNumber
-            ? ((_p = (0, manager_1.getRoom)(activeQuestData.roomNumber)) === null || _p === void 0 ? void 0 : _p.host_player_id) === playerId
-            : false);
-        if (activeQuestData.roomNumber) {
-            yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(activeQuestData.roomNumber, () => {
-                var _a;
-                const room = (0, manager_1.getRoom)(activeQuestData.roomNumber);
-                const matchesBattleGeneration = (room === null || room === void 0 ? void 0 : room.lobby_generation) === settlementGeneration;
-                const lifecycleAllowsRoomMutation = settlementSnapshot === undefined
-                    || (!settlementWasAlreadyInLobby && (settlingSnapshot === null || settlingSnapshot === void 0 ? void 0 : settlingSnapshot.lifecycle) !== "LOBBY");
-                if (room && matchesBattleGeneration && lifecycleAllowsRoomMutation) {
-                    const wasPending = room.settlement_return_pending;
-                    const transition = embedded_1.embeddedMultiCoordinator.beginSettlementReturn(room, settlementGeneration);
-                    if (!transition.ok) {
-                        console.warn(`[MULTI-SETTLEMENT] lifecycle rejected finish room=${room.room_number}`
-                            + ` viewer=${viewerId} reason=${transition.reason}`);
-                        return;
-                    }
-                    SessionManager_1.sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
-                    if (!wasPending)
-                        SessionManager_1.sessionManager.beginSettlementReturnGrace(room.room_number);
-                    (0, settlement_snapshot_1.transitionMultiSettlementSnapshot)(playerId, body.play_id, "RETURN_PENDING");
-                    (0, game_logging_1.gameVerboseLog)(() => `[MULTI] finish: room ${activeQuestData.roomNumber}`
-                        + ` entered RETURNING by viewer=${viewerId}`);
-                }
-                else if (room) {
-                    console.warn(`[MULTI-SETTLEMENT] skipped stale finish room mutation: room=${room.room_number}`
-                        + ` viewer=${viewerId} finishGeneration=${settlementGeneration}`
-                        + ` currentGeneration=${room.lobby_generation} lifecycle=${(_a = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.lifecycle) !== null && _a !== void 0 ? _a : "missing"}`);
-                }
-            });
-        }
-        // calculate clear rank
-        const clearTime = body.elapsed_time_ms || 0;
-        const hasRankThresholds = questData.bRankTime > 0;
-        const clearRank = hasRankThresholds ? (questData.sPlusRankTime >= clearTime ? 5
-            : questData.sRankTime >= clearTime ? 4
-                : questData.aRankTime >= clearTime ? 3
-                    : questData.bRankTime >= clearTime ? 2
-                        : 1) : null;
-        const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
-        const manaObtained = questData.manaReward + (body.add_mana || 0);
-        // Player totals and quest progress are re-read inside the reward
-        // transaction below; these are assigned there.
-        let playerData = player;
-        let beforeRankPoint = player.rankPoint;
-        let newRankPoint = beforeRankPoint + questData.rankPointReward;
-        let newMana = player.freeMana;
-        let newBoostPoint = player.boostPoint;
-        let newBossBoostPoint = player.bossBoostPoint;
-        // quest progress
-        // Abyss progress refresh can update legacy best-time rows. It must
-        // share the persistence owner with the rest of the finish path;
-        // otherwise this apparently read-only lookup races another writer and
-        // becomes the SQLITE_BUSY stack seen in cloud logs.
-        let questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "progress_refresh", () => ((0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "multi-settlement", playerId, operation: "progress_refresh",
-        }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId))));
-        let questPreviouslyCompleted = questProgress !== null;
-        const questAccomplished = body.is_accomplished;
-        const leaderId = (_u = (_t = (_s = (((_q = body.statistics) === null || _q === void 0 ? void 0 : _q.party) || ((_r = body.quest_statistics) === null || _r === void 0 ? void 0 : _r.party))) === null || _s === void 0 ? void 0 : _s.characters) === null || _t === void 0 ? void 0 : _t[0]) === null || _u === void 0 ? void 0 : _u.id;
-        const eligibleRescueFragmentReward = (0, rescue_fragment_reward_1.getEligibleRescueFragmentReward)(questCategory, questId, questAccomplished, finishedAsRescueFragmentEligible);
-        const bodyPartyStatistics = ((_v = body.statistics) === null || _v === void 0 ? void 0 : _v.party)
-            || ((_w = body.quest_statistics) === null || _w === void 0 ? void 0 : _w.party)
-            || { characters: [], unison_characters: [] };
-        let clearReward = null;
-        let sPlusClearReward = null;
-        let rescueFragmentReward = null;
-        let scoreRewardsResult;
-        const latchPlayId = typeof body.play_id === "string" ? body.play_id : "";
-        let alreadySettled = false;
-        const mode15RewardsResult = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "reward_transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "multi-settlement", playerId, operation: "reward_transaction",
-        }, () => {
-            var _a, _b, _c, _d, _e;
-            // Checked under the player's persistence queue; set after COMMIT below.
-            alreadySettled = (0, settlement_snapshot_1.isMultiSettlementSettled)(playerId, latchPlayId);
-            if (alreadySettled)
-                return null;
-            playerData = (_a = (0, player_1.getPlayerSync)(playerId)) !== null && _a !== void 0 ? _a : player;
-            questProgress = (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId);
-            questPreviouslyCompleted = questProgress !== null;
-            beforeRankPoint = playerData.rankPoint;
-            newRankPoint = beforeRankPoint + questData.rankPointReward;
-            newMana = (0, mana_1.calculateFreeManaGrant)(playerData, manaObtained).freeMana;
-            newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
-            newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
-            const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
-            const oldRkDegree = (0, stamina_1.getRankDegree)(beforeRankPoint);
-            const newDegreeId = (0, stamina_1.getRankDegree)(newRankPoint);
-            const didLevelUp = newDegreeId > oldRkDegree;
-            if (questAccomplished) {
-                if (questProgress !== null) {
-                    const updateData = {
-                        questId: questId,
-                        finished: true,
-                        hostFinished: questProgress.hostFinished || finishedAsHost,
-                        bestElapsedTimeMs: questProgress.bestElapsedTimeMs === undefined || questProgress.bestElapsedTimeMs === null ? clearTime : Math.min(clearTime, questProgress.bestElapsedTimeMs),
-                        highScore: questProgress.highScore === undefined ? (body.score || 0) : Math.max(body.score || 0, questProgress.highScore),
-                        leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
-                    };
-                    if (clearRank !== null) {
-                        updateData.clearRank = questProgress.clearRank === undefined ? clearRank : Math.max(clearRank, questProgress.clearRank);
-                    }
-                    (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, updateData);
-                }
-                else {
-                    (0, quest_1.insertPlayerQuestProgressSync)(playerId, questCategory, {
-                        questId: questId,
-                        finished: true,
-                        hostFinished: finishedAsHost,
-                        bestElapsedTimeMs: clearTime,
-                        highScore: body.score || 0,
-                        clearRank: clearRank !== null && clearRank !== void 0 ? clearRank : 5,
-                        leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
-                    });
-                }
+        // Released when this handler's own work ends, never on socket
+        // events: a closed client must neither leak the lock nor let a
+        // retry run beside a settlement that is still in progress.
+        try {
+            // A matching request may have completed while this one waited.
+            const coalescedFinishResponse = (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
+            if (coalescedFinishResponse !== undefined) {
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(coalescedFinishResponse);
             }
-            (0, player_1.updatePlayerSync)(Object.assign({ id: playerId, freeMana: newMana, rankPoint: newRankPoint, boostPoint: newBoostPoint, bossBoostPoint: newBossBoostPoint, totalManaObtained: ((_b = playerData.totalManaObtained) !== null && _b !== void 0 ? _b : 0) + manaObtained, maxComboAchieved: Math.max((_c = playerData.maxComboAchieved) !== null && _c !== void 0 ? _c : 0, (_e = (_d = body.statistics) === null || _d === void 0 ? void 0 : _d.max_combo_count) !== null && _e !== void 0 ? _e : 0) }, (didLevelUp ? { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() } : {})));
-            if ((0, player_1.adjustPlayerExpPoolSync)(playerId, questData.poolExpReward, 'multi_battle_base_reward') === null) {
-                throw new Error(`Failed to grant multi battle EXP to player ${playerId}`);
+            const settlementSnapshot = (0, settlement_snapshot_1.getMultiSettlementSnapshot)(playerId, body.play_id);
+            if (settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.settled) {
+                // This play already paid out (for example a retry after the
+                // response cache entry was evicted). Replay, never settle again.
+                const replay = (_b = settlementSnapshot.settledResponse) !== null && _b !== void 0 ? _b : buildTerminalMultiFinishAcknowledgement((_c = (0, player_1.getPlayerSync)(playerId)) !== null && _c !== void 0 ? _c : player, body);
+                (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, replay);
+                console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
+                    + ` play=${body.play_id} reason=already_settled`);
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(replay);
             }
-            clearReward = !questPreviouslyCompleted && questData.clearReward != null ? (0, quest_2.givePlayerRewardSync)(playerId, questData.clearReward) : null;
-            const isExpertSingleEvent = questCategory === types_1.QuestCategory.EXPERT_SINGLE_EVENT;
-            const shouldGrantSPlusReward = isExpertSingleEvent
-                ? (questProgress === null || questProgress === void 0 ? void 0 : questProgress.sPlusRewardReceived) !== true
-                : (questProgress === null || questProgress === void 0 ? void 0 : questProgress.clearRank) !== 5;
-            sPlusClearReward = (clearRank === 5) && shouldGrantSPlusReward && (questData.sPlusReward !== undefined)
-                ? (0, quest_2.givePlayerRewardSync)(playerId, questData.sPlusReward)
-                : null;
-            if (isExpertSingleEvent && sPlusClearReward !== null) {
-                (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, {
-                    questId,
-                    sPlusRewardReceived: true,
+            const currentActiveQuest = singleBattleQuest_1.activeQuests[playerId];
+            const persistentActiveQuest = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
+            // A delayed finish from the previous generation must use its frozen
+            // snapshot. Taking the current active quest first can settle or clear a
+            // rematch that merely happens to belong to the same player.
+            const persistentMatches = (persistentActiveQuest === null || persistentActiveQuest === void 0 ? void 0 : persistentActiveQuest.isMulti)
+                && persistentActiveQuest.playId === body.play_id;
+            const activeQuestData = (_d = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.activeQuest) !== null && _d !== void 0 ? _d : (persistentMatches
+                ? activeQuestFromPersistent(persistentActiveQuest)
+                : persistentActiveQuest === null
+                    && (currentActiveQuest === null || currentActiveQuest === void 0 ? void 0 : currentActiveQuest.playId) === body.play_id
+                    ? currentActiveQuest
+                    : undefined);
+            if (activeQuestData === undefined) {
+                const terminal = buildTerminalMultiFinishAcknowledgement(player, body);
+                (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, terminal);
+                console.warn(`[MULTI] stale finish acknowledged: viewer=${viewerId}`
+                    + ` play=${body.play_id} reason=active_quest_missing`);
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(terminal);
+            }
+            const finishRoom = activeQuestData.roomNumber
+                ? (0, manager_1.getRoom)(activeQuestData.roomNumber)
+                : undefined;
+            const settlementGeneration = (_f = (_e = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.roomGeneration) !== null && _e !== void 0 ? _e : finishRoom === null || finishRoom === void 0 ? void 0 : finishRoom.lobby_generation) !== null && _f !== void 0 ? _f : 0;
+            const settlementKey = (_g = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.battleInstanceId) !== null && _g !== void 0 ? _g : `${activeQuestData.roomNumber || body.room_number || "missing"}:${settlementGeneration}:${body.play_id}`;
+            const settlementParticipants = (_h = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.participants) !== null && _h !== void 0 ? _h : ((finishRoom === null || finishRoom === void 0 ? void 0 : finishRoom.mates) || [])
+                .map(mate => ({
+                viewerId: Number(mate.viewer_id),
+                comId: Number(mate.com_id || 0),
+            }))
+                .filter(mate => Number.isFinite(mate.viewerId) && mate.viewerId > 0);
+            const expectedRealViewerIds = (_j = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.expectedRealViewerIds) !== null && _j !== void 0 ? _j : ((finishRoom === null || finishRoom === void 0 ? void 0 : finishRoom.expected_real_viewer_ids) || [])
+                .map(Number)
+                .filter(expectedViewerId => Number.isFinite(expectedViewerId) && expectedViewerId > 0);
+            const finishedAsRescueGuest = (_k = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isRescueGuest) !== null && _k !== void 0 ? _k : (activeQuestData.roomNumber
+                ? SessionManager_1.sessionManager.isRescueGuest(activeQuestData.roomNumber, viewerId)
+                : false);
+            const finishedAsRescueFragmentEligible = (_l = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isRescueFragmentEligible) !== null && _l !== void 0 ? _l : (activeQuestData.roomNumber
+                ? SessionManager_1.sessionManager.isRescueFragmentEligibleGuest(activeQuestData.roomNumber, viewerId)
+                : false);
+            const finishedAsNewbieRescueGuest = (_m = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isNewbieRescueGuest) !== null && _m !== void 0 ? _m : (activeQuestData.roomNumber
+                ? SessionManager_1.sessionManager.isNewbieRescueGuest(activeQuestData.roomNumber, viewerId)
+                : false);
+            const questCategory = activeQuestData.category;
+            const questId = activeQuestData.questId;
+            const questData = (0, assets_1.getQuestFromCategorySync)(questCategory, questId);
+            if (questData === null || !('rankPointReward' in questData)) {
+                yield clearMatchingMultiActiveQuest(playerId, body.play_id, "stale_finish_unknown_quest");
+                const terminal = buildTerminalMultiFinishAcknowledgement(player, body);
+                (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, terminal);
+                console.warn(`[MULTI] stale finish acknowledged: viewer=${viewerId}`
+                    + ` play=${body.play_id} reason=quest_missing category=${questCategory} quest=${questId}`);
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(terminal);
+            }
+            (0, settlement_performance_1.recordSettlementPhase)("multi", "preflight", Number(process.hrtime.bigint() - finishHandlerStartedAt) / 1000000);
+            const coreStartedAt = process.hrtime.bigint();
+            const settlementWasAlreadyInLobby = (settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.lifecycle) === "LOBBY";
+            const settlingSnapshot = (0, settlement_snapshot_1.transitionMultiSettlementSnapshot)(playerId, body.play_id, "SETTLING");
+            const finishedAsHost = (_o = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.isHost) !== null && _o !== void 0 ? _o : (activeQuestData.roomNumber
+                ? ((_p = (0, manager_1.getRoom)(activeQuestData.roomNumber)) === null || _p === void 0 ? void 0 : _p.host_player_id) === playerId
+                : false);
+            if (activeQuestData.roomNumber) {
+                yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(activeQuestData.roomNumber, () => {
+                    var _a;
+                    const room = (0, manager_1.getRoom)(activeQuestData.roomNumber);
+                    const matchesBattleGeneration = (room === null || room === void 0 ? void 0 : room.lobby_generation) === settlementGeneration;
+                    const lifecycleAllowsRoomMutation = settlementSnapshot === undefined
+                        || (!settlementWasAlreadyInLobby && (settlingSnapshot === null || settlingSnapshot === void 0 ? void 0 : settlingSnapshot.lifecycle) !== "LOBBY");
+                    if (room && matchesBattleGeneration && lifecycleAllowsRoomMutation) {
+                        const wasPending = room.settlement_return_pending;
+                        const transition = embedded_1.embeddedMultiCoordinator.beginSettlementReturn(room, settlementGeneration);
+                        if (!transition.ok) {
+                            console.warn(`[MULTI-SETTLEMENT] lifecycle rejected finish room=${room.room_number}`
+                                + ` viewer=${viewerId} reason=${transition.reason}`);
+                            return;
+                        }
+                        SessionManager_1.sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
+                        if (!wasPending)
+                            SessionManager_1.sessionManager.beginSettlementReturnGrace(room.room_number);
+                        (0, settlement_snapshot_1.transitionMultiSettlementSnapshot)(playerId, body.play_id, "RETURN_PENDING");
+                        (0, game_logging_1.gameVerboseLog)(() => `[MULTI] finish: room ${activeQuestData.roomNumber}`
+                            + ` entered RETURNING by viewer=${viewerId}`);
+                    }
+                    else if (room) {
+                        console.warn(`[MULTI-SETTLEMENT] skipped stale finish room mutation: room=${room.room_number}`
+                            + ` viewer=${viewerId} finishGeneration=${settlementGeneration}`
+                            + ` currentGeneration=${room.lobby_generation} lifecycle=${(_a = settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.lifecycle) !== null && _a !== void 0 ? _a : "missing"}`);
+                    }
                 });
-                console.log(`[EXPERT_SINGLE_EVENT] SS reward granted: player=${playerId} quest=${questId} item=14040 count=3`);
             }
-            if (didLevelUp) {
-                playerData = Object.assign(Object.assign({}, playerData), { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() });
-            }
-            scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId || 0, questData.scoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "multi" });
-            if (eligibleRescueFragmentReward !== null) {
-                rescueFragmentReward = (0, quest_2.givePlayerRewardSync)(playerId, eligibleRescueFragmentReward);
-                (0, game_logging_1.gameVerboseLog)(() => `[MULTI] rescue fragment granted: player=${playerId} quest=${questId} `
-                    + `item=${eligibleRescueFragmentReward.id} count=${eligibleRescueFragmentReward.count}`);
-            }
-            // Mode15 settlement writes the cross-event progress marker and extra
-            // rewards. Keep it inside the same transaction as the ordinary multi
-            // rewards so this path cannot reopen the main database without the
-            // persistence owner.
-            return (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished, {
-                rescue: !finishedAsHost,
-                playedParty: {
-                    characterIds: (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                    unisonCharacterIds: (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                    equipmentIds: (bodyPartyStatistics.equipments || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                    abilitySoulIds: [...(bodyPartyStatistics.ability_soul_ids || [])],
-                    evolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
-                    unisonEvolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+            // calculate clear rank
+            const clearTime = body.elapsed_time_ms || 0;
+            const hasRankThresholds = questData.bRankTime > 0;
+            const clearRank = hasRankThresholds ? (questData.sPlusRankTime >= clearTime ? 5
+                : questData.sRankTime >= clearTime ? 4
+                    : questData.aRankTime >= clearTime ? 3
+                        : questData.bRankTime >= clearTime ? 2
+                            : 1) : null;
+            const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
+            const manaObtained = questData.manaReward + (body.add_mana || 0);
+            // Player totals and quest progress are re-read inside the reward
+            // transaction below; these are assigned there.
+            let playerData = player;
+            let beforeRankPoint = player.rankPoint;
+            let newRankPoint = beforeRankPoint + questData.rankPointReward;
+            let newMana = player.freeMana;
+            let newBoostPoint = player.boostPoint;
+            let newBossBoostPoint = player.bossBoostPoint;
+            // quest progress
+            // Abyss progress refresh can update legacy best-time rows. It must
+            // share the persistence owner with the rest of the finish path;
+            // otherwise this apparently read-only lookup races another writer and
+            // becomes the SQLITE_BUSY stack seen in cloud logs.
+            let questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "progress_refresh", () => ((0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId, operation: "progress_refresh",
+            }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId))));
+            let questPreviouslyCompleted = questProgress !== null;
+            const questAccomplished = body.is_accomplished;
+            const leaderId = (_u = (_t = (_s = (((_q = body.statistics) === null || _q === void 0 ? void 0 : _q.party) || ((_r = body.quest_statistics) === null || _r === void 0 ? void 0 : _r.party))) === null || _s === void 0 ? void 0 : _s.characters) === null || _t === void 0 ? void 0 : _t[0]) === null || _u === void 0 ? void 0 : _u.id;
+            const eligibleRescueFragmentReward = (0, rescue_fragment_reward_1.getEligibleRescueFragmentReward)(questCategory, questId, questAccomplished, finishedAsRescueFragmentEligible);
+            const bodyPartyStatistics = ((_v = body.statistics) === null || _v === void 0 ? void 0 : _v.party)
+                || ((_w = body.quest_statistics) === null || _w === void 0 ? void 0 : _w.party)
+                || { characters: [], unison_characters: [] };
+            let clearReward = null;
+            let sPlusClearReward = null;
+            let rescueFragmentReward = null;
+            let scoreRewardsResult;
+            const latchPlayId = typeof body.play_id === "string" ? body.play_id : "";
+            let alreadySettled = false;
+            const mode15RewardsResult = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "reward_transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId, operation: "reward_transaction",
+            }, () => {
+                var _a, _b, _c, _d, _e;
+                // Checked under the player's persistence queue; set after COMMIT below.
+                alreadySettled = (0, settlement_snapshot_1.isMultiSettlementSettled)(playerId, latchPlayId);
+                if (alreadySettled)
+                    return null;
+                playerData = (_a = (0, player_1.getPlayerSync)(playerId)) !== null && _a !== void 0 ? _a : player;
+                questProgress = (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId);
+                questPreviouslyCompleted = questProgress !== null;
+                beforeRankPoint = playerData.rankPoint;
+                newRankPoint = beforeRankPoint + questData.rankPointReward;
+                newMana = (0, mana_1.calculateFreeManaGrant)(playerData, manaObtained).freeMana;
+                newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
+                newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
+                const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
+                const oldRkDegree = (0, stamina_1.getRankDegree)(beforeRankPoint);
+                const newDegreeId = (0, stamina_1.getRankDegree)(newRankPoint);
+                const didLevelUp = newDegreeId > oldRkDegree;
+                if (questAccomplished) {
+                    if (questProgress !== null) {
+                        const updateData = {
+                            questId: questId,
+                            finished: true,
+                            hostFinished: questProgress.hostFinished || finishedAsHost,
+                            bestElapsedTimeMs: questProgress.bestElapsedTimeMs === undefined || questProgress.bestElapsedTimeMs === null ? clearTime : Math.min(clearTime, questProgress.bestElapsedTimeMs),
+                            highScore: questProgress.highScore === undefined ? (body.score || 0) : Math.max(body.score || 0, questProgress.highScore),
+                            leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
+                        };
+                        if (clearRank !== null) {
+                            updateData.clearRank = questProgress.clearRank === undefined ? clearRank : Math.max(clearRank, questProgress.clearRank);
+                        }
+                        (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, updateData);
+                    }
+                    else {
+                        (0, quest_1.insertPlayerQuestProgressSync)(playerId, questCategory, {
+                            questId: questId,
+                            finished: true,
+                            hostFinished: finishedAsHost,
+                            bestElapsedTimeMs: clearTime,
+                            highScore: body.score || 0,
+                            clearRank: clearRank !== null && clearRank !== void 0 ? clearRank : 5,
+                            leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
+                        });
+                    }
+                }
+                (0, player_1.updatePlayerSync)(Object.assign({ id: playerId, freeMana: newMana, rankPoint: newRankPoint, boostPoint: newBoostPoint, bossBoostPoint: newBossBoostPoint, totalManaObtained: ((_b = playerData.totalManaObtained) !== null && _b !== void 0 ? _b : 0) + manaObtained, maxComboAchieved: Math.max((_c = playerData.maxComboAchieved) !== null && _c !== void 0 ? _c : 0, (_e = (_d = body.statistics) === null || _d === void 0 ? void 0 : _d.max_combo_count) !== null && _e !== void 0 ? _e : 0) }, (didLevelUp ? { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() } : {})));
+                if ((0, player_1.adjustPlayerExpPoolSync)(playerId, questData.poolExpReward, 'multi_battle_base_reward') === null) {
+                    throw new Error(`Failed to grant multi battle EXP to player ${playerId}`);
+                }
+                clearReward = !questPreviouslyCompleted && questData.clearReward != null ? (0, quest_2.givePlayerRewardSync)(playerId, questData.clearReward) : null;
+                const isExpertSingleEvent = questCategory === types_1.QuestCategory.EXPERT_SINGLE_EVENT;
+                const shouldGrantSPlusReward = isExpertSingleEvent
+                    ? (questProgress === null || questProgress === void 0 ? void 0 : questProgress.sPlusRewardReceived) !== true
+                    : (questProgress === null || questProgress === void 0 ? void 0 : questProgress.clearRank) !== 5;
+                sPlusClearReward = (clearRank === 5) && shouldGrantSPlusReward && (questData.sPlusReward !== undefined)
+                    ? (0, quest_2.givePlayerRewardSync)(playerId, questData.sPlusReward)
+                    : null;
+                if (isExpertSingleEvent && sPlusClearReward !== null) {
+                    (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, {
+                        questId,
+                        sPlusRewardReceived: true,
+                    });
+                    console.log(`[EXPERT_SINGLE_EVENT] SS reward granted: player=${playerId} quest=${questId} item=14040 count=3`);
+                }
+                if (didLevelUp) {
+                    playerData = Object.assign(Object.assign({}, playerData), { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() });
+                }
+                scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId || 0, questData.scoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "multi" });
+                if (eligibleRescueFragmentReward !== null) {
+                    rescueFragmentReward = (0, quest_2.givePlayerRewardSync)(playerId, eligibleRescueFragmentReward);
+                    (0, game_logging_1.gameVerboseLog)(() => `[MULTI] rescue fragment granted: player=${playerId} quest=${questId} `
+                        + `item=${eligibleRescueFragmentReward.id} count=${eligibleRescueFragmentReward.count}`);
+                }
+                // Mode15 settlement writes the cross-event progress marker and extra
+                // rewards. Keep it inside the same transaction as the ordinary multi
+                // rewards so this path cannot reopen the main database without the
+                // persistence owner.
+                return (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished, {
+                    rescue: !finishedAsHost,
+                    playedParty: {
+                        characterIds: (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                        unisonCharacterIds: (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                        equipmentIds: (bodyPartyStatistics.equipments || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                        abilitySoulIds: [...(bodyPartyStatistics.ability_soul_ids || [])],
+                        evolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                        unisonEvolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                    },
+                });
+            }, {
+                afterCommit: () => {
+                    if (!alreadySettled)
+                        (0, settlement_snapshot_1.markMultiSettlementSettled)(playerId, latchPlayId);
                 },
+            }));
+            if (alreadySettled) {
+                const latest = (0, settlement_snapshot_1.getMultiSettlementSnapshot)(playerId, latchPlayId);
+                const replay = (_x = latest === null || latest === void 0 ? void 0 : latest.settledResponse) !== null && _x !== void 0 ? _x : buildTerminalMultiFinishAcknowledgement((_y = (0, player_1.getPlayerSync)(playerId)) !== null && _y !== void 0 ? _y : player, body);
+                (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, replay);
+                console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
+                    + ` play=${body.play_id} reason=already_settled_in_transaction`);
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(replay);
+            }
+            const settledClearReward = clearReward;
+            const settledSPlusClearReward = sPlusClearReward;
+            const settledRescueFragmentReward = rescueFragmentReward;
+            const rescueFragmentAdditionalReward = (0, rescue_fragment_reward_1.getRescueFragmentAdditionalReward)(eligibleRescueFragmentReward);
+            const partyCharacterIdsArray = [];
+            for (const value of [...(bodyPartyStatistics.characters || []), ...(bodyPartyStatistics.unison_characters || [])]) {
+                if (value !== null && value.id !== null && value.id !== undefined)
+                    partyCharacterIdsArray.push(value.id);
+            }
+            // Track mission progress (decoupled from core quest mechanics)
+            const finishCtx = {
+                playerId, questCategory, questId,
+                questAccomplished,
+                clearTime, clearRank,
+                party: bodyPartyStatistics,
+                statistics: body.statistics || body.quest_statistics || {},
+                player: playerData,
+                questPreviouslyCompleted,
+                questProgress,
+                partySlot: (_z = activeQuestData.partySlot) !== null && _z !== void 0 ? _z : playerData.partySlot,
+                isMulti: true,
+                isMultiHost: finishedAsHost,
+            };
+            const multiBattleParty = (0, mission_1.collectPartyCharacterIds)(finishCtx.party);
+            const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
+            let missionBattleFacts;
+            let steamRobotMissionId = null;
+            let rewardCharacterExpResult;
+            yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "facts_transaction", () => __awaiter(this, void 0, void 0, function* () {
+                const factsResult = yield (0, persistence_coordinator_1.runWriterCommand)(command_names_1.MULTI_RECORD_BATTLE_FACTS, {
+                    finishCtx,
+                    partyCharacterIdsArray,
+                    characterExpReward: questData.characterExpReward || 0,
+                    fixedParty: questData.fixedParty !== undefined,
+                    evaluationTimeMs: missionEvaluationTime.getTime(),
+                }, { domain: "multi-settlement", playerId, operation: "facts_transaction" });
+                missionBattleFacts = factsResult.missionBattleFacts;
+                steamRobotMissionId = factsResult.steamRobotMissionId;
+                rewardCharacterExpResult = factsResult.rewardCharacterExpResult;
+            }));
+            const dataHeaders = (0, utils_1.generateDataHeaders)({ viewer_id: viewerId });
+            const rawMatePlayerResult = (body.mate_player_result || []);
+            (0, settlement_performance_1.recordSettlementPhase)("multi", "core", Number(process.hrtime.bigint() - coreStartedAt) / 1000000);
+            const settlementResult = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "barrier", () => (0, settlement_1.mergeMultiSettlementResults)({
+                key: settlementKey,
+                viewerId,
+                participants: settlementParticipants,
+                expectedRealViewerIds,
+                ownScore: body.score || 0,
+                ownContributionScore: body.contribution_score || 0,
+                mateResults: rawMatePlayerResult,
+                // Preserve the original repaired 1.2-second compatibility
+                // barrier.  mergeMultiSettlementResults still returns early as
+                // soon as every real participant has submitted.
+                waitMs: parseInt(process.env.MULTI_SETTLEMENT_BARRIER_MS || "1200", 10),
+            }));
+            const postBarrierStartedAt = process.hrtime.bigint();
+            const matePlayerResult = settlementResult.mateResults;
+            const ownContributionScore = Number(body.contribution_score) || 0;
+            const highestContributionScore = Math.max(ownContributionScore, ...matePlayerResult.map(result => Number(result.contribution_score) || 0));
+            const finishedAsMvp = Boolean((_0 = finishCtx.statistics) === null || _0 === void 0 ? void 0 : _0.is_mvp)
+                || ownContributionScore >= highestContributionScore;
+            (0, mission_1.recordBattleMissionDimensionsSafe)(Object.assign(Object.assign({ type: "battle_finish", playerId,
+                questCategory,
+                questId, accomplished: questAccomplished, mode: "multi", role: finishedAsHost ? "host" : "guest", isRescue: finishedAsRescueGuest, isNewbieRescue: finishedAsNewbieRescueGuest, isMvp: questAccomplished && finishedAsMvp, clearRank, clearTimeMs: clearTime, score: Number(body.score) || 0 }, multiBattleParty), { statistics: (0, mission_1.summarizeBattleStatistics)(finishCtx.statistics) }));
+            (0, game_logging_1.gameVerboseLog)(() => `[MULTI] settlement roster: room=${activeQuestData.roomNumber || body.room_number || "missing"} `
+                + `generation=${settlementGeneration} viewer=${viewerId} `
+                + `submitted=${settlementResult.submittedCount}/${settlementResult.expectedCount} `
+                + `returned=${matePlayerResult.length} synthesized=${settlementResult.synthesizedViewerIds.join(",") || "none"}`);
+            const followInfo = yield buildFinishFollowInfo(playerId, viewerId, matePlayerResult, activeQuestData.matePlayerIds || []);
+            const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
+            const characterList = [
+                ...rewardCharacterExpResult.character_list,
+                ...((settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.character_list) || []),
+                ...((settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.character_list) || []),
+                ...scoreRewardsResult.character_list,
+                ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.character_list) || []),
+            ];
+            const missionSettlement = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "mission", () => {
+                var _a, _b, _c;
+                return ((0, mission_2.settleMissionCategoriesAsync)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_a = settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.items) !== null && _a !== void 0 ? _a : {})), ((_b = settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.items) !== null && _b !== void 0 ? _b : {})), scoreRewardsResult.items), ((_c = settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.items) !== null && _c !== void 0 ? _c : {}))).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime));
             });
-        }, {
-            afterCommit: () => {
-                if (!alreadySettled)
-                    (0, settlement_snapshot_1.markMultiSettlementSettled)(playerId, latchPlayId);
-            },
-        }));
-        if (alreadySettled) {
-            const latest = (0, settlement_snapshot_1.getMultiSettlementSnapshot)(playerId, latchPlayId);
-            const replay = (_x = latest === null || latest === void 0 ? void 0 : latest.settledResponse) !== null && _x !== void 0 ? _x : buildTerminalMultiFinishAcknowledgement((_y = (0, player_1.getPlayerSync)(playerId)) !== null && _y !== void 0 ? _y : player, body);
-            (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, replay);
-            console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
-                + ` play=${body.play_id} reason=already_settled_in_transaction`);
+            const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("multi", "awake_mission", () => ((0, mission_2.settleAwakeMissionCandidates)(playerId, questAccomplished
+                ? (0, mission_2.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
+                : [], missionEvaluationTime)));
+            const activeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("multi", "active_mission", () => ((0, active_reconciliation_1.reconcileActiveMissionFacts)({
+                playerId,
+                repository: (0, content_snapshot_1.getContentSnapshot)().repository,
+                now: missionEvaluationTime,
+                patterns: (0, battle_facts_1.getBattleActiveMissionPatterns)(questCategory),
+            })));
             reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send(replay);
+            const responseData = {
+                "user_info": {
+                    "free_mana": (_1 = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _1 !== void 0 ? _1 : newMana,
+                    "exp_pool": (_2 = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _2 !== void 0 ? _2 : rewardCharacterExpResult.exp_pool,
+                    "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
+                    "free_vmoney": (_3 = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _3 !== void 0 ? _3 : playerData.freeVmoney,
+                    "rank_point": newRankPoint,
+                    "degree_id": (_4 = playerData.degreeId) !== null && _4 !== void 0 ? _4 : 1,
+                    "stamina": playerData.stamina,
+                    "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
+                    "boost_point": newBoostPoint,
+                    "boss_boost_point": newBossBoostPoint
+                },
+                "add_exp_list": rewardCharacterExpResult.add_exp_list,
+                "character_list": characterList,
+                "bond_token_status_list": rewardCharacterExpResult.bond_token_status_list,
+                "rewards": {
+                    "overflow_pool_exp": 0,
+                    "converted_pool_exp": 0,
+                    "reward_pool_exp": questData.poolExpReward,
+                    // Keep the credited total unchanged, but expose Mode15's
+                    // fixed Mana through the native visible field-drop slot.
+                    "reward_mana": displayMode15ManaAsFieldDrop ? 0 : questData.manaReward,
+                    "field_mana": (body.add_mana || 0)
+                        + (displayMode15ManaAsFieldDrop ? questData.manaReward : 0)
+                },
+                "old_high_score": questProgress === null ? 0 : questProgress.highScore || 0,
+                "joined_character_id_list": [
+                    ...((settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.joined_character_id_list) || []),
+                    ...((settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.joined_character_id_list) || []),
+                    ...scoreRewardsResult.joined_character_id_list,
+                    ...((settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.joined_character_id_list) || []),
+                    ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.joined_character_id_list) || []),
+                ],
+                "before_rank_point": beforeRankPoint,
+                "clear_rank": clearRank !== null && clearRank !== void 0 ? clearRank : 5,
+                "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
+                "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
+                "drop_additional_reward_ids": [
+                    ...(rescueFragmentAdditionalReward === null
+                        ? []
+                        : [rescueFragmentAdditionalReward]),
+                    ...((_5 = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _5 !== void 0 ? _5 : []),
+                ],
+                "drop_periodic_reward_ids": [],
+                "equipment_list": [
+                    ...scoreRewardsResult.equipment_list,
+                    ...((settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.equipment_list) || []),
+                    ...((settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.equipment_list) || []),
+                    ...((settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.equipment_list) || []),
+                    ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.equipment_list) || [])
+                ],
+                "category_id": questCategory,
+                // Do not attach the single-player Rush settlement payload to a
+                // multiplayer finish response.  The client routes any
+                // non-null rush_event through SingleBattleQuestFinishRushEventProcess;
+                // the multiplayer payload is not that type and causes F1034
+                // (TypeError #1034), most visibly on stage 15 full clear.
+                "start_time": dataHeaders['servertime'],
+                "is_multi": "multi",
+                "quest_name": "",
+                "item_list": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_6 = settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.items) !== null && _6 !== void 0 ? _6 : {})), ((_7 = settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.items) !== null && _7 !== void 0 ? _7 : {})), scoreRewardsResult.items), ((_8 = settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.items) !== null && _8 !== void 0 ? _8 : {})), ((_9 = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _9 !== void 0 ? _9 : {})),
+                "presigned_quest_category": [],
+                "mate_player_result": matePlayerResult,
+                "follow_info": followInfo,
+                "contribution_score": (_10 = body.contribution_score) !== null && _10 !== void 0 ? _10 : 0,
+                "host_finished": finishedAsHost,
+                "aborted_play_id": null,
+            };
+            (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
+            // Awake settlement re-publishes completed special unlocks itself,
+            // including already-persisted rows whose earlier response was lost.
+            (0, mission_2.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
+            if (activeMissionSettlement.length > 0) {
+                responseData.active_mission_list = activeMissionSettlement;
+            }
+            responseData.mail_arrived = (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0;
+            const finishResponse = {
+                "data_headers": dataHeaders,
+                "data": responseData,
+            };
+            if (questAccomplished) {
+                (0, player_party_pool_1.recordSuccessfulQuestNpcParty)(settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.npcPartySnapshot);
+            }
+            (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse);
+            (0, settlement_snapshot_1.recordMultiSettlementResponse)(playerId, latchPlayId, finishResponse);
+            (0, settlement_snapshot_1.transitionMultiSettlementSnapshot)(playerId, body.play_id, "RETURN_PENDING");
+            // Clear only the quest that produced this response.  A late retry from
+            // the previous battle must never delete a newer rematch's active quest.
+            yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "active_quest_cleanup", () => (0, persistence_coordinator_1.runWriterCommand)(command_names_1.MULTI_CLEANUP_ACTIVE_QUEST, { playerId, expectedPlayId: activeQuestData.playId }, { domain: "multi-settlement", playerId, operation: "active_quest_cleanup" }));
+            if (((_11 = singleBattleQuest_1.activeQuests[playerId]) === null || _11 === void 0 ? void 0 : _11.playId) === activeQuestData.playId) {
+                delete singleBattleQuest_1.activeQuests[playerId];
+            }
+            (0, settlement_performance_1.recordSettlementPhase)("multi", "post_barrier", Number(process.hrtime.bigint() - postBarrierStartedAt) / 1000000);
+            const responseStartedAt = process.hrtime.bigint();
+            let responseFlushRecorded = false;
+            const recordResponseFlush = () => {
+                if (responseFlushRecorded)
+                    return;
+                responseFlushRecorded = true;
+                (0, settlement_performance_1.recordSettlementPhase)("multi", "response_flush", Number(process.hrtime.bigint() - responseStartedAt) / 1000000);
+            };
+            reply.raw.once("finish", recordResponseFlush);
+            reply.raw.once("close", recordResponseFlush);
+            return reply.status(200).send(finishResponse);
         }
-        const settledClearReward = clearReward;
-        const settledSPlusClearReward = sPlusClearReward;
-        const settledRescueFragmentReward = rescueFragmentReward;
-        const rescueFragmentAdditionalReward = (0, rescue_fragment_reward_1.getRescueFragmentAdditionalReward)(eligibleRescueFragmentReward);
-        const partyCharacterIdsArray = [];
-        for (const value of [...(bodyPartyStatistics.characters || []), ...(bodyPartyStatistics.unison_characters || [])]) {
-            if (value !== null && value.id !== null && value.id !== undefined)
-                partyCharacterIdsArray.push(value.id);
+        finally {
+            releaseFinishExecution();
         }
-        // Track mission progress (decoupled from core quest mechanics)
-        const finishCtx = {
-            playerId, questCategory, questId,
-            questAccomplished,
-            clearTime, clearRank,
-            party: bodyPartyStatistics,
-            statistics: body.statistics || body.quest_statistics || {},
-            player: playerData,
-            questPreviouslyCompleted,
-            questProgress,
-            partySlot: (_z = activeQuestData.partySlot) !== null && _z !== void 0 ? _z : playerData.partySlot,
-            isMulti: true,
-            isMultiHost: finishedAsHost,
-        };
-        const multiBattleParty = (0, mission_1.collectPartyCharacterIds)(finishCtx.party);
-        const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
-        let missionBattleFacts;
-        let steamRobotMissionId = null;
-        let rewardCharacterExpResult;
-        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "facts_transaction", () => __awaiter(this, void 0, void 0, function* () {
-            const factsResult = yield (0, persistence_coordinator_1.runWriterCommand)(command_names_1.MULTI_RECORD_BATTLE_FACTS, {
-                finishCtx,
-                partyCharacterIdsArray,
-                characterExpReward: questData.characterExpReward || 0,
-                fixedParty: questData.fixedParty !== undefined,
-                evaluationTimeMs: missionEvaluationTime.getTime(),
-            }, { domain: "multi-settlement", playerId, operation: "facts_transaction" });
-            missionBattleFacts = factsResult.missionBattleFacts;
-            steamRobotMissionId = factsResult.steamRobotMissionId;
-            rewardCharacterExpResult = factsResult.rewardCharacterExpResult;
-        }));
-        const dataHeaders = (0, utils_1.generateDataHeaders)({ viewer_id: viewerId });
-        const rawMatePlayerResult = (body.mate_player_result || []);
-        (0, settlement_performance_1.recordSettlementPhase)("multi", "core", Number(process.hrtime.bigint() - coreStartedAt) / 1000000);
-        const settlementResult = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "barrier", () => (0, settlement_1.mergeMultiSettlementResults)({
-            key: settlementKey,
-            viewerId,
-            participants: settlementParticipants,
-            expectedRealViewerIds,
-            ownScore: body.score || 0,
-            ownContributionScore: body.contribution_score || 0,
-            mateResults: rawMatePlayerResult,
-            // Preserve the original repaired 1.2-second compatibility
-            // barrier.  mergeMultiSettlementResults still returns early as
-            // soon as every real participant has submitted.
-            waitMs: parseInt(process.env.MULTI_SETTLEMENT_BARRIER_MS || "1200", 10),
-        }));
-        const postBarrierStartedAt = process.hrtime.bigint();
-        const matePlayerResult = settlementResult.mateResults;
-        const ownContributionScore = Number(body.contribution_score) || 0;
-        const highestContributionScore = Math.max(ownContributionScore, ...matePlayerResult.map(result => Number(result.contribution_score) || 0));
-        const finishedAsMvp = Boolean((_0 = finishCtx.statistics) === null || _0 === void 0 ? void 0 : _0.is_mvp)
-            || ownContributionScore >= highestContributionScore;
-        (0, mission_1.recordBattleMissionDimensionsSafe)(Object.assign(Object.assign({ type: "battle_finish", playerId,
-            questCategory,
-            questId, accomplished: questAccomplished, mode: "multi", role: finishedAsHost ? "host" : "guest", isRescue: finishedAsRescueGuest, isNewbieRescue: finishedAsNewbieRescueGuest, isMvp: questAccomplished && finishedAsMvp, clearRank, clearTimeMs: clearTime, score: Number(body.score) || 0 }, multiBattleParty), { statistics: (0, mission_1.summarizeBattleStatistics)(finishCtx.statistics) }));
-        (0, game_logging_1.gameVerboseLog)(() => `[MULTI] settlement roster: room=${activeQuestData.roomNumber || body.room_number || "missing"} `
-            + `generation=${settlementGeneration} viewer=${viewerId} `
-            + `submitted=${settlementResult.submittedCount}/${settlementResult.expectedCount} `
-            + `returned=${matePlayerResult.length} synthesized=${settlementResult.synthesizedViewerIds.join(",") || "none"}`);
-        const followInfo = yield buildFinishFollowInfo(playerId, viewerId, matePlayerResult, activeQuestData.matePlayerIds || []);
-        const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
-        const characterList = [
-            ...rewardCharacterExpResult.character_list,
-            ...((settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.character_list) || []),
-            ...((settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.character_list) || []),
-            ...scoreRewardsResult.character_list,
-            ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.character_list) || []),
-        ];
-        const missionSettlement = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "mission", () => {
-            var _a, _b, _c;
-            return ((0, mission_2.settleMissionCategoriesAsync)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_a = settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.items) !== null && _a !== void 0 ? _a : {})), ((_b = settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.items) !== null && _b !== void 0 ? _b : {})), scoreRewardsResult.items), ((_c = settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.items) !== null && _c !== void 0 ? _c : {}))).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime));
-        });
-        const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("multi", "awake_mission", () => ((0, mission_2.settleAwakeMissionCandidates)(playerId, questAccomplished
-            ? (0, mission_2.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
-            : [], missionEvaluationTime)));
-        const activeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("multi", "active_mission", () => ((0, active_reconciliation_1.reconcileActiveMissionFacts)({
-            playerId,
-            repository: (0, content_snapshot_1.getContentSnapshot)().repository,
-            now: missionEvaluationTime,
-            patterns: (0, battle_facts_1.getBattleActiveMissionPatterns)(questCategory),
-        })));
-        reply.header("content-type", "application/x-msgpack");
-        const responseData = {
-            "user_info": {
-                "free_mana": (_1 = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _1 !== void 0 ? _1 : newMana,
-                "exp_pool": (_2 = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _2 !== void 0 ? _2 : rewardCharacterExpResult.exp_pool,
-                "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
-                "free_vmoney": (_3 = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _3 !== void 0 ? _3 : playerData.freeVmoney,
-                "rank_point": newRankPoint,
-                "degree_id": (_4 = playerData.degreeId) !== null && _4 !== void 0 ? _4 : 1,
-                "stamina": playerData.stamina,
-                "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
-                "boost_point": newBoostPoint,
-                "boss_boost_point": newBossBoostPoint
-            },
-            "add_exp_list": rewardCharacterExpResult.add_exp_list,
-            "character_list": characterList,
-            "bond_token_status_list": rewardCharacterExpResult.bond_token_status_list,
-            "rewards": {
-                "overflow_pool_exp": 0,
-                "converted_pool_exp": 0,
-                "reward_pool_exp": questData.poolExpReward,
-                // Keep the credited total unchanged, but expose Mode15's
-                // fixed Mana through the native visible field-drop slot.
-                "reward_mana": displayMode15ManaAsFieldDrop ? 0 : questData.manaReward,
-                "field_mana": (body.add_mana || 0)
-                    + (displayMode15ManaAsFieldDrop ? questData.manaReward : 0)
-            },
-            "old_high_score": questProgress === null ? 0 : questProgress.highScore || 0,
-            "joined_character_id_list": [
-                ...((settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.joined_character_id_list) || []),
-                ...((settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.joined_character_id_list) || []),
-                ...scoreRewardsResult.joined_character_id_list,
-                ...((settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.joined_character_id_list) || []),
-                ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.joined_character_id_list) || []),
-            ],
-            "before_rank_point": beforeRankPoint,
-            "clear_rank": clearRank !== null && clearRank !== void 0 ? clearRank : 5,
-            "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
-            "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
-            "drop_additional_reward_ids": [
-                ...(rescueFragmentAdditionalReward === null
-                    ? []
-                    : [rescueFragmentAdditionalReward]),
-                ...((_5 = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _5 !== void 0 ? _5 : []),
-            ],
-            "drop_periodic_reward_ids": [],
-            "equipment_list": [
-                ...scoreRewardsResult.equipment_list,
-                ...((settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.equipment_list) || []),
-                ...((settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.equipment_list) || []),
-                ...((settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.equipment_list) || []),
-                ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.equipment_list) || [])
-            ],
-            "category_id": questCategory,
-            // Do not attach the single-player Rush settlement payload to a
-            // multiplayer finish response.  The client routes any
-            // non-null rush_event through SingleBattleQuestFinishRushEventProcess;
-            // the multiplayer payload is not that type and causes F1034
-            // (TypeError #1034), most visibly on stage 15 full clear.
-            "start_time": dataHeaders['servertime'],
-            "is_multi": "multi",
-            "quest_name": "",
-            "item_list": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_6 = settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.items) !== null && _6 !== void 0 ? _6 : {})), ((_7 = settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.items) !== null && _7 !== void 0 ? _7 : {})), scoreRewardsResult.items), ((_8 = settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.items) !== null && _8 !== void 0 ? _8 : {})), ((_9 = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _9 !== void 0 ? _9 : {})),
-            "presigned_quest_category": [],
-            "mate_player_result": matePlayerResult,
-            "follow_info": followInfo,
-            "contribution_score": (_10 = body.contribution_score) !== null && _10 !== void 0 ? _10 : 0,
-            "host_finished": finishedAsHost,
-            "aborted_play_id": null,
-        };
-        (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
-        // Awake settlement re-publishes completed special unlocks itself,
-        // including already-persisted rows whose earlier response was lost.
-        (0, mission_2.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
-        if (activeMissionSettlement.length > 0) {
-            responseData.active_mission_list = activeMissionSettlement;
-        }
-        responseData.mail_arrived = (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0;
-        const finishResponse = {
-            "data_headers": dataHeaders,
-            "data": responseData,
-        };
-        if (questAccomplished) {
-            (0, player_party_pool_1.recordSuccessfulQuestNpcParty)(settlementSnapshot === null || settlementSnapshot === void 0 ? void 0 : settlementSnapshot.npcPartySnapshot);
-        }
-        (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse);
-        (0, settlement_snapshot_1.recordMultiSettlementResponse)(playerId, latchPlayId, finishResponse);
-        (0, settlement_snapshot_1.transitionMultiSettlementSnapshot)(playerId, body.play_id, "RETURN_PENDING");
-        // Clear only the quest that produced this response.  A late retry from
-        // the previous battle must never delete a newer rematch's active quest.
-        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "active_quest_cleanup", () => (0, persistence_coordinator_1.runWriterCommand)(command_names_1.MULTI_CLEANUP_ACTIVE_QUEST, { playerId, expectedPlayId: activeQuestData.playId }, { domain: "multi-settlement", playerId, operation: "active_quest_cleanup" }));
-        if (((_11 = singleBattleQuest_1.activeQuests[playerId]) === null || _11 === void 0 ? void 0 : _11.playId) === activeQuestData.playId) {
-            delete singleBattleQuest_1.activeQuests[playerId];
-        }
-        (0, settlement_performance_1.recordSettlementPhase)("multi", "post_barrier", Number(process.hrtime.bigint() - postBarrierStartedAt) / 1000000);
-        const responseStartedAt = process.hrtime.bigint();
-        let responseFlushRecorded = false;
-        const recordResponseFlush = () => {
-            if (responseFlushRecorded)
-                return;
-            responseFlushRecorded = true;
-            (0, settlement_performance_1.recordSettlementPhase)("multi", "response_flush", Number(process.hrtime.bigint() - responseStartedAt) / 1000000);
-        };
-        reply.raw.once("finish", recordResponseFlush);
-        reply.raw.once("close", recordResponseFlush);
-        return reply.status(200).send(finishResponse);
     }));
     // ---- abort ----
     fastify.post("/abort", (request, reply) => __awaiter(this, void 0, void 0, function* () {

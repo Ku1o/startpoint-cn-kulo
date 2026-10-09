@@ -26,16 +26,23 @@ function normalizePlayId(value: unknown): string | null {
     return typeof value === "string" && value.length > 0 ? value : null
 }
 
-/** Stable request token: play_id first, then the numeric api_count. */
+/** Numeric fields use their number form; anything else keeps the legacy string form. */
+function keyPart(value: unknown): string {
+    if (value === undefined || value === null) return ""
+    const parsed = normalizeRequestNumber(value)
+    return parsed === null ? String(value) : String(parsed)
+}
+
+/** Request token: play_id first, then api_count (as sent when not numeric). */
 function finishRequestToken(body: Record<string, unknown>): string | null {
     const playId = normalizePlayId(body.play_id)
     if (playId !== null) return playId
-    const apiCount = normalizeRequestNumber(body.api_count)
-    return apiCount === null ? null : `api:${String(apiCount)}`
+    if (body.api_count === undefined || body.api_count === null) return null
+    return `api:${keyPart(body.api_count)}`
 }
 
 export interface FinishResponseCacheKeyOptions {
-    /** Multiplayer settlements are keyed by player and play, independent of other fields. */
+    /** Multiplayer settlements are keyed by player, quest and play, not by viewer or api_count. */
     playerId?: number
 }
 
@@ -45,17 +52,17 @@ export function buildFinishResponseCacheKey(
     body: Record<string, unknown>,
     options: FinishResponseCacheKeyOptions = {},
 ): string | null {
+    const category = keyPart(body.category)
+    const questId = keyPart(body.quest_id)
     const playId = normalizePlayId(body.play_id)
     if (mode === "multi" && options.playerId !== undefined && playId !== null) {
-        return `multi:player:${options.playerId}:${playId}`
+        return `multi:player:${options.playerId}:${category}:${questId}:${playId}`
     }
     const token = finishRequestToken(body)
     // Without a client request token, two legitimate consecutive clears of the
     // same quest are indistinguishable.  In that case it is safer not to cache.
     if (token === null) return null
-    const category = normalizeRequestNumber(body.category)
-    const questId = normalizeRequestNumber(body.quest_id)
-    return `${mode}:${viewerId}:${category === null ? "" : String(category)}:${questId === null ? "" : String(questId)}:${token}`
+    return `${mode}:${viewerId}:${category}:${questId}:${token}`
 }
 
 /**
