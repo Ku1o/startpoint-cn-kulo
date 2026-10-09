@@ -62,16 +62,23 @@ function hasAbyssExUnlockSync(playerId) {
             .get(playerId, quest_1.QuestCategory.RUSH_EVENT, abyss_modes_1.ABYSS_NORMAL_EVENT_ID * 1000 + 30);
 }
 exports.hasAbyssExUnlockSync = hasAbyssExUnlockSync;
+function towerNeedsReset(playerId, eventId, revision) {
+    const row = (0, db_1.getDb)().prepare(`SELECT tower_revision FROM players_rush_events
+        WHERE player_id=? AND event_id=?`).get(playerId, eventId);
+    return row !== undefined && row.tower_revision !== revision;
+}
 /** Only current finite-run state is reset. Clears, inventories and reward receipts survive. */
 function refreshPlayerAbyssTowerSync(playerId, eventId) {
     const revision = getAbyssTowerResetRevision(eventId);
     if (revision === null)
         return false;
+    // Read first: an up-to-date tower needs no write transaction. The check
+    // is repeated inside the transaction before anything is reset.
+    if (!towerNeedsReset(playerId, eventId, revision))
+        return false;
     const db = (0, db_1.getDb)();
     return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "refresh_abyss_tower" }, () => {
-        const row = db.prepare(`SELECT tower_revision FROM players_rush_events
-            WHERE player_id=? AND event_id=?`).get(playerId, eventId);
-        if (row === undefined || row.tower_revision === revision)
+        if (!towerNeedsReset(playerId, eventId, revision))
             return false;
         (0, service_1.resetLeaderboardCompetitionSync)(playerId, { category: quest_1.QuestCategory.RUSH_EVENT, eventId, folderId: 1 });
         db.prepare(`DELETE FROM players_rush_events_played_parties
@@ -84,6 +91,14 @@ function refreshPlayerAbyssTowerSync(playerId, eventId) {
 }
 exports.refreshPlayerAbyssTowerSync = refreshPlayerAbyssTowerSync;
 function refreshPlayerAbyssTowersSync(playerId) {
+    // Read-only check first; the common case (every tower current) opens no
+    // write transaction. Otherwise all towers reset atomically as before.
+    const needed = abyss_modes_1.ABYSS_EVENT_IDS.some(eventId => {
+        const revision = getAbyssTowerResetRevision(eventId);
+        return revision !== null && towerNeedsReset(playerId, eventId, revision);
+    });
+    if (!needed)
+        return;
     (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "refresh_abyss_towers" }, () => {
         for (const eventId of abyss_modes_1.ABYSS_EVENT_IDS)
             refreshPlayerAbyssTowerSync(playerId, eventId);
