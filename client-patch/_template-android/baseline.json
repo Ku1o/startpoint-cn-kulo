@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "registry": "client-patch/android-accepted.json",
+  "variant": "public",
+  "registry_schema_version": 6,
+  "registry_accepted_on": "2026-10-01",
+  "apk_sha256": "955d1fef6844285f06f37ab9fa997b33721ca2a67caa6a547874ba662a2a40cf",
+  "swf_sha256": "b0b44b37d4f5d6492ff17f58158823515ea8e2875291974a3c29a0aff10246f6",
+  "uniqueappversionid": "7c47c340-fe66-4755-ab66-599a33aa18a2",
+  "build_id": "android-181-author-1047-public-20261001",
+  "main_abc_index": 361,
+  "package_name": "com.leiting.wf",
+  "version_name": "1.8.1",
+  "version_code": 1008001,
+  "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "<主题>-candidate-<YYYYMMDD>",
+  "type": "patch",
+  "name": "<一句话名称>",
+  "description": "<改了什么、为什么；说明不修改 SWF 或需要配套客户端补丁>",
+  "version": "<由所有者分配；候选阶段不得占用正式版本号>",
+  "depends_on": "<当前主线 manifest 最新已发布版本，例如 1.4.130>",
+  "enabled": false,
+  "candidate_only": true,
+  "archive": "<candidates/ 下的 ZIP 文件名>",
+  "archive_integrity": [
+    {
+      "name": "<ZIP 文件名>",
+      "size": 0,
+      "sha256": "<ZIP SHA-256，用 candidate_report.py 生成>",
+      "members": 0,
+      "files": ["production/upload/xx/<hash>"],
+      "member_sha256": { "production/upload/xx/<hash>": "<成员 SHA-256>" }
+    }
+  ],
+  "files": ["production/upload/xx/<hash>"],
+  "created_at": "<YYYY-MM-DD>",
+  "audit": {
+    "directory": "assets/asset-patch/audit/<id>",
+    "report": "report.json"
+  },
+  "candidate": {
+    "baseline": {
+      "repo_commit": "<制作时 origin/staging 的提交>",
+      "manifest_cdn_version": "<制作时 manifest.json 的 cdn_version>",
+      "depends_on_archive": "<依赖的上一个 ZIP 文件名>"
+    },
+    "contents": [
+      { "path": "production/upload/xx/<hash>", "logical_path": "<客户端逻辑路径，如 master/character/character.orderedmap>", "kind": "table | text | voice | image | animation | other" }
+    ],
+    "changed_tables_and_resources": [
+      "<表或资源名：改了哪些行/字段，引用了哪些 ID>"
+    ],
+    "server_impact": "<需要的服务端表/代码改动及对应 PR；无则写“无”>",
+    "client_impact": "<是否需要 SWF/APK 改动；无则写“仅客户端数据，不改 SWF”>",
+    "save_impact": "<对已有存档的影响：新增 ID、迁移、回退后残留数据如何处理>",
+    "test_scope": [
+      "<实际跑过的检查与结果，例如：candidate_report.py 校验 ZIP、npm run typecheck、本地 8001 进入某界面>"
+    ],
+    "known_limitations": [
+      "<未覆盖的设备/场景、未验证的引用等>"
+    ],
+    "rollback": "<删除候选 ZIP 与本条目即可，或其他步骤>"
+  },
+  "changes": [
+    "<面向所有者的逐条改动说明>"
+  ]
+}
