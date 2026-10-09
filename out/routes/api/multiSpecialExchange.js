@@ -113,6 +113,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!definition || !definition.ticketItemIds.includes(ticketItemId)) {
             return sendResultCode(reply, context.viewerId, 4901);
         }
+        // Only characters listed for this ticket in the client master table
+        // can be selected; other ids are rejected like any failed exchange.
+        if (!(0, multi_special_exchange_1.isMultiSpecialExchangeCharacter)(ticketItemId, characterId)) {
+            return sendResultCode(reply, context.viewerId, 4902);
+        }
         const exchangeResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "event", playerId: context.playerId, operation: "exchange_character",
         }, () => {
