@@ -13,20 +13,63 @@ registerMemoryCounters("finishCache", () => ({ entries: entries.size, executing:
 const ttlMs = Math.max(5_000, Number.parseInt(process.env.FINISH_RESPONSE_CACHE_TTL_MS ?? "120000", 10) || 120_000)
 const maxEntries = Math.max(32, Number.parseInt(process.env.FINISH_RESPONSE_CACHE_MAX ?? "512", 10) || 512)
 
+function normalizeRequestNumber(value: unknown): number | null {
+    if (typeof value === "number") return Number.isFinite(value) ? value : null
+    if (typeof value !== "string") return null
+    const text = value.trim()
+    if (text.length === 0) return null
+    const parsed = Number(text)
+    return Number.isFinite(parsed) ? parsed : null
+}
+
+function normalizePlayId(value: unknown): string | null {
+    return typeof value === "string" && value.length > 0 ? value : null
+}
+
+/** Stable request token: play_id first, then the numeric api_count. */
+function finishRequestToken(body: Record<string, unknown>): string | null {
+    const playId = normalizePlayId(body.play_id)
+    if (playId !== null) return playId
+    const apiCount = normalizeRequestNumber(body.api_count)
+    return apiCount === null ? null : `api:${String(apiCount)}`
+}
+
+export interface FinishResponseCacheKeyOptions {
+    /** Multiplayer settlements are keyed by player and play, independent of other fields. */
+    playerId?: number
+}
+
 export function buildFinishResponseCacheKey(
     mode: "single" | "multi",
     viewerId: number,
     body: Record<string, unknown>,
+    options: FinishResponseCacheKeyOptions = {},
 ): string | null {
-    const playId = typeof body.play_id === "string" && body.play_id.length > 0
-        ? body.play_id
-        : body.api_count !== undefined && body.api_count !== null
-            ? `api:${String(body.api_count)}`
-            : null
+    const playId = normalizePlayId(body.play_id)
+    if (mode === "multi" && options.playerId !== undefined && playId !== null) {
+        return `multi:player:${options.playerId}:${playId}`
+    }
+    const token = finishRequestToken(body)
     // Without a client request token, two legitimate consecutive clears of the
     // same quest are indistinguishable.  In that case it is safer not to cache.
-    if (playId === null) return null
-    return `${mode}:${viewerId}:${String(body.category ?? "")}:${String(body.quest_id ?? "")}:${playId}`
+    if (token === null) return null
+    const category = normalizeRequestNumber(body.category)
+    const questId = normalizeRequestNumber(body.quest_id)
+    return `${mode}:${viewerId}:${category === null ? "" : String(category)}:${questId === null ? "" : String(questId)}:${token}`
+}
+
+/**
+ * Serialization key for finish execution.  It is never null: a request
+ * without a usable token still waits behind other finishes of the same
+ * player (single) or the same player and play (multi).
+ */
+export function buildFinishExecutionKey(
+    mode: "single" | "multi",
+    playerId: number,
+    body: Record<string, unknown>,
+): string {
+    if (mode === "single") return `single:${playerId}`
+    return `multi:${playerId}:${normalizePlayId(body.play_id) ?? ""}`
 }
 
 export function getCachedFinishResponse(key: string | null): unknown | undefined {

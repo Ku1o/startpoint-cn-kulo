@@ -1784,6 +1784,8 @@ function seedRewardFinish(p, category, questId, host = true) {
         isMultiHost: host, continueCount: 0, startedAtMs: Date.now(), matePlayerIds: [], mateComIds: [],
         questTimeRevision: category === 24 ? load('lib/abyss-time-revision').getAbyssTimeRevision() : null }
     load('routes/api/singleBattleQuest').activeQuests[p.id] = quest
+    // Like insertActiveQuest, a single-player registration is persisted too.
+    if (category !== 7) active.insertPlayerActiveQuestSync(p.id, { ...quest, playerId: p.id })
     if (category === 7) load('multi/settlement-snapshot').registerMultiSettlementSnapshot({
         battleInstanceId: p.playId, playerId: p.id, viewerId: p.viewerId, playId: p.playId,
         roomNumber: 'ticket-test', roomGeneration: 1, activeQuest: quest, participants: [],

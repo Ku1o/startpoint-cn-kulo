@@ -52,6 +52,7 @@ import {
     recordSettlementPhase,
 } from "../../lib/settlement-performance";
 import {
+    buildFinishExecutionKey,
     buildFinishResponseCacheKey,
     acquireFinishExecution,
     cacheFinishResponse,
@@ -83,6 +84,9 @@ import {
 import {
     buildBattleInstanceId,
     getMultiSettlementSnapshot,
+    isMultiSettlementSettled,
+    markMultiSettlementSettled,
+    recordMultiSettlementResponse,
     registerMultiSettlementSnapshot,
     transitionMultiSettlementSnapshot,
 } from "../settlement-snapshot";
@@ -503,6 +507,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             "multi",
             viewerId,
             body as unknown as Record<string, unknown>,
+            { playerId },
         );
         const cachedFinishResponse = getCachedFinishResponse(finishCacheKey);
         if (cachedFinishResponse !== undefined) {
@@ -510,7 +515,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             return reply.status(200).send(cachedFinishResponse);
         }
         const executionWaitStartedAt = process.hrtime.bigint();
-        const releaseFinishExecution = await acquireFinishExecution(finishCacheKey);
+        const releaseFinishExecution = await acquireFinishExecution(
+            buildFinishExecutionKey("multi", playerId, body as unknown as Record<string, unknown>),
+        );
         recordSettlementPhase(
             "multi",
             "finish_execution_wait",
@@ -526,6 +533,17 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
         const settlementSnapshot = getMultiSettlementSnapshot(playerId, body.play_id);
+        if (settlementSnapshot?.settled) {
+            // This play already paid out (for example a retry after the
+            // response cache entry was evicted). Replay, never settle again.
+            const replay = settlementSnapshot.settledResponse
+                ?? buildTerminalMultiFinishAcknowledgement(getPlayerSync(playerId) ?? player, body);
+            cacheFinishResponse(finishCacheKey, replay);
+            console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
+                + ` play=${body.play_id} reason=already_settled`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send(replay);
+        }
         const currentActiveQuest = activeQuests[playerId];
         const persistentActiveQuest = getPlayerActiveQuestSync(playerId);
         // A delayed finish from the previous generation must use its frozen
@@ -642,26 +660,28 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                             : 1
         ) : null;
 
-        const beforeRankPoint = player.rankPoint;
         const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId);
-        const newRankPoint = beforeRankPoint + questData.rankPointReward;
         const manaObtained = questData.manaReward + ((body as any).add_mana || 0);
-        const newMana = calculateFreeManaGrant(player, manaObtained).freeMana;
-        let newBoostPoint = player.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
-        let newBossBoostPoint = player.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
-        const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
+        // Player totals and quest progress are re-read inside the reward
+        // transaction below; these are assigned there.
+        let playerData = player;
+        let beforeRankPoint = player.rankPoint;
+        let newRankPoint = beforeRankPoint + questData.rankPointReward;
+        let newMana = player.freeMana;
+        let newBoostPoint = player.boostPoint;
+        let newBossBoostPoint = player.bossBoostPoint;
 
         // quest progress
         // Abyss progress refresh can update legacy best-time rows. It must
         // share the persistence owner with the rest of the finish path;
         // otherwise this apparently read-only lookup races another writer and
         // becomes the SQLITE_BUSY stack seen in cloud logs.
-        const questProgress = await measureSettlementPhaseAsync("multi", "progress_refresh", () => (
+        let questProgress = await measureSettlementPhaseAsync("multi", "progress_refresh", () => (
             runPersistenceTransaction({
                 domain: "multi-settlement", playerId, operation: "progress_refresh",
             }, () => getPlayerSingleQuestProgressSync(playerId, questCategory, questId))
         ));
-        const questPreviouslyCompleted = questProgress !== null;
+        let questPreviouslyCompleted = questProgress !== null;
         const questAccomplished = (body as any).is_accomplished;
         const leaderId = ((body as any).statistics?.party || (body as any).quest_statistics?.party)?.characters?.[0]?.id
         const eligibleRescueFragmentReward = getEligibleRescueFragmentReward(
@@ -678,15 +698,28 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         let sPlusClearReward: PlayerRewardResult | null = null;
         let rescueFragmentReward: PlayerRewardResult | null = null;
         let scoreRewardsResult!: ReturnType<typeof givePlayerScoreRewardsSync>;
-        const oldRkDegree = getRankDegree(beforeRankPoint);
-        const newDegreeId = getRankDegree(newRankPoint);
-        const didLevelUp = newDegreeId > oldRkDegree;
-        const playerData = player;
+        const latchPlayId = typeof body.play_id === "string" ? body.play_id : "";
+        let alreadySettled = false;
         const mode15RewardsResult = await measureSettlementPhaseAsync("multi", "reward_transaction", () => runPersistenceTransaction({
             domain: "multi-settlement", playerId, operation: "reward_transaction",
         }, () => {
+        // Checked under the player's persistence queue; set after COMMIT below.
+        alreadySettled = isMultiSettlementSettled(playerId, latchPlayId);
+        if (alreadySettled) return null;
+        playerData = getPlayerSync(playerId) ?? player;
+        questProgress = getPlayerSingleQuestProgressSync(playerId, questCategory, questId);
+        questPreviouslyCompleted = questProgress !== null;
+        beforeRankPoint = playerData.rankPoint;
+        newRankPoint = beforeRankPoint + questData.rankPointReward;
+        newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana;
+        newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
+        newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
+        const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
+        const oldRkDegree = getRankDegree(beforeRankPoint);
+        const newDegreeId = getRankDegree(newRankPoint);
+        const didLevelUp = newDegreeId > oldRkDegree;
         if (questAccomplished) {
-            if (questPreviouslyCompleted) {
+            if (questProgress !== null) {
                 const updateData: any = {
                     questId: questId,
                     finished: true,
@@ -718,9 +751,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             rankPoint: newRankPoint,
             boostPoint: newBoostPoint,
             bossBoostPoint: newBossBoostPoint,
-            totalManaObtained: (player.totalManaObtained ?? 0) + manaObtained,
-            maxComboAchieved: Math.max(player.maxComboAchieved ?? 0, (body as any).statistics?.max_combo_count ?? 0),
-            ...(didLevelUp ? { stamina: player.stamina + getMaxStamina(newDegreeId), staminaHealTime: new Date() } : {}),
+            totalManaObtained: (playerData.totalManaObtained ?? 0) + manaObtained,
+            maxComboAchieved: Math.max(playerData.maxComboAchieved ?? 0, (body as any).statistics?.max_combo_count ?? 0),
+            ...(didLevelUp ? { stamina: playerData.stamina + getMaxStamina(newDegreeId), staminaHealTime: new Date() } : {}),
         });
         if (adjustPlayerExpPoolSync(playerId, questData.poolExpReward, 'multi_battle_base_reward') === null) {
             throw new Error(`Failed to grant multi battle EXP to player ${playerId}`);
@@ -741,8 +774,11 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             console.log(`[EXPERT_SINGLE_EVENT] SS reward granted: player=${playerId} quest=${questId} item=14040 count=3`);
         }
         if (didLevelUp) {
-            playerData.stamina = playerData.stamina + getMaxStamina(newDegreeId);
-            playerData.staminaHealTime = new Date();
+            playerData = {
+                ...playerData,
+                stamina: playerData.stamina + getMaxStamina(newDegreeId),
+                staminaHealTime: new Date(),
+            };
         }
 
         scoreRewardsResult = givePlayerScoreRewardsSync(
@@ -787,7 +823,21 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 },
             },
         );
+        }, {
+            afterCommit: () => {
+                if (!alreadySettled) markMultiSettlementSettled(playerId, latchPlayId);
+            },
         }));
+        if (alreadySettled) {
+            const latest = getMultiSettlementSnapshot(playerId, latchPlayId);
+            const replay = latest?.settledResponse
+                ?? buildTerminalMultiFinishAcknowledgement(getPlayerSync(playerId) ?? player, body);
+            cacheFinishResponse(finishCacheKey, replay);
+            console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
+                + ` play=${body.play_id} reason=already_settled_in_transaction`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send(replay);
+        }
         const settledClearReward = clearReward as PlayerRewardResult | null;
         const settledSPlusClearReward = sPlusClearReward as PlayerRewardResult | null;
         const settledRescueFragmentReward = rescueFragmentReward as PlayerRewardResult | null;
@@ -807,10 +857,10 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             clearTime, clearRank,
             party: bodyPartyStatistics as any,
             statistics: (body as any).statistics || (body as any).quest_statistics || {},
-            player,
+            player: playerData,
             questPreviouslyCompleted,
             questProgress,
-            partySlot: activeQuestData.partySlot ?? player.partySlot,
+            partySlot: activeQuestData.partySlot ?? playerData.partySlot,
             isMulti: true,
             isMultiHost: finishedAsHost,
         }
@@ -1027,6 +1077,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             recordSuccessfulQuestNpcParty(settlementSnapshot?.npcPartySnapshot);
         }
         cacheFinishResponse(finishCacheKey, finishResponse);
+        recordMultiSettlementResponse(playerId, latchPlayId, finishResponse);
         transitionMultiSettlementSnapshot(playerId, body.play_id, "RETURN_PENDING");
         // Clear only the quest that produced this response.  A late retry from
         // the previous battle must never delete a newer rematch's active quest.

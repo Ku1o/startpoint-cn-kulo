@@ -47,12 +47,13 @@ import {
 import { measureSettlementPhaseAsync } from "../../lib/settlement-performance";
 import { recordSingleSettlementBodyTiming } from "../../lib/single-settlement-diagnostics";
 import {
+    acquireFinishExecution,
+    buildFinishExecutionKey,
     buildFinishResponseCacheKey,
     cacheFinishResponse,
     getCachedFinishResponse,
 } from "../../lib/finish-response-cache";
 import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
-import { calculateFreeManaGrant } from "../../lib/mana";
 import { canStartAbyssQuestSync } from "../../data/domains/abyss-tower-progress";
 import { isAbyssExEndlessQuest } from "../../lib/abyss-modes";
 import { isValidNormalPartySlotSync } from "../../data/domains/party";
@@ -235,6 +236,19 @@ const routes = async (fastify: FastifyInstance) => {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send(cachedFinishResponse)
         }
+        // One finish per player at a time. Retries and concurrent duplicates
+        // wait here and then observe the first request's cached response.
+        const releaseFinishExecution = await acquireFinishExecution(
+            buildFinishExecutionKey("single", playerId, body as unknown as Record<string, unknown>),
+        )
+        reply.raw.once("finish", releaseFinishExecution)
+        reply.raw.once("close", releaseFinishExecution)
+        const coalescedFinishResponse = getFiveBossSoloReceiptSync(playerId, finishCacheKey)
+            ?? getCachedFinishResponse(finishCacheKey)
+        if (coalescedFinishResponse !== undefined) {
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send(coalescedFinishResponse)
+        }
 
         // Resolve the active quest from memory, persisted recovery state, or
         // (for patched clients that skipped /start) a validated request hint.
@@ -313,32 +327,25 @@ const routes = async (fastify: FastifyInstance) => {
             })
             : calculateClearRank(clearTime, questData)
 
-        // calculate player rewards
-        const beforeRankPoint = playerData.rankPoint
+        // calculate player rewards. Player totals (rank point, mana, boost
+        // points, stamina) are re-read and written inside the settlement
+        // transaction so a concurrent write is never overwritten.
         const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId)
-        const newRankPoint = beforeRankPoint + questData.rankPointReward
         const manaObtained = isAbyssExEndlessQuest(questCategory, questId) ? 0 : questData.manaReward + body.add_mana
-        let newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana
-
-        // calculate boost point
-        let newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0)
-        let newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0)
-        let useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0))
 
         // check current quest progress
         // This lookup refreshes published Abyss best-time revisions and is
         // therefore a write-capable operation. Keep it under the same
         // persistence coordinator as settlement preparation.
         // 深渊最好成绩刷新是"读+写"，整段按注册命令执行：开启写线程时在写线程内
-        // 完成，关闭时保持原进程内语义，调用方看到的返回值不变。
-        const questProgress = await measureSettlementPhaseAsync("single", "progress_refresh", () => (
+        // 完成，关闭时保持原进程内语义。结算事务内会再读一次进度行作为发奖依据。
+        await measureSettlementPhaseAsync("single", "progress_refresh", () => (
             runWriterCommand<SingleRefreshQuestProgressArgs, SingleRefreshQuestProgressResult>(
                 SINGLE_REFRESH_QUEST_PROGRESS,
                 { playerId, section: questCategory, questId },
                 { domain: "single-quest", playerId, operation: "progress_refresh" },
             )
         ));
-        const questPreviouslyCompleted = questProgress !== null
 
         let questAccomplished = body.is_accomplished
         let scoreAttackBorderTiers: ScoreAttackBorderTier[] = []
@@ -364,18 +371,33 @@ const routes = async (fastify: FastifyInstance) => {
                 SINGLE_SETTLE_FINISH,
                 {
                     playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body,
-                    clearTime, clearRank, questAccomplished, questProgress,
+                    clearTime, clearRank, questAccomplished,
                     // The patched client may skip /start; a rebuilt active quest must
                     // not seed Abyss records as a registered run.
                     fiveBossSoloQuest, registered: resolvedActiveQuest?.source !== "rebuilt",
-                    scoreAttackBorderTiers, beforeRankPoint, newRankPoint, manaObtained, newMana,
-                    newBoostPoint, newBossBoostPoint, useBoostPoint, displayMode15ManaAsFieldDrop,
+                    scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop,
                     finishCacheKey,
                 },
                 { domain: "single-quest", playerId, operation: "finish" },
             )
         ))
         if (finishResponse.timing !== null) recordSingleSettlementBodyTiming(finishResponse.timing)
+        if (finishResponse.response === null) {
+            // The registered play was already consumed by an earlier finish:
+            // nothing was written. Replay that finish's response when it is
+            // still cached; otherwise report that no play is active.
+            if (activeQuests[playerId]?.playId === activeQuestData.playId) delete activeQuests[playerId]
+            console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} questId=${questId} category=${questCategory}`)
+            const replay = getFiveBossSoloReceiptSync(playerId, finishCacheKey) ?? getCachedFinishResponse(finishCacheKey)
+            if (replay !== undefined) {
+                reply.header("content-type", "application/x-msgpack")
+                return reply.status(200).send(replay)
+            }
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "No active quest to finish."
+            })
+        }
 
         delete activeQuests[playerId]
         cacheFinishResponse(finishCacheKey, finishResponse.response)

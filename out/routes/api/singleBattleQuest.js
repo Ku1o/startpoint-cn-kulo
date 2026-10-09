@@ -46,7 +46,6 @@ const settlement_performance_1 = require("../../lib/settlement-performance");
 const single_settlement_diagnostics_1 = require("../../lib/single-settlement-diagnostics");
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
-const mana_1 = require("../../lib/mana");
 const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress");
 const abyss_modes_1 = require("../../lib/abyss-modes");
 const party_1 = require("../../data/domains/party");
@@ -84,7 +83,7 @@ function insertActiveQuest(playerId, quest) {
 exports.insertActiveQuest = insertActiveQuest;
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/finish", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
+        var _a, _b, _c, _d;
         const body = request.body;
         const viewerId = body.viewer_id;
         if (!viewerId || isNaN(viewerId))
@@ -102,6 +101,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (cachedFinishResponse !== undefined) {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send(cachedFinishResponse);
+        }
+        // One finish per player at a time. Retries and concurrent duplicates
+        // wait here and then observe the first request's cached response.
+        const releaseFinishExecution = yield (0, finish_response_cache_1.acquireFinishExecution)((0, finish_response_cache_1.buildFinishExecutionKey)("single", playerId, body));
+        reply.raw.once("finish", releaseFinishExecution);
+        reply.raw.once("close", releaseFinishExecution);
+        const coalescedFinishResponse = (_b = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _b !== void 0 ? _b : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
+        if (coalescedFinishResponse !== undefined) {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send(coalescedFinishResponse);
         }
         // Resolve the active quest from memory, persisted recovery state, or
         // (for patched clients that skipped /start) a validated request hint.
@@ -175,24 +184,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 ssRankScore: questData.ssRankScore,
             })
             : (0, quest_calc_1.calculateClearRank)(clearTime, questData);
-        // calculate player rewards
-        const beforeRankPoint = playerData.rankPoint;
+        // calculate player rewards. Player totals (rank point, mana, boost
+        // points, stamina) are re-read and written inside the settlement
+        // transaction so a concurrent write is never overwritten.
         const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
-        const newRankPoint = beforeRankPoint + questData.rankPointReward;
         const manaObtained = (0, abyss_modes_1.isAbyssExEndlessQuest)(questCategory, questId) ? 0 : questData.manaReward + body.add_mana;
-        let newMana = (0, mana_1.calculateFreeManaGrant)(playerData, manaObtained).freeMana;
-        // calculate boost point
-        let newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
-        let newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
-        let useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
         // check current quest progress
         // This lookup refreshes published Abyss best-time revisions and is
         // therefore a write-capable operation. Keep it under the same
         // persistence coordinator as settlement preparation.
         // 深渊最好成绩刷新是"读+写"，整段按注册命令执行：开启写线程时在写线程内
-        // 完成，关闭时保持原进程内语义，调用方看到的返回值不变。
-        const questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_REFRESH_QUEST_PROGRESS, { playerId, section: questCategory, questId }, { domain: "single-quest", playerId, operation: "progress_refresh" })));
-        const questPreviouslyCompleted = questProgress !== null;
+        // 完成，关闭时保持原进程内语义。结算事务内会再读一次进度行作为发奖依据。
+        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_REFRESH_QUEST_PROGRESS, { playerId, section: questCategory, questId }, { domain: "single-quest", playerId, operation: "progress_refresh" })));
         let questAccomplished = body.is_accomplished;
         let scoreAttackBorderTiers = [];
         if (isScoreAttackEvent) {
@@ -210,16 +213,32 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const finishResponse = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "transaction", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_SETTLE_FINISH, {
             playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body,
-            clearTime, clearRank, questAccomplished, questProgress,
+            clearTime, clearRank, questAccomplished,
             // The patched client may skip /start; a rebuilt active quest must
             // not seed Abyss records as a registered run.
             fiveBossSoloQuest, registered: (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt",
-            scoreAttackBorderTiers, beforeRankPoint, newRankPoint, manaObtained, newMana,
-            newBoostPoint, newBossBoostPoint, useBoostPoint, displayMode15ManaAsFieldDrop,
+            scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop,
             finishCacheKey,
         }, { domain: "single-quest", playerId, operation: "finish" })));
         if (finishResponse.timing !== null)
             (0, single_settlement_diagnostics_1.recordSingleSettlementBodyTiming)(finishResponse.timing);
+        if (finishResponse.response === null) {
+            // The registered play was already consumed by an earlier finish:
+            // nothing was written. Replay that finish's response when it is
+            // still cached; otherwise report that no play is active.
+            if (((_c = exports.activeQuests[playerId]) === null || _c === void 0 ? void 0 : _c.playId) === activeQuestData.playId)
+                delete exports.activeQuests[playerId];
+            console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} questId=${questId} category=${questCategory}`);
+            const replay = (_d = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _d !== void 0 ? _d : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
+            if (replay !== undefined) {
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(replay);
+            }
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "No active quest to finish."
+            });
+        }
         delete exports.activeQuests[playerId];
         (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse.response);
         reply.header("content-type", "application/x-msgpack");
@@ -341,7 +360,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/start", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b, _c;
+        var _e, _f;
         const body = request.body;
         const viewerId = body.viewer_id;
         const partyId = body.party_id;
@@ -438,7 +457,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const data = {
                 user_info: { last_main_quest_id: questId, stamina: latest.stamina,
                     stamina_heal_time: (0, utils_1.realToVirtual)(latest.staminaHealTime) },
-                item_list: { [contract_1.FIVE_BOSS_GAUNTLET.ticketItemId]: (_b = (0, item_1.getPlayerItemSync)(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId)) !== null && _b !== void 0 ? _b : 0 },
+                item_list: { [contract_1.FIVE_BOSS_GAUNTLET.ticketItemId]: (_e = (0, item_1.getPlayerItemSync)(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId)) !== null && _e !== void 0 ? _e : 0 },
                 category_id: category, is_multi: "single", start_time: headers.servertime,
                 quest_name: "", client_checks: (0, steam_robot_challenge_1.getSteamRobotMissionClientChecks)(category, questId),
                 mail_arrived: (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0,
@@ -456,7 +475,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const nominalStaminaCost = Math.max(0, staminaInfo.cost);
         (0, game_logging_1.gameVerboseLog)(() => `[BATTLE] start free-entry: questId=${questId} questKey=${questKey} nominalEntryCost=${JSON.stringify(configuredEntryCost)} nominalStamina=${nominalStaminaCost}`);
         if (entryCost && entryCost.itemId > 0) {
-            const playerItemCount = (_c = (0, item_1.getPlayerItemSync)(playerId, entryCost.itemId)) !== null && _c !== void 0 ? _c : 0;
+            const playerItemCount = (_f = (0, item_1.getPlayerItemSync)(playerId, entryCost.itemId)) !== null && _f !== void 0 ? _f : 0;
             (0, game_logging_1.gameVerboseLog)(() => `[BATTLE] start deduct: itemId=${entryCost.itemId} playerHas=${playerItemCount} need=${entryCost.itemCount}`);
             if (playerItemCount < entryCost.itemCount) {
                 return reply.status(400).send({
@@ -594,15 +613,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         method: ["GET", "POST"],
         url: "/play_continue",
         handler: (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-            var _d, _e;
+            var _g, _h;
             // Some legacy builds submit this endpoint as GET, while newer builds
             // use POST. Normalize both forms so a revive is not treated as an
             // unknown route by the client.
-            const raw = ((_d = (request.method === "GET" ? request.query : request.body)) !== null && _d !== void 0 ? _d : {});
+            const raw = ((_g = (request.method === "GET" ? request.query : request.body)) !== null && _g !== void 0 ? _g : {});
             const viewerId = Number(raw.viewer_id);
             const questId = Number(raw.quest_id);
             const category = Number(raw.category);
-            const playId = (_e = raw.play_id) !== null && _e !== void 0 ? _e : raw.paly_id;
+            const playId = (_h = raw.play_id) !== null && _h !== void 0 ? _h : raw.paly_id;
             if (!Number.isSafeInteger(viewerId)
                 || !Number.isSafeInteger(questId)
                 || !Number.isSafeInteger(category))

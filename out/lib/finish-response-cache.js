@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.acquireFinishExecution = exports.cacheFinishResponse = exports.getCachedFinishResponse = exports.buildFinishResponseCacheKey = void 0;
+exports.acquireFinishExecution = exports.cacheFinishResponse = exports.getCachedFinishResponse = exports.buildFinishExecutionKey = exports.buildFinishResponseCacheKey = void 0;
 const memory_diagnostics_1 = require("./memory-diagnostics");
 const entries = new Map();
 const executionTails = new Map();
@@ -20,20 +20,55 @@ const executionTails = new Map();
 // completed response long enough for that late request to remain idempotent.
 const ttlMs = Math.max(5000, Number.parseInt((_a = process.env.FINISH_RESPONSE_CACHE_TTL_MS) !== null && _a !== void 0 ? _a : "120000", 10) || 120000);
 const maxEntries = Math.max(32, Number.parseInt((_b = process.env.FINISH_RESPONSE_CACHE_MAX) !== null && _b !== void 0 ? _b : "512", 10) || 512);
-function buildFinishResponseCacheKey(mode, viewerId, body) {
-    var _a, _b;
-    const playId = typeof body.play_id === "string" && body.play_id.length > 0
-        ? body.play_id
-        : body.api_count !== undefined && body.api_count !== null
-            ? `api:${String(body.api_count)}`
-            : null;
+function normalizeRequestNumber(value) {
+    if (typeof value === "number")
+        return Number.isFinite(value) ? value : null;
+    if (typeof value !== "string")
+        return null;
+    const text = value.trim();
+    if (text.length === 0)
+        return null;
+    const parsed = Number(text);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+function normalizePlayId(value) {
+    return typeof value === "string" && value.length > 0 ? value : null;
+}
+/** Stable request token: play_id first, then the numeric api_count. */
+function finishRequestToken(body) {
+    const playId = normalizePlayId(body.play_id);
+    if (playId !== null)
+        return playId;
+    const apiCount = normalizeRequestNumber(body.api_count);
+    return apiCount === null ? null : `api:${String(apiCount)}`;
+}
+function buildFinishResponseCacheKey(mode, viewerId, body, options = {}) {
+    const playId = normalizePlayId(body.play_id);
+    if (mode === "multi" && options.playerId !== undefined && playId !== null) {
+        return `multi:player:${options.playerId}:${playId}`;
+    }
+    const token = finishRequestToken(body);
     // Without a client request token, two legitimate consecutive clears of the
     // same quest are indistinguishable.  In that case it is safer not to cache.
-    if (playId === null)
+    if (token === null)
         return null;
-    return `${mode}:${viewerId}:${String((_a = body.category) !== null && _a !== void 0 ? _a : "")}:${String((_b = body.quest_id) !== null && _b !== void 0 ? _b : "")}:${playId}`;
+    const category = normalizeRequestNumber(body.category);
+    const questId = normalizeRequestNumber(body.quest_id);
+    return `${mode}:${viewerId}:${category === null ? "" : String(category)}:${questId === null ? "" : String(questId)}:${token}`;
 }
 exports.buildFinishResponseCacheKey = buildFinishResponseCacheKey;
+/**
+ * Serialization key for finish execution.  It is never null: a request
+ * without a usable token still waits behind other finishes of the same
+ * player (single) or the same player and play (multi).
+ */
+function buildFinishExecutionKey(mode, playerId, body) {
+    var _a;
+    if (mode === "single")
+        return `single:${playerId}`;
+    return `multi:${playerId}:${(_a = normalizePlayId(body.play_id)) !== null && _a !== void 0 ? _a : ""}`;
+}
+exports.buildFinishExecutionKey = buildFinishExecutionKey;
 function getCachedFinishResponse(key) {
     if (key === null)
         return undefined;

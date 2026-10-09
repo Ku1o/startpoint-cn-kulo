@@ -12,8 +12,12 @@ import {
     updatePlayerDailyChallengePointSync,
     updatePlayerSync,
 } from "../../../data/domains/player"
-import { deletePlayerActiveQuestSync } from "../../../data/domains/quest_active"
-import { insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../../data/domains/quest"
+import { deletePlayerActiveQuestIfPlayIdSync, deletePlayerActiveQuestSync } from "../../../data/domains/quest_active"
+import {
+    getPlayerSingleQuestProgressSync,
+    insertPlayerQuestProgressSync,
+    updatePlayerQuestProgressSync,
+} from "../../../data/domains/quest"
 import { insertPlayerPracticeBattleHistorySync } from "../../../data/domains/practice-battle-history"
 import {
     getPlayerCarnivalEventRecordsSync,
@@ -69,6 +73,7 @@ import { grantFiveBossSoloRewardsSync } from "../../../multi/five-boss/solo-rewa
 import { getFiveBossSoloRewardMultiplierSync, saveFiveBossSoloReceiptSync } from "../../../multi/five-boss/solo-runtime"
 import { getRushEventFolderMaxRounds } from "../../rush-event-folder-rounds"
 import { getMaxStamina, getRankDegree } from "../../stamina"
+import { calculateFreeManaGrant } from "../../mana"
 import { MODE15_RUSH_EVENT_ID, settleMode15BattleSync } from "../../mode15-optional"
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../../utils"
 import {
@@ -107,32 +112,26 @@ export interface SingleFinishTransactionArgs {
     questCategory: QuestCategory
     questId: number
     questData: BattleQuest
+    /** Player row read before the settlement; totals are re-read inside it. */
     playerData: Player
     activeQuestData: ActiveQuest
     body: FinishBody
     clearTime: number
     clearRank: number | null
     questAccomplished: boolean
-    /** Progress row read before the settlement; null means first clear. */
-    questProgress: PlayerQuestProgress | null
     /** Five-boss solo runs settle through this generic path with own rewards. */
     fiveBossSoloQuest: boolean
     /** False when the active quest was rebuilt from a patched-client hint. */
     registered: boolean
     scoreAttackBorderTiers: ScoreAttackBorderTier[]
-    beforeRankPoint: number
-    newRankPoint: number
     manaObtained: number
-    newMana: number
-    newBoostPoint: number
-    newBossBoostPoint: number
-    useBoostPoint: boolean
     displayMode15ManaAsFieldDrop: boolean
     finishCacheKey: string | null
 }
 
 export interface SingleFinishTransactionResult {
-    response: { data_headers: Record<string, unknown>, data: Record<string, any> }
+    /** Null when the registered play had already been settled; nothing was written. */
+    response: { data_headers: Record<string, unknown>, data: Record<string, any> } | null
     timing: SingleSettlementBodyTiming | null
 }
 
@@ -148,18 +147,36 @@ export function settleSingleQuestFinishInTransaction(
     args: SingleFinishTransactionArgs,
 ): SingleFinishTransactionResult {
     const {
-        playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body,
-        clearTime, clearRank, questAccomplished, questProgress,
-        fiveBossSoloQuest, registered, scoreAttackBorderTiers, beforeRankPoint, newRankPoint,
-        manaObtained, newMana, newBoostPoint, newBossBoostPoint, useBoostPoint,
-        displayMode15ManaAsFieldDrop, finishCacheKey,
+        playerId, viewerId, questCategory, questId, questData, activeQuestData, body,
+        clearTime, clearRank, questAccomplished,
+        fiveBossSoloQuest, registered, scoreAttackBorderTiers,
+        manaObtained, displayMode15ManaAsFieldDrop, finishCacheKey,
     } = args
+    // A registered play (from /start) is consumed exactly once. If its row is
+    // already gone, an earlier finish settled it: write nothing. A play rebuilt
+    // from the request body has no row; it is deduplicated by the route.
+    if (registered) {
+        const playId = activeQuestData.playId
+        const consumed = typeof playId === "string" && deletePlayerActiveQuestIfPlayIdSync(playerId, playId)
+        if (!consumed) return { response: null, timing: null }
+    }
+    // Totals and progress are read inside the transaction so that rewards are
+    // added to the current values, not to a snapshot taken before awaiting.
+    const playerData: Player = getPlayerSync(playerId) ?? args.playerData
+    const questProgress: PlayerQuestProgress | null = getPlayerSingleQuestProgressSync(playerId, questCategory, questId)
+    const beforeRankPoint = playerData.rankPoint
+    const newRankPoint = beforeRankPoint + questData.rankPointReward
+    const newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana
+    const newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0)
+    const newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0)
+    const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0))
+        || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0))
     const questPreviouslyCompleted = questProgress !== null
     const isScoreAttackEvent = questCategory === QuestCategory.SCORE_ATTACK_EVENT
     const bodyTiming = createSingleSettlementBodyTimingCollector(questCategory, !!fiveBossSoloQuest)
     let bodySucceeded = false
     try {
-        deletePlayerActiveQuestSync(playerId)
+        if (!registered) deletePlayerActiveQuestSync(playerId)
         const missionEvaluationTime = new Date(getServerTime() * 1000)
 
         let clearReward: PlayerRewardResult | null = null

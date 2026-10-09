@@ -43,6 +43,7 @@ const solo_rewards_1 = require("../../../multi/five-boss/solo-rewards");
 const solo_runtime_1 = require("../../../multi/five-boss/solo-runtime");
 const rush_event_folder_rounds_1 = require("../../rush-event-folder-rounds");
 const stamina_1 = require("../../stamina");
+const mana_1 = require("../../mana");
 const mode15_optional_1 = require("../../mode15-optional");
 const utils_1 = require("../../../utils");
 const single_settlement_diagnostics_1 = require("../../single-settlement-diagnostics");
@@ -70,18 +71,39 @@ catch (_a) { } // Init failed silently; carnival scoring won't work
  * request scope except the arguments above.
  */
 function settleSingleQuestFinishInTransaction(args) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
-    const { playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body, clearTime, clearRank, questAccomplished, questProgress, fiveBossSoloQuest, registered, scoreAttackBorderTiers, beforeRankPoint, newRankPoint, manaObtained, newMana, newBoostPoint, newBossBoostPoint, useBoostPoint, displayMode15ManaAsFieldDrop, finishCacheKey, } = args;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0;
+    const { playerId, viewerId, questCategory, questId, questData, activeQuestData, body, clearTime, clearRank, questAccomplished, fiveBossSoloQuest, registered, scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop, finishCacheKey, } = args;
+    // A registered play (from /start) is consumed exactly once. If its row is
+    // already gone, an earlier finish settled it: write nothing. A play rebuilt
+    // from the request body has no row; it is deduplicated by the route.
+    if (registered) {
+        const playId = activeQuestData.playId;
+        const consumed = typeof playId === "string" && (0, quest_active_1.deletePlayerActiveQuestIfPlayIdSync)(playerId, playId);
+        if (!consumed)
+            return { response: null, timing: null };
+    }
+    // Totals and progress are read inside the transaction so that rewards are
+    // added to the current values, not to a snapshot taken before awaiting.
+    const playerData = (_a = (0, player_1.getPlayerSync)(playerId)) !== null && _a !== void 0 ? _a : args.playerData;
+    const questProgress = (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId);
+    const beforeRankPoint = playerData.rankPoint;
+    const newRankPoint = beforeRankPoint + questData.rankPointReward;
+    const newMana = (0, mana_1.calculateFreeManaGrant)(playerData, manaObtained).freeMana;
+    const newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
+    const newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
+    const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0))
+        || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
     const questPreviouslyCompleted = questProgress !== null;
     const isScoreAttackEvent = questCategory === types_1.QuestCategory.SCORE_ATTACK_EVENT;
     const bodyTiming = (0, single_settlement_diagnostics_1.createSingleSettlementBodyTimingCollector)(questCategory, !!fiveBossSoloQuest);
     let bodySucceeded = false;
     try {
-        (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
+        if (!registered)
+            (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
         const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
         let clearReward = null;
         let sPlusClearReward = null;
-        const leaderId = (_a = body.statistics.party.characters[0]) === null || _a === void 0 ? void 0 : _a.id;
+        const leaderId = (_b = body.statistics.party.characters[0]) === null || _b === void 0 ? void 0 : _b.id;
         if (questAccomplished) {
             (0, abyss_records_1.recordAbyssFloorFinishSync)({
                 category: questCategory, questId, revision: activeQuestData.questTimeRevision,
@@ -136,7 +158,7 @@ function settleSingleQuestFinishInTransaction(args) {
         const oldRkDegree = (0, stamina_1.getRankDegree)(beforeRankPoint);
         const newDegreeId = (0, stamina_1.getRankDegree)(newRankPoint);
         const didLevelUp = newDegreeId > oldRkDegree;
-        (0, player_1.updatePlayerSync)(Object.assign({ id: playerId, freeMana: newMana, rankPoint: newRankPoint, boostPoint: newBoostPoint, bossBoostPoint: newBossBoostPoint, totalManaObtained: ((_b = playerData.totalManaObtained) !== null && _b !== void 0 ? _b : 0) + manaObtained, maxComboAchieved: Math.max((_c = playerData.maxComboAchieved) !== null && _c !== void 0 ? _c : 0, (_e = (_d = body.statistics) === null || _d === void 0 ? void 0 : _d.max_combo_count) !== null && _e !== void 0 ? _e : 0) }, (didLevelUp ? { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() } : {})));
+        (0, player_1.updatePlayerSync)(Object.assign({ id: playerId, freeMana: newMana, rankPoint: newRankPoint, boostPoint: newBoostPoint, bossBoostPoint: newBossBoostPoint, totalManaObtained: ((_c = playerData.totalManaObtained) !== null && _c !== void 0 ? _c : 0) + manaObtained, maxComboAchieved: Math.max((_d = playerData.maxComboAchieved) !== null && _d !== void 0 ? _d : 0, (_f = (_e = body.statistics) === null || _e === void 0 ? void 0 : _e.max_combo_count) !== null && _f !== void 0 ? _f : 0) }, (didLevelUp ? { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() } : {})));
         if ((0, player_1.adjustPlayerExpPoolSync)(playerId, questData.poolExpReward, 'single_battle_base_reward') === null) {
             throw new Error(`Failed to grant single battle EXP to player ${playerId}`);
         }
@@ -189,7 +211,7 @@ function settleSingleQuestFinishInTransaction(args) {
         const scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, effectiveScoreRewardGroupId, effectiveScoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "solo" });
         let scoreAttackEventData = null;
         if (isScoreAttackEvent) {
-            const previousHighScore = (_f = questProgress === null || questProgress === void 0 ? void 0 : questProgress.highScore) !== null && _f !== void 0 ? _f : 0;
+            const previousHighScore = (_g = questProgress === null || questProgress === void 0 ? void 0 : questProgress.highScore) !== null && _g !== void 0 ? _g : 0;
             const mainCharacterIds = (0, score_attack_handler_1.collectScoreAttackMainCharacterIds)(body.statistics.party.characters);
             const resolved = (0, score_attack_handler_1.resolveNewScoreAttackBorderRewards)(scoreAttackBorderTiers, previousHighScore, body.score);
             for (const [itemIdText, count] of Object.entries(resolved.itemCounts)) {
@@ -234,7 +256,7 @@ function settleSingleQuestFinishInTransaction(args) {
             player: playerData,
             questPreviouslyCompleted,
             questProgress,
-            partySlot: (_g = activeQuestData.partySlot) !== null && _g !== void 0 ? _g : playerData.partySlot,
+            partySlot: (_h = activeQuestData.partySlot) !== null && _h !== void 0 ? _h : playerData.partySlot,
         };
         // Mission progress is recorded once by recordMissionBattleFacts below.
         const singleBattleParty = (0, mission_1.collectPartyCharacterIds)(finishCtx.party);
@@ -410,7 +432,7 @@ function settleSingleQuestFinishInTransaction(args) {
         const fiveBossSolo = fiveBossSoloQuest && questAccomplished
             ? (0, solo_rewards_1.grantFiveBossSoloRewardsSync)({ playerId, firstClear: !(questProgress === null || questProgress === void 0 ? void 0 : questProgress.finished),
                 rewardMultiplier: (0, solo_runtime_1.getFiveBossSoloRewardMultiplierSync)(playerId, activeQuestData.playId) }) : null;
-        const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_h = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _h !== void 0 ? _h : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_j = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _j !== void 0 ? _j : 0 } : {})), ((_k = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _k !== void 0 ? _k : {})), ((_l = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _l !== void 0 ? _l : {})), scoreRewardsResult.items), ((_m = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _p !== void 0 ? _p : {})), ((_q = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _q !== void 0 ? _q : {}));
+        const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_j = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _j !== void 0 ? _j : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_k = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _k !== void 0 ? _k : 0 } : {})), ((_l = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _l !== void 0 ? _l : {})), ((_m = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _m !== void 0 ? _m : {})), scoreRewardsResult.items), ((_o = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _p !== void 0 ? _p : {})), ((_q = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _q !== void 0 ? _q : {})), ((_r = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _r !== void 0 ? _r : {}));
         const characterList = [
             ...rewardCharacterExpResult.character_list,
             ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.character_list) || []),
@@ -438,12 +460,12 @@ function settleSingleQuestFinishInTransaction(args) {
         const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
         const responseData = {
             "user_info": {
-                "free_mana": (_r = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _r !== void 0 ? _r : newMana,
-                "exp_pool": (_s = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _s !== void 0 ? _s : rewardCharacterExpResult.exp_pool,
+                "free_mana": (_s = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _s !== void 0 ? _s : newMana,
+                "exp_pool": (_t = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _t !== void 0 ? _t : rewardCharacterExpResult.exp_pool,
                 "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
-                "free_vmoney": (_t = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _t !== void 0 ? _t : playerData.freeVmoney,
+                "free_vmoney": (_u = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _u !== void 0 ? _u : playerData.freeVmoney,
                 "rank_point": newRankPoint,
-                "degree_id": (_u = playerData.degreeId) !== null && _u !== void 0 ? _u : 1,
+                "degree_id": (_v = playerData.degreeId) !== null && _v !== void 0 ? _v : 1,
                 "stamina": playerData.stamina,
                 "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
                 "boost_point": newBoostPoint,
@@ -481,9 +503,9 @@ function settleSingleQuestFinishInTransaction(args) {
             "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
             "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
             "drop_additional_reward_ids": [
-                ...((_v = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.dropAdditionalRewardIds) !== null && _v !== void 0 ? _v : []),
-                ...((_w = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _w !== void 0 ? _w : []),
-                ...((_x = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _x !== void 0 ? _x : []),
+                ...((_w = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.dropAdditionalRewardIds) !== null && _w !== void 0 ? _w : []),
+                ...((_x = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _x !== void 0 ? _x : []),
+                ...((_y = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _y !== void 0 ? _y : []),
             ],
             "drop_periodic_reward_ids": [],
             "equipment_list": [
@@ -494,7 +516,7 @@ function settleSingleQuestFinishInTransaction(args) {
                 ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.equipment_list) || []),
                 ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.equipment_list) || []),
                 ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.equipment_list) || []),
-                ...((_y = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.equipment_list) !== null && _y !== void 0 ? _y : [])
+                ...((_z = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.equipment_list) !== null && _z !== void 0 ? _z : [])
             ],
             "category_id": body.category,
             "start_time": dataHeaders['servertime'],
@@ -516,7 +538,7 @@ function settleSingleQuestFinishInTransaction(args) {
         }
         if (abyssEnduranceDegrees.length) {
             responseData.degree_list = [
-                ...((_z = responseData.degree_list) !== null && _z !== void 0 ? _z : []),
+                ...((_0 = responseData.degree_list) !== null && _0 !== void 0 ? _0 : []),
                 ...abyssEnduranceDegrees.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
             ];
         }

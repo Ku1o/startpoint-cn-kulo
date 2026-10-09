@@ -1,7 +1,7 @@
 "use strict";
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.transitionRoomSettlementSnapshots = exports.transitionMultiSettlementSnapshot = exports.getMultiSettlementSnapshot = exports.registerMultiSettlementSnapshot = exports.buildBattleInstanceId = void 0;
+exports.recordMultiSettlementResponse = exports.markMultiSettlementSettled = exports.isMultiSettlementSettled = exports.transitionRoomSettlementSnapshots = exports.transitionMultiSettlementSnapshot = exports.getMultiSettlementSnapshot = exports.registerMultiSettlementSnapshot = exports.buildBattleInstanceId = void 0;
 const routine_game_logging_1 = require("../lib/routine-game-logging");
 const memory_diagnostics_1 = require("../lib/memory-diagnostics");
 const quest_party_pool_shared_1 = require("./npc/quest-party-pool-shared");
@@ -90,3 +90,26 @@ function transitionRoomSettlementSnapshots(roomNumber, lifecycle, roomGeneration
     return transitioned;
 }
 exports.transitionRoomSettlementSnapshots = transitionRoomSettlementSnapshots;
+/**
+ * Settled latch for one player's play. Callers check and set it while holding
+ * the player's persistence queue so at most one finish pays out per snapshot.
+ */
+function isMultiSettlementSettled(playerId, playId) {
+    var _a;
+    return ((_a = getMultiSettlementSnapshot(playerId, playId)) === null || _a === void 0 ? void 0 : _a.settled) === true;
+}
+exports.isMultiSettlementSettled = isMultiSettlementSettled;
+function markMultiSettlementSettled(playerId, playId) {
+    const snapshot = getMultiSettlementSnapshot(playerId, playId);
+    if (!snapshot)
+        return false;
+    snapshot.settled = true;
+    return true;
+}
+exports.markMultiSettlementSettled = markMultiSettlementSettled;
+function recordMultiSettlementResponse(playerId, playId, response) {
+    const snapshot = getMultiSettlementSnapshot(playerId, playId);
+    if (snapshot === null || snapshot === void 0 ? void 0 : snapshot.settled)
+        snapshot.settledResponse = response;
+}
+exports.recordMultiSettlementResponse = recordMultiSettlementResponse;
