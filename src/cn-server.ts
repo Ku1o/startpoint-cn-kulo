@@ -23,6 +23,8 @@ import { disconnectLoungePlayerLogin } from "./lounge/state";
 import { installLocalClientCompat } from "./lib/local-client-compat";
 import { getPatchManifest } from "./lib/version";
 import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes";
+import { resolvePlainFileInside, sendFileStream } from "./lib/file-download";
+import { trustProxySetting } from "./lib/client-address";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import iosLeitingPlugin from "./routes/cn/ios-leiting";
@@ -120,6 +122,8 @@ const fastify = Fastify({
         // Debug launchers explicitly opt back into info.
         level: process.env.LOG_LEVEL || "warn"
     },
+    // request.ip honours X-Forwarded-For only from trusted proxy hops.
+    trustProxy: trustProxySetting(),
     bodyLimit: 262144  // 256KB — covers /single_battle_quest/finish large battle stats
 });
 
@@ -156,8 +160,7 @@ const RATE_LIMIT_MAP_MAX = 4096;
 let nextRateLimitSweep = 0;
 fastify.addHook("onRequest", async (request, reply) => {
     if (request.url === "/crash") {
-        const ip = (request.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
-            || request.ip;
+        const ip = request.ip;
         const now = Date.now();
         if (now >= nextRateLimitSweep) {
             for (const [key, value] of rateLimitMap) {
@@ -477,9 +480,9 @@ installCustomCdnResourceRoutes(fastify, {
 // Serve patch archive files for asset update
 fastify.get("/patch/cn/asset-patch/active/:file", async (request, reply) => {
     const { file } = request.params as { file: string };
-    const patchFile = path.join(__dirname, "..", "assets", "asset-patch", "active", file);
-    if (existsSync(patchFile)) {
-        return reply.type("application/zip").send(readFileSync(patchFile));
+    const patchFile = resolvePlainFileInside(path.join(__dirname, "..", "assets", "asset-patch", "active"), file);
+    if (patchFile && sendFileStream(reply, patchFile, "application/zip")) {
+        return reply;
     }
     return reply.status(404).send("Not Found");
 });
