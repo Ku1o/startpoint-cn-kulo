@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateHostEntryTime = exports.disbandRoom = exports.setRoomBattle = exports.getRoomMemberPlayerId = exports.removeRoomMember = exports.addRoomMember = exports.getRoomAcceptedSeatCount = exports.isRoomMember = exports.getRooms = exports.getRoomByToken = exports.getRoom = exports.createRoom = exports.isRoomWaitingForExpectedMember = exports.generateRoomAccessToken = exports.generateRoomNumber = void 0;
+exports.updateHostEntryTime = exports.disbandRoom = exports.setRoomBattle = exports.getRoomMemberPlayerId = exports.removeRoomMember = exports.addRoomMember = exports.getRoomAcceptedSeatCount = exports.isRoomMember = exports.getRooms = exports.getRoomsHostedBy = exports.getRoomByToken = exports.getRoom = exports.createRoom = exports.isRoomWaitingForExpectedMember = exports.generateRoomAccessToken = exports.generateRoomNumber = void 0;
 const crypto_1 = require("crypto");
 const types_1 = require("../../lib/types");
 const utils_1 = require("../../utils");
@@ -12,6 +12,9 @@ const assets_1 = require("../../lib/assets");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const rooms = new Map();
+// access_token -> room_number. Tokens are random and never reassigned, so a
+// direct index replaces scanning every room per token lookup.
+const roomNumbersByToken = new Map();
 (0, memory_diagnostics_1.registerMemoryCounters)("rooms", detailed => {
     var _a;
     if (!detailed)
@@ -128,6 +131,7 @@ function createRoom(hostViewerId, hostPlayerId, hostPartyId, category, questId, 
         lifecycle: embedded_1.embeddedMultiCoordinator.createLifecycle(),
     };
     rooms.set(roomNumber, room);
+    roomNumbersByToken.set(room.access_token, roomNumber);
     (0, game_logging_1.gameVerboseLog)(() => `[MULTI] room created: ${roomNumber} host=${hostViewerId} category=${category} quest=${questId}`);
     return room;
 }
@@ -140,13 +144,25 @@ function getRoom(roomNumber) {
 }
 exports.getRoom = getRoom;
 function getRoomByToken(token) {
-    for (const room of rooms.values()) {
-        if (room.access_token === token)
-            return room;
-    }
-    return undefined;
+    if (typeof token !== "string" || token.length === 0)
+        return undefined;
+    const roomNumber = roomNumbersByToken.get(token);
+    if (roomNumber === undefined)
+        return undefined;
+    const room = rooms.get(roomNumber);
+    return (room === null || room === void 0 ? void 0 : room.access_token) === token ? room : undefined;
 }
 exports.getRoomByToken = getRoomByToken;
+/** Rooms whose host is the given viewer (used when that host creates a new room). */
+function getRoomsHostedBy(hostViewerId) {
+    const result = [];
+    for (const room of rooms.values()) {
+        if (room.host_viewer_id === hostViewerId)
+            result.push(room);
+    }
+    return result;
+}
+exports.getRoomsHostedBy = getRoomsHostedBy;
 function getRoomEventId(room) {
     const quest = (0, assets_1.getQuestFromCategorySync)(room.category, room.quest_id);
     if ((quest === null || quest === void 0 ? void 0 : quest.eventId) !== undefined)
@@ -278,6 +294,9 @@ function disbandRoom(roomNumber, reason = "room_manager_delete") {
     if (room)
         embedded_1.embeddedMultiCoordinator.commitDisband(room, reason);
     const deleted = rooms.delete(roomNumber);
+    if (room && roomNumbersByToken.get(room.access_token) === roomNumber) {
+        roomNumbersByToken.delete(room.access_token);
+    }
     if (deleted) {
         (0, game_logging_1.gameVerboseLog)(() => `[MULTI] room deleted: ${roomNumber}`);
         admission_1.roomAdmissionRegistry.clearRoom(roomNumber);

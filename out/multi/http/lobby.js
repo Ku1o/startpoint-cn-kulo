@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerLobbyRoutes = void 0;
+exports.registerLobbyRoutes = exports.disbandIdleHostedLobbyRooms = void 0;
 const player_1 = require("../../data/domains/player");
 const follow_1 = require("../../data/domains/follow");
 const assets_1 = require("../../lib/assets");
@@ -31,6 +31,39 @@ const player_context_1 = require("../player-context");
 const party_snapshot_1 = require("../party-snapshot");
 const guest_eligibility_1 = require("../guest-eligibility");
 const ROOM_CAPACITY = 3;
+function isIdleHostedLobbyRoom(room) {
+    return embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase === "LOBBY"
+        && !room.settlement_return_pending
+        && !SessionManager_1.sessionManager.hasRoomConnections(room.room_number);
+}
+/**
+ * A host that creates a new room can no longer be using an earlier lobby
+ * that has no connection at all (for example a create_room retry, or a
+ * room whose socket never connected). Disband those so one viewer cannot
+ * accumulate unused rooms. Rooms with any live connection are untouched.
+ */
+function disbandIdleHostedLobbyRooms(hostViewerId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let disbanded = 0;
+        for (const room of (0, manager_1.getRoomsHostedBy)(hostViewerId)) {
+            if (!isIdleHostedLobbyRoom(room))
+                continue;
+            const roomNumber = room.room_number;
+            const generation = room.lobby_generation;
+            yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                if ((0, manager_1.getRoom)(roomNumber) !== room || room.lobby_generation !== generation
+                    || room.host_viewer_id !== hostViewerId || !isIdleHostedLobbyRoom(room))
+                    return;
+                if (SessionManager_1.sessionManager.commitRoomDisband(roomNumber, "host_created_new_room"))
+                    disbanded += 1;
+            }).catch(error => {
+                console.error(`[MULTI] idle hosted room cleanup failed: room=${roomNumber}`, error);
+            });
+        }
+        return disbanded;
+    });
+}
+exports.disbandIdleHostedLobbyRooms = disbandIdleHostedLobbyRooms;
 function isReturningMember(room, viewerId) {
     return room.host_viewer_id === viewerId
         || room.expected_real_viewer_ids.includes(viewerId)
@@ -166,6 +199,7 @@ function registerLobbyRoutes(fastify) {
         }
         const favorite = (0, profileFavorite_1.getFavoritePartySelectionSync)(ctx.playerId, ctx.player.leaderCharacterId);
         const profileMainCharacterId = (_c = (_b = favorite.characterIds[0]) !== null && _b !== void 0 ? _b : ctx.player.leaderCharacterId) !== null && _c !== void 0 ? _c : 1;
+        yield disbandIdleHostedLobbyRooms(Number(viewer_id));
         const room = (0, manager_1.createRoom)(viewer_id, ctx.playerId, party_id, category, quest_id, 0, profileMainCharacterId);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

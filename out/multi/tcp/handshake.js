@@ -34,7 +34,7 @@ const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 const guest_eligibility_1 = require("../guest-eligibility");
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g;
         (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`);
         const socklet = data.socklet;
         const roomNumber = data.room_number || data.roomNumber;
@@ -51,16 +51,19 @@ function handleHandshake(socket, data) {
             // lobby connection that issued the same connection_id.  Leaving every
             // battle client as viewer 0 makes unrelated host/guest sockets look
             // like duplicate connections and causes one side to be replaced.
-            const roomClient = SessionManager_1.sessionManager.getRoomClientByConnectionId(roomId, String(connectionId));
-            if (roomClient && !(0, player_login_1.playerSocketAllowed)(roomClient.viewerId, data.sp_session)) {
+            // A connection id that no known room/battle seat issued cannot be
+            // bound to a viewer, so it is never admitted as an anonymous seat.
+            const identity = SessionManager_1.sessionManager.resolveBattleHandshakeIdentity(roomId, String(connectionId));
+            if (!identity || !(0, player_login_1.playerSocketAllowed)(identity.viewerId, data.sp_session)) {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", identity ? "session_mismatch" : "unknown_connection");
                 (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
             }
-            const battleClient = SessionManager_1.sessionManager.createClient(socket, (_a = roomClient === null || roomClient === void 0 ? void 0 : roomClient.viewerId) !== null && _a !== void 0 ? _a : 0, roomId, String(connectionId), (_b = roomClient === null || roomClient === void 0 ? void 0 : roomClient.playerId) !== null && _b !== void 0 ? _b : null);
+            const battleClient = SessionManager_1.sessionManager.createClient(socket, identity.viewerId, roomId, String(connectionId), identity.playerId);
             const battleRoom = (0, manager_1.getRoom)(roomId);
-            battleClient.roomGeneration = (_d = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.lobby_generation) !== null && _d !== void 0 ? _d : 0;
+            battleClient.roomGeneration = (_b = (_a = identity.roomGeneration) !== null && _a !== void 0 ? _a : battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.lobby_generation) !== null && _b !== void 0 ? _b : 0;
             if (battleRoom)
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.bind(battleRoom, battleClient);
             if (!battleRoom || battleRoom.lifecycle.phase !== "BATTLE") {
@@ -79,7 +82,7 @@ function handleHandshake(socket, data) {
                 return;
             }
             if (battleClient.playerId !== null
-                && ((_f = (_e = battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.five_boss_runtime) === null || _e === void 0 ? void 0 : _e.battleEnteredPlayerIds) === null || _f === void 0 ? void 0 : _f.includes(battleClient.playerId))) {
+                && ((_d = (_c = battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.five_boss_runtime) === null || _c === void 0 ? void 0 : _c.battleEnteredPlayerIds) === null || _d === void 0 ? void 0 : _d.includes(battleClient.playerId))) {
                 battleClient.fiveBossBattleEntered = true;
             }
             battleClient.isBattle = true;
@@ -119,7 +122,7 @@ function handleHandshake(socket, data) {
             // playerSocketAllowed above still performs the authoritative session
             // check. A context warmed by create/select_room can therefore be used
             // here without another synchronous session/player lookup.
-            const ctx = (_g = (0, player_context_1.getCachedMultiPlayerContext)(Number(viewerId))) !== null && _g !== void 0 ? _g : yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
+            const ctx = (_e = (0, player_context_1.getCachedMultiPlayerContext)(Number(viewerId))) !== null && _e !== void 0 ? _e : yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
             if (!ctx) {
                 (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
@@ -155,8 +158,8 @@ function handleHandshake(socket, data) {
                 && client.socket.writable);
             const liveViewerIds = new Set(liveClients.map(client => client.viewerId));
             const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId));
-            const requestedCategory = (_h = data.questCategory) !== null && _h !== void 0 ? _h : data.quest_category;
-            const requestedQuestId = (_j = data.questId) !== null && _j !== void 0 ? _j : data.quest_id;
+            const requestedCategory = (_f = data.questCategory) !== null && _f !== void 0 ? _f : data.quest_category;
+            const requestedQuestId = (_g = data.questId) !== null && _g !== void 0 ? _g : data.quest_id;
             const categoryMismatch = requestedCategory !== undefined
                 && Number(requestedCategory) !== currentRoom.category;
             const questMismatch = requestedQuestId !== undefined

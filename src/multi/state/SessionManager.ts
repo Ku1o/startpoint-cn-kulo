@@ -1082,6 +1082,78 @@ export class SessionManager {
         return undefined
     }
 
+    /**
+     * Resolve who owns a battle connection id. The lobby connection that
+     * issued the id is authoritative; when it is gone, a known battle seat for
+     * the same connection id (live, awaiting reconnect, or frozen by the
+     * five-boss runtime) identifies the viewer. Unknown ids resolve to null.
+     */
+    resolveBattleHandshakeIdentity(roomNumber: string, connectionId: string): {
+        viewerId: number
+        playerId: number | null
+        roomGeneration?: number
+    } | null {
+        const roomClient = this.getRoomClientByConnectionId(roomNumber, connectionId)
+        if (roomClient) {
+            return {
+                viewerId: roomClient.viewerId,
+                playerId: roomClient.playerId,
+                roomGeneration: roomClient.roomGeneration,
+            }
+        }
+        const battleClient = this.cidToBattleClient.get(connectionId)
+        if (battleClient && battleClient.roomNumber === roomNumber && battleClient.viewerId > 0) {
+            return {
+                viewerId: battleClient.viewerId,
+                playerId: battleClient.playerId,
+                roomGeneration: battleClient.roomGeneration,
+            }
+        }
+        let room: any
+        try {
+            room = require("../room/manager").getRoom(roomNumber)
+        } catch (e) {
+            room = undefined
+        }
+        const memberPlayerId = (viewerId: number): number | null => {
+            try {
+                return room ? require("../room/manager").getRoomMemberPlayerId(room, viewerId) : null
+            } catch (e) {
+                return null
+            }
+        }
+        // Battle peers carry the lobby round they started from; a seat that
+        // reconnects without its lobby socket must join that same round.
+        const battleGeneration = (): number | undefined => {
+            for (const id of this.battleClients.get(roomNumber) ?? []) {
+                const peer = this.cidToBattleClient.get(id)
+                if (peer) return peer.roomGeneration
+            }
+            return room?.lifecycle?.phase === "BATTLE"
+                ? Math.max(0, Number(room.lobby_generation ?? 0) - 1)
+                : undefined
+        }
+        for (const seat of this.battleBarrierCycles.get(roomNumber)?.missing.values() ?? []) {
+            if (seat.connectionId === connectionId && seat.viewerId > 0) {
+                return {
+                    viewerId: seat.viewerId,
+                    playerId: memberPlayerId(seat.viewerId),
+                    roomGeneration: battleGeneration(),
+                }
+            }
+        }
+        const frozen = room?.five_boss_runtime?.battleIdentityByViewerId
+        if (frozen && typeof frozen === "object") {
+            for (const [viewerKey, identity] of Object.entries(frozen) as [string, any][]) {
+                const viewerId = Number(viewerKey)
+                if (identity?.connectionId === connectionId && Number.isSafeInteger(viewerId) && viewerId > 0) {
+                    return { viewerId, playerId: identity.playerId ?? null, roomGeneration: battleGeneration() }
+                }
+            }
+        }
+        return null
+    }
+
     addClientToRoom(client: SessionClient): Result<void> {
         const addr = this.addr(client.viewerId, client.roomNumber)
         const previous = this.clients.get(addr)
@@ -1231,6 +1303,12 @@ export class SessionManager {
             if (c && (roomGeneration === undefined || c.roomGeneration === roomGeneration)) out.push(c)
         }
         return out
+    }
+
+    /** True while any lobby or battle connection is indexed for the room. */
+    hasRoomConnections(roomNumber: string): boolean {
+        return (this.roomClients.get(roomNumber)?.size ?? 0) > 0
+            || (this.battleClients.get(roomNumber)?.size ?? 0) > 0
     }
 
     hasRoomClients(roomNumber: string): boolean {
@@ -1515,6 +1593,10 @@ export class SessionManager {
         for (const key of this.roomConnectionGenerations.keys()) {
             if (key.endsWith(`@${roomNumber}`)) this.roomConnectionGenerations.delete(key)
         }
+        try {
+            const lobby = require("../tcp/lobby")
+            lobby.clearLobbyRoomState?.(roomNumber)
+        } catch (e) {}
     }
 
     sendJson(
