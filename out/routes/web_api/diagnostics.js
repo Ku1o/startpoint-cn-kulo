@@ -10,10 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const realtime_diagnostics_1 = require("../../lib/realtime-diagnostics");
+const battle_telemetry_1 = require("../../multi/battle-telemetry");
 /** Management-only runtime controls for bounded multiplayer diagnostics. */
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.get("/realtime", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         return reply.status(200).send((0, realtime_diagnostics_1.getRealtimeDiagnostics)());
+    }));
+    // Recent per-battle summaries (same content as the [MULTI-BATTLE] log lines).
+    fastify.get("/battles", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        return reply.status(200).send({ active: battle_telemetry_1.battleTelemetry.activeCount(), recent: battle_telemetry_1.battleTelemetry.recentSummaries() });
     }));
     fastify.post("/realtime", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;

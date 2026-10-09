@@ -14,8 +14,11 @@ import { clearReliableSendState } from "./reliable-send"
 import {
     finishTcpDisconnect,
     markTcpDisconnectReason,
+    readTcpDisconnectReason,
+    type TcpDisconnectReason,
 } from "./disconnect-diagnostics"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { battleTelemetry } from "../battle-telemetry"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import {
     detachLoungeSocket,
@@ -68,6 +71,8 @@ export function startSessionServer(): Promise<void> {
             let isBattleSocket = false
             let isLoungeSocket = false
             let socketRemoved = false
+            let battleDisconnectRecorded = false
+            let closedReason: TcpDisconnectReason | undefined
             let protocolClosed = false
             let processingFrames = false
             let processFramesScheduled = false
@@ -92,6 +97,14 @@ export function startSessionServer(): Promise<void> {
 
             const clearHandshakeTimer = () => clearTimeout(handshakeTimer)
 
+            const recordBattleDisconnect = (client: ReturnType<typeof sessionManager.findClientBySocket>,
+                reason: TcpDisconnectReason) => {
+                if (battleDisconnectRecorded || !client?.isBattle || client.superseded
+                    || !sessionManager.isCurrentBattleClient(client)) return
+                battleTelemetry.disconnected(client.roomNumber, client.viewerId, reason)
+                battleDisconnectRecorded = true
+            }
+
             const removeSocketClient = () => {
                 clearReliableSendState(socket)
                 detachLoungeSocket(socket)
@@ -102,7 +115,13 @@ export function startSessionServer(): Promise<void> {
                         socketRemoved = true
                         void embeddedMultiCoordinator.enqueueRoomCommand(
                             client.roomNumber,
-                            () => sessionManager.removeClient(client),
+                            () => {
+                                // An error cleanup may remove the socket index
+                                // before close. Record its current owner once;
+                                // superseded cleanup must not reset a replacement.
+                                recordBattleDisconnect(client, closedReason ?? readTcpDisconnectReason(socket))
+                                return sessionManager.removeClient(client)
+                            },
                         ).catch(error => {
                             console.error(`[TCP] queued socket cleanup failed: room=${client.roomNumber}`, error)
                         })
@@ -234,6 +253,9 @@ export function startSessionServer(): Promise<void> {
 
             socket.on("close", (hadError: boolean) => {
                 const reason = finishTcpDisconnect(socket, hadError)
+                closedReason = reason
+                const closedClient = sessionManager.findClientBySocket(socket)
+                recordBattleDisconnect(closedClient, reason)
                 fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error")
                 clearHandshakeTimer()
                 gameVerboseLog(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`)

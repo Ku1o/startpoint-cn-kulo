@@ -4,6 +4,7 @@ exports.embeddedMultiCoordinator = exports.EmbeddedMultiCoordinator = void 0;
 const crypto_1 = require("crypto");
 const settlement_snapshot_1 = require("../settlement-snapshot");
 const game_logging_1 = require("../../lib/game-logging");
+const battle_telemetry_1 = require("../battle-telemetry");
 const ALLOWED_TRANSITIONS = {
     LOBBY: ["STARTING", "DISBANDED"],
     STARTING: ["LOBBY", "BATTLE", "DISBANDED"],
@@ -63,6 +64,10 @@ class EmbeddedMultiCoordinator {
         }
         lifecycle.phase = to;
         lifecycle.version += 1;
+        if (previous === "BATTLE")
+            battle_telemetry_1.battleTelemetry.end(room.room_number, `${to.toLowerCase()}:${reason}`);
+        if (to === "BATTLE")
+            battle_telemetry_1.battleTelemetry.begin(room);
         (0, game_logging_1.gameVerboseLog)(() => `[MULTI-LIFECYCLE] room=${room.room_number}`
             + ` instance=${lifecycle.instanceId} version=${lifecycle.version}`
             + ` ${previous}->${to} reason=${reason}`);

@@ -6,6 +6,7 @@ const chain_diagnostic_1 = require("./chain-diagnostic");
 const node_perf_hooks_1 = require("node:perf_hooks");
 const server_work_performance_1 = require("../../lib/server-work-performance");
 const realtime_diagnostics_1 = require("../../lib/realtime-diagnostics");
+const battle_telemetry_1 = require("../battle-telemetry");
 function relayToBattleRoom(source, data, relayKind, transportTag) {
     // Freeze this logical broadcast's receiver list before writing. A client
     // reconnecting during the loop belongs to another connection generation
@@ -28,6 +29,7 @@ function relayToBattleRoom(source, data, relayKind, transportTag) {
             roomGeneration: source.roomGeneration,
             channel: `battle_${relayKind}`,
         });
+        battle_telemetry_1.battleTelemetry.relayed(source.roomNumber, client.viewerId);
     }
     const sendMs = node_perf_hooks_1.performance.now() - sendStarted;
     (0, server_work_performance_1.recordServerWork)("multi.relay.send", sendMs);

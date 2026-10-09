@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.finishTcpDisconnect = exports.markTcpDisconnectReason = void 0;
+exports.finishTcpDisconnect = exports.readTcpDisconnectReason = exports.markTcpDisconnectReason = void 0;
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const reasons = [
     "peer_fin",
@@ -13,6 +13,7 @@ const reasons = [
     "message_error",
     "loading_timeout",
     "heartbeat_timeout",
+    "level_next_timeout",
     "send_backpressure",
     "send_queue_limit",
     "send_write_error",
@@ -34,9 +35,14 @@ function markTcpDisconnectReason(socket, reason) {
         pending.set(socket, reason);
 }
 exports.markTcpDisconnectReason = markTcpDisconnectReason;
-function finishTcpDisconnect(socket, hadError) {
+/** Read the first cause without finalizing counters or discarding it. */
+function readTcpDisconnectReason(socket, hadError = false) {
     var _a;
-    const reason = (_a = pending.get(socket)) !== null && _a !== void 0 ? _a : (hadError ? "socket_error" : "unknown_close");
+    return (_a = pending.get(socket)) !== null && _a !== void 0 ? _a : (hadError ? "socket_error" : "unknown_close");
+}
+exports.readTcpDisconnectReason = readTcpDisconnectReason;
+function finishTcpDisconnect(socket, hadError) {
+    const reason = readTcpDisconnectReason(socket, hadError);
     pending.delete(socket);
     counters[reason]++;
     total++;

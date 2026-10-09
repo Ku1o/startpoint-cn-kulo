@@ -38,6 +38,7 @@ const game_logging_1 = require("../../lib/game-logging");
 const reliable_send_1 = require("./reliable-send");
 const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 const embedded_1 = require("../coordinator/embedded");
+const battle_telemetry_1 = require("../battle-telemetry");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const tcp_1 = require("../../lounge/tcp");
 exports.SESSION_PORT = parseInt(process.env.SESSION_PORT || "8003");
@@ -77,6 +78,8 @@ function startSessionServer() {
             let isBattleSocket = false;
             let isLoungeSocket = false;
             let socketRemoved = false;
+            let battleDisconnectRecorded = false;
+            let closedReason;
             let protocolClosed = false;
             let processingFrames = false;
             let processFramesScheduled = false;
@@ -99,6 +102,13 @@ function startSessionServer() {
             }, exports.SESSION_HANDSHAKE_TIMEOUT_MS);
             handshakeTimer.unref();
             const clearHandshakeTimer = () => clearTimeout(handshakeTimer);
+            const recordBattleDisconnect = (client, reason) => {
+                if (battleDisconnectRecorded || !(client === null || client === void 0 ? void 0 : client.isBattle) || client.superseded
+                    || !SessionManager_1.sessionManager.isCurrentBattleClient(client))
+                    return;
+                battle_telemetry_1.battleTelemetry.disconnected(client.roomNumber, client.viewerId, reason);
+                battleDisconnectRecorded = true;
+            };
             const removeSocketClient = () => {
                 (0, reliable_send_1.clearReliableSendState)(socket);
                 (0, tcp_1.detachLoungeSocket)(socket);
@@ -108,7 +118,13 @@ function startSessionServer() {
                     const client = SessionManager_1.sessionManager.findClientBySocket(socket);
                     if (client) {
                         socketRemoved = true;
-                        void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => SessionManager_1.sessionManager.removeClient(client)).catch(error => {
+                        void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
+                            // An error cleanup may remove the socket index
+                            // before close. Record its current owner once;
+                            // superseded cleanup must not reset a replacement.
+                            recordBattleDisconnect(client, closedReason !== null && closedReason !== void 0 ? closedReason : (0, disconnect_diagnostics_1.readTcpDisconnectReason)(socket));
+                            return SessionManager_1.sessionManager.removeClient(client);
+                        }).catch(error => {
                             console.error(`[TCP] queued socket cleanup failed: room=${client.roomNumber}`, error);
                         });
                     }
@@ -246,6 +262,9 @@ function startSessionServer() {
             });
             socket.on("close", (hadError) => {
                 const reason = (0, disconnect_diagnostics_1.finishTcpDisconnect)(socket, hadError);
+                closedReason = reason;
+                const closedClient = SessionManager_1.sessionManager.findClientBySocket(socket);
+                recordBattleDisconnect(closedClient, reason);
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error");
                 clearHandshakeTimer();
                 (0, game_logging_1.gameVerboseLog)(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`);

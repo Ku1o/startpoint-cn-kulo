@@ -4,6 +4,7 @@ exports.getReliableSendQueueStats = exports.clearReliableSendState = exports.sen
 const chain_diagnostic_1 = require("./chain-diagnostic");
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
+const battle_telemetry_1 = require("../battle-telemetry");
 const socketStates = new WeakMap();
 const closedAttemptLogged = new WeakSet();
 let queuedMessages = 0, queuedBytes = 0;
@@ -63,11 +64,13 @@ function diagnosticDetails(state) {
     };
 }
 function recordTerminalAnomaly(state, anomaly, details = {}) {
-    var _a;
+    var _a, _b;
     if (state.terminalRecorded)
         return;
     state.terminalRecorded = true;
-    (0, chain_diagnostic_1.recordBattleSendAnomaly)(anomaly, (_a = state.episodeContext) !== null && _a !== void 0 ? _a : state.context, Object.assign(Object.assign({}, diagnosticDetails(state)), details));
+    const context = (_a = state.episodeContext) !== null && _a !== void 0 ? _a : state.context;
+    battle_telemetry_1.battleTelemetry.backpressure(context === null || context === void 0 ? void 0 : context.roomNumber, context === null || context === void 0 ? void 0 : context.viewerId, blockedDuration(state));
+    (0, chain_diagnostic_1.recordBattleSendAnomaly)(anomaly, (_b = state.episodeContext) !== null && _b !== void 0 ? _b : state.context, Object.assign(Object.assign({}, diagnosticDetails(state)), details));
 }
 function resetBackpressure(state) {
     state.blockedSince = 0;
@@ -77,10 +80,12 @@ function resetBackpressure(state) {
     state.terminalRecorded = false;
 }
 function recordBackpressureRecovery(state) {
-    var _a;
+    var _a, _b;
     const blockedMs = blockedDuration(state);
     if (blockedMs >= MIN_DIAGNOSTIC_BLOCK_MS) {
-        (0, chain_diagnostic_1.recordBattleSendAnomaly)("backpressure_recovered", (_a = state.episodeContext) !== null && _a !== void 0 ? _a : state.context, Object.assign(Object.assign({}, diagnosticDetails(state)), { queuedMessages: 0, queuedBytes: 0 }));
+        const context = (_a = state.episodeContext) !== null && _a !== void 0 ? _a : state.context;
+        battle_telemetry_1.battleTelemetry.backpressure(context === null || context === void 0 ? void 0 : context.roomNumber, context === null || context === void 0 ? void 0 : context.viewerId, blockedMs);
+        (0, chain_diagnostic_1.recordBattleSendAnomaly)("backpressure_recovered", (_b = state.episodeContext) !== null && _b !== void 0 ? _b : state.context, Object.assign(Object.assign({}, diagnosticDetails(state)), { queuedMessages: 0, queuedBytes: 0 }));
     }
     resetBackpressure(state);
 }

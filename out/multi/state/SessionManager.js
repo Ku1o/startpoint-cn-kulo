@@ -16,6 +16,7 @@ const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const server_work_performance_1 = require("../../lib/server-work-performance");
 const realtime_diagnostics_1 = require("../../lib/realtime-diagnostics");
 const disconnect_diagnostics_1 = require("../tcp/disconnect-diagnostics");
+const battle_telemetry_1 = require("../battle-telemetry");
 const equipment_ready_1 = require("../room/equipment-ready");
 class SessionManager {
     constructor() {
@@ -323,6 +324,7 @@ class SessionManager {
         const waitMs = cycle ? node_perf_hooks_1.performance.now() - cycle.startedAt : 0;
         if (cycle)
             (0, server_work_performance_1.recordServerWork)("multi.barrier", waitMs);
+        battle_telemetry_1.battleTelemetry.barrier(roomNumber, this.battleLevelNextClients.has(roomNumber) ? "next_scene" : "initial", waitMs);
         (0, realtime_diagnostics_1.recordRealtimeDiagnostic)(roomNumber, "barrier_released", {
             reason,
             expected,
@@ -389,6 +391,7 @@ class SessionManager {
         retired.add(key);
         retired.add(`connection:${seat.connectionId}`);
         connection_diagnostic_1.fiveBossConnectionDiagnostics.seatEvent(roomNumber, seat.viewerId, "seat_expired");
+        battle_telemetry_1.battleTelemetry.seatExpired(roomNumber);
         this.queueBattleLeave(roomNumber, seat.connectionId);
         this.battleExpectedCount.set(roomNumber, expected - 1);
         this.logBattleBarrierState(roomNumber, "missing_seat_expired");
@@ -428,16 +431,20 @@ class SessionManager {
         pending.add(connectionId);
     }
     publishBattleDeparture(client) {
-        if (client.fiveBossBattleEntered) {
-            // The CN five-boss client normally closes cooperation_battle after
-            // BattleStart and continues the fight client-side. Publishing the
-            // ordinary Leave frame here creates a false communication-loss
-            // dialog for peers. A later LevelNext barrier still owns its normal
-            // missing-seat grace and publishes Leave only after retiring the
-            // absent seat.
+        if (client.fiveBossBattleEntered && client.finalizeSent) {
+            // The client discards cooperation_battle as soon as Finalized
+            // arrives. That close ends a finished battle; a Leave here would
+            // only show teammates a false disconnect notice.
             return;
         }
         else if (this.battleSceneStartedRooms.has(client.roomNumber)) {
+            // Any other close mid-battle (network loss, app killed, or the
+            // client isolating itself after a lag spike) must reach the
+            // teammates. The CN client runs battles in lockstep: without
+            // Leave, a silent peer's frame counter stands still, every
+            // teammate slows down and after ~240 frames isolates itself with
+            // "communication lost" (in the first dual-boss round it freezes
+            // instead). Leave turns that peer into a departed member at once.
             this.broadcastBattleLeave(client.roomNumber, client.connectionId);
         }
         else {
@@ -1043,6 +1050,7 @@ class SessionManager {
             superseded: false,
             connectedAt: Date.now(),
             fiveBossBattleEntered: false,
+            finalizeSent: false,
             admissionClaimed: false,
             clientState: new ClientStateMachine_1.ClientStateMachine(types_1.ClientState.Connecting),
             battleState: types_1.BattleState.Initializing,
@@ -1309,6 +1317,7 @@ class SessionManager {
         this.indexClientSocket(client);
         this.armBattleLoadingLease(connectionId);
         connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "accepted");
+        battle_telemetry_1.battleTelemetry.connected(client.roomNumber, client.viewerId);
         this.logBattleBarrierState(client.roomNumber, "connected");
         return true;
     }
@@ -1417,9 +1426,10 @@ class SessionManager {
             this.sceneReadyClients.set(roomNumber, new Set());
             const connected = (_b = (_a = this.battleClients.get(roomNumber)) === null || _a === void 0 ? void 0 : _a.size) !== null && _b !== void 0 ? _b : 0;
             this.battleExpectedCount.set(roomNumber, connected);
-            this.beginBattleBarrierCycle(roomNumber);
+            const cycle = this.beginBattleBarrierCycle(roomNumber);
             this.battleSceneStartedRooms.delete(roomNumber);
             this.logBattleBarrierState(roomNumber, "level_next");
+            this.armLevelNextDeadline(roomNumber, cycle);
         }
         if (levelNextSet.has(connectionId))
             return;
@@ -1428,6 +1438,50 @@ class SessionManager {
         // LevelNext starts its fixed loading deadline; duplicate packets cannot
         // reset that deadline or demote an already-ready connection.
         this.armBattleLoadingLease(connectionId);
+    }
+    /**
+     * Bound the next-scene barrier for peers that never start it.
+     *
+     * A peer that sends LevelNext owns a fixed loading lease, and a peer that
+     * closes its socket gets the missing-seat grace. A peer that keeps its
+     * socket open but sends neither LevelNext nor SceneReady (frozen or
+     * backgrounded app, half-open mobile link) had no deadline: an entered
+     * five-boss connection has no heartbeat lease, so every teammate waited
+     * on the transition screen indefinitely. After the deadline that peer is
+     * disconnected; the ordinary close path retires its seat to AI.
+     */
+    armLevelNextDeadline(roomNumber, cycle) {
+        const deadlineMs = this.parsePositiveDuration("BATTLE_LEVEL_NEXT_DEADLINE_MS", 90000, 10000);
+        const timer = setTimeout(() => {
+            // Match the loading lease: let already-arrived LevelNext/SceneReady
+            // I/O run before deciding that a peer missed the transition.
+            const check = setImmediate(() => {
+                void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                    var _a;
+                    if (cycle.timers.get("level_next_deadline") !== timer)
+                        return;
+                    cycle.timers.delete("level_next_deadline");
+                    if (!this.isCurrentBattleBarrier(roomNumber, cycle))
+                        return;
+                    if (((_a = this.battleExpectedCount.get(roomNumber)) !== null && _a !== void 0 ? _a : 0) <= 0)
+                        return;
+                    const started = this.battleLevelNextClients.get(roomNumber);
+                    const ready = this.sceneReadyClients.get(roomNumber);
+                    for (const client of this.getConnectedBattleClients(roomNumber)) {
+                        if ((started === null || started === void 0 ? void 0 : started.has(client.connectionId)) || (ready === null || ready === void 0 ? void 0 : ready.has(client.connectionId)))
+                            continue;
+                        console.warn(`[MULTI] next scene never started: room=${roomNumber}`
+                            + ` viewer=${client.viewerId} connection=${client.connectionId} timeoutMs=${deadlineMs}`);
+                        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "level_next_timeout", String(deadlineMs));
+                        (0, disconnect_diagnostics_1.markTcpDisconnectReason)(client.socket, "level_next_timeout");
+                        client.socket.destroy();
+                    }
+                }).catch(error => console.error(`[MULTI] next scene deadline failed: room=${roomNumber}`, error));
+            });
+            check.unref();
+        }, deadlineMs);
+        timer.unref();
+        cycle.timers.set("level_next_deadline", timer);
     }
     clearSceneReady(roomNumber) {
         this.clearBattleBarrierCycle(roomNumber);

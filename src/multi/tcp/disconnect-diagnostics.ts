@@ -12,6 +12,7 @@ export type TcpDisconnectReason =
     | "message_error"
     | "loading_timeout"
     | "heartbeat_timeout"
+    | "level_next_timeout"
     | "send_backpressure"
     | "send_queue_limit"
     | "send_write_error"
@@ -34,6 +35,7 @@ const reasons: readonly TcpDisconnectReason[] = [
     "message_error",
     "loading_timeout",
     "heartbeat_timeout",
+    "level_next_timeout",
     "send_backpressure",
     "send_queue_limit",
     "send_write_error",
@@ -57,8 +59,13 @@ export function markTcpDisconnectReason(socket: net.Socket, reason: TcpDisconnec
     if (!pending.has(socket)) pending.set(socket, reason)
 }
 
+/** Read the first cause without finalizing counters or discarding it. */
+export function readTcpDisconnectReason(socket: net.Socket, hadError = false): TcpDisconnectReason {
+    return pending.get(socket) ?? (hadError ? "socket_error" : "unknown_close")
+}
+
 export function finishTcpDisconnect(socket: net.Socket, hadError: boolean): TcpDisconnectReason {
-    const reason = pending.get(socket) ?? (hadError ? "socket_error" : "unknown_close")
+    const reason = readTcpDisconnectReason(socket, hadError)
     pending.delete(socket)
     counters[reason]++
     total++

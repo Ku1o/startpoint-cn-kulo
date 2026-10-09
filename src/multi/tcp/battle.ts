@@ -7,6 +7,7 @@ import { getRoom } from "../room/manager"
 import { recordFiveBossSignal } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import { markPlayerOnlineFromTcp } from "../../lib/online-presence"
+import { battleTelemetry } from "../battle-telemetry"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
     const client = sessionManager.findClientBySocket(socket)
@@ -53,6 +54,7 @@ function handleBattleNotify(socket: net.Socket, data: unknown, indexedClient?: S
         case 2: { // Finalize
             const room = client && getRoom(client.roomNumber)
             if (client && room?.five_boss_runtime) recordFiveBossSignal(room, client, "finalize")
+            if (client) client.finalizeSent = true
             if (client) sendToBattleClient(client, [1, [2]], "battle_finalize_ack")
             break
         }
@@ -82,6 +84,8 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
     fiveBossConnectionDiagnostics.packet(socket, !!activityClient)
     if (activityClient) {
         sessionManager.noteBattleActivity(activityClient.connectionId)
+        battleTelemetry.packet(activityClient.roomNumber, activityClient.viewerId, tag,
+            tag === 0 && Array.isArray(data[1]) ? data[1][0] as number : undefined)
         if (!socket.destroyed && sessionManager.isCurrentBattleClient(activityClient)) {
             markPlayerOnlineFromTcp(activityClient.viewerId)
         }
