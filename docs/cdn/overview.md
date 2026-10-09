@@ -1,6 +1,8 @@
 # CDN 机制与架构总览
 > 状态: 核心机制   关键文件: src/routes/cn/asset.ts   相关端点: /asset/get_path, /asset/version_info
 
+> 当前运行入口与职责边界见[项目运行总览](../architecture.md)。本文的官方 CDN 版本、包数量、寻址和二进制样本属于历史基线资料；当前下载目标与清单以 `src/lib/version.ts`、`src/routes/cn/asset.ts` 和启用的 `assets/asset-patch/manifest.json` 为准。
+
 World Flipper 国服（Leiting CN）CDN 私服的目录结构、文件寻址、版本链、服务端 API 与关键配置。客户端逆向下载流程见 `client-flow.md`，排查/构建/信标/已知问题见 `debugging.md`。
 
 ---
@@ -147,7 +149,7 @@ pinball-{from-version}-{to-version}-{index}-{hash}.zip
     从 1.4.0 升级到 1.4.1，第 1 个包
 ```
 
-版本链（全量 + 增量），Diff 范围 `1.4.0 → 1.4.54`（54 组）：
+官方历史基线版本链（全量 + 增量），Diff 范围 `1.4.0 → 1.4.54`（54 组；不含后来发布的 active 补丁）：
 
 ```
 full: 1.4.0 基版 (490 ZIPs, 9.3GB)
@@ -166,10 +168,13 @@ full: 1.4.0 基版 (490 ZIPs, 9.3GB)
 | 来源 | 字段 | 说明 |
 |------|------|------|
 | Header | `res_ver` / `RES_VER` | 客户端本地 CDN 版本（首次为空） |
+| Header | `device` / `DEVICE` | 平台标识；决定所需平台资源包 |
 | Header | `asset_size` / `ASSET_SIZE` | `fulfill`（全量）或 `shortened`（部分） |
 | Body | `target_asset_version` | 可选 |
 
-### full-only 响应（无 diff）
+### 历史 full-only 响应示例（无 diff）
+
+以下保留早期响应样本；当前首次请求的 `client_asset_version` 使用空字符串，字段拼写为 `latest_maj_first_version`。
 
 ```json
 {
@@ -189,7 +194,9 @@ full: 1.4.0 基版 (490 ZIPs, 9.3GB)
 }
 ```
 
-### full+diff 响应
+### 历史 full+diff 响应示例
+
+以下以官方基线终点 `1.4.54` 演示结构；当前目标版本会计入启用的补丁，不固定在该版本。
 
 ```json
 {
@@ -197,7 +204,7 @@ full: 1.4.0 基版 (490 ZIPs, 9.3GB)
     "client_asset_version": "",          // ← 客户端当前版本（空字符串，非 null，匹配全局服格式）
     "target_asset_version": "1.4.54",     // ← 目标版本
     "eventual_target_asset_version": "1.4.54",
-    "is_initial": true,                  // ← 强制全量下载
+    "is_initial": true,                  // ← 首次下载示例
     "latest_maj_first_version": "1.4.0"
   },
   "full": { "version": "1.4.0", "archive": [...] },
@@ -211,19 +218,21 @@ full: 1.4.0 基版 (490 ZIPs, 9.3GB)
 }
 ```
 
-**关键字段**：
-- `is_initial: true` — 告知客户端这是首次下载，需下载全部 full ZIP
-- `diff[]` — 增量链，客户端按 `original_version` 链式追加下载
-- `client_asset_version` — 空字符串 `""`（非 null）
-- `sha256: ""` — 客户端源码不校验此字段，保持空即可
+**当前行为**：
+
+- 首次（没有 `RES_VER` 或低于 `1.4.0`）：`is_initial=true`，`full.version=1.4.0`，返回所需平台 full 包及至有效目标的 diff 链。
+- 已有资源：`is_initial=false`，`full.version=RES_VER`、`full.archive=[]`；diff 只含客户端版本之后至目标版本的更新步骤。
+- 已到目标且没有待下载包：`full=null`、`diff=null`，`data_headers.asset_update=false`；空对象或空数组会被 AIR 视为有更新，不能代替 null。
+- `client_asset_version` 为 `RES_VER`，缺省使用空字符串；两个目标字段均使用计算出的目标版本。
+- diff 按版本递增返回，客户端按 `original_version` 连接更新链；同名资源后应用覆盖先应用。ZIP 响应的 `sha256` 保持空字符串，历史客户端校验细节见 `client-flow.md`。
 
 ### 版本决策逻辑
 
 ```typescript
 const resVer = request.headers['res_ver'] as string | undefined;
-const targetVer = resVer ?? highestDiff;    // 首次 → 1.4.54
-const clientVer = resVer ?? null;           // null → 首次下载
-const isInitial = true;                     // 强制全量下载
+const { targetVersion, isFirstTime, fullVersion } = computeAssetTarget(resVer);
+// 有效版本 = CDN 差分版本与 manifest 启用 patch 的最高版本。
+// 已有资源时目标不低于 RES_VER；首次 fullVersion 为 1.4.0。
 ```
 
 ---
@@ -233,6 +242,8 @@ const isInitial = true;                     // 强制全量下载
 ### `POST /api/index.php/asset/version_info`
 
 文件：`src/routes/cn/asset.ts:getVersionInfo()`
+
+下面是历史响应样本，当前 `files_list` 按设备选择 Android/iOS 清单，`total_size` 按实际待下载包计算。
 
 ```json
 {
@@ -246,20 +257,20 @@ const isInitial = true;                     // 强制全量下载
 | 字段 | 作用 |
 |------|------|
 | `base_url` | recovery 下载根路径 |
-| `files_list` | 指向 `empty.csv` 跳过 sufficiency check；指向 `10939-android_medium.csv` 则激活完整检查 |
-| `total_size` | 显示给用户的下载大小（启动时动态扫描 ZIP 计算） |
+| `files_list` | 当前按 device 选择 `10939-android_medium.csv` 或 `10939-ios_medium.csv`；历史 `empty.csv` 示例表示跳过 sufficiency check |
+| `total_size` | `getAssetDownloadSize(RES_VER, device)` 计算该设备实际需要下载的 full + diff 包大小；上面的数值仅为历史样本 |
 | `delayed_assets_size` | shortened 模式延迟下载量（=0 时 shortened = fulfill） |
 
 ### `POST /api/index.php/asset/get_path`
 
-文件：`src/routes/cn/asset.ts` — 返回 `full[] + diff[]` ZIP 列表（结构见上节）。
+文件：`src/routes/cn/asset.ts` — 按首次、增量或无更新状态返回 full 对象、diff 更新步骤或 null（结构见上节）。
 
 ### `POST /api/index.php/load`
 
 文件：`src/routes/cn/load.ts:wrapOptionFields()`
 
 ```typescript
-d.available_asset_version = resVer ?? "1.4.0";
+d.available_asset_version = getEffectiveVersion();
 ```
 
 客户端用此值与 `info.json.version` 比对，决定是否触发 `get_path` 下载流程。
@@ -275,39 +286,44 @@ fastify.register(fastifyStatic, {
 });
 ```
 
+当前资源服务同时提供 pristine CDN 与 `assets/asset-patch/active/` ZIP。active 是存储目录，发布清单只选择 manifest 中 `type=patch`、`enabled=true` 的 `archive` 或 `chain` 成员；目录中保留的测试包和替代旧包不会自动进入更新清单。资源读取覆盖 common / medium / Android / iOS 四根，客户端按设备选择对应平台的 full/diff 包。
+
+单文件 recovery/原生读取请求另由 `src/lib/custom-cdn-resource-routes.ts` 处理：同一哈希路径优先读取 `assets/asset-patch/production/<root>/`，不存在时回退 pristine CDN。这个单文件优先级与 ZIP 发布链分别处理，不能据此推定某 ZIP 已发布。
+
 ### `POST /assetintitle/version_info_in_title`（标题页）
 
-文件：`src/cn-server.ts:89` — 引用 `cn/asset.ts` 导出的 `CDN_TOTAL_SIZE`，与主 `version_info` 同步。
+文件：`src/cn-server.ts` — 与主 `version_info` 一样调用 `getAssetDownloadSize(resVer, device)`，再交给 `getVersionInfo`；下载量按请求的资源版本和设备计算。
 
 ### 版本判断全链路
 
-| 阶段 | 位置 | 字段 | 当前值 |
+| 阶段 | 位置 | 字段 | 当前定义 |
 |------|------|------|------|
-| 加载判断 | `cn/load.ts:21` | `available_asset_version` | `resVer ?? "1.4.0"` |
-| 下载目标 | `cn/asset.ts:114` | `client_asset_version` | `resVer ?? ""` |
-| 下载目标 | `cn/asset.ts:115` | `target_asset_version` | `resVer ?? "1.4.54"` |
-| 是否全量 | `cn/asset.ts:117` | `is_initial` | `true` |
-| 增量列表 | `cn/asset.ts` | `diff` | 54 组（1.4.0→1.4.54） |
-| 完整检查 | `cn/asset.ts:14` | `files_list` | `entities/10939-android_medium.csv` |
-| 完整检查 | `cn/asset.ts:13` | `base_url` | `CDN_BASE/EntityLists/` |
-| 显示大小 | `cn/asset.ts` | `total_size` | 动态扫描计算（~10GB） |
+| 加载判断 | `cn/load.ts` | `available_asset_version` | `getEffectiveVersion()` |
+| 下载目标 | `cn/asset.ts` | `client_asset_version` | `resVer ?? ""` |
+| 下载目标 | `lib/version.ts` | `target_asset_version` | 首次为有效版本；已有资源时为有效版本与 RES_VER 的较高者 |
+| 是否全量 | `lib/version.ts` | `is_initial` | RES_VER 缺省或低于 full 基版 `1.4.0` |
+| 增量列表 | `cn/asset.ts` | `diff` | 按设备选择 CDN diff 和 manifest 启用包，仅含客户端版本之后至目标版本的步骤；无更新为 null |
+| 完整检查 | `cn/asset.ts:getVersionInfo` | `files_list` | 当前实现选择的路径清单；不由历史样本固定 |
+| 完整检查 | `cn/asset.ts` | `base_url` | CDN base 与实际 EntityLists/entities 目录 |
+| 显示大小 | `cn/asset.ts:getAssetDownloadSize` | `total_size` | 该设备实际待下载包大小之和 |
 | 延迟下载 | `cn/asset.ts` | `delayed_assets_size` | `0` |
-| 客户端 | `info.json` | `version` | 服务端写入 |
+| 客户端 | `info.json` | `version` | 客户端完成下载后记录资源版本 |
 | 客户端 | `info.json` | `assetRecoveryInfo` | 缺失文件列表 |
 | 客户端 | `info.json` | `assetSizeKind` | fulfill/shortened |
 
 ### 客户端请求完整列表
 
-**核心 CDN 流程（每次启动都会触发）：**
+**相关请求（按账号状态、版本和资源完整性触发，并非每次启动都执行全部请求）：**
 
 | 端点 | 方法 | 调用时机 | 实现文件 |
 |------|------|------|------|
-| `/api/index.php/tool/signup` | POST | 账号创建，获取 viewer_id | `cn/tool.ts` |
+| `/api/index.php/tool/signup` | POST | 创建账号时获取 viewer_id | `cn/tool.ts` |
 | `/api/index.php/load` | POST | 获取玩家数据 + available_asset_version | `cn/load.ts` |
 | `/api/index.php/asset/version_info` | POST | CDN 版本查询（total_size, files_list, delayed_assets_size） | `cn/asset.ts` |
 | `/api/index.php/asset/get_path` | POST | ZIP 列表获取（full + diff chain） | `cn/asset.ts` |
-| `/patch/cn/archive-*/pinball-*.zip` | GET | **ZIP 下载**（每次 490+187=677 次） | `cn-server.ts` fastifyStatic |
-| `/patch/cn/EntityLists/10939-android_medium.csv` | GET | Sufficiency check CSV 下载 | `cn-server.ts` fastifyStatic |
+| `/patch/cn/archive-*/pinball-*.zip` | GET | 下载 get_path 返回的 pristine ZIP；数量取决于设备和 RES_VER | `cn-server.ts` fastifyStatic |
+| `/patch/cn/asset-patch/active/:file` | GET | 下载更新清单选中的 active ZIP | `cn-server.ts` |
+| `/patch/cn/EntityLists/...` 或 `/patch/cn/entities/...` | GET | 需要时下载路径/完整性检查 CSV | `cn-server.ts` fastifyStatic |
 
 **附加功能：**
 
@@ -333,13 +349,13 @@ fastify.register(fastifyStatic, {
 | `tutorial/update_step` | `{ step, start_time, mail_arrived: false }` | 教程重播（未持久化，`enable_newbie=false` 缓解） |
 | `tutorial/finish_trigger` | `[]`（附带 viewer_id） | 教程完成未保存 |
 | `tool/custom_notify` | `{}` | 不影响主流程 |
-| `assetintitle/version_info_in_title` | 与 version_info 同步（TOTAL_SIZE 动态） | 无影响 |
+| `assetintitle/version_info_in_title` | 与 version_info 同步，按 RES_VER/device 计算下载量 | 无影响 |
 
 ### 服务端文件索引
 
 | 文件 | 职责 |
 |------|------|
-| `src/routes/cn/asset.ts` | CDN API（version_info, get_path）+ TOTAL_SIZE 动态计算 |
+| `src/routes/cn/asset.ts` | CDN API（version_info, get_path）+ 设备待下载包大小计算 |
 | `src/routes/cn/load.ts` | load 响应 + wrapOptionFields + available_asset_version |
 | `src/cn-server.ts` | 主入口 + 静态文件服务 + tutorial stub + /debug + /crash |
 | `src/routes/api/tutorial.ts` | 教程完整逻辑（已导入但 CN 版本未启用） |
@@ -349,9 +365,9 @@ fastify.register(fastifyStatic, {
 
 ## 关键配置点
 
-### `TOTAL_SIZE` 动态计算
+### 下载大小与历史 `TOTAL_SIZE` 扫描
 
-`cn/asset.ts` 在模块加载时扫描全部 ZIP，计算总大小：
+当前主资源查询和标题页使用 `getAssetDownloadSize(resVer, device)`，按与 get_path 相同的 full/diff 筛选结果求和。模块内仍保留启动时扫描及 `CDN_TOTAL_SIZE` 导出，它不是这两个端点的实际下载量来源。以下是旧扫描实现示例：
 
 ```typescript
 const TOTAL_SIZE = (() => {
@@ -365,7 +381,7 @@ const TOTAL_SIZE = (() => {
 })();
 ```
 
-只在启动时执行一次（~100ms），换 CDN 无需手动更新代码。
+当前扫描目录还包括 iOS full/diff；上述旧示例的目录集合和运行耗时不作为当前端点行为依据。
 
 ### `files_list`
 
@@ -376,10 +392,12 @@ const TOTAL_SIZE = (() => {
 
 ### `diff: []` vs `diff: [...]`
 
+以下为早期 Android 全量方案的历史对比。当前按 RES_VER 和设备生成下载任务，不固定包数；已到目标且无任务时使用 `full=null`、`diff=null`。
+
 | 配置 | 下载内容 | 场景 |
 |------|------|------|
-| `diff: []` | 仅 full ZIP（490 个，~9.3GB） | 调试/极简模式 |
-| `diff: [...]` | full + 增量（677 个，~10GB） | 生产模式，覆盖全版本文件 |
+| `diff: []` | 仅 full ZIP（历史样本 490 个，~9.3GB） | 早期调试/极简方案 |
+| `diff: [...]` | full + 增量（历史样本 677 个，~10GB） | 早期全量方案 |
 
 ### `delayed_assets_size: 0`
 

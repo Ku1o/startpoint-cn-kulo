@@ -8,8 +8,8 @@ StarPoint CN 是《世界弹射物语》国服（雷霆）客户端的非官方�
 
 当前开发与验收基线包括：
 
-- Android 官方 CN 1.8.1 客户端，仅修改登录跳过和服务器地址；
-- 可选的 iOS 1.8.4 私服客户端补丁；
+- Android CN 派生客户端及累计补丁，public/LAN 输入分别从[平台工作入口](./client-patch/AGENTS.md)定位；
+- iOS 独立平台补丁，实际输入与验收层级从同一入口定位对应登记；
 - 官方 CN 1.4.54 CDN 基础资源，以及仓库清单中明确启用的增量补丁；
 - Node.js 24 LTS 或更高版本；
 - SQLite 本地状态，默认存放在 `.database/`。
@@ -23,6 +23,7 @@ StarPoint CN 是《世界弹射物语》国服（雷霆）客户端的非官方�
 服务端已经覆盖账号与存档、主要养成、主线与部分活动、单人和多人战斗、任务成就与称号、抽卡、商店、邮件、NPC 协力、管理后台及资源更新流程。部分旧端点、特殊活动和客户端边缘流程仍需要继续验证。
 
 - [完整文档入口](./docs/README.md)：按系统、协议和操作目标查找文档
+- [运行架构与排错入口](./docs/architecture.md)：服务如何运行、状态归谁管理、按症状从哪里查起
 - [端点实现状态](./docs/reference/routes-status.md)：查看路由族与端点覆盖情况
 - [测试进度](./docs/status/test-progress.md)：区分自动回归与客户端人工验收
 - [已知问题](./docs/status/known-issues.md)：当前限制与待处理问题
@@ -91,12 +92,12 @@ npm run build:admin
 
 ## 客户端补丁
 
-Android 客户端连接本服务至少需要完成两项修改：
+历史 Android 基础适配涉及以下修改；制作或调整累计客户端前，先从[平台工作入口](./client-patch/AGENTS.md)选择当前登记输入及方法：
 
 1. 在 `pinball/config/core/DevConfig.as` 启用 SDK Dummy，跳过官方登录；
 2. 在 `pinball/config/gbits/DevConfig_gf_android.as` 将 API 地址改为本服务地址。
 
-仓库提供补丁脚本和说明，但不提供已签名 APK：
+仓库保留基础适配脚本和说明，但不提供已签名 APK。以下命令用于匹配旧输入的基础适配，不作为累计客户端的默认起点：
 
 ```bash
 bash client-patch/apply.sh <AS3_EXPORT_DIR> <SERVER_HOST>:8001
