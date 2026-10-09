@@ -23,6 +23,7 @@ import { disconnectLoungePlayerLogin } from "./lounge/state";
 import { installLocalClientCompat } from "./lib/local-client-compat";
 import { getPatchManifest } from "./lib/version";
 import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes";
+import { installProcessGuards } from "./lib/process-guards";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import iosLeitingPlugin from "./routes/cn/ios-leiting";
@@ -564,7 +565,7 @@ const shutdownTimeoutMs = Math.max(
     5_000,
     Number.parseInt(process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS ?? "15000", 10) || 15_000,
 );
-function requestGracefulShutdown(signal: NodeJS.Signals): void {
+function requestGracefulShutdown(signal: NodeJS.Signals | "uncaughtException", forceExit = false): void {
     if (gracefulShutdown) return;
     console.warn(`[SHUTDOWN] ${signal} received; draining realtime and persistence work`);
     gracefulShutdown = (async () => {
@@ -579,6 +580,9 @@ function requestGracefulShutdown(signal: NodeJS.Signals): void {
                 }),
             ]);
             console.log("[SHUTDOWN] graceful shutdown complete");
+            // After a fatal error, do not wait for leftover handles to let
+            // the event loop drain on its own.
+            if (forceExit) process.exit(process.exitCode ?? 1);
         } catch (error) {
             process.exitCode = 1;
             console.error(`[SHUTDOWN] graceful shutdown failed: ${(error as Error).message}`);
@@ -594,6 +598,15 @@ function requestGracefulShutdown(signal: NodeJS.Signals): void {
 process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
 process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
 process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
+// A stray rejected promise is logged and the server keeps serving players;
+// an uncaught synchronous exception is logged and then drains like a stop
+// signal, because state touched by the throwing code may be inconsistent.
+installProcessGuards({
+    onFatal: () => {
+        process.exitCode = 1;
+        requestGracefulShutdown("uncaughtException", true);
+    },
+});
 startQuestNpcPartyPoolWorker();
 const persistenceWorkerStarted = startSqlitePersistenceWorker(getDb().name);
 if (persistenceWorkerStarted && isSqlitePersistenceWorkerStarted()) {

@@ -60,6 +60,7 @@ const state_1 = require("./lounge/state");
 const local_client_compat_1 = require("./lib/local-client-compat");
 const version_1 = require("./lib/version");
 const custom_cdn_resource_routes_1 = require("./lib/custom-cdn-resource-routes");
+const process_guards_1 = require("./lib/process-guards");
 const versionCheck_1 = __importDefault(require("./routes/cn/versionCheck"));
 const ios_leiting_1 = __importDefault(require("./routes/cn/ios-leiting"));
 const leitingAuth_1 = __importDefault(require("./routes/cn/leitingAuth"));
@@ -563,11 +564,12 @@ fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () 
 // terminating the process forcibly still bypasses every cleanup callback.
 let gracefulShutdown = null;
 const shutdownTimeoutMs = Math.max(5000, Number.parseInt((_c = process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS) !== null && _c !== void 0 ? _c : "15000", 10) || 15000);
-function requestGracefulShutdown(signal) {
+function requestGracefulShutdown(signal, forceExit = false) {
     if (gracefulShutdown)
         return;
     console.warn(`[SHUTDOWN] ${signal} received; draining realtime and persistence work`);
     gracefulShutdown = (() => __awaiter(this, void 0, void 0, function* () {
+        var _a;
         let timeout;
         try {
             yield Promise.race([
@@ -577,6 +579,10 @@ function requestGracefulShutdown(signal) {
                 }),
             ]);
             console.log("[SHUTDOWN] graceful shutdown complete");
+            // After a fatal error, do not wait for leftover handles to let
+            // the event loop drain on its own.
+            if (forceExit)
+                process.exit((_a = process.exitCode) !== null && _a !== void 0 ? _a : 1);
         }
         catch (error) {
             process.exitCode = 1;
@@ -595,6 +601,15 @@ function requestGracefulShutdown(signal) {
 process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
 process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
 process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
+// A stray rejected promise is logged and the server keeps serving players;
+// an uncaught synchronous exception is logged and then drains like a stop
+// signal, because state touched by the throwing code may be inconsistent.
+(0, process_guards_1.installProcessGuards)({
+    onFatal: () => {
+        process.exitCode = 1;
+        requestGracefulShutdown("uncaughtException", true);
+    },
+});
 (0, player_party_pool_1.startQuestNpcPartyPoolWorker)();
 const persistenceWorkerStarted = (0, sqlite_persistence_worker_1.startSqlitePersistenceWorker)((0, db_1.getDb)().name);
 if (persistenceWorkerStarted && (0, sqlite_persistence_worker_1.isSqlitePersistenceWorkerStarted)()) {
