@@ -87,8 +87,11 @@ function createLounge(input) {
     // One host owns at most one lounge regardless of use case. Replacing it
     // notifies the previous members instead of silently orphaning them.
     for (const existing of [...rooms.values()]) {
-        if (existing.hostViewerId === input.hostViewerId)
-            disbandLounge(existing);
+        // The host is leaving that lounge itself: retire its own old socket
+        // without a dismissal frame, and tell the other members.
+        if (existing.hostViewerId === input.hostViewerId) {
+            disbandLounge(existing, undefined, input.hostViewerId);
+        }
     }
     const now = Date.now();
     const room = {
@@ -269,19 +272,20 @@ function broadcastLoungeFrame(room, value) {
         sendLoungeFrame(member.socket, value);
 }
 exports.broadcastLoungeFrame = broadcastLoungeFrame;
-function disbandLounge(room, message = "multibattle_room_dismissed") {
+function disbandLounge(room, message = "multibattle_room_dismissed", silentViewerId) {
     const frame = [1, [1, message]];
     const sentSockets = new Set();
-    for (const member of room.members.values()) {
-        sentSockets.add(member.socket);
-        sendLoungeFrame(member.socket, frame);
-    }
-    for (const socket of room.pendingSockets.values()) {
-        if (!sentSockets.has(socket)) {
-            sentSockets.add(socket);
+    const notify = (viewerId, socket) => {
+        if (sentSockets.has(socket))
+            return;
+        sentSockets.add(socket);
+        if (viewerId !== silentViewerId)
             sendLoungeFrame(socket, frame);
-        }
-    }
+    };
+    for (const member of room.members.values())
+        notify(member.viewerId, member.socket);
+    for (const [viewerId, socket] of room.pendingSockets)
+        notify(viewerId, socket);
     room.raisingState = 99;
     removeRoom(room);
     for (const socket of sentSockets) {

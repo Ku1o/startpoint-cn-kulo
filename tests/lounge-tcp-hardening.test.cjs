@@ -116,7 +116,8 @@ test('a host keeps one lounge: creating another disbands and notifies the previo
     assert.ok(lounge.getLounge(other.id), 'other hosts are untouched')
     assert.equal(lounge.getLoungeCountForTests(), 2)
     assert.deepEqual(guestSocket.frames.at(-1), [1, [1, 'multibattle_room_dismissed']])
-    assert.deepEqual(hostSocket.frames.at(-1), [1, [1, 'multibattle_room_dismissed']])
+    assert.equal(hostSocket.frames.some(frame => frame[1]?.[0] === 1), false,
+        'the host own old socket is retired without a dismissal frame')
     assert.equal(lounge.getLoungeSocketContext(guestSocket), null)
 
     await new Promise(resolve => setTimeout(resolve, 5))
@@ -259,4 +260,39 @@ test('creating a room replaces only the host lobby rooms that have no connection
     for (const roomNumber of [connected.room_number, otherHost.room_number]) {
         sessionManager.commitRoomDisband(roomNumber, 'test_cleanup')
     }
+})
+
+test('a StartBattle roster seat can open its battle socket after its lobby socket dropped', async t => {
+    const { handleHandshake } = require('../out/multi/tcp/handshake')
+    const roomNumber = '880005'
+    const room = { room_number: roomNumber, lobby_generation: 1, category: 1, quest_id: 1,
+        lifecycle: { instanceId: 'i', battleSessionId: 'b', phase: 'BATTLE' } }
+    t.mock.method(rooms, 'getRoom', number => number === roomNumber ? room : undefined)
+    const lobbyClient = sessionManager.createClient(new FakeSocket(), 51, roomNumber, 'lobby-cid-51', 510)
+    lobbyClient.roomGeneration = 0
+    sessionManager.addClientToRoom(lobbyClient)
+    sessionManager.setBattleExpectedCount(roomNumber, 1, [{ viewerId: 51, connectionId: 'lobby-cid-51' }])
+    lobbyClient.socket.destroy()
+    sessionManager.removeClient(lobbyClient)
+    assert.equal(sessionManager.getRoomClientByConnectionId(roomNumber, 'lobby-cid-51'), undefined)
+
+    const socket = new FakeSocket()
+    await handleHandshake(socket, { socklet: 'cooperation_battle', room_number: roomNumber, connection_id: 'lobby-cid-51' })
+    assert.deepEqual(socket.frames, [[0, roomNumber, '']])
+    const battle = sessionManager.getBattleClient('lobby-cid-51')
+    assert.equal(battle.viewerId, 51)
+    assert.equal(battle.playerId, 510)
+    assert.equal(battle.roomGeneration, 0)
+
+    const stranger = new FakeSocket()
+    await handleHandshake(stranger, { socklet: 'cooperation_battle', room_number: roomNumber, connection_id: 'not-on-roster' })
+    assert.deepEqual(stranger.frames, [[3, 'HANDSHAKE_DENIED']])
+
+    sessionManager.clearBattleExpectedCount(roomNumber)
+    assert.equal(sessionManager.resolveBattleHandshakeIdentity(roomNumber, 'lobby-cid-51')?.viewerId, 51,
+        'the live battle connection still resolves itself')
+    sessionManager.removeBattleClient('lobby-cid-51')
+    assert.equal(sessionManager.resolveBattleHandshakeIdentity(roomNumber, 'lobby-cid-51'), null,
+        'the roster is cleared with the expected count')
+    sessionManager.removeRoomState(roomNumber)
 })

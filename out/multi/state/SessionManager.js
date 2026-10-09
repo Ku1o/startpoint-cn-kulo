@@ -28,6 +28,9 @@ class SessionManager {
         this.battleLevelNextClients = new Map();
         this.battleExpectedCount = new Map();
         this.battleBarrierCycles = new Map();
+        // Roster handed to setBattleExpectedCount at StartBattle, by connection id.
+        // It lets a seat open its battle socket after its lobby socket dropped.
+        this.battleRosterSeats = new Map();
         this.retiredBattleSeats = new Map();
         this.battleHeartbeatTimers = new Map();
         this.battleLastActivityAt = new Map();
@@ -1064,11 +1067,11 @@ class SessionManager {
     /**
      * Resolve who owns a battle connection id. The lobby connection that
      * issued the id is authoritative; when it is gone, a known battle seat for
-     * the same connection id (live, awaiting reconnect, or frozen by the
-     * five-boss runtime) identifies the viewer. Unknown ids resolve to null.
+     * the same connection id (live, awaiting reconnect, on the StartBattle
+     * roster, or frozen by the five-boss runtime) identifies the viewer. Unknown ids resolve to null.
      */
     resolveBattleHandshakeIdentity(roomNumber, connectionId) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         const roomClient = this.getRoomClientByConnectionId(roomNumber, connectionId);
         if (roomClient) {
             return {
@@ -1122,12 +1125,20 @@ class SessionManager {
                 };
             }
         }
-        const frozen = (_c = room === null || room === void 0 ? void 0 : room.five_boss_runtime) === null || _c === void 0 ? void 0 : _c.battleIdentityByViewerId;
+        const rostered = (_c = this.battleRosterSeats.get(roomNumber)) === null || _c === void 0 ? void 0 : _c.get(connectionId);
+        if (rostered) {
+            return {
+                viewerId: rostered.viewerId,
+                playerId: (_d = rostered.playerId) !== null && _d !== void 0 ? _d : memberPlayerId(rostered.viewerId),
+                roomGeneration: rostered.roomGeneration,
+            };
+        }
+        const frozen = (_e = room === null || room === void 0 ? void 0 : room.five_boss_runtime) === null || _e === void 0 ? void 0 : _e.battleIdentityByViewerId;
         if (frozen && typeof frozen === "object") {
             for (const [viewerKey, identity] of Object.entries(frozen)) {
                 const viewerId = Number(viewerKey);
                 if ((identity === null || identity === void 0 ? void 0 : identity.connectionId) === connectionId && Number.isSafeInteger(viewerId) && viewerId > 0) {
-                    return { viewerId, playerId: (_d = identity.playerId) !== null && _d !== void 0 ? _d : null, roomGeneration: battleGeneration() };
+                    return { viewerId, playerId: (_f = identity.playerId) !== null && _f !== void 0 ? _f : null, roomGeneration: battleGeneration() };
                 }
             }
         }
@@ -1522,6 +1533,23 @@ class SessionManager {
         this.battleExpectedCount.set(roomNumber, count);
         this.battleSceneStartedRooms.delete(roomNumber);
         this.pendingBattleLeaves.delete(roomNumber);
+        const roster = new Map();
+        for (const seat of seats) {
+            if (!(seat.viewerId > 0) || !seat.connectionId)
+                continue;
+            const lobbyClient = this.getRoomClientByConnectionId(roomNumber, seat.connectionId);
+            if (!lobbyClient || lobbyClient.viewerId !== seat.viewerId)
+                continue;
+            roster.set(seat.connectionId, {
+                viewerId: seat.viewerId,
+                playerId: lobbyClient.playerId,
+                roomGeneration: lobbyClient.roomGeneration,
+            });
+        }
+        if (roster.size > 0)
+            this.battleRosterSeats.set(roomNumber, roster);
+        else
+            this.battleRosterSeats.delete(roomNumber);
         if (count > 0 && seats.length === count && seats.every(seat => seat.viewerId > 0 && seat.connectionId)
             && new Set(seats.map(seat => this.battleSeatKey(seat))).size === count) {
             // A frozen lobby member might never open a battle socket, so it
@@ -1555,6 +1583,7 @@ class SessionManager {
         this.sceneReadyClients.delete(roomNumber);
         this.battleLevelNextClients.delete(roomNumber);
         this.battleExpectedCount.delete(roomNumber);
+        this.battleRosterSeats.delete(roomNumber);
         this.battleBarrierLogState.delete(roomNumber);
         this.battleSceneStartedRooms.delete(roomNumber);
         this.pendingBattleLeaves.delete(roomNumber);
@@ -1565,6 +1594,7 @@ class SessionManager {
             (0, equipment_ready_1.clearEquipmentBlock)(client);
         this.clearBattleBarrierCycle(roomNumber);
         this.retiredBattleSeats.delete(roomNumber);
+        this.battleRosterSeats.delete(roomNumber);
         (0, chain_diagnostic_1.clearChainDiagnosticRoom)(roomNumber);
         const abandonedTimer = this.abandonedBattleTimers.get(roomNumber);
         if (abandonedTimer)

@@ -103,6 +103,13 @@ export class SessionManager {
     private battleLevelNextClients = new Map<string, Set<string>>()
     private battleExpectedCount = new Map<string, number>()
     private battleBarrierCycles = new Map<string, BattleBarrierCycle>()
+    // Roster handed to setBattleExpectedCount at StartBattle, by connection id.
+    // It lets a seat open its battle socket after its lobby socket dropped.
+    private battleRosterSeats = new Map<string, Map<string, {
+        viewerId: number
+        playerId: number | null
+        roomGeneration: number
+    }>>()
     private retiredBattleSeats = new Map<string, Set<string>>()
     private battleHeartbeatTimers = new Map<string, NodeJS.Timeout>()
     private battleLastActivityAt = new Map<string, number>()
@@ -1085,8 +1092,8 @@ export class SessionManager {
     /**
      * Resolve who owns a battle connection id. The lobby connection that
      * issued the id is authoritative; when it is gone, a known battle seat for
-     * the same connection id (live, awaiting reconnect, or frozen by the
-     * five-boss runtime) identifies the viewer. Unknown ids resolve to null.
+     * the same connection id (live, awaiting reconnect, on the StartBattle
+     * roster, or frozen by the five-boss runtime) identifies the viewer. Unknown ids resolve to null.
      */
     resolveBattleHandshakeIdentity(roomNumber: string, connectionId: string): {
         viewerId: number
@@ -1140,6 +1147,14 @@ export class SessionManager {
                     playerId: memberPlayerId(seat.viewerId),
                     roomGeneration: battleGeneration(),
                 }
+            }
+        }
+        const rostered = this.battleRosterSeats.get(roomNumber)?.get(connectionId)
+        if (rostered) {
+            return {
+                viewerId: rostered.viewerId,
+                playerId: rostered.playerId ?? memberPlayerId(rostered.viewerId),
+                roomGeneration: rostered.roomGeneration,
             }
         }
         const frozen = room?.five_boss_runtime?.battleIdentityByViewerId
@@ -1535,6 +1550,19 @@ export class SessionManager {
         this.battleExpectedCount.set(roomNumber, count)
         this.battleSceneStartedRooms.delete(roomNumber)
         this.pendingBattleLeaves.delete(roomNumber)
+        const roster = new Map<string, { viewerId: number; playerId: number | null; roomGeneration: number }>()
+        for (const seat of seats) {
+            if (!(seat.viewerId > 0) || !seat.connectionId) continue
+            const lobbyClient = this.getRoomClientByConnectionId(roomNumber, seat.connectionId)
+            if (!lobbyClient || lobbyClient.viewerId !== seat.viewerId) continue
+            roster.set(seat.connectionId, {
+                viewerId: seat.viewerId,
+                playerId: lobbyClient.playerId,
+                roomGeneration: lobbyClient.roomGeneration,
+            })
+        }
+        if (roster.size > 0) this.battleRosterSeats.set(roomNumber, roster)
+        else this.battleRosterSeats.delete(roomNumber)
         if (count > 0 && seats.length === count && seats.every(seat => seat.viewerId > 0 && seat.connectionId)
             && new Set(seats.map(seat => this.battleSeatKey(seat))).size === count) {
             // A frozen lobby member might never open a battle socket, so it
@@ -1568,6 +1596,7 @@ export class SessionManager {
         this.sceneReadyClients.delete(roomNumber)
         this.battleLevelNextClients.delete(roomNumber)
         this.battleExpectedCount.delete(roomNumber)
+        this.battleRosterSeats.delete(roomNumber)
         this.battleBarrierLogState.delete(roomNumber)
         this.battleSceneStartedRooms.delete(roomNumber)
         this.pendingBattleLeaves.delete(roomNumber)
@@ -1577,6 +1606,7 @@ export class SessionManager {
         for (const client of this.getClientsInRoom(roomNumber)) clearEquipmentBlock(client)
         this.clearBattleBarrierCycle(roomNumber)
         this.retiredBattleSeats.delete(roomNumber)
+        this.battleRosterSeats.delete(roomNumber)
         clearChainDiagnosticRoom(roomNumber)
         const abandonedTimer = this.abandonedBattleTimers.get(roomNumber)
         if (abandonedTimer) clearTimeout(abandonedTimer)
