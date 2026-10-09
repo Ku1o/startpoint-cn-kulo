@@ -265,7 +265,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Invalid request body."
             });
-        const purchaseAmount = Math.max(1, rawPurchaseAmount);
+        // Purchase counts multiply costs and rewards, so only whole positive
+        // counts are accepted; anything else is rejected before any lookup.
+        const purchaseAmount = Number(rawPurchaseAmount);
+        if (!Number.isSafeInteger(purchaseAmount) || purchaseAmount <= 0)
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid purchase amount."
+            });
         const viewerIdSession = yield (0, session_1.getSession)(viewerId.toString());
         if (!viewerIdSession)
             return reply.status(400).send({

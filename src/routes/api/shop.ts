@@ -334,7 +334,13 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid request body."
         })
 
-        const purchaseAmount = Math.max(1, rawPurchaseAmount)
+        // Purchase counts multiply costs and rewards, so only whole positive
+        // counts are accepted; anything else is rejected before any lookup.
+        const purchaseAmount = Number(rawPurchaseAmount)
+        if (!Number.isSafeInteger(purchaseAmount) || purchaseAmount <= 0) return reply.status(400).send({
+            "error": "Bad Request",
+            "message": "Invalid purchase amount."
+        })
 
         const viewerIdSession = await getSession(viewerId.toString())
         if (!viewerIdSession) return reply.status(400).send({
