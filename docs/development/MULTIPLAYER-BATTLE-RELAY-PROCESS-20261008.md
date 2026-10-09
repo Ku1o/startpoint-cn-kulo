@@ -2,7 +2,7 @@
 
 日期：2026-10-08
 
-基线：PR #26（`fix/coop-disconnect-lag-qjcka2`，已合并 staging `96a8602`）
+基线：`main` `40ee833`（PR #26 的五重掉线修复与战斗摘要已由作者整合进 main）
 
 开关：`MULTI_BATTLE_RELAY_PROCESS=1`（默认关闭）
 
