@@ -3,6 +3,7 @@ import type { IRoomMateProvider, RecruitResult } from "../types"
 import type { NpcMateTemplate } from "../../lib/types"
 import { NPC_TEMPLATES } from "./types"
 import { buildNpcMates } from "./builder"
+import { getRoom } from "../room/manager"
 
 type RecruitedMate = RecruitResult["recruitedMates"][number]
 
@@ -23,7 +24,8 @@ export function selectStableNpcSlots(
 
 export class NpcMateProvider implements IRoomMateProvider {
     getMates(roomNumber: string): MultiMate[] {
-        const { mate1, mate2 } = buildNpcMates()
+        const room = getRoom(roomNumber)
+        const { mate1, mate2 } = buildNpcMates(room?.quest_id, room?.category)
         return [mate1, mate2].filter((m): m is MultiMate => m !== null)
     }
 

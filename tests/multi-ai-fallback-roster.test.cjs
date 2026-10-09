@@ -207,3 +207,46 @@ test('guest Enter before fallback retains both real connections and fills one AI
     assertSafeRoster(guest, [host.connectionId, guest.connectionId])
     assert.equal(x.room.npc_count, 1)
 })
+
+test('empty clear history publishes the host wire party and preserves it across a rematch', async t => {
+    const pool = stubs.get(path.join(root, 'out/multi/npc/player-party-pool.js'))
+    let selections = 0
+    t.mock.method(pool, 'getRandomPlayerNpcPartiesSync', () => { selections++; return [] })
+    const x = setup(t)
+    const host = x.connect(101)
+    host.yourself.party = {
+        characters: [[0, { id: 131012 }], [0, { id: 141007 }], [0, { id: 151001 }]],
+        unison_characters: [[1], [1], [1]],
+        equipments: [[0, { equipmentId: 300101, level: 5 }], [1], [1]],
+        abilitySoulIds: [[0, 300201], [1], [1]],
+    }
+    const firstParty = host.yourself.party
+    await x.enter(host)
+    recruitment.publishRandomRecruitment(x.room.room_number)
+    aiFill.scheduleAiFallback(x.room.room_number)
+    await x.fire(x.pending(35))
+    await x.fire(x.pending(150))
+    const firstRoster = host.socket.frames.filter(frame => frame[0] === 1 && frame[1]?.[0] === 1)
+        .at(-1)[1][1]
+    assert.equal(firstRoster.filter(mate => mate.comId).length, 2)
+    assert.ok(firstRoster.filter(mate => mate.comId)
+        .every(mate => JSON.stringify(mate.party) === JSON.stringify(firstParty)))
+    const cached = { ...x.room.npc_party_by_com_id }
+    assert.equal(selections, 1)
+
+    x.room.lobby_generation++
+    host.roomGeneration = x.room.lobby_generation
+    host.yourself.party = {
+        ...firstParty,
+        equipments: [[0, { equipmentId: 300201, level: 5 }], [1], [1]],
+    }
+    await x.enter(host)
+    await x.fire(x.pending(500))
+    await x.fire(x.pending(150))
+    assert.equal(selections, 1, 'a rematch must reuse its cached COM parties without a pool draw')
+    assert.deepEqual(Object.keys(x.room.npc_party_by_com_id), Object.keys(cached))
+    for (const [comId, party] of Object.entries(cached)) {
+        assert.equal(x.room.npc_party_by_com_id[comId], party)
+        assert.deepEqual(host.mates.find(mate => String(mate.comId) === comId).party, firstParty)
+    }
+})

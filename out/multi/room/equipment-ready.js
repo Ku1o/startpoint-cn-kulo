@@ -12,35 +12,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.notifyEquipmentPartySaved = exports.freezeEquipmentSelections = exports.recordEquipmentPartyChange = exports.enforceRoomEquipmentReady = exports.enforceEquipmentReady = exports.setPreparation = exports.clearEquipmentBlock = exports.hasRestrictedEquipment = exports.selectedPartyId = exports.legalNpcParty = exports.exclusiveWirePartyItems = exports.EQUIPMENT_IDLE_MS = void 0;
 const player_1 = require("../../data/domains/player");
 const mode15_optional_1 = require("../../lib/mode15-optional");
+const equipment_policy_1 = require("../npc/equipment-policy");
 const SessionManager_1 = require("../state/SessionManager");
 const embedded_1 = require("../coordinator/embedded");
+const quest_party_snapshot_1 = require("../npc/quest-party-snapshot");
 function getRoom(roomNumber) {
     return require("./manager").getRoom(roomNumber);
 }
 exports.EQUIPMENT_IDLE_MS = 30000;
-function unwrap(value) {
-    if (!Array.isArray(value))
-        return value;
-    return value[0] === 0 ? value[1] : null;
-}
 /** Accept both the TCP Option encoding and the HTTP/plain party encoding. */
 function exclusiveWirePartyItems(party) {
-    var _a, _b, _c;
-    if (!party || typeof party !== "object")
-        return [];
-    const ids = [];
-    for (const field of ["equipments", "equipmentIds", "equipment_ids",
-        "abilitySoulIds", "ability_soul_ids"]) {
-        if (!Array.isArray(party[field]))
-            continue;
-        for (const raw of party[field].slice(0, 3)) {
-            const item = unwrap(raw);
-            ids.push(item && typeof item === "object"
-                ? (_c = (_b = (_a = item.equipmentId) !== null && _a !== void 0 ? _a : item.equipment_id) !== null && _b !== void 0 ? _b : item.abilitySoulId) !== null && _c !== void 0 ? _c : item.id
-                : item);
-        }
-    }
-    return (0, mode15_optional_1.getMode15ExclusiveItemIds)(ids);
+    return (0, equipment_policy_1.exclusivePartyItems)(party);
 }
 exports.exclusiveWirePartyItems = exclusiveWirePartyItems;
 /** AI parties belong to the server, so normalize them before publishing a roster. */
@@ -186,11 +168,23 @@ function recordEquipmentPartyChange(client, partyId, userAction = true) {
 exports.recordEquipmentPartyChange = recordEquipmentPartyChange;
 /** Freeze the checked selection so late lobby edits cannot change this battle. */
 function freezeEquipmentSelections(room, generation = room.lobby_generation) {
+    var _a;
     room.equipmentPartyIds = {};
+    room.npcPartySnapshots = {};
     for (const client of SessionManager_1.sessionManager.getClientsInRoom(room.room_number, generation)) {
         if (client.isBattle || !client.playerId || client.enterData === null)
             continue;
-        room.equipmentPartyIds[client.viewerId] = selectedPartyId(client);
+        const partyId = selectedPartyId(client);
+        room.equipmentPartyIds[client.viewerId] = partyId;
+        try {
+            const snapshot = (0, quest_party_snapshot_1.captureQuestNpcPartySnapshot)(Number(client.playerId), room.category, room.quest_id, partyId, (_a = client.yourself) === null || _a === void 0 ? void 0 : _a.party);
+            if (snapshot)
+                room.npcPartySnapshots[client.viewerId] = snapshot;
+        }
+        catch (error) {
+            // History is optional; a capture failure must not reject the battle.
+            console.error("[MULTI] NPC clear-party capture failed", error);
+        }
         clearEquipmentBlock(client);
     }
 }

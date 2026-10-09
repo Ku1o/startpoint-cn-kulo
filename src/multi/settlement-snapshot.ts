@@ -1,6 +1,7 @@
 import { routineGameLog } from "../lib/routine-game-logging"
 import type { ActiveQuest } from "../routes/api/singleBattleQuest"
 import { registerMemoryCounters } from "../lib/memory-diagnostics"
+import { cloneQuestNpcPartySnapshot, type QuestNpcPartySnapshot } from "./npc/quest-party-pool-shared"
 
 export type MultiBattleLifecycle = "BATTLE" | "SETTLING" | "RETURN_PENDING" | "LOBBY"
 
@@ -19,6 +20,7 @@ export interface MultiSettlementSnapshot {
     activeQuest: ActiveQuest
     participants: FrozenSettlementParticipant[]
     expectedRealViewerIds: number[]
+    npcPartySnapshot?: QuestNpcPartySnapshot
     isHost: boolean
     isRescueGuest: boolean
     isRescueFragmentEligible: boolean
@@ -73,6 +75,7 @@ export function registerMultiSettlementSnapshot(input: Omit<MultiSettlementSnaps
         },
         participants: input.participants.map(participant => ({ ...participant })),
         expectedRealViewerIds: [...input.expectedRealViewerIds],
+        npcPartySnapshot: cloneQuestNpcPartySnapshot(input.npcPartySnapshot),
         lifecycle: "BATTLE",
         createdAt: now,
         expiresAt: now + START_TTL_MS,

@@ -66,7 +66,8 @@ function cleanExpiredRooms() {
         }).catch(error => console.error(`[MULTI] room cleanup failed: room=${roomNumber}`, error));
     }
 }
-setInterval(cleanExpiredRooms, CLEAN_INTERVAL_MS);
+const cleanupTimer = setInterval(cleanExpiredRooms, CLEAN_INTERVAL_MS);
+cleanupTimer.unref();
 
 export function generateRoomNumber(): string {
     for (let attempt = 0; attempt < 100; attempt += 1) {

@@ -71,6 +71,7 @@ import {
     settleMode15BattleSync,
 } from "../../lib/mode15-optional";
 import { recordSuccessfulQuestNpcParty } from "../npc/player-party-pool";
+import { cloneQuestNpcPartySnapshot } from "../npc/quest-party-pool-shared";
 import { runPersistenceTransaction, runWriterCommand } from "../../lib/persistence-coordinator";
 import {
     MULTI_CLEANUP_ACTIVE_QUEST,
@@ -326,7 +327,28 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 return { status: "unavailable" as const };
             }
             if (!currentRoom.equipmentPartyIds) freezeEquipmentSelections(currentRoom, sourceGeneration);
-            return { status: "ready" as const, room: currentRoom };
+            // Take owned copies inside the room queue. Persistence below can
+            // yield while this room returns to LOBBY or starts another battle.
+            const npcPartySnapshot = currentRoom.npcPartySnapshots?.[viewer_id];
+            return {
+                status: "ready" as const,
+                room: currentRoom,
+                roomGeneration: currentRoom.lobby_generation,
+                mateComIds: currentRoom.mates.map(mate => mate.com_id),
+                participants: currentRoom.mates
+                    .map(mate => ({ viewerId: Number(mate.viewer_id), comId: Number(mate.com_id || 0) }))
+                    .filter(mate => Number.isFinite(mate.viewerId) && mate.viewerId > 0),
+                expectedRealViewerIds: currentRoom.expected_real_viewer_ids
+                    .map(Number).filter(id => Number.isFinite(id) && id > 0),
+                isHost: currentRoom.host_viewer_id === viewer_id,
+                isRescueGuest: sessionManager.isRescueGuest(room_number, viewer_id),
+                isRescueFragmentEligible: sessionManager.isRescueFragmentEligibleGuest(room_number, viewer_id),
+                isNewbieRescueGuest: sessionManager.isNewbieRescueGuest(room_number, viewer_id),
+                npcPartySnapshot: questData.fixedParty === undefined
+                    && npcPartySnapshot?.partySlot === party_id
+                    && npcPartySnapshot.sourcePlayerId === ctx.playerId
+                    ? cloneQuestNpcPartySnapshot(npcPartySnapshot) : undefined,
+            };
         });
         if (roomStart.status === "forbidden") {
             return reply.status(403).send({
@@ -376,7 +398,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
 
-        const mateComIds = room.mates.map(m => m.com_id);
+        const mateComIds = roomStart.mateComIds;
         const activeQuest = {
             questId: quest_id,
             category,
@@ -384,7 +406,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             useBossBoostPoint: use_boss_boost_point,
             isAutoStartMode: is_auto_start_mode,
             isMulti: true,
-            isMultiHost: room.host_viewer_id === viewer_id,
+            isMultiHost: roomStart.isHost,
             roomNumber: room_number,
             matePlayerIds: mate_player_ids,
             mateComIds,
@@ -413,19 +435,10 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             else delete activeQuests[ctx.playerId];
             throw error;
         }
-        const frozenParticipants = room.mates
-            .map(mate => ({
-                viewerId: Number(mate.viewer_id),
-                comId: Number(mate.com_id || 0),
-            }))
-            .filter(mate => Number.isFinite(mate.viewerId) && mate.viewerId > 0);
-        const frozenExpectedRealViewerIds = room.expected_real_viewer_ids
-            .map(Number)
-            .filter(expectedViewerId => Number.isFinite(expectedViewerId) && expectedViewerId > 0);
         registerMultiSettlementSnapshot({
             battleInstanceId: buildBattleInstanceId(
                 room_number,
-                room.lobby_generation,
+                roomStart.roomGeneration,
                 category,
                 quest_id,
             ),
@@ -433,14 +446,15 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             viewerId: viewer_id,
             playId: play_id,
             roomNumber: room_number,
-            roomGeneration: room.lobby_generation,
+            roomGeneration: roomStart.roomGeneration,
             activeQuest,
-            participants: frozenParticipants,
-            expectedRealViewerIds: frozenExpectedRealViewerIds,
-            isHost: room.host_viewer_id === viewer_id,
-            isRescueGuest: sessionManager.isRescueGuest(room_number, viewer_id),
-            isRescueFragmentEligible: sessionManager.isRescueFragmentEligibleGuest(room_number, viewer_id),
-            isNewbieRescueGuest: sessionManager.isNewbieRescueGuest(room_number, viewer_id),
+            participants: roomStart.participants,
+            expectedRealViewerIds: roomStart.expectedRealViewerIds,
+            npcPartySnapshot: roomStart.npcPartySnapshot,
+            isHost: roomStart.isHost,
+            isRescueGuest: roomStart.isRescueGuest,
+            isRescueFragmentEligible: roomStart.isRescueFragmentEligible,
+            isNewbieRescueGuest: roomStart.isNewbieRescueGuest,
         });
 
         reply.header("content-type", "application/x-msgpack");
@@ -1010,12 +1024,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             "data": responseData,
         };
         if (questAccomplished) {
-            recordSuccessfulQuestNpcParty(
-                playerId,
-                questCategory,
-                questId,
-                activeQuestData.partySlot ?? player.partySlot,
-            );
+            recordSuccessfulQuestNpcParty(settlementSnapshot?.npcPartySnapshot);
         }
         cacheFinishResponse(finishCacheKey, finishResponse);
         transitionMultiSettlementSnapshot(playerId, body.play_id, "RETURN_PENDING");

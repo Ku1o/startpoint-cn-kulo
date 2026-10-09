@@ -18,6 +18,7 @@ const recruitment_1 = require("../recruitment");
 const game_logging_1 = require("../../lib/game-logging");
 const online_presence_1 = require("../../lib/online-presence");
 const player_party_pool_1 = require("../npc/player-party-pool");
+const equipment_policy_1 = require("../npc/equipment-policy");
 const mode15_room_gate_1 = require("../mode15-room-gate");
 const equipment_ready_1 = require("../room/equipment-ready");
 const player_1 = require("../../data/domains/player");
@@ -244,7 +245,7 @@ function collectCanonicalRoomRoster(roomNumber, preserveNpcCount = false, roomGe
     }
     return synchronizeRoomRoster(roomNumber, candidates, false, preserveNpcCount, expectedGeneration);
 }
-function checkHostAutoReady(roomNumber) {
+function checkHostAutoReady(roomNumber, reconcileMissingNpcs = true) {
     var _a, _b;
     const room = (0, manager_1.getRoom)(roomNumber);
     if (!room || room.lifecycle.phase !== "LOBBY")
@@ -282,7 +283,7 @@ function checkHostAutoReady(roomNumber) {
             (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] host auto-ready cancelled: room=${roomNumber}`);
         }
     }
-    checkAllReadyAndStart(roomNumber);
+    checkAllReadyAndStart(roomNumber, reconcileMissingNpcs);
 }
 exports.checkHostAutoReady = checkHostAutoReady;
 function refreshEquipmentReadiness(roomNumber) {
@@ -292,7 +293,7 @@ function refreshEquipmentReadiness(roomNumber) {
     checkHostAutoReady(roomNumber);
 }
 exports.refreshEquipmentReadiness = refreshEquipmentReadiness;
-function checkAllReadyAndStart(roomNumber) {
+function checkAllReadyAndStart(roomNumber, reconcileMissingNpcs = true) {
     const hostClient = findHostClient(roomNumber);
     if (!hostClient)
         return;
@@ -324,7 +325,8 @@ function checkAllReadyAndStart(roomNumber) {
         // pending AI seat must only hold a one-real-player room; it must not
         // turn an otherwise valid two-player party into a silent wait.
         if (presentNpcCount < desiredNpcCount && realCount < 2) {
-            scheduleNpcReconcile(roomNumber);
+            if (reconcileMissingNpcs)
+                scheduleNpcReconcile(roomNumber);
             return;
         }
     }
@@ -347,7 +349,7 @@ function notifyRoomDisbanded(roomNumber) {
 exports.notifyRoomDisbanded = notifyRoomDisbanded;
 function handleEnterComs(client, coms, maxNpcCount) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         let room = (0, manager_1.getRoom)(client.roomNumber);
         if (!room)
             return;
@@ -406,6 +408,13 @@ function handleEnterComs(client, coms, maxNpcCount) {
         const npcMates = [];
         const recruitedMates = (0, controller_1.selectStableNpcSlots)(recruitResult.recruitedMates, needNPCs);
         (_d = room.npc_party_by_com_id) !== null && _d !== void 0 ? _d : (room.npc_party_by_com_id = {});
+        for (const recruited of recruitedMates) {
+            const partyKey = String(recruited.com_id);
+            const cached = room.npc_party_by_com_id[partyKey];
+            if (cached && !(0, equipment_policy_1.isNpcPartyAllowedInRoom)(room.category, room.quest_id, cached)) {
+                delete room.npc_party_by_com_id[partyKey];
+            }
+        }
         const missingPartyCount = recruitedMates.filter(recruited => !room.npc_party_by_com_id[String(recruited.com_id)]).length;
         // Select only parties for COM seats this room has never used. A rematch
         // whose complete COM roster is cached performs no pool scan or random draw.
@@ -430,12 +439,24 @@ function handleEnterComs(client, coms, maxNpcCount) {
             // custom-asset combination and make the AIR client's 4096 atlas packer
             // fail with U_1d93f4 during auto-repeat.
             const partyKey = String(comId);
-            const party = (0, equipment_ready_1.legalNpcParty)(room, (_k = (_j = (_h = room.npc_party_by_com_id) === null || _h === void 0 ? void 0 : _h[partyKey]) !== null && _j !== void 0 ? _j : npcParties[nextPartyIndex++]) !== null && _k !== void 0 ? _k : hostMate.party);
+            let party = room.npc_party_by_com_id[partyKey];
+            while (!party && nextPartyIndex < npcParties.length) {
+                const candidate = npcParties[nextPartyIndex++];
+                if ((0, equipment_policy_1.isNpcPartyAllowedInRoom)(room.category, room.quest_id, candidate))
+                    party = candidate;
+            }
+            if (!party && (0, equipment_policy_1.isNpcPartyAllowedInRoom)(room.category, room.quest_id, hostMate.party)) {
+                party = hostMate.party;
+            }
+            if (!party || !(0, equipment_policy_1.isNpcPartyAllowedInRoom)(room.category, room.quest_id, party)) {
+                delete room.npc_party_by_com_id[partyKey];
+                continue;
+            }
             room.npc_party_by_com_id[partyKey] = party;
             npcMates.push({
                 viewerId: viewerId,
                 comId: comId,
-                name: (_p = (_m = (_l = coms[comId - 1]) === null || _l === void 0 ? void 0 : _l.name) !== null && _m !== void 0 ? _m : (_o = coms[i]) === null || _o === void 0 ? void 0 : _o.name) !== null && _p !== void 0 ? _p : `NPC${comId}`,
+                name: (_l = (_j = (_h = coms[comId - 1]) === null || _h === void 0 ? void 0 : _h.name) !== null && _j !== void 0 ? _j : (_k = coms[i]) === null || _k === void 0 ? void 0 : _k.name) !== null && _l !== void 0 ? _l : `NPC${comId}`,
                 rank: hostMate.rank,
                 degreeId: hostMate.degreeId,
                 playerRoleKind: 99,
@@ -469,6 +490,10 @@ function handleEnterComs(client, coms, maxNpcCount) {
             }).catch(e => console.error("[LOBBY] EnterComs send-mates error", e));
         }, NPC_JOIN_DELAY_MS);
         joinTimer.unref();
+        // No legal party was available. Wait for a real roster/party change;
+        // an automatic ready callback would otherwise recruit the same empty pool.
+        if (npcMates.length === 0)
+            return;
         const readyTimer = setTimeout(() => {
             void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
                 const currentRoom = (0, manager_1.getRoom)(client.roomNumber);
@@ -481,7 +506,9 @@ function handleEnterComs(client, coms, maxNpcCount) {
                     SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [2, npc.connectionId, [1]]], undefined, roomGeneration);
                 }
                 // Re-evaluate both one-real/two-COM and two-real/one-COM rooms.
-                checkHostAutoReady(client.roomNumber);
+                // This recruitment already tried every available seat. Missing
+                // legal parties must not make its own ready callback recruit again.
+                checkHostAutoReady(client.roomNumber, false);
             }).catch(e => console.error("[LOBBY] EnterComs npc-ready error", e));
         }, NPC_JOIN_DELAY_MS + NPC_READY_DELAY_MS);
         readyTimer.unref();
@@ -906,7 +933,7 @@ function handleBye(_socket, client, _data) {
     (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] client ${client.viewerId} left room ${client.roomNumber}`);
 }
 function handleChangeParty(_socket, client, data) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const currentRoom = (0, manager_1.getRoom)(client.roomNumber);
     if (!currentRoom || currentRoom.lifecycle.phase !== "LOBBY"
         || client.roomGeneration !== currentRoom.lobby_generation)
@@ -978,6 +1005,13 @@ function handleChangeParty(_socket, client, data) {
             room.host_party_id = currentPartyId;
         const roster = collectCanonicalRoomRoster(client.roomNumber);
         SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, roster]]);
+        // An invalid host fallback leaves COM seats empty. Once the host's
+        // actual wire party is corrected, fill only those missing seats.
+        if (changed && (room === null || room === void 0 ? void 0 : room.is_npc_mode) && room.host_viewer_id === client.viewerId
+            && roster.length < 3
+            && (0, equipment_policy_1.isNpcPartyAllowedInRoom)(room.category, room.quest_id, (_d = client.yourself) === null || _d === void 0 ? void 0 : _d.party)) {
+            scheduleNpcReconcile(client.roomNumber);
+        }
     }
     checkHostAutoReady(client.roomNumber);
     (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[LOBBY] client ${client.viewerId} changed party: party=${currentPartyId !== null && currentPartyId !== void 0 ? currentPartyId : "unchanged"} allowHeal=${(_b = (_a = client.yourself) === null || _a === void 0 ? void 0 : _a.allowHealFromOtherPlayers) !== null && _b !== void 0 ? _b : "unchanged"}`; });

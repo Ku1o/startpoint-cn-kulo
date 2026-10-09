@@ -103,6 +103,9 @@ function publishAll() {
         const quests = (0, cached_statement_1.cachedStatement)(db, `SELECT DISTINCT quest_category, quest_id FROM quest_npc_party_pool`).all();
         send({ type: "snapshot_begin", revision: ++revision });
         for (const quest of quests) {
+            // Apply the current retention policy to existing data on startup/reload,
+            // rather than waiting for another clear of this particular quest.
+            pruneQuest(quest.quest_category, quest.quest_id);
             // One quest in transit at a time; do not clone the entire database.
             yield new Promise((resolve, reject) => {
                 const timer = setTimeout(() => { snapshotAck = null; reject(new Error("NPC snapshot acknowledgement timed out")); }, 30000);

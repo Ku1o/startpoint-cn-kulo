@@ -490,6 +490,147 @@ test('AI auto-repeat keeps the first successful COM parties stable in the room',
     }
 })
 
+test('invalid host fallback leaves AI seats empty until the host corrects its wire party', async t => {
+    const p = player()
+    const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    room.is_npc_mode = true
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const pool = load('multi/npc/player-party-pool')
+    let selectionCount = 0
+    let historicalParties = []
+    t.mock.method(pool, 'getRandomPlayerNpcPartiesSync', () => { selectionCount++; return historicalParties })
+    const timers = []
+    t.mock.method(global, 'setTimeout', (callback, delay) => {
+        const timer = { callback, delay, unref() { return this }, ref() { return this } }
+        timers.push(timer)
+        return timer
+    })
+    const socket = new (require('node:events').EventEmitter)()
+    Object.assign(socket, { destroyed: false, readable: true, writable: true,
+        write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+    const client = manager.createClient(socket, p.viewerId, room.room_number, `blocked-ai-${p.id}`, p.id)
+    client.enterData = {}
+    client.yourself = { viewerId: p.viewerId, playerId: p.id, comId: 0, state: [0], rank: 1,
+        currentPartyId: 1, party: {
+            characters: [[0, { id: 111001 }]], unison_characters: [],
+            equipments: [[0, { equipmentId: 100013 }], [1], [1]],
+            abilitySoulIds: [[0, 100023], [1], [1]],
+        } }
+    client.mates = [client.yourself]
+    manager.addClientToRoom(client)
+    const lobby = load('multi/tcp/lobby')
+    const equipmentIdleMs = load('multi/room/equipment-ready').EQUIPMENT_IDLE_MS
+    try {
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.equal(client.mates.filter(mate => mate.comId).length, 0)
+        assert.equal(room.npc_count, 0)
+        assert.deepEqual(room.npc_party_by_com_id, {})
+        assert.deepEqual(client.yourself.party.equipments[0], [0, { equipmentId: 100013 }])
+        assert.deepEqual(client.yourself.party.abilitySoulIds[0], [0, 100023])
+        // Drain several delayed callback generations. A ready callback used to
+        // schedule another recruitment, which installed another ready callback.
+        let drainedTimers = 0
+        for (let cycle = 0; cycle < 4; cycle++) {
+            const pending = timers.slice(drainedTimers)
+            drainedTimers = timers.length
+            // Advance recruitment/readiness cycles, not the independent 30s
+            // equipment idle deadline that deliberately disbands an invalid host.
+            for (const timer of pending.filter(timer => timer.delay < equipmentIdleMs)) timer.callback()
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        }
+        assert.equal(selectionCount, 1, 'an empty legal pool must not be drawn again by delayed readiness')
+        assert.equal(timers.length, drainedTimers, 'blocked recruitment must not create recurring timers')
+        assert.equal(timers.some(timer => timer.delay === 100), false, 'invalid host must not retry indefinitely')
+
+        const legal = { ...client.yourself.party,
+            equipments: [[0, { equipmentId: 300101 }], [1], [1]],
+            abilitySoulIds: [[0, 300201], [1], [1]],
+        }
+        historicalParties = [{ party: legal }]
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        for (let cycle = 0; cycle < 4; cycle++) {
+            const pending = timers.slice(drainedTimers)
+            drainedTimers = timers.length
+            for (const timer of pending.filter(timer => timer.delay < equipmentIdleMs)) timer.callback()
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        }
+        assert.equal(client.mates.filter(mate => mate.comId).length, 1)
+        assert.equal(selectionCount, 2, 'a partial legal roster must not keep rerolling its missing seat')
+        assert.equal(timers.length, drainedTimers)
+        assert.equal(timers.some(timer => timer.delay === 100), false)
+        assert.equal(load('multi/room/manager').getRoom(room.room_number), room)
+        assert.ok(client.equipmentReadyBlock, 'partial AI readiness must retain the host equipment gate')
+
+        lobby.handleMessage(socket, [0, [2, { party: legal }, 1, 1]])
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        const reconciliation = timers.filter(timer => timer.delay === 100)
+        assert.equal(reconciliation.length, 1)
+        reconciliation[0].callback()
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.equal(client.mates.filter(mate => mate.comId).length, 2)
+        assert.equal(room.npc_count, 2)
+        assert.ok(client.mates.filter(mate => mate.comId).every(mate => mate.party === legal))
+        assert.equal(selectionCount, 3)
+    } finally {
+        manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
+test('invalid rematch cache is discarded and replaced with a legal pool party', async t => {
+    const p = player()
+    const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    room.is_npc_mode = true
+    room.npc_party_by_com_id['1'] = {
+        characters: [[0, { id: 111001 }]],
+        equipments: [[0, { equipmentId: 100013 }]],
+        abilitySoulIds: [[0, 100023]],
+        marker: 'invalid-cache',
+    }
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const pool = load('multi/npc/player-party-pool')
+    t.mock.method(pool, 'getRandomPlayerNpcPartiesSync', (_host, count) =>
+        Array.from({ length: count }, (_, index) => ({
+            sourcePlayerId: 900 + index,
+            party: {
+                characters: [[0, { id: 111001 }], [0, { id: 111001 }], [0, { id: 111001 }]],
+                equipments: [[0, { equipmentId: 300101 }], [1], [1]],
+                abilitySoulIds: [[0, 300201], [1], [1]],
+                marker: `replacement-${index}`,
+            },
+        })))
+    const socket = new (require('node:events').EventEmitter)()
+    Object.assign(socket, { destroyed: false, readable: true, writable: true, remoteAddress: '127.0.0.1',
+        write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+    const client = manager.createClient(socket, p.viewerId, room.room_number, `invalid-cache-${p.id}`, p.id)
+    client.yourself = { viewerId: p.viewerId, playerId: p.id, comId: 0, state: [1], rank: 1,
+        party: { characters: [[0, { id: 111001 }]], equipments: [], abilitySoulIds: [] } }
+    client.mates = [client.yourself]
+    manager.addClientToRoom(client)
+    const lobby = load('multi/tcp/lobby')
+    try {
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.equal(
+            Object.values(room.npc_party_by_com_id).some(party => party.marker === 'invalid-cache'),
+            false,
+        )
+        assert.equal(client.mates.filter(mate => mate.comId).length, 2)
+        assert.ok(client.mates.filter(mate => mate.comId)
+            .every(mate => mate.party.marker?.startsWith('replacement-')))
+    } finally {
+        manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
 test('shared random-recruitment fallback fills AI after the configured timeout', async () => {
     const p = player()
     const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)

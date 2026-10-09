@@ -1,9 +1,11 @@
 import { getPlayerSync } from "../../data/domains/player"
-import { getMode15ExclusiveGlobalPartyItemsSync, getMode15ExclusiveItemIds,
+import { getMode15ExclusiveGlobalPartyItemsSync,
     isMode15EquipmentAllowedQuest } from "../../lib/mode15-optional"
+import { exclusivePartyItems } from "../npc/equipment-policy"
 import type { MultiRoom } from "../types"
 import { sessionManager, type SessionClient } from "../state/SessionManager"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { captureQuestNpcPartySnapshot } from "../npc/quest-party-snapshot"
 
 function getRoom(roomNumber: string): MultiRoom | undefined {
     return (require("./manager") as typeof import("./manager")).getRoom(roomNumber)
@@ -11,26 +13,9 @@ function getRoom(roomNumber: string): MultiRoom | undefined {
 
 export const EQUIPMENT_IDLE_MS = 30_000
 
-function unwrap(value: any): any {
-    if (!Array.isArray(value)) return value
-    return value[0] === 0 ? value[1] : null
-}
-
 /** Accept both the TCP Option encoding and the HTTP/plain party encoding. */
 export function exclusiveWirePartyItems(party: any): number[] {
-    if (!party || typeof party !== "object") return []
-    const ids: unknown[] = []
-    for (const field of ["equipments", "equipmentIds", "equipment_ids",
-        "abilitySoulIds", "ability_soul_ids"]) {
-        if (!Array.isArray(party[field])) continue
-        for (const raw of party[field].slice(0, 3)) {
-            const item = unwrap(raw)
-            ids.push(item && typeof item === "object"
-                ? item.equipmentId ?? item.equipment_id ?? item.abilitySoulId ?? item.id
-                : item)
-        }
-    }
-    return getMode15ExclusiveItemIds(ids)
+    return exclusivePartyItems(party)
 }
 
 /** AI parties belong to the server, so normalize them before publishing a roster. */
@@ -159,9 +144,19 @@ export function recordEquipmentPartyChange(client: SessionClient, partyId?: numb
 /** Freeze the checked selection so late lobby edits cannot change this battle. */
 export function freezeEquipmentSelections(room: MultiRoom, generation = room.lobby_generation): void {
     room.equipmentPartyIds = {}
+    room.npcPartySnapshots = {}
     for (const client of sessionManager.getClientsInRoom(room.room_number, generation)) {
         if (client.isBattle || !client.playerId || client.enterData === null) continue
-        room.equipmentPartyIds[client.viewerId] = selectedPartyId(client)
+        const partyId = selectedPartyId(client)
+        room.equipmentPartyIds[client.viewerId] = partyId
+        try {
+            const snapshot = captureQuestNpcPartySnapshot(Number(client.playerId), room.category,
+                room.quest_id, partyId, client.yourself?.party)
+            if (snapshot) room.npcPartySnapshots[client.viewerId] = snapshot
+        } catch (error) {
+            // History is optional; a capture failure must not reject the battle.
+            console.error("[MULTI] NPC clear-party capture failed", error)
+        }
         clearEquipmentBlock(client)
     }
 }

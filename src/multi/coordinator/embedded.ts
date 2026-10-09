@@ -144,6 +144,7 @@ export class EmbeddedMultiCoordinator {
             room.settlement_return_pending = false
             lifecycle.battleSessionId = null
             room.equipmentPartyIds = undefined
+            room.npcPartySnapshots = undefined
             room.readyCountdownPending = false
         }
         return result
