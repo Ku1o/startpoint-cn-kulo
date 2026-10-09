@@ -13,6 +13,7 @@ import {
     updatePlayerSync,
 } from "../../../data/domains/player"
 import { deletePlayerActiveQuestIfPlayIdSync, deletePlayerActiveQuestSync } from "../../../data/domains/quest_active"
+import { getFinishReceiptSync, pruneFinishReceiptsSync, recordFinishReceiptSync } from "../../../data/domains/finish-receipt"
 import {
     getPlayerSingleQuestProgressSync,
     insertPlayerQuestProgressSync,
@@ -127,6 +128,8 @@ export interface SingleFinishTransactionArgs {
     manaObtained: number
     displayMode15ManaAsFieldDrop: boolean
     finishCacheKey: string | null
+    /** Client play ids this settlement is recorded under (durable duplicate check). */
+    receiptPlayIds: string[]
 }
 
 export interface SingleFinishTransactionResult {
@@ -152,9 +155,14 @@ export function settleSingleQuestFinishInTransaction(
         fiveBossSoloQuest, registered, scoreAttackBorderTiers,
         manaObtained, displayMode15ManaAsFieldDrop, finishCacheKey,
     } = args
+    const receiptPlayIds = args.receiptPlayIds ?? []
+    // A play id that already has a settlement receipt was paid out before, at
+    // any age within retention: write nothing.
+    if (receiptPlayIds.some(playId => getFinishReceiptSync(playerId, "single", playId) !== null)) {
+        return { response: null, timing: null }
+    }
     // A registered play (from /start) is consumed exactly once. If its row is
-    // already gone, an earlier finish settled it: write nothing. A play rebuilt
-    // from the request body has no row; it is deduplicated by the route.
+    // already gone, an earlier finish settled it: write nothing.
     if (registered) {
         const playId = activeQuestData.playId
         const consumed = typeof playId === "string" && deletePlayerActiveQuestIfPlayIdSync(playerId, playId)
@@ -747,6 +755,10 @@ export function settleSingleQuestFinishInTransaction(
         responseData.mail_arrived = getPlayerMailCountSync(playerId, true) > 0
         const response = { data_headers: dataHeaders, data: responseData }
         if (fiveBossSoloQuest) saveFiveBossSoloReceiptSync(playerId, activeQuestData.playId, finishCacheKey, response)
+        if (receiptPlayIds.length > 0) {
+            for (const playId of receiptPlayIds) recordFinishReceiptSync(playerId, "single", playId, response)
+            pruneFinishReceiptsSync(playerId)
+        }
         bodySucceeded = true
         return { response, timing: bodyTiming.result(true) }
     } finally {

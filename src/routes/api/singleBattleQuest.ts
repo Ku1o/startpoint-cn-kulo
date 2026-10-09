@@ -51,8 +51,10 @@ import {
     buildFinishExecutionKey,
     buildFinishResponseCacheKey,
     cacheFinishResponse,
+    finishRequestPlayId,
     getCachedFinishResponse,
 } from "../../lib/finish-response-cache";
+import { getFinishReceiptSync } from "../../data/domains/finish-receipt";
 import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
 import { canStartAbyssQuestSync } from "../../data/domains/abyss-tower-progress";
 import { isAbyssExEndlessQuest } from "../../lib/abyss-modes";
@@ -251,6 +253,30 @@ const routes = async (fastify: FastifyInstance) => {
                 reply.header("content-type", "application/x-msgpack")
                 return reply.status(200).send(coalescedFinishResponse)
             }
+            // A play id is settled at most once. Replay its durable receipt (at
+            // any age within retention) instead of resolving it as a new play.
+            const requestPlayId = finishRequestPlayId(body as unknown as Record<string, unknown>)
+            const replayDuplicate = (reason: string) => {
+                console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} play=${requestPlayId ?? "-"} reason=${reason}`)
+                const receipt = requestPlayId === null ? null : getFinishReceiptSync(playerId, "single", requestPlayId)
+                const replay = getFiveBossSoloReceiptSync(playerId, finishCacheKey)
+                    ?? getCachedFinishResponse(finishCacheKey)
+                    ?? receipt?.response
+                    ?? undefined
+                if (replay !== undefined) {
+                    cacheFinishResponse(finishCacheKey, replay)
+                    reply.header("content-type", "application/x-msgpack")
+                    return reply.status(200).send(replay)
+                }
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "No active quest to finish."
+                })
+            }
+            if (requestPlayId !== null && getFinishReceiptSync(playerId, "single", requestPlayId) !== null) {
+                if (activeQuests[playerId]?.playId === requestPlayId) delete activeQuests[playerId]
+                return replayDuplicate("receipt")
+            }
 
             // Resolve the active quest from memory, persisted recovery state, or
             // (for patched clients that skipped /start) a validated request hint.
@@ -379,26 +405,21 @@ const routes = async (fastify: FastifyInstance) => {
                         fiveBossSoloQuest, registered: resolvedActiveQuest?.source !== "rebuilt",
                         scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop,
                         finishCacheKey,
+                        receiptPlayIds: [...new Set([
+                            requestPlayId,
+                            resolvedActiveQuest?.source !== "rebuilt" ? activeQuestData.playId : null,
+                        ].filter((id): id is string => typeof id === "string" && id.length > 0))],
                     },
                     { domain: "single-quest", playerId, operation: "finish" },
                 )
             ))
             if (finishResponse.timing !== null) recordSingleSettlementBodyTiming(finishResponse.timing)
             if (finishResponse.response === null) {
-                // The registered play was already consumed by an earlier finish:
-                // nothing was written. Replay that finish's response when it is
-                // still cached; otherwise report that no play is active.
+                // The play was already settled (receipt, or its registration was
+                // consumed): nothing was written. Replay the earlier response when
+                // it is still available; otherwise report that no play is active.
                 if (activeQuests[playerId]?.playId === activeQuestData.playId) delete activeQuests[playerId]
-                console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} questId=${questId} category=${questCategory}`)
-                const replay = getFiveBossSoloReceiptSync(playerId, finishCacheKey) ?? getCachedFinishResponse(finishCacheKey)
-                if (replay !== undefined) {
-                    reply.header("content-type", "application/x-msgpack")
-                    return reply.status(200).send(replay)
-                }
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "No active quest to finish."
-                })
+                return replayDuplicate("settled")
             }
 
             delete activeQuests[playerId]

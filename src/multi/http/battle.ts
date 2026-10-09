@@ -92,6 +92,7 @@ import {
 } from "../settlement-snapshot";
 import { embeddedMultiCoordinator } from "../coordinator/embedded";
 import { calculateFreeManaGrant } from "../../lib/mana";
+import { getFinishReceiptSync, pruneFinishReceiptsSync, recordFinishReceiptSync } from "../../data/domains/finish-receipt";
 import { resolveMultiPlayerContext } from "../player-context";
 import { validateRandomRecruitmentAttention } from "../recruitment";
 import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
@@ -534,6 +535,20 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 return reply.status(200).send(coalescedFinishResponse);
             }
 
+            // A play id is settled at most once; its durable receipt outlives the
+            // response cache and the frozen settlement snapshot.
+            const receiptPlayId = typeof body.play_id === "string" ? body.play_id : "";
+            const settledReceipt = receiptPlayId === "" ? null : getFinishReceiptSync(playerId, "multi", receiptPlayId);
+            if (settledReceipt !== null) {
+                const replay = settledReceipt.response
+                    ?? getMultiSettlementSnapshot(playerId, receiptPlayId)?.settledResponse
+                    ?? buildTerminalMultiFinishAcknowledgement(getPlayerSync(playerId) ?? player, body);
+                cacheFinishResponse(finishCacheKey, replay);
+                console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
+                    + ` play=${body.play_id} reason=receipt`);
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send(replay);
+            }
             const settlementSnapshot = getMultiSettlementSnapshot(playerId, body.play_id);
             if (settlementSnapshot?.settled) {
                 // This play already paid out (for example a retry after the
@@ -706,7 +721,8 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 domain: "multi-settlement", playerId, operation: "reward_transaction",
             }, () => {
             // Checked under the player's persistence queue; set after COMMIT below.
-            alreadySettled = isMultiSettlementSettled(playerId, latchPlayId);
+            alreadySettled = isMultiSettlementSettled(playerId, latchPlayId)
+                || (latchPlayId !== "" && getFinishReceiptSync(playerId, "multi", latchPlayId) !== null);
             if (alreadySettled) return null;
             playerData = getPlayerSync(playerId) ?? player;
             questProgress = getPlayerSingleQuestProgressSync(playerId, questCategory, questId);
@@ -802,6 +818,11 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             // rewards. Keep it inside the same transaction as the ordinary multi
             // rewards so this path cannot reopen the main database without the
             // persistence owner.
+            if (latchPlayId !== "") {
+                // Written with the payout; the response is filled in once built.
+                recordFinishReceiptSync(playerId, "multi", latchPlayId, null);
+                pruneFinishReceiptsSync(playerId);
+            }
             return settleMode15BattleSync(
                 playerId,
                 questCategory,
@@ -833,6 +854,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             if (alreadySettled) {
                 const latest = getMultiSettlementSnapshot(playerId, latchPlayId);
                 const replay = latest?.settledResponse
+                    ?? (latchPlayId === "" ? null : getFinishReceiptSync(playerId, "multi", latchPlayId)?.response)
                     ?? buildTerminalMultiFinishAcknowledgement(getPlayerSync(playerId) ?? player, body);
                 cacheFinishResponse(finishCacheKey, replay);
                 console.warn(`[MULTI] duplicate finish acknowledged: viewer=${viewerId}`
@@ -1085,7 +1107,11 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             // the previous battle must never delete a newer rematch's active quest.
             await measureSettlementPhaseAsync("multi", "active_quest_cleanup", () => runWriterCommand<MultiCleanupActiveQuestArgs, boolean>(
                 MULTI_CLEANUP_ACTIVE_QUEST,
-                { playerId, expectedPlayId: activeQuestData.playId },
+                {
+                    playerId,
+                    expectedPlayId: activeQuestData.playId,
+                    ...(latchPlayId !== "" ? { receipt: { playId: latchPlayId, response: finishResponse } } : {}),
+                },
                 { domain: "multi-settlement", playerId, operation: "active_quest_cleanup" },
             ));
             if (activeQuests[playerId]?.playId === activeQuestData.playId) {

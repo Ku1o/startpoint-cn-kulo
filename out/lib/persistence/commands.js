@@ -5,6 +5,7 @@ const command_names_1 = require("./command-names");
 const settlement_1 = require("../mission/settlement");
 const quest_1 = require("../../data/domains/quest");
 const quest_active_1 = require("../../data/domains/quest_active");
+const finish_receipt_1 = require("../../data/domains/finish-receipt");
 const battle_facts_1 = require("../mission/battle-facts");
 const steam_robot_challenge_1 = require("../mission/steam-robot-challenge");
 const recommended_party_history_1 = require("../quest/recommended-party-history");
@@ -24,7 +25,13 @@ const persistence_coordinator_1 = require("../persistence-coordinator");
  */
 (0, command_registry_1.registerWriterCommand)(command_names_1.MISSION_SETTLE_CATEGORIES, args => (0, settlement_1.settleMissionCategories)(args.playerId, args.categories, new Date(args.evaluationTimeMs)));
 (0, command_registry_1.registerWriterCommand)(command_names_1.SINGLE_REFRESH_QUEST_PROGRESS, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "single-quest", playerId: args.playerId, operation: "progress_refresh" }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(args.playerId, args.section, args.questId)));
-(0, command_registry_1.registerWriterCommand)(command_names_1.MULTI_CLEANUP_ACTIVE_QUEST, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "multi-settlement", playerId: args.playerId, operation: "active_quest_cleanup" }, () => (0, quest_active_1.deletePlayerActiveQuestIfPlayIdSync)(args.playerId, args.expectedPlayId)));
+(0, command_registry_1.registerWriterCommand)(command_names_1.MULTI_CLEANUP_ACTIVE_QUEST, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "multi-settlement", playerId: args.playerId, operation: "active_quest_cleanup" }, () => {
+    // Only fill in a receipt the reward transaction created.
+    if (args.receipt && (0, finish_receipt_1.getFinishReceiptSync)(args.playerId, "multi", args.receipt.playId) !== null) {
+        (0, finish_receipt_1.recordFinishReceiptSync)(args.playerId, "multi", args.receipt.playId, args.receipt.response);
+    }
+    return (0, quest_active_1.deletePlayerActiveQuestIfPlayIdSync)(args.playerId, args.expectedPlayId);
+}));
 (0, command_registry_1.registerWriterCommand)(command_names_1.MULTI_RECORD_BATTLE_FACTS, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "multi-settlement", playerId: args.finishCtx.playerId, operation: "facts_transaction" }, () => {
     const missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(args.finishCtx, new Date(args.evaluationTimeMs));
     if (!args.fixedParty) {

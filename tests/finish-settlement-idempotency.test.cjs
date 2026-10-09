@@ -230,6 +230,49 @@ test('single: a client that disconnects while queued does not block later finish
     decode(next)
 })
 
+function evictFinishCache() {
+    for (let index = 0; index < 600; index++) cache.cacheFinishResponse(`evict:${Date.now()}:${index}`, {})
+}
+
+for (const withStart of [true, false]) {
+    test(`single: the same play_id after the response cache is gone pays nothing (${withStart ? 'with /start' : 'rebuilt'})`, async () => {
+        const p = makePlayer()
+        const playId = withStart ? 'durable-start' : 'durable-rebuilt'
+        if (withStart) assert.equal((await singleStart(p, playId)).statusCode, 200)
+        const before = totals(p.id)
+        const first = decode(await singleFinish(p, { play_id: playId, api_count: 2 }))
+        const settled = totals(p.id)
+        assert.equal(settled.rankPoint - before.rankPoint, 14)
+        assert.equal(single.activeQuests[p.id], undefined)
+        evictFinishCache()
+        const retry = decode(await singleFinish(p, { play_id: playId, api_count: 3 }))
+        assert.deepEqual(retry.data, first.data)
+        assert.deepEqual(totals(p.id), settled)
+        // A different play id is a different battle and still settles.
+        decode(await singleFinish(p, { play_id: `${playId}-next`, api_count: 4 }))
+        assert.equal(totals(p.id).rankPoint - settled.rankPoint, 14)
+    })
+}
+
+test('single: a receipt past its response retention still blocks a second payout', async () => {
+    const p = makePlayer()
+    decode(await singleFinish(p, { play_id: 'old-play', api_count: 2 }))
+    const settled = totals(p.id)
+    const receipts = require('../out/data/domains/finish-receipt')
+    const old = Date.now() - receipts.finishReceiptResponseRetentionMs() - 60_000
+    db.prepare(`UPDATE player_operation_receipts SET created_at = ? WHERE player_id = ?`).run(old, p.id)
+    receipts.pruneFinishReceiptsSync(p.id)
+    assert.deepEqual(receipts.getFinishReceiptSync(p.id, 'single', 'old-play'), { response: null })
+    evictFinishCache()
+    const retry = await singleFinish(p, { play_id: 'old-play', api_count: 3 })
+    assert.equal(retry.statusCode, 400, retry.body)
+    assert.deepEqual(totals(p.id), settled)
+    db.prepare(`UPDATE player_operation_receipts SET created_at = ? WHERE player_id = ?`)
+        .run(Date.now() - receipts.finishReceiptRetentionMs() - 60_000, p.id)
+    receipts.pruneFinishReceiptsSync(p.id)
+    assert.equal(receipts.getFinishReceiptSync(p.id, 'single', 'old-play'), null, 'keys are bounded too')
+})
+
 test('single: a write landing after the request read is preserved by the settlement', async t => {
     const control = makePlayer()
     const controlBefore = totals(control.id)
@@ -366,6 +409,27 @@ test('multi: a retry after the response cache dropped the entry replays without 
     // Model a still-valid registration for this play so only the latch can stop it.
     const snapshot = require('../out/multi/settlement-snapshot').getMultiSettlementSnapshot(x.host.id, `mplay-${x.host.id}`)
     assert.equal(snapshot.settled, true)
+    single.activeQuests[x.host.id] = { ...snapshot.activeQuest }
+    const retry = await x.finish({ api_count: 9 })
+    assert.equal(retry.statusCode, 200, retry.body)
+    assert.deepEqual(retry.json().data, first.json().data)
+    assert.deepEqual(totals(x.host.id), settled)
+    delete single.activeQuests[x.host.id]
+})
+
+test('multi: the same play_id after the cache and the settled snapshot are gone pays nothing', async t => {
+    const x = await multiSetup(t)
+    assert.equal((await x.start()).json().data.play_id, `mplay-${x.host.id}`)
+    const before = totals(x.host.id)
+    const first = await x.finish()
+    assert.equal(first.statusCode, 200, first.body)
+    const settled = totals(x.host.id)
+    assert.equal(settled.rankPoint - before.rankPoint, 14)
+    evictFinishCache()
+    const snapshot = require('../out/multi/settlement-snapshot').getMultiSettlementSnapshot(x.host.id, `mplay-${x.host.id}`)
+    // Model the snapshot expiring while a registration for the play is still around.
+    snapshot.settled = false
+    delete snapshot.settledResponse
     single.activeQuests[x.host.id] = { ...snapshot.activeQuest }
     const retry = await x.finish({ api_count: 9 })
     assert.equal(retry.statusCode, 200, retry.body)

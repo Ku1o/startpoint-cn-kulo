@@ -26,6 +26,11 @@ function normalizePlayId(value: unknown): string | null {
     return typeof value === "string" && value.length > 0 ? value : null
 }
 
+/** The client play id of a finish request, or null when it carries none. */
+export function finishRequestPlayId(body: Record<string, unknown>): string | null {
+    return normalizePlayId(body.play_id)
+}
+
 /** Numeric fields use their number form; anything else keeps the legacy string form. */
 function keyPart(value: unknown): string {
     if (value === undefined || value === null) return ""

@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.acquireFinishExecution = exports.cacheFinishResponse = exports.getCachedFinishResponse = exports.buildFinishExecutionKey = exports.buildFinishResponseCacheKey = void 0;
+exports.acquireFinishExecution = exports.cacheFinishResponse = exports.getCachedFinishResponse = exports.buildFinishExecutionKey = exports.buildFinishResponseCacheKey = exports.finishRequestPlayId = void 0;
 const memory_diagnostics_1 = require("./memory-diagnostics");
 const entries = new Map();
 const executionTails = new Map();
@@ -34,6 +34,11 @@ function normalizeRequestNumber(value) {
 function normalizePlayId(value) {
     return typeof value === "string" && value.length > 0 ? value : null;
 }
+/** The client play id of a finish request, or null when it carries none. */
+function finishRequestPlayId(body) {
+    return normalizePlayId(body.play_id);
+}
+exports.finishRequestPlayId = finishRequestPlayId;
 /** Numeric fields use their number form; anything else keeps the legacy string form. */
 function keyPart(value) {
     if (value === undefined || value === null)

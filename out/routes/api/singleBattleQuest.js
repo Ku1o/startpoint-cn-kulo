@@ -45,6 +45,7 @@ const command_names_1 = require("../../lib/persistence/command-names");
 const settlement_performance_1 = require("../../lib/settlement-performance");
 const single_settlement_diagnostics_1 = require("../../lib/single-settlement-diagnostics");
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
+const finish_receipt_1 = require("../../data/domains/finish-receipt");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
 const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress");
 const abyss_modes_1 = require("../../lib/abyss-modes");
@@ -113,6 +114,29 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             if (coalescedFinishResponse !== undefined) {
                 reply.header("content-type", "application/x-msgpack");
                 return reply.status(200).send(coalescedFinishResponse);
+            }
+            // A play id is settled at most once. Replay its durable receipt (at
+            // any age within retention) instead of resolving it as a new play.
+            const requestPlayId = (0, finish_response_cache_1.finishRequestPlayId)(body);
+            const replayDuplicate = (reason) => {
+                var _a, _b, _c;
+                console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} play=${requestPlayId !== null && requestPlayId !== void 0 ? requestPlayId : "-"} reason=${reason}`);
+                const receipt = requestPlayId === null ? null : (0, finish_receipt_1.getFinishReceiptSync)(playerId, "single", requestPlayId);
+                const replay = (_c = (_b = (_a = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _a !== void 0 ? _a : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey)) !== null && _b !== void 0 ? _b : receipt === null || receipt === void 0 ? void 0 : receipt.response) !== null && _c !== void 0 ? _c : undefined;
+                if (replay !== undefined) {
+                    (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, replay);
+                    reply.header("content-type", "application/x-msgpack");
+                    return reply.status(200).send(replay);
+                }
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "No active quest to finish."
+                });
+            };
+            if (requestPlayId !== null && (0, finish_receipt_1.getFinishReceiptSync)(playerId, "single", requestPlayId) !== null) {
+                if (((_c = exports.activeQuests[playerId]) === null || _c === void 0 ? void 0 : _c.playId) === requestPlayId)
+                    delete exports.activeQuests[playerId];
+                return replayDuplicate("receipt");
             }
             // Resolve the active quest from memory, persisted recovery state, or
             // (for patched clients that skipped /start) a validated request hint.
@@ -221,25 +245,20 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 fiveBossSoloQuest, registered: (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt",
                 scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop,
                 finishCacheKey,
+                receiptPlayIds: [...new Set([
+                        requestPlayId,
+                        (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt" ? activeQuestData.playId : null,
+                    ].filter((id) => typeof id === "string" && id.length > 0))],
             }, { domain: "single-quest", playerId, operation: "finish" })));
             if (finishResponse.timing !== null)
                 (0, single_settlement_diagnostics_1.recordSingleSettlementBodyTiming)(finishResponse.timing);
             if (finishResponse.response === null) {
-                // The registered play was already consumed by an earlier finish:
-                // nothing was written. Replay that finish's response when it is
-                // still cached; otherwise report that no play is active.
-                if (((_c = exports.activeQuests[playerId]) === null || _c === void 0 ? void 0 : _c.playId) === activeQuestData.playId)
+                // The play was already settled (receipt, or its registration was
+                // consumed): nothing was written. Replay the earlier response when
+                // it is still available; otherwise report that no play is active.
+                if (((_d = exports.activeQuests[playerId]) === null || _d === void 0 ? void 0 : _d.playId) === activeQuestData.playId)
                     delete exports.activeQuests[playerId];
-                console.warn(`[FINISH] duplicate finish ignored: playerId=${playerId} questId=${questId} category=${questCategory}`);
-                const replay = (_d = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _d !== void 0 ? _d : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
-                if (replay !== undefined) {
-                    reply.header("content-type", "application/x-msgpack");
-                    return reply.status(200).send(replay);
-                }
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "No active quest to finish."
-                });
+                return replayDuplicate("settled");
             }
             delete exports.activeQuests[playerId];
             (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse.response);
