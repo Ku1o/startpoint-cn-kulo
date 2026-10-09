@@ -233,6 +233,18 @@
     "rarity": 5,
     "skill_count": 6
   },
+  "119998": {
+    "element": 0,
+    "name": "金丝雀二号",
+    "rarity": 5,
+    "skill_count": 3
+  },
+  "119999": {
+    "element": 0,
+    "name": "雨果",
+    "rarity": 5,
+    "skill_count": 3
+  },
   "121001": {
     "element": 1,
     "name": "",
