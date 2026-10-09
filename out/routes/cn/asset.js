@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ENTITY_LISTS_DIR = exports.CDN_TOTAL_SIZE = exports.getAssetDownloadSize = exports.getVersionInfo = exports.getDiffArchiveSubdirs = exports.getFullArchiveSubdirs = exports.getEntityListName = exports.isIosAssetDevice = exports.isSupportedAssetDevice = exports.DIFF_ARCHIVE_SUBDIRS = exports.FULL_ARCHIVE_SUBDIRS = exports.getAssetArchiveMetadata = exports.invalidateAssetArchiveCatalog = exports.joinCdnPath = exports.normalizeCdnBaseUrl = void 0;
+exports.ENTITY_LISTS_DIR = exports.CDN_TOTAL_SIZE = exports.getAssetDownloadSize = exports.reportPatchChainIntegrity = exports.checkPatchChainIntegrity = exports.compareDiffArchiveNames = exports.parseDiffArchiveName = exports.getVersionInfo = exports.getDiffArchiveSubdirs = exports.getFullArchiveSubdirs = exports.getEntityListName = exports.isIosAssetDevice = exports.isSupportedAssetDevice = exports.DIFF_ARCHIVE_SUBDIRS = exports.FULL_ARCHIVE_SUBDIRS = exports.getAssetArchiveMetadata = exports.invalidateAssetArchiveCatalog = exports.joinCdnPath = exports.normalizeCdnBaseUrl = void 0;
 const file_exists_1 = require("../../lib/file-exists");
 const utils_1 = require("../../utils");
 const path_1 = __importDefault(require("path"));
@@ -194,22 +194,133 @@ function getEnabledPatchArchiveNames() {
     }
     return names;
 }
+const ACTIVE_PATCH_DIR = path_1.default.join(__dirname, "..", "..", "..", "assets", "asset-patch", "active");
+/** Parses `pinball-<from>-<to>-<seq>-<name>.zip`; returns null for other names. */
+function parseDiffArchiveName(filename) {
+    const match = filename.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-(\d+)-/);
+    if (!match)
+        return null;
+    return { from: match[1], to: match[2], seq: Number.parseInt(match[3], 10) };
+}
+exports.parseDiffArchiveName = parseDiffArchiveName;
+/** Numeric (from, to, seq) order; the file name only breaks exact ties. */
+function compareDiffArchiveNames(a, b) {
+    const ka = parseDiffArchiveName(a), kb = parseDiffArchiveName(b);
+    if (ka && kb) {
+        const order = compareVersion(ka.from, kb.from)
+            || compareVersion(ka.to, kb.to)
+            || ka.seq - kb.seq;
+        if (order !== 0)
+            return order;
+    }
+    else if (ka || kb) {
+        return ka ? -1 : 1;
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+exports.compareDiffArchiveNames = compareDiffArchiveNames;
+/**
+ * The client concatenates each version group's `archive` array in the order
+ * returned here and hands the flat list to its downloader, so archives of one
+ * version edge must follow their numeric sequence. Directory listing order is
+ * platform dependent and sorts "10" before "2", so it is never relied on.
+ */
+function sortDiffArchives(archives) {
+    const entries = [];
+    for (const archive of archives) {
+        const key = parseDiffArchiveName(archive.filename);
+        if (key)
+            entries.push({ archive, key });
+    }
+    return entries.sort((a, b) => compareDiffArchiveNames(a.archive.filename, b.archive.filename));
+}
+/**
+ * Reports publication problems in the enabled patch chain: duplicate
+ * (from, to, seq) triples, sequence gaps inside one edge, conflicting or
+ * non-contiguous version edges, and listed archives missing from disk.
+ * Returns readable warnings; an empty array means the chain is clean.
+ */
+function checkPatchChainIntegrity(publishedNames, filesOnDisk) {
+    var _a, _b, _c;
+    const warnings = [];
+    const onDisk = new Set(filesOnDisk);
+    const triples = new Map();
+    const edges = new Map();
+    const fromByTarget = new Map();
+    for (const name of publishedNames) {
+        if (!onDisk.has(name))
+            warnings.push(`listed archive missing from active directory: ${name}`);
+        const key = parseDiffArchiveName(name);
+        if (!key) {
+            warnings.push(`listed archive name has no (from,to,seq) prefix: ${name}`);
+            continue;
+        }
+        const triple = `${key.from}->${key.to}#${key.seq}`;
+        triples.set(triple, [...((_a = triples.get(triple)) !== null && _a !== void 0 ? _a : []), name]);
+        const edgeId = `${key.from}->${key.to}`;
+        const edge = (_b = edges.get(edgeId)) !== null && _b !== void 0 ? _b : { from: key.from, to: key.to, seqs: [] };
+        edge.seqs.push(key.seq);
+        edges.set(edgeId, edge);
+        const froms = (_c = fromByTarget.get(key.to)) !== null && _c !== void 0 ? _c : new Set();
+        froms.add(key.from);
+        fromByTarget.set(key.to, froms);
+    }
+    for (const [triple, names] of triples) {
+        if (names.length > 1)
+            warnings.push(`duplicate (from,to,seq) ${triple}: ${[...names].sort().join(", ")}`);
+    }
+    for (const [to, froms] of fromByTarget) {
+        if (froms.size > 1) {
+            warnings.push(`version ${to} is reached from several versions: ${[...froms].sort(compareVersion).join(", ")}`);
+        }
+    }
+    const ordered = [...edges.values()]
+        .sort((a, b) => compareVersion(a.from, b.from) || compareVersion(a.to, b.to));
+    for (const edge of ordered) {
+        const seqs = [...new Set(edge.seqs)].sort((a, b) => a - b);
+        const expected = seqs.map((_, index) => index + 1);
+        if (seqs.join(",") !== expected.join(",")) {
+            warnings.push(`sequence gap in ${edge.from}->${edge.to}: found [${seqs.join(",")}], expected [${expected.join(",")}]`);
+        }
+    }
+    for (let i = 1; i < ordered.length; i++) {
+        const previous = ordered[i - 1], current = ordered[i];
+        if (previous.to === current.to)
+            continue;
+        if (current.from !== previous.to) {
+            warnings.push(`chain gap: ${previous.from}->${previous.to} is followed by ${current.from}->${current.to}`);
+        }
+    }
+    return warnings;
+}
+exports.checkPatchChainIntegrity = checkPatchChainIntegrity;
+/** Startup self-check: logs a malformed patch chain, never blocks startup. */
+function reportPatchChainIntegrity() {
+    let warnings;
+    try {
+        const filesOnDisk = (0, file_exists_1.existsSync)(ACTIVE_PATCH_DIR)
+            ? getAssetArchiveMetadata(ACTIVE_PATCH_DIR).map(archive => archive.filename)
+            : [];
+        warnings = checkPatchChainIntegrity(getEnabledPatchArchiveNames(), filesOnDisk);
+    }
+    catch (e) {
+        warnings = [`self-check could not run: ${e.message}`];
+    }
+    for (const warning of warnings)
+        console.warn(`[PATCH] chain self-check: ${warning}`);
+    return warnings;
+}
+exports.reportPatchChainIntegrity = reportPatchChainIntegrity;
 function buildDiffList(baseUrl, cdnDir, clientVersion, targetVersion, device) {
     const groups = new Map();
     // CDN diff archives
     for (const subdir of getDiffArchiveSubdirs(device)) {
         const dir = path_1.default.join(cdnDir, subdir);
         try {
-            for (const archive of getAssetArchiveMetadata(dir)) {
-                const f = archive.filename;
-                const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
-                if (match) {
-                    const from = match[1];
-                    const to = match[2];
-                    if (!groups.has(to))
-                        groups.set(to, { original_version: from, archive: [] });
-                    groups.get(to).archive.push({ location: joinCdnPath(baseUrl, subdir, f), size: archive.size, sha256: "" });
-                }
+            for (const { archive, key } of sortDiffArchives(getAssetArchiveMetadata(dir))) {
+                if (!groups.has(key.to))
+                    groups.set(key.to, { original_version: key.from, archive: [] });
+                groups.get(key.to).archive.push({ location: joinCdnPath(baseUrl, subdir, archive.filename), size: archive.size, sha256: "" });
             }
         }
         catch (e) {
@@ -217,21 +328,14 @@ function buildDiffList(baseUrl, cdnDir, clientVersion, targetVersion, device) {
         }
     }
     // Asset patch archives (active patches only)
-    const patchDir = path_1.default.join(__dirname, "..", "..", "..", "assets", "asset-patch", "active");
     const publishedArchives = getEnabledPatchArchiveNames();
     try {
-        for (const archive of getAssetArchiveMetadata(patchDir)) {
-            const f = archive.filename;
-            if (!publishedArchives.has(f))
-                continue;
-            const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
-            if (match) {
-                const from = match[1];
-                const to = match[2];
-                if (!groups.has(to))
-                    groups.set(to, { original_version: from, archive: [] });
-                groups.get(to).archive.push({ location: joinCdnPath(baseUrl, "asset-patch", "active", f), size: archive.size, sha256: "" });
-            }
+        const published = getAssetArchiveMetadata(ACTIVE_PATCH_DIR)
+            .filter(archive => publishedArchives.has(archive.filename));
+        for (const { archive, key } of sortDiffArchives(published)) {
+            if (!groups.has(key.to))
+                groups.set(key.to, { original_version: key.from, archive: [] });
+            groups.get(key.to).archive.push({ location: joinCdnPath(baseUrl, "asset-patch", "active", archive.filename), size: archive.size, sha256: "" });
         }
     }
     catch (e) {
@@ -265,6 +369,8 @@ function getAssetDownloadSize(resVer, device) {
     return sumArchiveSizes(fullArchives) + sumArchiveSizes(diffArchives);
 }
 exports.getAssetDownloadSize = getAssetDownloadSize;
+// 启动时检查一次补丁链，只告警不阻断启动
+reportPatchChainIntegrity();
 // 启动时扫描一次，动态计算总大小
 const TOTAL_SIZE = (() => {
     let total = 0;
