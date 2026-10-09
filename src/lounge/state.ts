@@ -1,8 +1,26 @@
 import * as net from "net"
+import { sendFrameReliably } from "../multi/tcp/reliable-send"
 
 const LOUNGE_CAPACITY = 3
 const LOUNGE_TTL_MS = 30 * 60 * 1000
 const MAX_LOUNGES = 1024
+// The CN client serializes its ReadyState enum (Preparation/Ready, no
+// parameters) as a one-element array such as [1]. Keep a generous bound so a
+// future client field still fits, while one frame cannot be amplified into
+// every member's send queue.
+export const LOUNGE_MAX_READY_STATE_ITEMS = 8
+export const LOUNGE_MAX_READY_STATE_BYTES = 1024
+const LOUNGE_MAX_PROFILE_NAME_LENGTH = 64
+
+function positiveIntegerEnv(name: string, fallback: number, minimum: number): number {
+    const parsed = Number.parseInt(process.env[name] ?? "", 10)
+    return Number.isFinite(parsed) ? Math.max(minimum, parsed) : fallback
+}
+
+// A dismissed client closes its own socket after reading the final frame.
+// Closing from the server immediately can race that frame, so retire the
+// socket after a grace period instead (same approach as the lobby disband).
+const LOUNGE_DISBAND_SOCKET_GRACE_MS = positiveIntegerEnv("LOUNGE_DISBAND_SOCKET_GRACE_MS", 20_000, 0)
 
 export interface LoungeHostProfile {
     name: string
@@ -108,10 +126,10 @@ export function createLounge(input: {
     hostProfile: LoungeHostProfile
 }): LoungeRoom {
     cleanupExpiredLounges()
-    for (const existing of rooms.values()) {
-        if (existing.hostViewerId === input.hostViewerId && existing.useCase === input.useCase) {
-            removeRoom(existing)
-        }
+    // One host owns at most one lounge regardless of use case. Replacing it
+    // notifies the previous members instead of silently orphaning them.
+    for (const existing of [...rooms.values()]) {
+        if (existing.hostViewerId === input.hostViewerId) disbandLounge(existing)
     }
     const now = Date.now()
     const room: LoungeRoom = {
@@ -205,7 +223,7 @@ export function enterLounge(socket: net.Socket, profile: Record<string, unknown>
     const member: LoungeMember = {
         viewerId: context.viewerId,
         profile: {
-            name: String(profile.name ?? ""),
+            name: String(profile.name ?? "").slice(0, LOUNGE_MAX_PROFILE_NAME_LENGTH),
             characterId: Number(profile.characterId ?? 1),
             evolutionLevel: Number(profile.evolutionLevel ?? 0),
             rank: Number(profile.rank ?? 1),
@@ -239,7 +257,17 @@ export function serializeLoungeMates(room: LoungeRoom): Record<string, unknown>[
     }))
 }
 
+export function isAcceptableLoungeReadyState(value: unknown): value is unknown[] {
+    if (!Array.isArray(value) || value.length > LOUNGE_MAX_READY_STATE_ITEMS) return false
+    try {
+        return Buffer.byteLength(JSON.stringify(value), "utf8") <= LOUNGE_MAX_READY_STATE_BYTES
+    } catch {
+        return false
+    }
+}
+
 export function setLoungeMemberReady(room: LoungeRoom, viewerId: number, readyState: unknown[]): boolean {
+    if (!isAcceptableLoungeReadyState(readyState)) return false
     const member = room.members.get(viewerId)
     if (!member) return false
     member.readyState = readyState
@@ -258,13 +286,23 @@ export function loungeCanStart(room: LoungeRoom): boolean {
 
 export function sendLoungeFrame(socket: net.Socket, value: unknown): boolean {
     if (socket.destroyed || !socket.writable) return false
+    let frame: string
     try {
-        socket.write(`${JSON.stringify(value)}\0`)
-        return true
+        frame = `${JSON.stringify(value)}\0`
     } catch {
-        socket.destroy()
         return false
     }
+    // Share the bounded per-socket queue used by lobby/battle traffic: a peer
+    // that stops reading is disconnected instead of growing server memory.
+    return sendFrameReliably(socket, frame, { channel: "lounge" }) !== "closed"
+}
+
+function retireDisbandedLoungeSocket(socket: net.Socket): void {
+    if (socket.destroyed) return
+    const timer = setTimeout(() => {
+        if (!socket.destroyed) socket.destroy()
+    }, LOUNGE_DISBAND_SOCKET_GRACE_MS)
+    timer.unref?.()
 }
 
 export function broadcastLoungeFrame(room: LoungeRoom, value: unknown): void {
@@ -279,10 +317,21 @@ export function disbandLounge(room: LoungeRoom, message = "multibattle_room_dism
         sendLoungeFrame(member.socket, frame)
     }
     for (const socket of room.pendingSockets.values()) {
-        if (!sentSockets.has(socket)) sendLoungeFrame(socket, frame)
+        if (!sentSockets.has(socket)) {
+            sentSockets.add(socket)
+            sendLoungeFrame(socket, frame)
+        }
     }
     room.raisingState = 99
     removeRoom(room)
+    for (const socket of sentSockets) {
+        socketContexts.delete(socket)
+        retireDisbandedLoungeSocket(socket)
+    }
+}
+
+export function getLoungeCountForTests(): number {
+    return rooms.size
 }
 
 export function detachLoungeSocket(socket: net.Socket, explicitBye = false): void {

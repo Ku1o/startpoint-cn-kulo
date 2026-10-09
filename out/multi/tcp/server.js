@@ -27,7 +27,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stopSessionServer = exports.startSessionServer = exports.SESSION_MAX_FRAMES_PER_TICK = exports.SESSION_TCP_KEEPALIVE_MS = exports.SESSION_MAX_BUFFER_BYTES = exports.SESSION_MAX_FRAME_BYTES = exports.SESSION_HANDSHAKE_TIMEOUT_MS = exports.SESSION_HOST = exports.SESSION_PORT = void 0;
+exports.stopSessionServer = exports.getSessionServer = exports.startSessionServer = exports.handleRuntimeServerError = exports.SESSION_MAX_FRAMES_PER_TICK = exports.SESSION_TCP_KEEPALIVE_MS = exports.SESSION_MAX_BUFFER_BYTES = exports.SESSION_MAX_FRAME_BYTES = exports.SESSION_HANDSHAKE_TIMEOUT_MS = exports.SESSION_HOST = exports.SESSION_PORT = void 0;
 const net = __importStar(require("net"));
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const client_admission_1 = require("../../lib/client-admission");
@@ -58,6 +58,12 @@ exports.SESSION_TCP_KEEPALIVE_MS = positiveInteger("SESSION_TCP_KEEPALIVE_MS", 1
 exports.SESSION_MAX_FRAMES_PER_TICK = positiveInteger("SESSION_MAX_FRAMES_PER_TICK", 128, 1);
 let server = null;
 const activeSockets = new Set();
+function handleRuntimeServerError(error) {
+    var _a;
+    const code = (_a = error.code) !== null && _a !== void 0 ? _a : "unknown";
+    console.error(`[TCP] session server error code=${code}:`, error.message);
+}
+exports.handleRuntimeServerError = handleRuntimeServerError;
 function startSessionServer() {
     return new Promise((resolve, reject) => {
         if (server) {
@@ -274,12 +280,21 @@ function startSessionServer() {
         server.once("error", handleListenError);
         server.listen(exports.SESSION_PORT, exports.SESSION_HOST, () => {
             server === null || server === void 0 ? void 0 : server.off("error", handleListenError);
+            // Accept-time failures (for example EMFILE) are emitted on the
+            // listening server. Without a permanent listener they would become
+            // process-level uncaught exceptions.
+            server === null || server === void 0 ? void 0 : server.on("error", handleRuntimeServerError);
             console.log(`[TCP] session server listening on ${exports.SESSION_HOST}:${exports.SESSION_PORT}`);
             resolve();
         });
     });
 }
 exports.startSessionServer = startSessionServer;
+/** The listening session server, if started (diagnostics and tests). */
+function getSessionServer() {
+    return server;
+}
+exports.getSessionServer = getSessionServer;
 function stopSessionServer() {
     return new Promise((resolve) => {
         const current = server;
