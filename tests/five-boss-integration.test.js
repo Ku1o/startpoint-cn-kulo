@@ -1567,6 +1567,22 @@ test('real solo HTTP start/finish persists receipt; hidden scene and free finish
         assert.equal(retry.statusCode, 200, retry.body)
         assert.equal(items.getPlayerItemSync(p.id, 10000145), 5)
         assert.equal(characters.getPlayerCharacterSync(p.id, 111001).exp, exp)
+        // Upgrade compatibility: this old completed run has only the dedicated
+        // five-boss receipt, and its delayed retry must not consume a newer run.
+        getDb().prepare("DELETE FROM player_operation_receipts WHERE player_id = ? AND operation = 'quest_finish.single'").run(p.id)
+        const oldFinishBody = httpFinish(p)
+        p.playId += '-new-run'
+        const nextStart = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
+        assert.equal(nextStart.statusCode, 200, nextStart.body)
+        const staminaAfterStart = players.getPlayerSync(p.id).stamina
+        const oldRetry = await app.inject({ method: 'POST', url: '/finish', payload: oldFinishBody })
+        assert.equal(oldRetry.statusCode, 200, oldRetry.body)
+        assert.deepEqual(oldRetry.json(), finish.json())
+        assert.equal(load('data/domains/quest_active').getPlayerActiveQuestSync(p.id).playId, p.playId)
+        assert.equal(load('routes/api/singleBattleQuest').activeQuests[p.id].playId, p.playId)
+        assert.equal(players.getPlayerSync(p.id).stamina, staminaAfterStart)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), 5)
+        assert.equal(characters.getPlayerCharacterSync(p.id, 111001).exp, exp)
     } finally { await app.close() }
 })
 
@@ -1784,6 +1800,12 @@ function seedRewardFinish(p, category, questId, host = true) {
         isMultiHost: host, continueCount: 0, startedAtMs: Date.now(), matePlayerIds: [], mateComIds: [],
         questTimeRevision: category === 24 ? load('lib/abyss-time-revision').getAbyssTimeRevision() : null }
     load('routes/api/singleBattleQuest').activeQuests[p.id] = quest
+    // A registered solo battle has both memory and a durable active row. Seed
+    // the real contract so the settlement can consume that exact play once.
+    if (category === 24) load('data/domains/quest_active').insertPlayerActiveQuestSync(p.id, {
+        ...quest, playerId: p.id, isMultiHost: false, roomNumber: null,
+        entryItemId: null, eventId: null, partySlot: null,
+    })
     if (category === 7) load('multi/settlement-snapshot').registerMultiSettlementSnapshot({
         battleInstanceId: p.playId, playerId: p.id, viewerId: p.viewerId, playId: p.playId,
         roomNumber: 'ticket-test', roomGeneration: 1, activeQuest: quest, participants: [],

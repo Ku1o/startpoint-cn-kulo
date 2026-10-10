@@ -4,7 +4,9 @@ import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueErro
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../../multi/five-boss/entry-response";
 import { startFiveBossSolo, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync } from "../../multi/five-boss/solo-runtime";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { deletePlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
+import { deletePlayerActiveQuestIfPlayIdSync, deletePlayerActiveQuestSync, getPlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
+import { getPlayerOperationReceiptSync } from "../../data/domains/player-operation-receipt"
+import { isSingleFinishResponse, SINGLE_FINISH_RECEIPT_OPERATION, singleFinishPlayId } from "../../lib/quest/finish/single-finish-identity"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getPlayerItemSync, updatePlayerItemSync } from "../../data/domains/item"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
@@ -37,22 +39,19 @@ import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward
 import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceTransaction, runWriterCommand } from "../../lib/persistence-coordinator";
 import {
-    SINGLE_REFRESH_QUEST_PROGRESS,
     SINGLE_SETTLE_FINISH,
-    type SingleRefreshQuestProgressArgs,
-    type SingleRefreshQuestProgressResult,
     type SingleSettleFinishArgs,
     type SingleSettleFinishResult,
 } from "../../lib/persistence/command-names";
 import { measureSettlementPhaseAsync } from "../../lib/settlement-performance";
 import { recordSingleSettlementBodyTiming } from "../../lib/single-settlement-diagnostics";
 import {
+    acquireFinishExecution,
     buildFinishResponseCacheKey,
     cacheFinishResponse,
     getCachedFinishResponse,
 } from "../../lib/finish-response-cache";
 import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
-import { calculateFreeManaGrant } from "../../lib/mana";
 import { canStartAbyssQuestSync } from "../../data/domains/abyss-tower-progress";
 import { isAbyssExEndlessQuest } from "../../lib/abyss-modes";
 import { isValidNormalPartySlotSync } from "../../data/domains/party";
@@ -223,165 +222,224 @@ const routes = async (fastify: FastifyInstance) => {
         if (!sessionResult) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid viewer id."
         })
-        const { playerId, playerData } = sessionResult
-        const finishCacheKey = buildFinishResponseCacheKey(
+        const { playerId } = sessionResult
+        const legacyFinishCacheKey = buildFinishResponseCacheKey(
             "single",
             viewerId,
             body as unknown as Record<string, unknown>,
         )
-        const cachedFinishResponse = getFiveBossSoloReceiptSync(playerId, finishCacheKey)
-            ?? getCachedFinishResponse(finishCacheKey)
-        if (cachedFinishResponse !== undefined) {
-            reply.header("content-type", "application/x-msgpack")
-            return reply.status(200).send(cachedFinishResponse)
-        }
-
-        // Resolve the active quest from memory, persisted recovery state, or
-        // (for patched clients that skipped /start) a validated request hint.
-        const resolvedActiveQuest = resolveActiveQuest({
-            playerId,
-            hint: body,
-            memory: activeQuests,
-        })
-        const activeQuestData = resolvedActiveQuest?.quest
-        gameVerboseLog(() => `[FINISH] req: playerId=${playerId} questId=${body.quest_id} category=${body.category} activeExists=${activeQuestData !== undefined} source=${resolvedActiveQuest?.source ?? "none"} multi=${activeQuestData?.isMulti ?? false}`)
-        if (activeQuestData === undefined) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "No active quest to finish."
-        })
-        if (resolvedActiveQuest?.source !== "memory") {
-            console.warn(`[FINISH] recovered active quest from ${resolvedActiveQuest?.source}: playerId=${playerId} questId=${activeQuestData.questId} category=${activeQuestData.category}`)
-        }
-
-        const questCategory = activeQuestData.category
-        const questId = activeQuestData.questId
-        if (isFiveBossHiddenQuest(questCategory, questId)) {
-            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene cannot settle separately." })
-        }
-        const fiveBossSoloQuest = isFiveBossGauntletQuest(questCategory, questId)
-        if (fiveBossSoloQuest && (activeQuestData.isMulti || resolvedActiveQuest?.source === "rebuilt"
-            || !finishCacheKey || !isActiveFiveBossSoloSync(playerId, activeQuestData.playId))) {
-            return reply.status(400).send({ error: "Bad Request", message: "No registered five-boss solo run." })
-        }
-
-        if (resolvedActiveQuest?.source === "rebuilt" && isAbyssFiniteQuest(questCategory, questId)) {
-            // Preserve the patched client's no-/start recovery, but never
-            // assume a missing registration belongs to the newly published tower.
-            activeQuestData.questTimeRevision = getAbyssTimeRevisionAtVersion(request.headers.res_ver, Math.floor(questId / 1000))
-        }
-        // A restored/late finish from the old tower cannot seed the new record.
-        if (isStaleAbyssBattle(activeQuestData) || isStaleAbyssClient(questCategory, questId, request.headers.res_ver)
-            || !canStartAbyssQuestSync(playerId, questCategory, questId)) {
-            deletePlayerActiveQuestSync(playerId)
-            delete activeQuests[playerId]
-            reply.header("content-type", "application/x-msgpack")
-            return reply.status(200).send({
-                data_headers: generateDataHeaders({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
-                data: {},
-            })
-        }
-        gameVerboseLog(() => `[FINISH] active: category=${questCategory} questId=${questId}`)
-        const questData = getQuestFromCategorySync(questCategory, questId) as BattleQuest | null
-        if (questData === null || !('rankPointReward' in questData)) {
-            console.warn(`[BATTLE] finish failed: category=${questCategory} questId=${questId} found=${!!questData} hasRankReward=${questData ? ('rankPointReward' in questData) : 'N/A'}`)
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Quest doesn't exist."
-            })
-        }
-
-        // calculate clear rank
-        const clearTime = body.elapsed_time_ms
-        const isScoreAttackEvent = questCategory === QuestCategory.SCORE_ATTACK_EVENT
-        if (isScoreAttackEvent && (
-            questData.bRankScore === undefined
-            || questData.aRankScore === undefined
-            || questData.sRankScore === undefined
-            || questData.ssRankScore === undefined
-        )) {
-            return reply.status(500).send({
-                "error": "Internal Server Error",
-                "message": "Score attack rank thresholds are missing."
-            })
-        }
-        const clearRank = isScoreAttackEvent
-            ? calculateScoreAttackClearRank(body.score, {
-                bRankScore: questData.bRankScore!,
-                aRankScore: questData.aRankScore!,
-                sRankScore: questData.sRankScore!,
-                ssRankScore: questData.ssRankScore!,
-            })
-            : calculateClearRank(clearTime, questData)
-
-        // calculate player rewards
-        const beforeRankPoint = playerData.rankPoint
-        const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId)
-        const newRankPoint = beforeRankPoint + questData.rankPointReward
-        const manaObtained = isAbyssExEndlessQuest(questCategory, questId) ? 0 : questData.manaReward + body.add_mana
-        let newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana
-
-        // calculate boost point
-        let newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0)
-        let newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0)
-        let useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0))
-
-        // check current quest progress
-        // This lookup refreshes published Abyss best-time revisions and is
-        // therefore a write-capable operation. Keep it under the same
-        // persistence coordinator as settlement preparation.
-        // 深渊最好成绩刷新是"读+写"，整段按注册命令执行：开启写线程时在写线程内
-        // 完成，关闭时保持原进程内语义，调用方看到的返回值不变。
-        const questProgress = await measureSettlementPhaseAsync("single", "progress_refresh", () => (
-            runWriterCommand<SingleRefreshQuestProgressArgs, SingleRefreshQuestProgressResult>(
-                SINGLE_REFRESH_QUEST_PROGRESS,
-                { playerId, section: questCategory, questId },
-                { domain: "single-quest", playerId, operation: "progress_refresh" },
-            )
-        ));
-        const questPreviouslyCompleted = questProgress !== null
-
-        let questAccomplished = body.is_accomplished
-        let scoreAttackBorderTiers: ScoreAttackBorderTier[] = []
-        if (isScoreAttackEvent) {
-            try {
-                scoreAttackBorderTiers = resolveScoreAttackBorderTiers(
-                    questData.eventId,
-                    questData.scoreAttackQuestId,
-                    scoreAttackBorderRewards as Record<string, ScoreAttackBorderTier[]>,
+        const releaseFinishExecution = await acquireFinishExecution(`single:${playerId}`)
+        try {
+            const requestPlayId = singleFinishPlayId(body.play_id)
+            const replayReceipt = (playId: string | null): boolean => {
+                if (playId === null) return false
+                const receipt = getPlayerOperationReceiptSync<unknown>(
+                    playerId, SINGLE_FINISH_RECEIPT_OPERATION, playId,
                 )
-            } catch (error) {
-                console.error(`[SCORE_ATTACK] invalid configuration: ${(error as Error).message}`)
-                return reply.status(500).send({
-                    "error": "Internal Server Error",
-                    "message": "Score attack reward configuration is missing."
+                if (receipt === null) return false
+                if (!isSingleFinishResponse(receipt.response)) {
+                    reply.status(400).send({ error: "Bad Request", message: "No active quest to finish." })
+                } else {
+                    reply.header("content-type", "application/x-msgpack")
+                    reply.status(200).send(receipt.response)
+                }
+                return true
+            }
+            // An old explicit play can replay its receipt even while a new battle is active.
+            if (replayReceipt(requestPlayId)) return reply
+            if (requestPlayId !== null
+                && getPlayerOperationReceiptSync(playerId, "quest_finish.multi", requestPlayId) !== null) {
+                return reply.status(400).send({ error: "Bad Request", message: "Play already settled as multiplayer." })
+            }
+            // Runs settled before generic solo receipts were introduced still
+            // have their dedicated five-boss receipt. Replay it before a newer
+            // active battle is checked, without consuming the newer registration.
+            if (requestPlayId !== null) {
+                const legacySoloResponse = getFiveBossSoloReceiptSync(playerId, legacyFinishCacheKey)
+                if (legacySoloResponse !== undefined) {
+                    if (!isSingleFinishResponse(legacySoloResponse)) {
+                        return reply.status(400).send({ error: "Bad Request", message: "Invalid single finish receipt." })
+                    }
+                    reply.header("content-type", "application/x-msgpack")
+                    return reply.status(200).send(legacySoloResponse)
+                }
+            }
+
+            const persistedQuest = getPlayerActiveQuestSync(playerId)
+            const memoryQuest = activeQuests[playerId]
+            const currentRegistration = persistedQuest ?? memoryQuest
+            if (currentRegistration?.isMulti) {
+                return reply.status(400).send({ error: "Bad Request", message: "Multiplayer play cannot settle as single." })
+            }
+            if (currentRegistration !== undefined && currentRegistration !== null && (
+                Number(body.quest_id) !== currentRegistration.questId
+                || (requestPlayId !== null && singleFinishPlayId(currentRegistration.playId) !== null
+                    && requestPlayId !== currentRegistration.playId)
+            )) {
+                return reply.status(400).send({ error: "Bad Request", message: "Finish does not match the active quest." })
+            }
+            // A queued /start can replace the database row before this handler resumes.
+            if (persistedQuest && memoryQuest && persistedQuest.playId !== memoryQuest.playId) {
+                delete activeQuests[playerId]
+            }
+            if (!currentRegistration) {
+                const cachedFinishResponse = getFiveBossSoloReceiptSync(playerId, legacyFinishCacheKey)
+                    ?? getCachedFinishResponse(legacyFinishCacheKey)
+                if (cachedFinishResponse !== undefined) {
+                    reply.header("content-type", "application/x-msgpack")
+                    return reply.status(200).send(cachedFinishResponse)
+                }
+            }
+
+            // Resolve the active quest from memory, persisted recovery state, or
+            // (for patched clients that skipped /start) a validated request hint.
+            const resolvedActiveQuest = resolveActiveQuest({
+                playerId,
+                hint: body,
+                memory: activeQuests,
+            })
+            const activeQuestData = resolvedActiveQuest?.quest
+            gameVerboseLog(() => `[FINISH] req: playerId=${playerId} questId=${body.quest_id} category=${body.category} activeExists=${activeQuestData !== undefined} source=${resolvedActiveQuest?.source ?? "none"} multi=${activeQuestData?.isMulti ?? false}`)
+            if (activeQuestData === undefined) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "No active quest to finish."
+            })
+            if (resolvedActiveQuest?.source !== "memory") {
+                console.warn(`[FINISH] recovered active quest from ${resolvedActiveQuest?.source}: playerId=${playerId} questId=${activeQuestData.questId} category=${activeQuestData.category}`)
+            }
+
+            const registered = resolvedActiveQuest?.source !== "rebuilt"
+            const receiptPlayId = requestPlayId ?? (registered ? singleFinishPlayId(activeQuestData.playId) : null)
+            if (replayReceipt(receiptPlayId)) return reply
+            if (receiptPlayId !== null
+                && getPlayerOperationReceiptSync(playerId, "quest_finish.multi", receiptPlayId) !== null) {
+                return reply.status(400).send({ error: "Bad Request", message: "Play already settled as multiplayer." })
+            }
+            // Bind a legacy api_count request to its registered play while that play exists.
+            // The unscoped key remains only a short-lived retry alias after consumption.
+            const finishCacheKey = buildFinishResponseCacheKey(
+                "single", viewerId,
+                receiptPlayId === null ? body as unknown as Record<string, unknown>
+                    : { ...body, play_id: receiptPlayId },
+            )
+            const cachedFinishResponse = getFiveBossSoloReceiptSync(playerId, finishCacheKey)
+                ?? getCachedFinishResponse(finishCacheKey)
+            if (cachedFinishResponse !== undefined) {
+                reply.header("content-type", "application/x-msgpack")
+                return reply.status(200).send(cachedFinishResponse)
+            }
+
+            const questCategory = activeQuestData.category
+            const questId = activeQuestData.questId
+            if (isFiveBossHiddenQuest(questCategory, questId)) {
+                return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene cannot settle separately." })
+            }
+            const fiveBossSoloQuest = isFiveBossGauntletQuest(questCategory, questId)
+            if (fiveBossSoloQuest && (activeQuestData.isMulti || resolvedActiveQuest?.source === "rebuilt"
+                || !finishCacheKey || !isActiveFiveBossSoloSync(playerId, activeQuestData.playId))) {
+                return reply.status(400).send({ error: "Bad Request", message: "No registered five-boss solo run." })
+            }
+
+            if (resolvedActiveQuest?.source === "rebuilt" && isAbyssFiniteQuest(questCategory, questId)) {
+                // Preserve the patched client's no-/start recovery, but never
+                // assume a missing registration belongs to the newly published tower.
+                activeQuestData.questTimeRevision = getAbyssTimeRevisionAtVersion(request.headers.res_ver, Math.floor(questId / 1000))
+            }
+            // A restored/late finish from the old tower cannot seed the new record.
+            if (isStaleAbyssBattle(activeQuestData) || isStaleAbyssClient(questCategory, questId, request.headers.res_ver)
+                || !canStartAbyssQuestSync(playerId, questCategory, questId)) {
+                if (registered) deletePlayerActiveQuestIfPlayIdSync(playerId, activeQuestData.playId)
+                if (activeQuests[playerId] === activeQuestData) delete activeQuests[playerId]
+                reply.header("content-type", "application/x-msgpack")
+                return reply.status(200).send({
+                    data_headers: generateDataHeaders({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                    data: {},
                 })
             }
-            questAccomplished = body.score >= scoreAttackBorderTiers[0].score
+            gameVerboseLog(() => `[FINISH] active: category=${questCategory} questId=${questId}`)
+            const questData = getQuestFromCategorySync(questCategory, questId) as BattleQuest | null
+            if (questData === null || !('rankPointReward' in questData)) {
+                console.warn(`[BATTLE] finish failed: category=${questCategory} questId=${questId} found=${!!questData} hasRankReward=${questData ? ('rankPointReward' in questData) : 'N/A'}`)
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "Quest doesn't exist."
+                })
+            }
+
+            // calculate clear rank
+            const clearTime = body.elapsed_time_ms
+            const isScoreAttackEvent = questCategory === QuestCategory.SCORE_ATTACK_EVENT
+            if (isScoreAttackEvent && (
+                questData.bRankScore === undefined
+                || questData.aRankScore === undefined
+                || questData.sRankScore === undefined
+                || questData.ssRankScore === undefined
+            )) {
+                return reply.status(500).send({
+                    "error": "Internal Server Error",
+                    "message": "Score attack rank thresholds are missing."
+                })
+            }
+            const clearRank = isScoreAttackEvent
+                ? calculateScoreAttackClearRank(body.score, {
+                    bRankScore: questData.bRankScore!,
+                    aRankScore: questData.aRankScore!,
+                    sRankScore: questData.sRankScore!,
+                    ssRankScore: questData.ssRankScore!,
+                })
+                : calculateClearRank(clearTime, questData)
+
+            // State-dependent totals and first-clear progress are resolved by the transaction.
+            const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId)
+            const manaObtained = isAbyssExEndlessQuest(questCategory, questId) ? 0 : questData.manaReward + body.add_mana
+
+            let questAccomplished = body.is_accomplished
+            let scoreAttackBorderTiers: ScoreAttackBorderTier[] = []
+            if (isScoreAttackEvent) {
+                try {
+                    scoreAttackBorderTiers = resolveScoreAttackBorderTiers(
+                        questData.eventId,
+                        questData.scoreAttackQuestId,
+                        scoreAttackBorderRewards as Record<string, ScoreAttackBorderTier[]>,
+                    )
+                } catch (error) {
+                    console.error(`[SCORE_ATTACK] invalid configuration: ${(error as Error).message}`)
+                    return reply.status(500).send({
+                        "error": "Internal Server Error",
+                        "message": "Score attack reward configuration is missing."
+                    })
+                }
+                questAccomplished = body.score >= scoreAttackBorderTiers[0].score
+            }
+
+            const finishResponse = await measureSettlementPhaseAsync("single", "transaction", () => (
+                runWriterCommand<SingleSettleFinishArgs, SingleSettleFinishResult>(
+                    SINGLE_SETTLE_FINISH,
+                    {
+                        playerId, viewerId, questCategory, questId, questData, activeQuestData, body,
+                        clearTime, clearRank, questAccomplished,
+                        // The patched client may skip /start; a rebuilt active quest must
+                        // not seed Abyss records as a registered run.
+                        fiveBossSoloQuest, registered,
+                        scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop,
+                        finishCacheKey, receiptPlayId,
+                    },
+                    { domain: "single-quest", playerId, operation: "finish" },
+                )
+            ))
+            if (finishResponse.timing !== null) recordSingleSettlementBodyTiming(finishResponse.timing)
+
+            if (activeQuests[playerId] === activeQuestData) delete activeQuests[playerId]
+            if (finishResponse.response === null) {
+                return reply.status(400).send({ error: "Bad Request", message: "No active quest to finish." })
+            }
+            cacheFinishResponse(finishCacheKey, finishResponse.response)
+            cacheFinishResponse(legacyFinishCacheKey, finishResponse.response)
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send(finishResponse.response)
+        } finally {
+            releaseFinishExecution()
         }
-
-        const finishResponse = await measureSettlementPhaseAsync("single", "transaction", () => (
-            runWriterCommand<SingleSettleFinishArgs, SingleSettleFinishResult>(
-                SINGLE_SETTLE_FINISH,
-                {
-                    playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body,
-                    clearTime, clearRank, questAccomplished, questProgress,
-                    // The patched client may skip /start; a rebuilt active quest must
-                    // not seed Abyss records as a registered run.
-                    fiveBossSoloQuest, registered: resolvedActiveQuest?.source !== "rebuilt",
-                    scoreAttackBorderTiers, beforeRankPoint, newRankPoint, manaObtained, newMana,
-                    newBoostPoint, newBossBoostPoint, useBoostPoint, displayMode15ManaAsFieldDrop,
-                    finishCacheKey,
-                },
-                { domain: "single-quest", playerId, operation: "finish" },
-            )
-        ))
-        if (finishResponse.timing !== null) recordSingleSettlementBodyTiming(finishResponse.timing)
-
-        delete activeQuests[playerId]
-        cacheFinishResponse(finishCacheKey, finishResponse.response)
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send(finishResponse.response)
-
     })
 
     fastify.post("/abort", async (request: FastifyRequest, reply: FastifyReply) => {

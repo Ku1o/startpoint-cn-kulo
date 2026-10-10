@@ -10,6 +10,7 @@ const steam_robot_challenge_1 = require("../mission/steam-robot-challenge");
 const recommended_party_history_1 = require("../quest/recommended-party-history");
 const character_1 = require("../character");
 const single_finish_transaction_1 = require("../quest/finish/single-finish-transaction");
+const multi_finish_transaction_1 = require("../quest/finish/multi-finish-transaction");
 const persistence_coordinator_1 = require("../persistence-coordinator");
 /**
  * Domain command implementations.
@@ -46,3 +47,4 @@ const persistence_coordinator_1 = require("../persistence-coordinator");
     return { missionBattleFacts, steamRobotMissionId, rewardCharacterExpResult };
 }));
 (0, command_registry_1.registerWriterCommand)(command_names_1.SINGLE_SETTLE_FINISH, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "single-quest", playerId: args.playerId, operation: "finish" }, () => (0, single_finish_transaction_1.settleSingleQuestFinishInTransaction)(args)));
+(0, command_registry_1.registerWriterCommand)(command_names_1.MULTI_SETTLE_FINISH, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "multi-settlement", playerId: args.playerId, operation: "finish" }, () => (0, multi_finish_transaction_1.settleMultiQuestFinishInTransaction)(args)));

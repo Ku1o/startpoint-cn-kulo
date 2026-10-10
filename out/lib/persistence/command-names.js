@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SINGLE_SETTLE_FINISH = exports.MULTI_RECORD_BATTLE_FACTS = exports.MULTI_CLEANUP_ACTIVE_QUEST = exports.SINGLE_REFRESH_QUEST_PROGRESS = exports.MISSION_SETTLE_CATEGORIES = void 0;
+exports.MULTI_SETTLE_FINISH = exports.SINGLE_SETTLE_FINISH = exports.MULTI_RECORD_BATTLE_FACTS = exports.MULTI_CLEANUP_ACTIVE_QUEST = exports.SINGLE_REFRESH_QUEST_PROGRESS = exports.MISSION_SETTLE_CATEGORIES = void 0;
 /**
  * Stable command names and their argument shapes.
  *
@@ -29,3 +29,5 @@ exports.MULTI_RECORD_BATTLE_FACTS = "multi.record_battle_facts";
  * 对象加上结算体分段计时，两者都是结构化克隆安全的数据。
  */
 exports.SINGLE_SETTLE_FINISH = "single.settle_finish";
+/** Ordinary multiplayer finish pays all rewards and records its response atomically. */
+exports.MULTI_SETTLE_FINISH = "multi.settle_finish";

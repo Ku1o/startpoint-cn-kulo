@@ -13,7 +13,9 @@ const mail_1 = require("../../../data/domains/mail");
 const item_1 = require("../../../data/domains/item");
 const player_1 = require("../../../data/domains/player");
 const quest_active_1 = require("../../../data/domains/quest_active");
+const player_operation_receipt_1 = require("../../../data/domains/player-operation-receipt");
 const quest_1 = require("../../../data/domains/quest");
+const single_finish_identity_1 = require("./single-finish-identity");
 const practice_battle_history_1 = require("../../../data/domains/practice-battle-history");
 const carnivalEvent_1 = require("../../../data/domains/carnivalEvent");
 const abyss_records_1 = require("../../../data/domains/abyss-records");
@@ -43,6 +45,7 @@ const solo_rewards_1 = require("../../../multi/five-boss/solo-rewards");
 const solo_runtime_1 = require("../../../multi/five-boss/solo-runtime");
 const rush_event_folder_rounds_1 = require("../../rush-event-folder-rounds");
 const stamina_1 = require("../../stamina");
+const mana_1 = require("../../mana");
 const mode15_optional_1 = require("../../mode15-optional");
 const utils_1 = require("../../../utils");
 const single_settlement_diagnostics_1 = require("../../single-settlement-diagnostics");
@@ -71,13 +74,50 @@ catch (_a) { } // Init failed silently; carnival scoring won't work
  */
 function settleSingleQuestFinishInTransaction(args) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
-    const { playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body, clearTime, clearRank, questAccomplished, questProgress, fiveBossSoloQuest, registered, scoreAttackBorderTiers, beforeRankPoint, newRankPoint, manaObtained, newMana, newBoostPoint, newBossBoostPoint, useBoostPoint, displayMode15ManaAsFieldDrop, finishCacheKey, } = args;
+    const { playerId, viewerId, questCategory, questId, questData, activeQuestData, body, clearTime, clearRank, questAccomplished, fiveBossSoloQuest, registered, scoreAttackBorderTiers, manaObtained, displayMode15ManaAsFieldDrop, finishCacheKey, receiptPlayId, } = args;
+    if (receiptPlayId !== null) {
+        const receipt = (0, player_operation_receipt_1.getPlayerOperationReceiptSync)(playerId, single_finish_identity_1.SINGLE_FINISH_RECEIPT_OPERATION, receiptPlayId);
+        if (receipt !== null)
+            return {
+                response: (0, single_finish_identity_1.isSingleFinishResponse)(receipt.response) ? receipt.response : null,
+                timing: null,
+            };
+        if ((0, player_operation_receipt_1.getPlayerOperationReceiptSync)(playerId, "quest_finish.multi", receiptPlayId) !== null) {
+            return { response: null, timing: null };
+        }
+    }
+    if (activeQuestData.isMulti)
+        return { response: null, timing: null };
+    // The queued command may run after another /start replaced the registration.
+    // Consume only the registration resolved for this finish, inside its transaction.
+    if (registered) {
+        const persisted = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
+        if (persisted === null || persisted.isMulti || persisted.playId !== activeQuestData.playId
+            || Number(persisted.questId) !== Number(questId)
+            || Number(persisted.category) !== Number(questCategory)
+            || !(0, quest_active_1.deletePlayerActiveQuestIfPlayIdSync)(playerId, activeQuestData.playId)) {
+            return { response: null, timing: null };
+        }
+    }
+    if (!registered && (0, quest_active_1.getPlayerActiveQuestSync)(playerId) !== null) {
+        return { response: null, timing: null };
+    }
+    const playerData = (0, player_1.getPlayerSync)(playerId);
+    if (playerData === null)
+        throw new Error(`Single finish player no longer exists: ${playerId}`);
+    const questProgress = (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId);
+    const beforeRankPoint = playerData.rankPoint;
+    const newRankPoint = beforeRankPoint + questData.rankPointReward;
+    const newMana = (0, mana_1.calculateFreeManaGrant)(playerData, manaObtained).freeMana;
+    const newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
+    const newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
+    const useBoostPoint = (activeQuestData.useBoostPoint && newBoostPoint >= 0)
+        || (activeQuestData.useBossBoostPoint && newBossBoostPoint >= 0);
     const questPreviouslyCompleted = questProgress !== null;
     const isScoreAttackEvent = questCategory === types_1.QuestCategory.SCORE_ATTACK_EVENT;
     const bodyTiming = (0, single_settlement_diagnostics_1.createSingleSettlementBodyTimingCollector)(questCategory, !!fiveBossSoloQuest);
     let bodySucceeded = false;
     try {
-        (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
         const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
         let clearReward = null;
         let sPlusClearReward = null;
@@ -531,6 +571,11 @@ function settleSingleQuestFinishInTransaction(args) {
         const response = { data_headers: dataHeaders, data: responseData };
         if (fiveBossSoloQuest)
             (0, solo_runtime_1.saveFiveBossSoloReceiptSync)(playerId, activeQuestData.playId, finishCacheKey, response);
+        if (receiptPlayId !== null) {
+            (0, player_operation_receipt_1.insertPlayerOperationReceiptSync)({
+                playerId, operation: single_finish_identity_1.SINGLE_FINISH_RECEIPT_OPERATION, requestKey: receiptPlayId, response,
+            });
+        }
         bodySucceeded = true;
         return { response, timing: bodyTiming.result(true) };
     }

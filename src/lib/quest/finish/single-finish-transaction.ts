@@ -12,8 +12,10 @@ import {
     updatePlayerDailyChallengePointSync,
     updatePlayerSync,
 } from "../../../data/domains/player"
-import { deletePlayerActiveQuestSync } from "../../../data/domains/quest_active"
-import { insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../../data/domains/quest"
+import { deletePlayerActiveQuestIfPlayIdSync, getPlayerActiveQuestSync } from "../../../data/domains/quest_active"
+import { getPlayerOperationReceiptSync, insertPlayerOperationReceiptSync } from "../../../data/domains/player-operation-receipt"
+import { getPlayerSingleQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../../data/domains/quest"
+import { isSingleFinishResponse, SINGLE_FINISH_RECEIPT_OPERATION } from "./single-finish-identity"
 import { insertPlayerPracticeBattleHistorySync } from "../../../data/domains/practice-battle-history"
 import {
     getPlayerCarnivalEventRecordsSync,
@@ -69,6 +71,7 @@ import { grantFiveBossSoloRewardsSync } from "../../../multi/five-boss/solo-rewa
 import { getFiveBossSoloRewardMultiplierSync, saveFiveBossSoloReceiptSync } from "../../../multi/five-boss/solo-runtime"
 import { getRushEventFolderMaxRounds } from "../../rush-event-folder-rounds"
 import { getMaxStamina, getRankDegree } from "../../stamina"
+import { calculateFreeManaGrant } from "../../mana"
 import { MODE15_RUSH_EVENT_ID, settleMode15BattleSync } from "../../mode15-optional"
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../../utils"
 import {
@@ -107,32 +110,26 @@ export interface SingleFinishTransactionArgs {
     questCategory: QuestCategory
     questId: number
     questData: BattleQuest
-    playerData: Player
     activeQuestData: ActiveQuest
     body: FinishBody
     clearTime: number
     clearRank: number | null
     questAccomplished: boolean
-    /** Progress row read before the settlement; null means first clear. */
-    questProgress: PlayerQuestProgress | null
     /** Five-boss solo runs settle through this generic path with own rewards. */
     fiveBossSoloQuest: boolean
     /** False when the active quest was rebuilt from a patched-client hint. */
     registered: boolean
     scoreAttackBorderTiers: ScoreAttackBorderTier[]
-    beforeRankPoint: number
-    newRankPoint: number
     manaObtained: number
-    newMana: number
-    newBoostPoint: number
-    newBossBoostPoint: number
-    useBoostPoint: boolean
     displayMode15ManaAsFieldDrop: boolean
     finishCacheKey: string | null
+    /** Nonempty client or registered battle identity; never an api_count. */
+    receiptPlayId: string | null
 }
 
 export interface SingleFinishTransactionResult {
-    response: { data_headers: Record<string, unknown>, data: Record<string, any> }
+    /** Null when a registration was replaced/consumed without a replayable receipt. */
+    response: { data_headers: Record<string, unknown>, data: Record<string, any> } | null
     timing: SingleSettlementBodyTiming | null
 }
 
@@ -148,18 +145,53 @@ export function settleSingleQuestFinishInTransaction(
     args: SingleFinishTransactionArgs,
 ): SingleFinishTransactionResult {
     const {
-        playerId, viewerId, questCategory, questId, questData, playerData, activeQuestData, body,
-        clearTime, clearRank, questAccomplished, questProgress,
-        fiveBossSoloQuest, registered, scoreAttackBorderTiers, beforeRankPoint, newRankPoint,
-        manaObtained, newMana, newBoostPoint, newBossBoostPoint, useBoostPoint,
-        displayMode15ManaAsFieldDrop, finishCacheKey,
+        playerId, viewerId, questCategory, questId, questData, activeQuestData, body,
+        clearTime, clearRank, questAccomplished,
+        fiveBossSoloQuest, registered, scoreAttackBorderTiers,
+        manaObtained, displayMode15ManaAsFieldDrop, finishCacheKey, receiptPlayId,
     } = args
+    if (receiptPlayId !== null) {
+        const receipt = getPlayerOperationReceiptSync<unknown>(
+            playerId, SINGLE_FINISH_RECEIPT_OPERATION, receiptPlayId,
+        )
+        if (receipt !== null) return {
+            response: isSingleFinishResponse(receipt.response) ? receipt.response : null,
+            timing: null,
+        }
+        if (getPlayerOperationReceiptSync(playerId, "quest_finish.multi", receiptPlayId) !== null) {
+            return { response: null, timing: null }
+        }
+    }
+    if (activeQuestData.isMulti) return { response: null, timing: null }
+    // The queued command may run after another /start replaced the registration.
+    // Consume only the registration resolved for this finish, inside its transaction.
+    if (registered) {
+        const persisted = getPlayerActiveQuestSync(playerId)
+        if (persisted === null || persisted.isMulti || persisted.playId !== activeQuestData.playId
+            || Number(persisted.questId) !== Number(questId)
+            || Number(persisted.category) !== Number(questCategory)
+            || !deletePlayerActiveQuestIfPlayIdSync(playerId, activeQuestData.playId)) {
+            return { response: null, timing: null }
+        }
+    }
+    if (!registered && getPlayerActiveQuestSync(playerId) !== null) {
+        return { response: null, timing: null }
+    }
+    const playerData: Player | null = getPlayerSync(playerId)
+    if (playerData === null) throw new Error(`Single finish player no longer exists: ${playerId}`)
+    const questProgress: PlayerQuestProgress | null = getPlayerSingleQuestProgressSync(playerId, questCategory, questId)
+    const beforeRankPoint = playerData.rankPoint
+    const newRankPoint = beforeRankPoint + questData.rankPointReward
+    const newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana
+    const newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0)
+    const newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0)
+    const useBoostPoint = (activeQuestData.useBoostPoint && newBoostPoint >= 0)
+        || (activeQuestData.useBossBoostPoint && newBossBoostPoint >= 0)
     const questPreviouslyCompleted = questProgress !== null
     const isScoreAttackEvent = questCategory === QuestCategory.SCORE_ATTACK_EVENT
     const bodyTiming = createSingleSettlementBodyTimingCollector(questCategory, !!fiveBossSoloQuest)
     let bodySucceeded = false
     try {
-        deletePlayerActiveQuestSync(playerId)
         const missionEvaluationTime = new Date(getServerTime() * 1000)
 
         let clearReward: PlayerRewardResult | null = null
@@ -730,6 +762,11 @@ export function settleSingleQuestFinishInTransaction(
         responseData.mail_arrived = getPlayerMailCountSync(playerId, true) > 0
         const response = { data_headers: dataHeaders, data: responseData }
         if (fiveBossSoloQuest) saveFiveBossSoloReceiptSync(playerId, activeQuestData.playId, finishCacheKey, response)
+        if (receiptPlayId !== null) {
+            insertPlayerOperationReceiptSync({
+                playerId, operation: SINGLE_FINISH_RECEIPT_OPERATION, requestKey: receiptPlayId, response,
+            })
+        }
         bodySucceeded = true
         return { response, timing: bodyTiming.result(true) }
     } finally {
