@@ -232,7 +232,7 @@ function buildRuntimeArtifact(options) {
         const files = [...emitted].sort()
         if (!files.length || walk(emitRoot).length !== files.length) throw new Error('Incomplete emitted output inventory')
         fs.cpSync(emitRoot, path.join(output, 'out'), { recursive: true, errorOnExist: true, force: false })
-        return { schema: 1, source_commit: source || `${mode}:${sha256(Buffer.from(entries.map(e => `${e.name}\0${e.oid || sha256(fs.readFileSync(path.join(scratch, e.name)))}`).sort().join('\n')))}`, node_version: node, npm_version: npm, typescript_version: ts.version, dependency_source: options.dependencyRoot ? 'trusted-local-install' : 'npm-ci', lockfile_sha256: sha256(lockBytes), files }
+        return { schema: 1, source_commit: source || `${mode}:${sha256(Buffer.from(entries.map(e => `${e.name}\0${e.oid || sha256(fs.readFileSync(path.join(scratch, e.name)))}`).sort().join('\n')))}`, node_version: node, npm_version: npm, typescript_version: ts.version, dependency_source: options.dependencyRoot ? 'trusted-local-install' : 'npm-ci', lockfile_sha256: sha256(lockBytes), root_dir: parsed.options.rootDir ? slash(path.relative(scratch, parsed.options.rootDir)) : null, files }
     } catch (error) {
         const emittedOutput = path.join(output, 'out')
         if (inside(output, emittedOutput)) fs.rmSync(emittedOutput, { recursive: true, force: true })

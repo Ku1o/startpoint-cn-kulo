@@ -211,6 +211,102 @@ class SourceBuildOverlayTest(unittest.TestCase):
         self.assertEqual(payload["out/runtime.js"], old["out/runtime.js"])
         self.assertEqual((self.repo / "src/runtime.ts").read_text(), "uncommitted invalid TS local edit")
 
+    def partial_legacy(self):
+        self.write("src/historical.ts", "import { Budget } from './value'; export const historical = Budget.Value;\n")
+        self.legacy_baseline()
+        self.git("rm", "--cached", "--", "out/historical.js")
+        # A recorded historical blob must continue to win over fresh emit bytes.
+        runtime = self.repo / "out/runtime.js"
+        runtime.write_bytes(runtime.read_bytes() + b"\n// recorded historical output\n")
+        self.git("add", "-f", "--", "out/runtime.js")
+        return self.commit("partial historical out inventory")
+
+    def migrate_partial_legacy(self):
+        self.git("rm", "--cached", "-r", "--", "out")
+        self.write("tools/runtime-build-policy.json", json.dumps(self.policy))
+
+    def test_identical_inputs_preserve_unrecorded_legacy_modules_with_explicit_origin(self):
+        legacy = self.partial_legacy()
+        self.migrate_partial_legacy()
+        head = self.commit("tracking migration with identical compile inputs")
+        result = self.invoke(source=legacy, base=head)
+        receipt = json.loads(Path(result["release_receipt"]).read_text(encoding="utf-8"))
+        target = receipt["runtime_build"]["source"]
+        self.assertEqual(target["mode"], "git-blobs-with-preserved-generated")
+        self.assertEqual(target["preserved_generated_files"], ["out/historical.js"])
+        self.assertIn("out/historical.js", target["files"])
+        self.assertNotIn("out/historical.js", target["git_blob_files"])
+        self.assertEqual(target["preserved_from_build_commit"], head)
+        self.assertTrue(target["compile_inputs_identical"])
+        self.assertNotIn("out/historical.js", receipt["deleted_files"])
+        payload = self.archive(result)
+        self.assertNotIn("out/historical.js", payload)
+        self.assertIn(b"recorded historical output", payload["out/runtime.js"])
+
+    def test_changed_compile_inputs_reject_missing_legacy_module_even_when_its_source_is_unchanged(self):
+        legacy = self.partial_legacy()
+        self.migrate_partial_legacy()
+        self.write("src/value.ts", "export const enum Budget { Value = 99 }\n")
+        head = self.commit("transitive emit changes missing historical module")
+        with self.assertRaisesRegex(SystemExit, "历史实际产物"):
+            self.invoke(source=legacy, base=head)
+        self.assertFalse(Path(self.tool.OUT_ROOT).exists())
+
+    def test_restoring_unrecorded_module_absent_from_current_build_is_rejected(self):
+        legacy = self.partial_legacy()
+        self.migrate_partial_legacy()
+        self.git("rm", "--", "src/historical.ts")
+        head = self.commit("current source no longer contains historical module")
+        with self.assertRaisesRegex(SystemExit, "历史实际产物"):
+            self.invoke(source=legacy, base=head)
+        self.assertFalse(Path(self.tool.OUT_ROOT).exists())
+
+    def test_missing_source_in_legacy_target_allows_actual_new_module_removal(self):
+        legacy, _ = self.legacy_baseline()
+        self.migrate_partial_legacy()
+        self.write("src/current-only.ts", "export const currentOnly = true;\n")
+        head = self.commit("new source-only module")
+        result = self.invoke(source=legacy, base=head)
+        receipt = json.loads(Path(result["release_receipt"]).read_text(encoding="utf-8"))
+        self.assertIn("out/current-only.js", receipt["deleted_files"])
+        self.assertNotIn("out/runtime.js", receipt["deleted_files"])
+
+    def test_changed_inputs_reject_unrecorded_target_json_even_when_current_emit_has_none(self):
+        self.write("src/config.json", '{"historical": true}')
+        self.write("src/runtime.ts", "import config from './config.json'; export const runtime = config.historical;\n")
+        legacy, _ = self.legacy_baseline()
+        self.git("rm", "--cached", "--", "out/config.json")
+        legacy = self.commit("unrecorded historical JSON output")
+        self.migrate_partial_legacy()
+        self.write("src/runtime.ts", "export const runtime = true;\n")
+        self.git("rm", "--", "src/config.json")
+        head = self.commit("changed input with unrecorded historical JSON")
+        with self.assertRaisesRegex(SystemExit, "历史 JSON.*历史实际产物"):
+            self.invoke(source=legacy, base=head)
+        self.assertFalse(Path(self.tool.OUT_ROOT).exists())
+
+    def test_changed_inputs_reject_uncertain_historical_tsx_extension(self):
+        self.write("src/view.tsx", "export const view = true;\n")
+        legacy, _ = self.legacy_baseline()
+        self.migrate_partial_legacy()
+        self.write("src/value.ts", "export const enum Budget { Value = 99 }\n")
+        head = self.commit("changed input with historical TSX")
+        with self.assertRaisesRegex(SystemExit, "历史 JSX.*历史实际产物"):
+            self.invoke(source=legacy, base=head)
+        self.assertFalse(Path(self.tool.OUT_ROOT).exists())
+
+    def test_legacy_blob_batch_preserves_binary_and_shared_blob_bytes(self):
+        self.git("rm", "--", "tools/runtime-build-policy.json")
+        data = b"\x00\xff\n123 blob 4\nbytes after fake header\r\n"
+        for relative in ["out/binary.js", "out/same-content.js"]:
+            file = self.repo / relative
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_bytes(data)
+        self.git("add", "-f", "--", "out/binary.js", "out/same-content.js")
+        legacy = self.commit("binary historical blob fixture")
+        self.assertEqual(self.tool.committed_out_bytes(legacy),
+                         {"out/binary.js": data, "out/same-content.js": data})
+
     def test_compile_failure_creates_no_package_or_record(self):
         before_record = Path(self.tool.RECORD).read_bytes()
         self.write("src/runtime.ts", "export const wrong: number = 'not a number';\n")

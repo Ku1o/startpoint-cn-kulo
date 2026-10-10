@@ -66,14 +66,113 @@ def uses_source_build(source: str) -> bool:
                           cwd=REPO, capture_output=True).returncode == 0
 
 
+def tree_entries(source: str) -> dict[str, tuple[str, str]]:
+    entries = {}
+    for row in git("ls-tree", "-rz", "--full-tree", source).split("\0"):
+        if not row:
+            continue
+        header, name = row.split("\t", 1)
+        mode, kind, oid = header.split(" ")
+        if kind == "blob":
+            entries[name] = (mode, oid)
+    return entries
+
+
+def committed_out_bytes(source: str) -> dict[str, bytes]:
+    """Export all historical out blobs with one batch, preserving exact bytes."""
+    entries = {name: entry for name, entry in tree_entries(source).items() if name.startswith("out/")}
+    if any(not is_safe_member(name) or mode not in {"100644", "100755"}
+           for name, (mode, _) in entries.items()):
+        raise SystemExit("历史运行产物必须为安全的普通 Git blob")
+    oids = list(dict.fromkeys(oid for _, oid in entries.values()))
+    if not oids:
+        return {}
+    request = ("\n".join(oids) + "\n").encode("ascii")
+    check = subprocess.run(["git", "cat-file", "--batch-check"], input=request, cwd=REPO,
+                           capture_output=True, check=True).stdout.decode("ascii").splitlines()
+    sizes = []
+    for oid, row in zip(oids, check):
+        actual, kind, size = row.split(" ")
+        if actual != oid or kind != "blob" or not size.isdigit():
+            raise SystemExit("历史运行 Git blob 身份不一致")
+        sizes.append(int(size))
+    if len(check) != len(oids) or sum(sizes) > 512 * 1024 * 1024:
+        raise SystemExit("历史运行 Git blob 清单不完整或超过导出限制")
+    raw = subprocess.run(["git", "cat-file", "--batch"], input=request, cwd=REPO,
+                         capture_output=True, check=True).stdout
+    blobs, offset = {}, 0
+    for oid, size in zip(oids, sizes):
+        end = raw.find(b"\n", offset)
+        expected = f"{oid} blob {size}".encode("ascii")
+        if end < 0 or raw[offset:end] != expected:
+            raise SystemExit("历史运行 Git batch header 身份不一致")
+        offset = end + 1
+        payload_end = offset + size
+        if raw[payload_end:payload_end + 1] != b"\n":
+            raise SystemExit("历史运行 Git batch 字节不完整")
+        blobs[oid] = raw[offset:payload_end]
+        offset = payload_end + 1
+    if offset != len(raw):
+        raise SystemExit("历史运行 Git batch 含额外字节")
+    return {name: blobs[oid] for name, (_, oid) in entries.items()}
+
+
+def compile_input_entries(source: str) -> dict[str, tuple[str, str]]:
+    """Mirror helper inputs, excluding policy metadata introduced by migration."""
+    return {name: entry for name, entry in tree_entries(source).items()
+            if name in {"package.json", "package-lock.json", "tsconfig.json", "docs/generated/character_table.json"}
+            or re.fullmatch(r"src/.*\.(?:tsx?|json)", name)
+            or (name.startswith("assets/") and name.endswith(".json") and not name.startswith("assets/asset-patch/"))}
+
+
+def complete_legacy_target(base: str, head: str, before: dict[str, bytes], after: dict[str, bytes],
+                           base_identity: dict, identity: dict) -> tuple[dict[str, bytes], dict]:
+    """Git absence is not proof that a historical deployed output was absent."""
+    base_inputs, target_inputs = compile_input_entries(base), compile_input_entries(head)
+    missing = sorted(before.keys() - after.keys())
+    if base_inputs == target_inputs:
+        # The complete current build is valid for the exact same compile inputs.
+        # Preserve these files in place; do not call them historical Git blobs.
+        if missing:
+            after = {**after, **{name: before[name] for name in missing}}
+            identity = {**identity, "mode": "git-blobs-with-preserved-generated",
+                        "git_blob_files": identity["files"], "files": sorted(after),
+                        "preserved_generated_files": missing, "preserved_from_build_commit": base,
+                        "compile_inputs_identical": True}
+        return after, identity
+    # Only a stable, compiler-confirmed source/output layout permits deletion inference.
+    if (base_inputs.get("tsconfig.json") != target_inputs.get("tsconfig.json")
+            or base_identity.get("root_dir") != "src"):
+        raise SystemExit("历史运行输出映射或编译配置不确定；需要历史实际产物，拒绝回滚封包")
+    for name in target_inputs:
+        if name.startswith("src/") and name.endswith(".tsx"):
+            raise SystemExit(f"历史 JSX 输出扩展映射不确定，需要历史实际产物：{name}")
+        if name.startswith("src/") and name.endswith(".json") and "out/" + name[4:] not in after:
+            raise SystemExit(f"历史 JSON 未记录运行产物，需要历史实际产物：{name}")
+        if not name.startswith("src/") or not name.endswith((".ts", ".tsx")) or name.endswith(".d.ts"):
+            continue
+        runtime_name = "out/" + re.sub(r"\.tsx?$", ".js", name[4:])
+        if runtime_name not in after:
+            raise SystemExit(f"历史源码存在但未记录运行产物，需要历史实际产物：{runtime_name}")
+    for name in missing:
+        if name.endswith(".js"):
+            stem = "src/" + name[4:-3]
+            source_names = {stem + ".ts", stem + ".tsx"}
+        elif name.endswith(".json"):
+            source_names = {"src/" + name[4:]}
+        else:
+            raise SystemExit(f"历史运行输出来源映射未知，需要历史实际产物：{name}")
+        if source_names & target_inputs.keys():
+            raise SystemExit(f"历史源码存在但未记录运行产物，需要历史实际产物：{name}")
+    return after, identity
+
+
 def runtime_artifacts(source: str, scratch: Path, dependency_root: str | None = None) -> tuple[dict[str, bytes], dict]:
     """Read historical blobs or build the complete runtime from this exact SHA."""
     if not uses_source_build(source):
-        names = [name for name in git("ls-tree", "-r", "--name-only", "-z", source, "--", "out/").split("\0") if name]
-        if any(not is_safe_member(name) for name in names):
-            raise SystemExit("历史运行产物路径不安全")
-        return {name: committed_bytes(source, name) for name in names}, {
-            "mode": "git-blobs", "source_commit": source, "files": names,
+        artifacts = committed_out_bytes(source)
+        return artifacts, {
+            "mode": "git-blobs", "source_commit": source, "files": sorted(artifacts),
         }
     helper = Path(__file__).resolve().with_name("build-runtime-artifact.cjs")
     command = ["node", str(helper), "--repo", REPO, "--source", source, "--output", str(scratch)]
@@ -128,6 +227,8 @@ def prepare_overlay(base: str, head: str, dependency_root: str | None = None) ->
         scratch = Path(temporary)
         before, base_identity = runtime_artifacts(base, scratch / "base", dependency_root)
         after, source_identity = runtime_artifacts(head, scratch / "source", dependency_root)
+    if base_identity["mode"] == "source-build" and source_identity["mode"] == "git-blobs":
+        after, source_identity = complete_legacy_target(base, head, before, after, base_identity, source_identity)
     # A legacy baseline without any committed runtime is not evidence of an empty deployment.
     if not before or not after:
         raise SystemExit("无法确认完整运行基线或目标运行产物；拒绝封包")
@@ -337,7 +438,7 @@ def update_record(batch: str, zip_path: str, zip_name: str, zip_sha: str, zip_si
             "pushed": True if publication else None,
         },
         "validation": {
-            "members_match_committed_bytes": runtime_build is None or runtime_build["source"]["mode"] == "git-blobs" or not any(name.startswith("out/") for name in members),
+            "members_match_committed_bytes": runtime_build is None or runtime_build["source"]["mode"] in {"git-blobs", "git-blobs-with-preserved-generated"} or not any(name.startswith("out/") for name in members),
             "static_members_match_committed_bytes": True,
             "runtime_artifact_origins_verified": True,
             "generated_members_match_fixed_source_build": runtime_build is not None and runtime_build["source"]["mode"] == "source-build",

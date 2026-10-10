@@ -54,6 +54,7 @@ test('fixed commit ignores dirty source and poisoned historical output; CLI emit
     const built = f.build()
     assert.equal(built.source_commit, f.source)
     assert.equal(built.dependency_source, 'trusted-local-install')
+    assert.equal(built.root_dir, 'src')
     assert.deepEqual(built.files, ['out/runtime.js', 'out/worker.js'])
     assert.match(fs.readFileSync(path.join(f.output, 'out/runtime.js'), 'utf8'), /value = 1/)
     const cli = spawnSync(process.execPath, [path.join(repoRoot, 'tools/build-runtime-artifact.cjs'), '--repo', f.repo, '--source', f.source, '--output', path.join(root, 'cli-output'), '--dependency-root', dependencyRoot], { encoding: 'utf8' })
