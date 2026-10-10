@@ -60,6 +60,8 @@ const state_1 = require("./lounge/state");
 const local_client_compat_1 = require("./lib/local-client-compat");
 const version_1 = require("./lib/version");
 const custom_cdn_resource_routes_1 = require("./lib/custom-cdn-resource-routes");
+const file_download_1 = require("./lib/file-download");
+const client_address_1 = require("./lib/client-address");
 const versionCheck_1 = __importDefault(require("./routes/cn/versionCheck"));
 const ios_leiting_1 = __importDefault(require("./routes/cn/ios-leiting"));
 const leitingAuth_1 = __importDefault(require("./routes/cn/leitingAuth"));
@@ -137,6 +139,8 @@ const fastify = (0, fastify_1.default)({
         // Debug launchers explicitly opt back into info.
         level: process.env.LOG_LEVEL || "warn"
     },
+    // request.ip honours X-Forwarded-For only from trusted proxy hops.
+    trustProxy: (0, client_address_1.trustProxySetting)(),
     bodyLimit: 262144 // 256KB — covers /single_battle_quest/finish large battle stats
 });
 (0, local_client_compat_1.installLocalClientCompat)(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || ((0, version_1.getPatchManifest)().patches.some(p => p.enabled && p.local_test_only
@@ -163,10 +167,8 @@ const RATE_LIMIT_WINDOW = 60000;
 const RATE_LIMIT_MAP_MAX = 4096;
 let nextRateLimitSweep = 0;
 fastify.addHook("onRequest", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d, _e;
-    if (request.url === "/crash") {
-        const ip = ((_e = (_d = request.headers["x-forwarded-for"]) === null || _d === void 0 ? void 0 : _d.split(",")[0]) === null || _e === void 0 ? void 0 : _e.trim())
-            || request.ip;
+    if (request.routeOptions.url === "/crash") {
+        const ip = request.ip;
         const now = Date.now();
         if (now >= nextRateLimitSweep) {
             for (const [key, value] of rateLimitMap) {
@@ -298,9 +300,9 @@ function persistSeedFeedback() {
     });
 }
 fastify.get("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
+    var _d;
     const ts = new Date().toISOString();
-    const loc = ((_f = request.query) === null || _f === void 0 ? void 0 : _f.loc) || "unknown";
+    const loc = ((_d = request.query) === null || _d === void 0 ? void 0 : _d.loc) || "unknown";
     // Parse C3032 from beacon query string (04e patch sends via CrashUtil.debugBeacon)
     try {
         parseC3032Beacon(loc);
@@ -384,9 +386,9 @@ function parsePlayBeacon(loc) {
     }
 }
 fastify.post("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g;
+    var _e;
     const ts = new Date().toISOString();
-    const loc = ((_g = request.body) === null || _g === void 0 ? void 0 : _g.loc) || "unknown";
+    const loc = ((_e = request.body) === null || _e === void 0 ? void 0 : _e.loc) || "unknown";
     (0, game_logging_1.gameVerboseLog)(() => `[BEACON ${ts}] ${loc}`);
     // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
     try {
@@ -485,9 +487,9 @@ const cdnDir = process.env.CDN_DIR || ".cdn";
 // Serve patch archive files for asset update
 fastify.get("/patch/cn/asset-patch/active/:file", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     const { file } = request.params;
-    const patchFile = path_1.default.join(__dirname, "..", "assets", "asset-patch", "active", file);
-    if ((0, file_exists_1.existsSync)(patchFile)) {
-        return reply.type("application/zip").send((0, fs_1.readFileSync)(patchFile));
+    const patchFile = (0, file_download_1.resolvePlainFileInside)(path_1.default.join(__dirname, "..", "assets", "asset-patch", "active"), file);
+    if (patchFile && (0, file_download_1.sendFileStream)(reply, patchFile, "application/zip")) {
+        return reply;
     }
     return reply.status(404).send("Not Found");
 }));
