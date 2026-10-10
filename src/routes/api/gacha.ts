@@ -352,7 +352,7 @@ const routes = async (fastify: FastifyInstance) => {
         const isCharacterGacha = gachaData.type == GachaType.CHARACTER
 
         const previewPlayer = getPlayerSync(playerId)
-        if (previewPlayer === null) return
+        if (previewPlayer === null) return reply.status(500).send({ "error": "Internal Server Error", "message": "Player not found." })
         const previewGachaData = getPlayerGachaInfoSync(playerId, gachaId) ?? {
             gachaId,
             isAccountFirst: true,

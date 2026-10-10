@@ -25,6 +25,7 @@ const mission_1 = require("../../lib/mission");
 const game_logging_1 = require("../../lib/game-logging");
 const rewards_1 = require("../../multi/five-boss/rewards");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const request_ids_1 = require("../../lib/request-ids");
 const wrightpieceItemId = () => (0, assets_1.getConfigSync)().craft_point_item_id || 100000;
 // wrightpiece cost for each rank of weapon (awakening) — from CDN
 const getUpgradeCost = (rarity) => { var _a, _b; return (_b = (_a = (0, assets_1.getEquipmentCraftSync)(rarity)) === null || _a === void 0 ? void 0 : _a.awakening_craft) !== null && _b !== void 0 ? _b : 25; };
@@ -56,14 +57,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     const awakeningRules = (0, assets_1.getEquipmentAwakeningRulesSync)();
     // ── upgrade (single equipment awakening) ───────────────────────────
     fastify.post("/upgrade", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a;
         const body = request.body;
         const viewerId = body.viewer_id;
-        const upgradeCount = Math.max(1, (_a = body.upgrade_count) !== null && _a !== void 0 ? _a : 1);
+        const upgradeCount = body.upgrade_count === undefined || body.upgrade_count === null
+            ? 1
+            : (0, request_ids_1.parsePositiveSafeInteger)(body.upgrade_count);
         const useStack = body.use_stack;
         const itemId = body.item_id;
-        const equipmentId = body.equipment_id;
-        if (isNaN(viewerId) || isNaN(equipmentId) || useStack === undefined) {
+        const equipmentId = (0, request_ids_1.parsePositiveSafeInteger)(body.equipment_id);
+        if (isNaN(viewerId) || equipmentId === null || upgradeCount === null || useStack === undefined) {
             return reply.status(400).send({ "error": "Bad Request", "message": "Invalid request body." });
         }
         const session = yield (0, session_1.getSession)(viewerId.toString());
@@ -73,9 +76,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(accountId);
         if (playerId === null)
             return reply.status(500).send({ "error": "Internal Server Error", "message": "No players bound to account." });
-        const equipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
-        if (!equipment)
+        if (!(0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId)) {
             return reply.status(400).send({ "error": "Bad Request", "message": "Player does not own equipment." });
+        }
         if (!useStack && !(0, rewards_1.canUseAwakeningSubstitutionItem)(equipmentId)) {
             return reply.status(400).send({ error: "Bad Request", message: "This equipment requires duplicate bodies for awakening." });
         }
@@ -83,29 +86,36 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!itemCheck.ok)
             return reply.status(400).send({ "error": "Bad Request", "message": itemCheck.message });
         const cdnInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
-        const maxLevel = (_b = cdnInfo === null || cdnInfo === void 0 ? void 0 : cdnInfo.max_level) !== null && _b !== void 0 ? _b : 5;
-        const previousLevel = equipment.level;
-        const previousStack = equipment.stack;
-        const newLevel = equipment.level + upgradeCount;
-        if (newLevel > maxLevel)
-            return reply.status(400).send({ "error": "Bad Request", "message": "Reached max awakening level." });
-        const newStack = useStack ? equipment.stack - upgradeCount : equipment.stack;
-        if (newStack < 0)
-            return reply.status(400).send({ "error": "Bad Request", "message": "Not enough stack." });
+        const maxLevel = (_a = cdnInfo === null || cdnInfo === void 0 ? void 0 : cdnInfo.max_level) !== null && _a !== void 0 ? _a : 5;
         const equipmentRarity = Math.floor(equipmentId / 1000000); // 1-indexed
-        const wrightPieces = (_c = (0, item_1.getPlayerItemSync)(playerId, wrightpieceItemId())) !== null && _c !== void 0 ? _c : 0;
         const upgradeCost = getUpgradeCost(equipmentRarity);
-        const newWrightPieces = wrightPieces - (upgradeCost * upgradeCount);
-        if (newWrightPieces < 0)
-            return reply.status(400).send({ "error": "Bad Request", "message": "Not enough of wrightpieces." });
-        const itemCount = itemId ? (_d = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _d !== void 0 ? _d : 0 : 0;
-        const newItemCount = !useStack ? itemCount - upgradeCount : itemCount;
-        if (newItemCount < 0)
-            return reply.status(400).send({ "error": "Bad Request", "message": "Not enough of item." });
-        const returnItemList = {};
-        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+        // Equipment, wrightpiece and substitution item balances are read and
+        // validated inside the player write queue so overlapping requests see
+        // each other's deductions.
+        const outcome = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "player", playerId, operation: "equipment_upgrade",
         }, () => {
+            var _a, _b;
+            const equipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
+            if (!equipment)
+                return { ok: false, message: "Player does not own equipment." };
+            const previousLevel = equipment.level;
+            const previousStack = equipment.stack;
+            const newLevel = equipment.level + upgradeCount;
+            if (newLevel > maxLevel)
+                return { ok: false, message: "Reached max awakening level." };
+            const newStack = useStack ? equipment.stack - upgradeCount : equipment.stack;
+            if (newStack < 0)
+                return { ok: false, message: "Not enough stack." };
+            const wrightPieces = (_a = (0, item_1.getPlayerItemSync)(playerId, wrightpieceItemId())) !== null && _a !== void 0 ? _a : 0;
+            const newWrightPieces = wrightPieces - (upgradeCost * upgradeCount);
+            if (newWrightPieces < 0)
+                return { ok: false, message: "Not enough of wrightpieces." };
+            const itemCount = itemId ? (_b = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _b !== void 0 ? _b : 0 : 0;
+            const newItemCount = !useStack ? itemCount - upgradeCount : itemCount;
+            if (newItemCount < 0)
+                return { ok: false, message: "Not enough of item." };
+            const returnItemList = {};
             if (!useStack && itemId !== undefined) {
                 returnItemList[itemId] = newItemCount;
                 (0, item_1.updatePlayerItemSync)(playerId, itemId, newItemCount);
@@ -119,13 +129,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             if (dissolveInfo && dissolveInfo.generate_ability_soul) {
                 returnItemList[dissolveInfo.ability_soul_id] = (0, item_1.givePlayerItemSync)(playerId, dissolveInfo.ability_soul_id, upgradeCount);
             }
+            return { ok: true, returnItemList, previousLevel, previousStack, newLevel, newStack };
         });
+        if (!outcome.ok)
+            return reply.status(400).send({ "error": "Bad Request", "message": outcome.message });
         const returnEquipmentList = (0, equipment_2.buildFullEquipmentList)(playerId);
-        (0, game_logging_1.gameVerboseLog)(() => `[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${previousLevel}->${newLevel} stack ${previousStack}->${newStack} craft -${upgradeCost * upgradeCount}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${outcome.previousLevel}->${outcome.newLevel} stack ${outcome.previousStack}->${outcome.newStack} craft -${upgradeCost * upgradeCount}`);
         reply.header("content-type", "application/x-msgpack");
         const responseData = {
             "equipment_list": returnEquipmentList,
-            "item_list": returnItemList,
+            "item_list": outcome.returnItemList,
             "mail_arrived": false
         };
         mergeEquipmentDegreeSettlement(responseData, playerId, viewerId);
@@ -136,13 +149,17 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ── bulk_upgrade (one-click awakening) ─────────────────────────────
     fastify.post("/bulk_upgrade", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _e, _f, _g;
         const body = request.body;
         const viewerId = body.viewer_id;
-        const equipmentIds = body.equipment_ids;
-        if (isNaN(viewerId) || !equipmentIds || !Array.isArray(equipmentIds) || equipmentIds.length === 0) {
+        const rawEquipmentIds = body.equipment_ids;
+        if (isNaN(viewerId) || !rawEquipmentIds || !Array.isArray(rawEquipmentIds) || rawEquipmentIds.length === 0) {
             return reply.status(400).send({ "error": "Bad Request", "message": "Invalid request body." });
         }
+        const requestedIds = (0, request_ids_1.parsePositiveSafeIntegerList)(rawEquipmentIds);
+        if (requestedIds === null) {
+            return reply.status(400).send({ "error": "Bad Request", "message": "Invalid request body." });
+        }
+        const equipmentIds = (0, request_ids_1.uniqueIds)(requestedIds);
         const session = yield (0, session_1.getSession)(viewerId.toString());
         if (!session)
             return reply.status(400).send({ "error": "Bad Request", "message": "Invalid viewer id." });
@@ -153,45 +170,35 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const player = (0, player_1.getPlayerSync)(playerId);
         if (!player)
             return reply.status(500).send({ "error": "Internal Server Error", "message": "Player not found." });
-        const upgrades = [];
-        let totalCraftPointCost = 0;
-        const seen = new Set();
-        for (const equipmentId of equipmentIds) {
-            if (seen.has(equipmentId))
-                continue;
-            seen.add(equipmentId);
-            const equipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
-            if (!equipment)
-                continue;
-            const maxLvl = (_f = (_e = (0, assets_1.getEquipmentDissolveSync)(equipmentId)) === null || _e === void 0 ? void 0 : _e.max_level) !== null && _f !== void 0 ? _f : 5;
-            const upgradeCount = Math.min(maxLvl - equipment.level, equipment.stack);
-            if (upgradeCount <= 0)
-                continue;
-            const rarity = Math.floor(equipmentId / 1000000); // 1-indexed
-            totalCraftPointCost += getUpgradeCost(rarity) * upgradeCount;
-            upgrades.push({ equipmentId, upgradeCount });
-        }
-        if (upgrades.length === 0) {
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send({
-                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
-                "data": { "equipment_list": [], "item_list": {}, "mail_arrived": false }
-            });
-        }
-        const currentCraftPoints = (_g = (0, item_1.getPlayerItemSync)(playerId, wrightpieceItemId())) !== null && _g !== void 0 ? _g : 0;
-        if (totalCraftPointCost > currentCraftPoints) {
-            return reply.status(400).send({ "error": "Bad Request", "message": "Not enough craft points." });
-        }
-        const returnItemList = {};
-        const newCraftPoints = currentCraftPoints - totalCraftPointCost;
-        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+        // Plan, validate and apply inside the player write queue so the
+        // wrightpiece balance cannot be spent twice by overlapping requests.
+        const outcome = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "player", playerId, operation: "equipment_bulk_upgrade",
         }, () => {
-            for (const { equipmentId, upgradeCount } of upgrades) {
+            var _a, _b, _c;
+            const upgrades = [];
+            let totalCraftPointCost = 0;
+            for (const equipmentId of equipmentIds) {
                 const equipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
-                equipment.level += upgradeCount;
-                equipment.stack -= upgradeCount;
-                (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { level: equipment.level, stack: equipment.stack });
+                if (!equipment)
+                    continue;
+                const maxLvl = (_b = (_a = (0, assets_1.getEquipmentDissolveSync)(equipmentId)) === null || _a === void 0 ? void 0 : _a.max_level) !== null && _b !== void 0 ? _b : 5;
+                const upgradeCount = Math.min(maxLvl - equipment.level, equipment.stack);
+                if (upgradeCount <= 0)
+                    continue;
+                const rarity = Math.floor(equipmentId / 1000000); // 1-indexed
+                totalCraftPointCost += getUpgradeCost(rarity) * upgradeCount;
+                upgrades.push({ equipmentId, upgradeCount, level: equipment.level, stack: equipment.stack });
+            }
+            if (upgrades.length === 0)
+                return { kind: "empty" };
+            const currentCraftPoints = (_c = (0, item_1.getPlayerItemSync)(playerId, wrightpieceItemId())) !== null && _c !== void 0 ? _c : 0;
+            if (totalCraftPointCost > currentCraftPoints)
+                return { kind: "insufficient" };
+            const returnItemList = {};
+            const newCraftPoints = currentCraftPoints - totalCraftPointCost;
+            for (const { equipmentId, upgradeCount, level, stack } of upgrades) {
+                (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { level: level + upgradeCount, stack: stack - upgradeCount });
                 const dissolveInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
                 if (dissolveInfo && dissolveInfo.generate_ability_soul) {
                     returnItemList[dissolveInfo.ability_soul_id] = (0, item_1.givePlayerItemSync)(playerId, dissolveInfo.ability_soul_id, upgradeCount);
@@ -199,14 +206,25 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             recordEquipmentAwakeningProgress(playerId, upgrades.reduce((total, upgrade) => total + upgrade.upgradeCount, 0));
             (0, item_1.updatePlayerItemSync)(playerId, wrightpieceItemId(), newCraftPoints);
+            returnItemList[wrightpieceItemId()] = newCraftPoints;
+            return { kind: "applied", upgrades, returnItemList, currentCraftPoints, newCraftPoints };
         });
-        returnItemList[wrightpieceItemId()] = newCraftPoints;
-        (0, game_logging_1.gameVerboseLog)(() => `[BULK_UPGRADE] account=${accountId} player=${playerId}: ${upgrades.length} equipment upgraded, craft points ${currentCraftPoints} -> ${newCraftPoints}`);
+        if (outcome.kind === "empty") {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                "data": { "equipment_list": [], "item_list": {}, "mail_arrived": false }
+            });
+        }
+        if (outcome.kind === "insufficient") {
+            return reply.status(400).send({ "error": "Bad Request", "message": "Not enough craft points." });
+        }
+        (0, game_logging_1.gameVerboseLog)(() => `[BULK_UPGRADE] account=${accountId} player=${playerId}: ${outcome.upgrades.length} equipment upgraded, craft points ${outcome.currentCraftPoints} -> ${outcome.newCraftPoints}`);
         const returnEquipmentList = (0, equipment_2.buildFullEquipmentList)(playerId);
         reply.header("content-type", "application/x-msgpack");
         const responseData = {
             "equipment_list": returnEquipmentList,
-            "item_list": returnItemList,
+            "item_list": outcome.returnItemList,
             "mail_arrived": false,
         };
         mergeEquipmentDegreeSettlement(responseData, playerId, viewerId);

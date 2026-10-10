@@ -254,7 +254,7 @@ function mergeCountedRewards(rewards) {
 }
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/buy", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c;
         const body = request.body;
         const viewerId = body.viewer_id;
         const shopType = body.shop_type;
@@ -265,7 +265,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Invalid request body."
             });
-        const purchaseAmount = Math.max(1, rawPurchaseAmount);
+        // Purchase counts multiply costs and rewards, so only whole positive
+        // counts are accepted; anything else is rejected before any lookup.
+        const purchaseAmount = Number(rawPurchaseAmount);
+        if (!Number.isSafeInteger(purchaseAmount) || purchaseAmount <= 0)
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid purchase amount."
+            });
         const viewerIdSession = yield (0, session_1.getSession)(viewerId.toString());
         if (!viewerIdSession)
             return reply.status(400).send({
@@ -306,157 +313,134 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": error instanceof Error ? error.message : "Invalid degree reward."
             });
         }
-        if (degreeIds.some(degreeId => (0, degree_1.hasPlayerDegreeSync)(playerId, degreeId))) {
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Player already owns this degree."
-            });
-        }
-        // validate stock limit
-        if (shopItemData.stock !== undefined && shopItemData.stock > 0) {
-            const purchased = getEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId);
-            if (purchased + purchaseAmount > shopItemData.stock) {
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Shop item purchase limit reached."
-                });
+        const reject = (message, status = 400) => ({ ok: false, status, message });
+        const isEnhancementShop = shopType === types_1.ShopType.TREASURE_EQUIPMENT;
+        // Every player-dependent check (title ownership, stock, equipment
+        // state, balances) is evaluated inside the player write queue, against
+        // the same state the purchase commits to. Reading balances outside the
+        // queue would let overlapping requests spend the same balance twice.
+        const outcome = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "shop", playerId, operation: isEnhancementShop ? "enhancement_purchase" : "purchase",
+        }, () => {
+            var _a, _b, _c;
+            const player = (0, player_1.getPlayerSync)(playerId);
+            if (player === null)
+                return reject("No players bound to account.", 500);
+            if (degreeIds.some(degreeId => (0, degree_1.hasPlayerDegreeSync)(playerId, degreeId))) {
+                return reject("Player already owns this degree.");
             }
-        }
-        let enhancementPurchase = null;
-        if (shopType === types_1.ShopType.TREASURE_EQUIPMENT) {
-            const now = (0, utils_1.getServerDate)();
-            if (!(0, shop_sales_1.isShopItemAvailable)(shopItemData, now))
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Enhancement item is not currently available."
-                });
-            const equipmentId = shopItemData.equipmentId;
-            const stageMaxLevel = shopItemData.enhancementMaxLevel;
-            const requiredAwakeningLevel = shopItemData.requireAwakeningLevel;
-            const shopCategoryId = shopItemData.shopCategoryId;
-            const groupId = shopItemData.groupId;
-            if (equipmentId === undefined
-                || stageMaxLevel === undefined
-                || requiredAwakeningLevel === undefined
-                || shopCategoryId === undefined
-                || groupId === undefined)
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Enhancement item is missing progression data."
-                });
-            const currentEquipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
-            if (currentEquipment === null)
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Player does not own the target equipment."
-                });
-            const stages = Object.entries((_a = (0, assets_1.getGenericShopItemsSync)(types_1.ShopType.TREASURE_EQUIPMENT)) !== null && _a !== void 0 ? _a : {})
-                .filter(([, item]) => (0, shop_sales_1.isShopItemAvailable)(item, now))
-                .flatMap(([id, item]) => {
-                if (item.shopCategoryId === undefined
-                    || item.groupId === undefined
-                    || item.equipmentId === undefined
-                    || item.stage === undefined
-                    || item.enhancementMaxLevel === undefined)
-                    return [];
-                return [{
-                        shopItemId: Number(id),
-                        shopCategoryId: item.shopCategoryId,
-                        groupId: item.groupId,
-                        equipmentId: item.equipmentId,
-                        stage: item.stage,
-                        maxLevel: item.enhancementMaxLevel,
-                    }];
-            });
-            const currentStage = (0, equipment_enhancement_1.findCurrentEquipmentEnhancementStage)(stages, {
-                shopCategoryId,
-                groupId,
-                equipmentId,
-                currentLevel: currentEquipment.enhancementLevel,
-            });
-            if (currentStage === null || currentStage.shopItemId !== shopItemId) {
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Enhancement item is not the current stage."
-                });
-            }
-            const plan = (0, equipment_enhancement_1.planEquipmentEnhancementPurchase)(currentEquipment.enhancementLevel, rawPurchaseAmount, stageMaxLevel, currentEquipment.level, requiredAwakeningLevel, (0, equipment_enhancement_1.resolveEquipmentEnhancementPurchaseMode)(shopCategoryId, shopItemData.enhancementPurchaseMode));
-            if (!plan.ok)
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": plan.message
-                });
-            enhancementPurchase = {
-                equipmentId,
-                newLevel: plan.newLevel,
-                chargedPurchaseAmount: plan.chargedPurchaseAmount,
-                grantedLevelCount: plan.grantedLevelCount,
-            };
-        }
-        const chargedPurchaseAmount = (_b = enhancementPurchase === null || enhancementPurchase === void 0 ? void 0 : enhancementPurchase.chargedPurchaseAmount) !== null && _b !== void 0 ? _b : purchaseAmount;
-        (0, game_logging_1.gameVerboseLog)(() => `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} ` +
-            `requested=${purchaseAmount} charged=${chargedPurchaseAmount} ` +
-            `before freeMana=${player.freeMana} paidMana=${player.paidMana} ` +
-            `freeVmoney=${player.freeVmoney} vmoney=${player.vmoney}`);
-        // keep track of various stats
-        const itemList = {};
-        let freeVmoney = player.freeVmoney;
-        let vmoney = player.vmoney;
-        let freeMana = player.freeMana;
-        let paidMana = player.paidMana;
-        let bondTokens = player.bondToken;
-        // verify user costs
-        const userCost = shopItemData.userCost;
-        if (userCost !== undefined) {
-            const totalCost = userCost.amount * chargedPurchaseAmount;
-            switch (userCost.type) {
-                case types_1.ShopItemUserCostType.MANA: {
-                    const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(freeMana, paidMana, totalCost);
-                    if (deduction === null)
-                        return reply.status(400).send({
-                            "error": "Bad Request",
-                            "message": `Not enough mana to purchase shop item.`
-                        });
-                    freeMana = deduction.freeBalance;
-                    paidMana = deduction.paidBalance;
-                    break;
+            // validate stock limit
+            if (shopItemData.stock !== undefined && shopItemData.stock > 0) {
+                const purchased = getEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId);
+                if (purchased + purchaseAmount > shopItemData.stock) {
+                    return reject("Shop item purchase limit reached.");
                 }
-                case types_1.ShopItemUserCostType.BEADS: {
-                    const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(freeVmoney, vmoney, totalCost);
-                    if (deduction === null)
-                        return reply.status(400).send({
-                            "error": "Bad Request",
-                            "message": `Not enough beads to purchase shop item.`
-                        });
-                    freeVmoney = deduction.freeBalance;
-                    vmoney = deduction.paidBalance;
-                    break;
-                }
-                case types_1.ShopItemUserCostType.AMITY_SCROLL:
-                    bondTokens -= totalCost;
             }
-            if (0 > bondTokens)
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": `Not enough amity scrolls to purchase shop item.`
+            let enhancementPurchase = null;
+            if (isEnhancementShop) {
+                const now = (0, utils_1.getServerDate)();
+                if (!(0, shop_sales_1.isShopItemAvailable)(shopItemData, now))
+                    return reject("Enhancement item is not currently available.");
+                const equipmentId = shopItemData.equipmentId;
+                const stageMaxLevel = shopItemData.enhancementMaxLevel;
+                const requiredAwakeningLevel = shopItemData.requireAwakeningLevel;
+                const shopCategoryId = shopItemData.shopCategoryId;
+                const groupId = shopItemData.groupId;
+                if (equipmentId === undefined
+                    || stageMaxLevel === undefined
+                    || requiredAwakeningLevel === undefined
+                    || shopCategoryId === undefined
+                    || groupId === undefined)
+                    return reject("Enhancement item is missing progression data.");
+                const currentEquipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
+                if (currentEquipment === null)
+                    return reject("Player does not own the target equipment.");
+                const stages = Object.entries((_a = (0, assets_1.getGenericShopItemsSync)(types_1.ShopType.TREASURE_EQUIPMENT)) !== null && _a !== void 0 ? _a : {})
+                    .filter(([, item]) => (0, shop_sales_1.isShopItemAvailable)(item, now))
+                    .flatMap(([id, item]) => {
+                    if (item.shopCategoryId === undefined
+                        || item.groupId === undefined
+                        || item.equipmentId === undefined
+                        || item.stage === undefined
+                        || item.enhancementMaxLevel === undefined)
+                        return [];
+                    return [{
+                            shopItemId: Number(id),
+                            shopCategoryId: item.shopCategoryId,
+                            groupId: item.groupId,
+                            equipmentId: item.equipmentId,
+                            stage: item.stage,
+                            maxLevel: item.enhancementMaxLevel,
+                        }];
                 });
-        }
-        // verify cost items
-        {
+                const currentStage = (0, equipment_enhancement_1.findCurrentEquipmentEnhancementStage)(stages, {
+                    shopCategoryId,
+                    groupId,
+                    equipmentId,
+                    currentLevel: currentEquipment.enhancementLevel,
+                });
+                if (currentStage === null || currentStage.shopItemId !== shopItemId) {
+                    return reject("Enhancement item is not the current stage.");
+                }
+                const plan = (0, equipment_enhancement_1.planEquipmentEnhancementPurchase)(currentEquipment.enhancementLevel, rawPurchaseAmount, stageMaxLevel, currentEquipment.level, requiredAwakeningLevel, (0, equipment_enhancement_1.resolveEquipmentEnhancementPurchaseMode)(shopCategoryId, shopItemData.enhancementPurchaseMode));
+                if (!plan.ok)
+                    return reject(plan.message);
+                enhancementPurchase = {
+                    equipmentId,
+                    newLevel: plan.newLevel,
+                    chargedPurchaseAmount: plan.chargedPurchaseAmount,
+                    grantedLevelCount: plan.grantedLevelCount,
+                };
+            }
+            const chargedPurchaseAmount = (_b = enhancementPurchase === null || enhancementPurchase === void 0 ? void 0 : enhancementPurchase.chargedPurchaseAmount) !== null && _b !== void 0 ? _b : purchaseAmount;
+            (0, game_logging_1.gameVerboseLog)(() => `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} ` +
+                `requested=${purchaseAmount} charged=${chargedPurchaseAmount} ` +
+                `before freeMana=${player.freeMana} paidMana=${player.paidMana} ` +
+                `freeVmoney=${player.freeVmoney} vmoney=${player.vmoney}`);
+            // keep track of various stats
+            const itemList = {};
+            let freeVmoney = player.freeVmoney;
+            let vmoney = player.vmoney;
+            let freeMana = player.freeMana;
+            let paidMana = player.paidMana;
+            let bondTokens = player.bondToken;
+            // verify user costs
+            const userCost = shopItemData.userCost;
+            if (userCost !== undefined) {
+                const totalCost = userCost.amount * chargedPurchaseAmount;
+                switch (userCost.type) {
+                    case types_1.ShopItemUserCostType.MANA: {
+                        const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(freeMana, paidMana, totalCost);
+                        if (deduction === null)
+                            return reject(`Not enough mana to purchase shop item.`);
+                        freeMana = deduction.freeBalance;
+                        paidMana = deduction.paidBalance;
+                        break;
+                    }
+                    case types_1.ShopItemUserCostType.BEADS: {
+                        const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(freeVmoney, vmoney, totalCost);
+                        if (deduction === null)
+                            return reject(`Not enough beads to purchase shop item.`);
+                        freeVmoney = deduction.freeBalance;
+                        vmoney = deduction.paidBalance;
+                        break;
+                    }
+                    case types_1.ShopItemUserCostType.AMITY_SCROLL:
+                        bondTokens -= totalCost;
+                }
+                if (0 > bondTokens)
+                    return reject(`Not enough amity scrolls to purchase shop item.`);
+            }
+            // verify cost items
             for (const cost of shopItemData.costs) {
                 const itemId = cost.id;
                 const itemAmount = (_c = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _c !== void 0 ? _c : 0;
                 const newItemAmount = itemAmount - (cost.amount * chargedPurchaseAmount);
                 if (0 > newItemAmount)
-                    return reply.status(400).send({
-                        "error": "Bad Request",
-                        "message": `Not enough of item with id ${itemId} to purchase shop item.`
-                    });
+                    return reject(`Not enough of item with id ${itemId} to purchase shop item.`);
                 itemList[itemId] = newItemAmount;
             }
-        }
-        const manaSpent = Math.max(0, (player.freeMana + player.paidMana) - (freeMana + paidMana));
-        const applyPurchaseCosts = () => {
+            const manaSpent = Math.max(0, (player.freeMana + player.paidMana) - (freeMana + paidMana));
             for (const [itemId, newAmount] of Object.entries(itemList)) {
                 (0, item_1.updatePlayerItemSync)(playerId, itemId, newAmount);
             }
@@ -470,19 +454,55 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
             if (manaSpent > 0)
                 (0, active_mission_counters_1.incrementActiveMissionUsedManaCountSync)(playerId, manaSpent);
-        };
-        // Equipment enhancement shop: update equipment enhancement level
-        if (enhancementPurchase !== null) {
-            const { equipmentId, newLevel, grantedLevelCount } = enhancementPurchase;
-            let equipmentDegreeIds = [];
-            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
-                domain: "shop", playerId, operation: "enhancement_purchase",
-            }, () => {
-                applyPurchaseCosts();
+            // Equipment enhancement shop: update equipment enhancement level
+            if (enhancementPurchase !== null) {
+                const { equipmentId, newLevel } = enhancementPurchase;
                 (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { enhancementLevel: newLevel });
                 addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, chargedPurchaseAmount);
-                equipmentDegreeIds = (0, equipment_degree_rewards_1.grantEquipmentDegreeRewardsSync)(playerId, [equipmentId]);
+                const equipmentDegreeIds = (0, equipment_degree_rewards_1.grantEquipmentDegreeRewardsSync)(playerId, [equipmentId]);
+                return {
+                    ok: true,
+                    kind: "enhancement",
+                    enhancementPurchase,
+                    equipmentDegreeIds,
+                    itemList,
+                    balances: { freeVmoney, vmoney, freeMana, paidMana, bondTokens },
+                };
+            }
+            // Character rewards expand per purchase. Reject invalid stock/cost
+            // requests before constructing that potentially large array.
+            const rewards = [];
+            appendShopItemRewards(rewards, shopItemData, purchaseAmount);
+            // Costs, ordinary rewards, title ownership and stock history must commit
+            // together. A title product must never charge the player and then fail
+            // between the reward and ownership writes.
+            const result = (0, quest_1.givePlayerRewardsSync)(playerId, rewards);
+            if (result === null)
+                throw new Error("Failed to grant shop rewards.");
+            for (const degreeId of degreeIds) {
+                if (!(0, degree_1.grantPlayerDegreeSync)(playerId, degreeId)) {
+                    throw new Error(`Degree ${degreeId} is already owned.`);
+                }
+            }
+            addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount);
+            const abyssDegreeIds = (0, abyss_shop_degree_reward_1.grantPurchasedAbyssShopDegreeRewardSync)(playerId, shopType, [{ shopItemId }]);
+            return {
+                ok: true,
+                kind: "purchase",
+                rewardResult: result,
+                abyssDegreeIds,
+                itemList,
+                manaSpent,
+            };
+        });
+        if (!outcome.ok)
+            return reply.status(outcome.status).send({
+                "error": outcome.status === 500 ? "Internal Server Error" : "Bad Request",
+                "message": outcome.message
             });
+        if (outcome.kind === "enhancement") {
+            const { equipmentId, newLevel, grantedLevelCount } = outcome.enhancementPurchase;
+            const { freeVmoney, vmoney, freeMana, paidMana, bondTokens } = outcome.balances;
             const currentEquipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
             (0, game_logging_1.gameVerboseLog)(() => `[shop:enhancement-benefit] player=${playerId} equipment=${equipmentId} ` +
                 `item=${shopItemId} grantedLevels=${grantedLevelCount} newLevel=${newLevel}`);
@@ -501,91 +521,19 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     },
                     "character_list": [],
                     "equipment_list": [(0, equipment_2.clientSerializeEquipment)(equipmentId, currentEquipment)],
-                    "degree_list": equipmentDegreeIds.map(degreeId => ({
+                    "degree_list": outcome.equipmentDegreeIds.map(degreeId => ({
                         viewer_id: viewerId,
                         degree_id: degreeId,
                     })),
-                    "item_list": itemList,
+                    "item_list": outcome.itemList,
                     "mail_arrived": false
                 }
             });
         }
-        // build rewards array
-        const rewards = [];
-        for (const reward of shopItemData.rewards) {
-            switch (reward.type) {
-                case types_1.ShopItemRewardType.ITEM: {
-                    const shopReward = reward;
-                    rewards.push({
-                        name: "",
-                        type: types_1.RewardType.ITEM,
-                        id: shopReward.id,
-                        count: shopReward.count * purchaseAmount
-                    });
-                    break;
-                }
-                case types_1.ShopItemRewardType.EXP: {
-                    const shopReward = reward;
-                    rewards.push({
-                        name: "",
-                        type: types_1.RewardType.EXP,
-                        count: shopReward.count * purchaseAmount
-                    });
-                    break;
-                }
-                case types_1.ShopItemRewardType.MANA: {
-                    const shopReward = reward;
-                    rewards.push({
-                        name: "",
-                        type: types_1.RewardType.MANA,
-                        count: shopReward.count * purchaseAmount
-                    });
-                    break;
-                }
-                case types_1.ShopItemRewardType.CHARACTER: {
-                    const shopReward = reward;
-                    for (let i = 0; i < purchaseAmount; i++) {
-                        rewards.push({
-                            name: "",
-                            type: types_1.RewardType.CHARACTER,
-                            id: shopReward.id
-                        });
-                    }
-                    break;
-                }
-                case types_1.ShopItemRewardType.EQUIPMENT: {
-                    const shopReward = reward;
-                    rewards.push({
-                        name: "",
-                        type: types_1.RewardType.EQUIPMENT,
-                        id: shopReward.id,
-                        count: shopReward.count * purchaseAmount
-                    });
-                    break;
-                }
-            }
-        }
-        // Costs, ordinary rewards, title ownership and stock history must commit
-        // together. A title product must never charge the player and then fail
-        // between the reward and ownership writes.
-        const rewardResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "shop", playerId, operation: "purchase",
-        }, () => {
-            applyPurchaseCosts();
-            const result = (0, quest_1.givePlayerRewardsSync)(playerId, rewards);
-            if (result === null)
-                throw new Error("Failed to grant shop rewards.");
-            for (const degreeId of degreeIds) {
-                if (!(0, degree_1.grantPlayerDegreeSync)(playerId, degreeId)) {
-                    throw new Error(`Degree ${degreeId} is already owned.`);
-                }
-            }
-            addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount);
-            degreeIds.push(...(0, abyss_shop_degree_reward_1.grantPurchasedAbyssShopDegreeRewardSync)(playerId, shopType, [{ shopItemId }]));
-            return result;
-        });
+        const { rewardResult, itemList, manaSpent } = outcome;
+        degreeIds.push(...outcome.abyssDegreeIds);
         recordTreasureShopProgress(playerId, shopType, purchaseAmount, manaSpent);
-        const characterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, ((_d = rewardResult === null || rewardResult === void 0 ? void 0 : rewardResult.character_list) !== null && _d !== void 0 ? _d : []));
+        const characterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, ((_a = rewardResult === null || rewardResult === void 0 ? void 0 : rewardResult.character_list) !== null && _a !== void 0 ? _a : []));
         // verify DB write
         const afterPlayer = (0, player_1.getPlayerSync)(playerId);
         (0, game_logging_1.gameVerboseLog)(() => {
@@ -605,8 +553,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "exp_pool": afterPlayer.expPool,
             },
             "character_list": characterList,
-            "equipment_list": (_e = rewardResult === null || rewardResult === void 0 ? void 0 : rewardResult.equipment_list) !== null && _e !== void 0 ? _e : [],
-            "item_list": Object.assign(Object.assign({}, itemList), ((_f = rewardResult === null || rewardResult === void 0 ? void 0 : rewardResult.items) !== null && _f !== void 0 ? _f : {})),
+            "equipment_list": (_b = rewardResult === null || rewardResult === void 0 ? void 0 : rewardResult.equipment_list) !== null && _b !== void 0 ? _b : [],
+            "item_list": Object.assign(Object.assign({}, itemList), ((_c = rewardResult === null || rewardResult === void 0 ? void 0 : rewardResult.items) !== null && _c !== void 0 ? _c : {})),
             "degree_list": degreeIds.map(degreeId => ({
                 viewer_id: viewerId,
                 degree_id: degreeId,
@@ -622,7 +570,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/get_sales_list", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _g, _h, _j;
+        var _d, _e, _f;
         const body = request.body;
         const viewerId = body.viewer_id;
         const shopTypes = body.shop_types;
@@ -652,7 +600,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // shop types
         for (const type of shopTypes) {
             const items = (0, assets_1.getGenericShopItemsSync)(type);
-            const existing = (_g = toParseShopItems[type]) !== null && _g !== void 0 ? _g : {};
+            const existing = (_d = toParseShopItems[type]) !== null && _d !== void 0 ? _d : {};
             toParseShopItems[type] = items === null ? existing : Object.assign(Object.assign({}, existing), items);
         }
         // event list
@@ -660,14 +608,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const type = event.event_type;
             for (const eventId of event.event_ids) {
                 const items = (0, assets_1.getEventShopItemsSync)(type, eventId);
-                const existing = (_h = toParseShopItems[types_1.ShopType.EVENT_ITEM]) !== null && _h !== void 0 ? _h : {};
+                const existing = (_e = toParseShopItems[types_1.ShopType.EVENT_ITEM]) !== null && _e !== void 0 ? _e : {};
                 toParseShopItems[types_1.ShopType.EVENT_ITEM] = items === null ? existing : Object.assign(Object.assign({}, existing), items);
             }
         }
         // boss coin shop category ids
         for (const category of bossCoinShopCategoryIds) {
             const items = (0, assets_1.getBossCoinShopItemsSync)(category);
-            const existing = (_j = toParseShopItems[types_1.ShopType.BOSS_COIN]) !== null && _j !== void 0 ? _j : {};
+            const existing = (_f = toParseShopItems[types_1.ShopType.BOSS_COIN]) !== null && _f !== void 0 ? _f : {};
             toParseShopItems[types_1.ShopType.BOSS_COIN] = items === null ? existing : Object.assign(Object.assign({}, existing), items);
         }
         // parse shop items
@@ -747,8 +695,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "No player bound to account."
             });
-        const player = (0, player_1.getPlayerSync)(playerId);
-        if (!player)
+        if (!(0, player_1.getPlayerSync)(playerId))
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "Player not found."
             });
@@ -756,32 +703,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const recoveryCost = config.stamina_recovery_virtual_money;
         const recoveryValue = config.stamina_recovery_value;
         const maxOverflow = config.max_stamina_overflow;
-        const currentStamina = (0, stamina_1.computeRealTimeStamina)(player);
-        // Already at max
-        if (currentStamina >= maxOverflow) {
-            (0, game_logging_1.gameVerboseLog)(() => `[RECOVER-STAMINA] player ${playerId} already at max (${currentStamina} >= ${maxOverflow})`);
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send({
-                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, result_code: 2102 }),
-                "data": {}
-            });
-        }
-        const vmoneyDeduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(player.freeVmoney, player.vmoney, recoveryCost);
-        if (vmoneyDeduction === null) {
-            console.warn(`[RECOVER-STAMINA] player ${playerId} insufficient vmoney: ` +
-                `free=${player.freeVmoney} paid=${player.vmoney} cost=${recoveryCost}`);
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send({
-                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, result_code: 0 }),
-                "data": {}
-            });
-        }
-        // Calculate recovery amount (capped at overflow)
-        const afterStamina = Math.min(currentStamina + recoveryValue, maxOverflow);
-        const actualRecovery = afterStamina - currentStamina;
-        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+        // Stamina and bead balances are read inside the player write queue so
+        // overlapping requests cannot pay once and recover several times.
+        const outcome = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "shop", playerId, operation: "recover_stamina",
         }, () => {
+            const player = (0, player_1.getPlayerSync)(playerId);
+            if (!player)
+                return { kind: "missing" };
+            const currentStamina = (0, stamina_1.computeRealTimeStamina)(player);
+            if (currentStamina >= maxOverflow)
+                return { kind: "full", currentStamina };
+            const vmoneyDeduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(player.freeVmoney, player.vmoney, recoveryCost);
+            if (vmoneyDeduction === null) {
+                return { kind: "insufficient", freeVmoney: player.freeVmoney, vmoney: player.vmoney };
+            }
+            // Calculate recovery amount (capped at overflow)
+            const afterStamina = Math.min(currentStamina + recoveryValue, maxOverflow);
             (0, player_1.updatePlayerSync)({
                 id: playerId,
                 stamina: afterStamina,
@@ -789,10 +727,42 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 freeVmoney: vmoneyDeduction.freeBalance,
                 vmoney: vmoneyDeduction.paidBalance,
             });
+            return {
+                kind: "applied",
+                currentStamina,
+                afterStamina,
+                vmoneyDeduction,
+                previousFreeVmoney: player.freeVmoney,
+                previousVmoney: player.vmoney,
+            };
         });
+        if (outcome.kind === "missing")
+            return reply.status(500).send({
+                "error": "Internal Server Error", "message": "Player not found."
+            });
+        // Already at max
+        if (outcome.kind === "full") {
+            (0, game_logging_1.gameVerboseLog)(() => `[RECOVER-STAMINA] player ${playerId} already at max (${outcome.currentStamina} >= ${maxOverflow})`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, result_code: 2102 }),
+                "data": {}
+            });
+        }
+        if (outcome.kind === "insufficient") {
+            console.warn(`[RECOVER-STAMINA] player ${playerId} insufficient vmoney: ` +
+                `free=${outcome.freeVmoney} paid=${outcome.vmoney} cost=${recoveryCost}`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, result_code: 0 }),
+                "data": {}
+            });
+        }
+        const { currentStamina, afterStamina, vmoneyDeduction } = outcome;
+        const actualRecovery = afterStamina - currentStamina;
         (0, game_logging_1.gameVerboseLog)(() => `[RECOVER-STAMINA] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${actualRecovery}), ` +
-            `freeVmoney ${player.freeVmoney}->${vmoneyDeduction.freeBalance}, ` +
-            `vmoney ${player.vmoney}->${vmoneyDeduction.paidBalance}`);
+            `freeVmoney ${outcome.previousFreeVmoney}->${vmoneyDeduction.freeBalance}, ` +
+            `vmoney ${outcome.previousVmoney}->${vmoneyDeduction.paidBalance}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -813,7 +783,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         method: ["GET", "POST"],
         url: "/bulk_buy",
         handler: (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-            var _k, _l, _m, _o, _p;
+            var _g;
             const rawRequest = (request.method === "GET"
                 ? Object.assign(Object.assign({}, request.query), request.body) : request.body);
             const viewerId = Number(rawRequest === null || rawRequest === void 0 ? void 0 : rawRequest.viewer_id);
@@ -830,7 +800,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                         buyItemList = parsed;
                     }
                 }
-                catch (_q) {
+                catch (_h) {
                     // Some clients use flattened query keys; handled below.
                 }
             }
@@ -862,220 +832,234 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "error": "Internal Server Error",
                     "message": "No players bound to account."
                 });
-            const player = (0, player_1.getPlayerSync)(playerId);
-            if (player === null)
+            if ((0, player_1.getPlayerSync)(playerId) === null)
                 return reply.status(500).send({
                     "error": "Internal Server Error",
                     "message": "Player not found."
                 });
-            const purchases = [];
-            const rewards = [];
-            const degreeIds = [];
-            const ownedDegreeIds = new Set((0, degree_1.getPlayerDegreeIdsSync)(playerId));
-            const plannedDegreeIds = new Set();
-            const itemCostTotals = new Map();
-            let manaCost = 0;
-            let vmoneyCost = 0;
-            let bondTokenCost = 0;
-            let availableFreeMana = player.freeMana;
-            let availablePaidMana = player.paidMana;
-            let availableFreeVmoney = player.freeVmoney;
-            let availablePaidVmoney = player.vmoney;
-            let availableBondToken = player.bondToken;
-            const availableItems = new Map();
-            const purchaseNow = (0, utils_1.getServerDate)();
-            let skippedEntries = Math.max(0, (buyItemList === null ? 0 : Object.keys(buyItemList).length) - rawEntries.length);
+            // Request keys are strings; several spellings can name the same
+            // product. Merge them on the numeric shop item id so stock limits and
+            // costs apply to the combined amount.
+            const requestedAmounts = new Map();
+            let rejectedRequestEntries = Math.max(0, (buyItemList === null ? 0 : Object.keys(buyItemList).length) - rawEntries.length);
             for (const [rawShopItemId, rawPurchaseAmount] of rawEntries) {
                 const shopItemId = Number(rawShopItemId);
                 const requestedAmount = Number(rawPurchaseAmount);
                 if (!Number.isSafeInteger(shopItemId) ||
                     !Number.isSafeInteger(requestedAmount) ||
                     requestedAmount <= 0) {
-                    skippedEntries++;
+                    rejectedRequestEntries++;
                     continue;
                 }
-                const shopItem = (0, assets_1.getShopItemSync)(shopType, shopItemId);
-                if (shopItem === null) {
-                    skippedEntries++;
+                const combined = ((_g = requestedAmounts.get(shopItemId)) !== null && _g !== void 0 ? _g : 0) + requestedAmount;
+                if (!Number.isSafeInteger(combined)) {
+                    rejectedRequestEntries++;
                     continue;
                 }
-                if (shopType === types_1.ShopType.EVENT_ITEM && !(0, shop_sales_1.isShopItemAvailable)(shopItem, purchaseNow)) {
-                    skippedEntries++;
-                    continue;
-                }
-                // Keep unlimited/free products bounded even if a malformed client sends
-                // an extreme amount. Stock-limited products are capped again below.
-                let purchaseAmount = Math.min(requestedAmount, 10000);
-                if (shopItem.stock !== undefined && shopItem.stock > 0) {
-                    const purchased = getEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId);
-                    purchaseAmount = Math.min(purchaseAmount, Math.max(0, shopItem.stock - purchased));
-                    if (purchaseAmount <= 0) {
-                        skippedEntries++;
-                        continue;
-                    }
-                }
-                let shopDegreeIds;
-                try {
-                    shopDegreeIds = getShopDegreeRewards(shopItem, purchaseAmount);
-                }
-                catch (_r) {
-                    skippedEntries++;
-                    continue;
-                }
-                if (shopDegreeIds.some(degreeId => ownedDegreeIds.has(degreeId) || plannedDegreeIds.has(degreeId))) {
-                    skippedEntries++;
-                    continue;
-                }
-                const userCost = shopItem.userCost;
-                let userCostBudget = null;
-                if (userCost !== undefined) {
-                    if (!Number.isSafeInteger(userCost.amount) || userCost.amount < 0) {
-                        skippedEntries++;
-                        continue;
-                    }
-                    switch (userCost.type) {
-                        case types_1.ShopItemUserCostType.MANA:
-                            userCostBudget = availableFreeMana + availablePaidMana;
-                            break;
-                        case types_1.ShopItemUserCostType.BEADS:
-                            userCostBudget = availableFreeVmoney + availablePaidVmoney;
-                            break;
-                        case types_1.ShopItemUserCostType.AMITY_SCROLL:
-                            userCostBudget = availableBondToken;
-                            break;
-                        default:
-                            skippedEntries++;
-                            continue;
-                    }
-                    if (userCost.amount > 0) {
-                        purchaseAmount = Math.min(purchaseAmount, Math.floor(userCostBudget / userCost.amount));
-                    }
-                }
-                const perPurchaseItemCosts = new Map();
-                let invalidCost = false;
-                for (const cost of shopItem.costs) {
-                    if (!Number.isSafeInteger(cost.id) || !Number.isSafeInteger(cost.amount) || cost.amount < 0) {
-                        invalidCost = true;
-                        break;
-                    }
-                    const perPurchase = ((_k = perPurchaseItemCosts.get(cost.id)) !== null && _k !== void 0 ? _k : 0) + cost.amount;
-                    if (!Number.isSafeInteger(perPurchase)) {
-                        invalidCost = true;
-                        break;
-                    }
-                    perPurchaseItemCosts.set(cost.id, perPurchase);
-                }
-                if (invalidCost) {
-                    skippedEntries++;
-                    continue;
-                }
-                for (const [itemId, perPurchase] of perPurchaseItemCosts) {
-                    let available = availableItems.get(itemId);
-                    if (available === undefined) {
-                        available = (_l = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _l !== void 0 ? _l : 0;
-                        availableItems.set(itemId, available);
-                    }
-                    if (perPurchase > 0) {
-                        purchaseAmount = Math.min(purchaseAmount, Math.floor(available / perPurchase));
-                    }
-                }
-                if (purchaseAmount <= 0) {
-                    skippedEntries++;
-                    continue;
-                }
-                if (userCost !== undefined) {
-                    const total = userCost.amount * purchaseAmount;
-                    if (!Number.isSafeInteger(total)) {
-                        skippedEntries++;
-                        continue;
-                    }
-                    switch (userCost.type) {
-                        case types_1.ShopItemUserCostType.MANA: {
-                            const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(availableFreeMana, availablePaidMana, total);
-                            if (deduction === null) {
-                                skippedEntries++;
-                                continue;
-                            }
-                            manaCost += total;
-                            availableFreeMana = deduction.freeBalance;
-                            availablePaidMana = deduction.paidBalance;
-                            break;
-                        }
-                        case types_1.ShopItemUserCostType.BEADS: {
-                            const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(availableFreeVmoney, availablePaidVmoney, total);
-                            if (deduction === null) {
-                                skippedEntries++;
-                                continue;
-                            }
-                            vmoneyCost += total;
-                            availableFreeVmoney = deduction.freeBalance;
-                            availablePaidVmoney = deduction.paidBalance;
-                            break;
-                        }
-                        case types_1.ShopItemUserCostType.AMITY_SCROLL:
-                            bondTokenCost += total;
-                            availableBondToken -= total;
-                            break;
-                    }
-                }
-                for (const [itemId, perPurchase] of perPurchaseItemCosts) {
-                    const total = perPurchase * purchaseAmount;
-                    const existing = (_m = itemCostTotals.get(itemId)) !== null && _m !== void 0 ? _m : 0;
-                    const available = (_o = availableItems.get(itemId)) !== null && _o !== void 0 ? _o : 0;
-                    if (!Number.isSafeInteger(total) || !Number.isSafeInteger(existing + total)) {
-                        invalidCost = true;
-                        break;
-                    }
-                    itemCostTotals.set(itemId, existing + total);
-                    availableItems.set(itemId, available - total);
-                }
-                if (invalidCost) {
-                    // This can only be reached for corrupt master data; previous checks
-                    // make it unreachable for normal client input.
-                    skippedEntries++;
-                    continue;
-                }
-                for (const degreeId of shopDegreeIds) {
-                    plannedDegreeIds.add(degreeId);
-                    degreeIds.push(degreeId);
-                }
-                appendShopItemRewards(rewards, shopItem, purchaseAmount);
-                purchases.push({ shopItemId, purchaseAmount, shopItem });
+                requestedAmounts.set(shopItemId, combined);
             }
-            if (!Number.isSafeInteger(manaCost) ||
-                !Number.isSafeInteger(vmoneyCost) ||
-                !Number.isSafeInteger(bondTokenCost))
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Bulk purchase cost is too large."
-                });
-            const costItemList = {};
-            for (const [itemId, amount] of itemCostTotals) {
-                const currentAmount = (_p = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _p !== void 0 ? _p : 0;
-                costItemList[itemId] = currentAmount - amount;
-            }
-            const mergedRewards = mergeCountedRewards(rewards);
-            for (const reward of mergedRewards) {
-                if (!("count" in reward))
-                    continue;
-                const countedReward = reward;
-                if (!Number.isSafeInteger(countedReward.count) ||
-                    countedReward.count < 0)
-                    return reply.status(400).send({
-                        "error": "Bad Request",
-                        "message": "Bulk purchase reward amount is too large."
-                    });
-            }
-            (0, game_logging_1.gameVerboseLog)(() => `[shop:bulk_buy] player=${playerId} shopType=${shopType} ` +
-                `items=${JSON.stringify(Object.fromEntries(purchases.map(v => [v.shopItemId, v.purchaseAmount])))} ` +
-                `skipped=${skippedEntries} ` +
-                `manaCost=${manaCost} vmoneyCost=${vmoneyCost} bondTokenCost=${bondTokenCost} ` +
-                `itemCosts=${JSON.stringify(Object.fromEntries(itemCostTotals))}`);
-            let rewardResult;
+            const reject = (message) => ({ ok: false, message });
+            let outcome;
             try {
-                rewardResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                // Planning reads balances, stock history and owned titles; it runs
+                // inside the player write queue so the plan matches the state the
+                // writes below commit to.
+                outcome = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
                     domain: "shop", playerId, operation: "bulk_purchase",
                 }, () => {
+                    var _a, _b, _c, _d, _e;
+                    const player = (0, player_1.getPlayerSync)(playerId);
+                    if (player === null)
+                        throw new Error(`Player ${playerId} disappeared during bulk purchase`);
+                    const purchases = [];
+                    const rewards = [];
+                    const degreeIds = [];
+                    const ownedDegreeIds = new Set((0, degree_1.getPlayerDegreeIdsSync)(playerId));
+                    const plannedDegreeIds = new Set();
+                    const itemCostTotals = new Map();
+                    let manaCost = 0;
+                    let vmoneyCost = 0;
+                    let bondTokenCost = 0;
+                    let availableFreeMana = player.freeMana;
+                    let availablePaidMana = player.paidMana;
+                    let availableFreeVmoney = player.freeVmoney;
+                    let availablePaidVmoney = player.vmoney;
+                    let availableBondToken = player.bondToken;
+                    const availableItems = new Map();
+                    const purchaseNow = (0, utils_1.getServerDate)();
+                    let skippedEntries = rejectedRequestEntries;
+                    for (const [shopItemId, requestedAmount] of requestedAmounts) {
+                        const shopItem = (0, assets_1.getShopItemSync)(shopType, shopItemId);
+                        if (shopItem === null) {
+                            skippedEntries++;
+                            continue;
+                        }
+                        if (shopType === types_1.ShopType.EVENT_ITEM && !(0, shop_sales_1.isShopItemAvailable)(shopItem, purchaseNow)) {
+                            skippedEntries++;
+                            continue;
+                        }
+                        // Keep unlimited/free products bounded even if a malformed client sends
+                        // an extreme amount. Stock-limited products are capped again below.
+                        let purchaseAmount = Math.min(requestedAmount, 10000);
+                        if (shopItem.stock !== undefined && shopItem.stock > 0) {
+                            const purchased = getEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId);
+                            purchaseAmount = Math.min(purchaseAmount, Math.max(0, shopItem.stock - purchased));
+                            if (purchaseAmount <= 0) {
+                                skippedEntries++;
+                                continue;
+                            }
+                        }
+                        let shopDegreeIds;
+                        try {
+                            shopDegreeIds = getShopDegreeRewards(shopItem, purchaseAmount);
+                        }
+                        catch (_f) {
+                            skippedEntries++;
+                            continue;
+                        }
+                        if (shopDegreeIds.some(degreeId => ownedDegreeIds.has(degreeId) || plannedDegreeIds.has(degreeId))) {
+                            skippedEntries++;
+                            continue;
+                        }
+                        const userCost = shopItem.userCost;
+                        let userCostBudget = null;
+                        if (userCost !== undefined) {
+                            if (!Number.isSafeInteger(userCost.amount) || userCost.amount < 0) {
+                                skippedEntries++;
+                                continue;
+                            }
+                            switch (userCost.type) {
+                                case types_1.ShopItemUserCostType.MANA:
+                                    userCostBudget = availableFreeMana + availablePaidMana;
+                                    break;
+                                case types_1.ShopItemUserCostType.BEADS:
+                                    userCostBudget = availableFreeVmoney + availablePaidVmoney;
+                                    break;
+                                case types_1.ShopItemUserCostType.AMITY_SCROLL:
+                                    userCostBudget = availableBondToken;
+                                    break;
+                                default:
+                                    skippedEntries++;
+                                    continue;
+                            }
+                            if (userCost.amount > 0) {
+                                purchaseAmount = Math.min(purchaseAmount, Math.floor(userCostBudget / userCost.amount));
+                            }
+                        }
+                        const perPurchaseItemCosts = new Map();
+                        let invalidCost = false;
+                        for (const cost of shopItem.costs) {
+                            if (!Number.isSafeInteger(cost.id) || !Number.isSafeInteger(cost.amount) || cost.amount < 0) {
+                                invalidCost = true;
+                                break;
+                            }
+                            const perPurchase = ((_a = perPurchaseItemCosts.get(cost.id)) !== null && _a !== void 0 ? _a : 0) + cost.amount;
+                            if (!Number.isSafeInteger(perPurchase)) {
+                                invalidCost = true;
+                                break;
+                            }
+                            perPurchaseItemCosts.set(cost.id, perPurchase);
+                        }
+                        if (invalidCost) {
+                            skippedEntries++;
+                            continue;
+                        }
+                        for (const [itemId, perPurchase] of perPurchaseItemCosts) {
+                            let available = availableItems.get(itemId);
+                            if (available === undefined) {
+                                available = (_b = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _b !== void 0 ? _b : 0;
+                                availableItems.set(itemId, available);
+                            }
+                            if (perPurchase > 0) {
+                                purchaseAmount = Math.min(purchaseAmount, Math.floor(available / perPurchase));
+                            }
+                        }
+                        if (purchaseAmount <= 0) {
+                            skippedEntries++;
+                            continue;
+                        }
+                        if (userCost !== undefined) {
+                            const total = userCost.amount * purchaseAmount;
+                            if (!Number.isSafeInteger(total)) {
+                                skippedEntries++;
+                                continue;
+                            }
+                            switch (userCost.type) {
+                                case types_1.ShopItemUserCostType.MANA: {
+                                    const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(availableFreeMana, availablePaidMana, total);
+                                    if (deduction === null) {
+                                        skippedEntries++;
+                                        continue;
+                                    }
+                                    manaCost += total;
+                                    availableFreeMana = deduction.freeBalance;
+                                    availablePaidMana = deduction.paidBalance;
+                                    break;
+                                }
+                                case types_1.ShopItemUserCostType.BEADS: {
+                                    const deduction = (0, free_first_deduction_1.computeFreeFirstDeduction)(availableFreeVmoney, availablePaidVmoney, total);
+                                    if (deduction === null) {
+                                        skippedEntries++;
+                                        continue;
+                                    }
+                                    vmoneyCost += total;
+                                    availableFreeVmoney = deduction.freeBalance;
+                                    availablePaidVmoney = deduction.paidBalance;
+                                    break;
+                                }
+                                case types_1.ShopItemUserCostType.AMITY_SCROLL:
+                                    bondTokenCost += total;
+                                    availableBondToken -= total;
+                                    break;
+                            }
+                        }
+                        for (const [itemId, perPurchase] of perPurchaseItemCosts) {
+                            const total = perPurchase * purchaseAmount;
+                            const existing = (_c = itemCostTotals.get(itemId)) !== null && _c !== void 0 ? _c : 0;
+                            const available = (_d = availableItems.get(itemId)) !== null && _d !== void 0 ? _d : 0;
+                            if (!Number.isSafeInteger(total) || !Number.isSafeInteger(existing + total)) {
+                                invalidCost = true;
+                                break;
+                            }
+                            itemCostTotals.set(itemId, existing + total);
+                            availableItems.set(itemId, available - total);
+                        }
+                        if (invalidCost) {
+                            // This can only be reached for corrupt master data; previous checks
+                            // make it unreachable for normal client input.
+                            skippedEntries++;
+                            continue;
+                        }
+                        for (const degreeId of shopDegreeIds) {
+                            plannedDegreeIds.add(degreeId);
+                            degreeIds.push(degreeId);
+                        }
+                        appendShopItemRewards(rewards, shopItem, purchaseAmount);
+                        purchases.push({ shopItemId, purchaseAmount, shopItem });
+                    }
+                    if (!Number.isSafeInteger(manaCost) ||
+                        !Number.isSafeInteger(vmoneyCost) ||
+                        !Number.isSafeInteger(bondTokenCost))
+                        return reject("Bulk purchase cost is too large.");
+                    const costItemList = {};
+                    for (const [itemId, amount] of itemCostTotals) {
+                        const currentAmount = (_e = (0, item_1.getPlayerItemSync)(playerId, itemId)) !== null && _e !== void 0 ? _e : 0;
+                        costItemList[itemId] = currentAmount - amount;
+                    }
+                    const mergedRewards = mergeCountedRewards(rewards);
+                    for (const reward of mergedRewards) {
+                        if (!("count" in reward))
+                            continue;
+                        const countedReward = reward;
+                        if (!Number.isSafeInteger(countedReward.count) ||
+                            countedReward.count < 0)
+                            return reject("Bulk purchase reward amount is too large.");
+                    }
+                    (0, game_logging_1.gameVerboseLog)(() => `[shop:bulk_buy] player=${playerId} shopType=${shopType} ` +
+                        `items=${JSON.stringify(Object.fromEntries(purchases.map(v => [v.shopItemId, v.purchaseAmount])))} ` +
+                        `skipped=${skippedEntries} ` +
+                        `manaCost=${manaCost} vmoneyCost=${vmoneyCost} bondTokenCost=${bondTokenCost} ` +
+                        `itemCosts=${JSON.stringify(Object.fromEntries(itemCostTotals))}`);
                     for (const [itemId, newAmount] of Object.entries(costItemList)) {
                         (0, item_1.updatePlayerItemSync)(playerId, itemId, newAmount);
                     }
@@ -1103,7 +1087,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     }
                     degreeIds.push(...(0, abyss_shop_degree_reward_1.grantPurchasedAbyssShopDegreeRewardSync)(playerId, shopType, purchases));
                     recordTreasureShopProgress(playerId, shopType, purchases.reduce((total, purchase) => total + purchase.purchaseAmount, 0), manaCost);
-                    return result;
+                    return { ok: true, result, costItemList, degreeIds };
                 });
             }
             catch (error) {
@@ -1113,6 +1097,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "message": "Bulk purchase transaction failed."
                 });
             }
+            if (!outcome.ok)
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": outcome.message
+                });
+            const { result: rewardResult, costItemList, degreeIds } = outcome;
             const afterPlayer = (0, player_1.getPlayerSync)(playerId);
             if (afterPlayer === null || rewardResult === null)
                 return reply.status(500).send({

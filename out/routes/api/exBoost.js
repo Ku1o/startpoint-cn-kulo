@@ -143,64 +143,67 @@ const drawExpBoost = (request, reply, autoAccept) => __awaiter(void 0, void 0, v
         return reply.status(500).send({
             "error": "Internal Server Error", "message": "No players bound to account."
         });
-    const characterData = (0, character_1.getPlayerCharacterSync)(playerId, characterId);
-    if (characterData === null)
-        return reply.status(400).send({
-            "error": "Bad Request", "message": "Player does not own character."
-        });
     const characterAssetData = (0, assets_1.getCharacterDataSync)(characterId);
-    if (!characterAssetData)
+    if (!characterAssetData) {
+        if ((0, character_1.getPlayerCharacterSync)(playerId, characterId) === null)
+            return reply.status(400).send({
+                "error": "Bad Request", "message": "Player does not own character."
+            });
         return reply.status(500).send({
             "error": "Internal Server Error", "message": "Character does not have data."
         });
+    }
     const costItemData = (0, assets_1.getExBoostItemSync)(costItemId);
-    if (!costItemData)
-        return reply.status(400).send({
-            "error": "Bad Request", "message": "Attempt to use invalid cost item."
-        });
-    if ((costItemData.element !== undefined) && (costItemData.element !== characterAssetData.element))
-        return reply.status(400).send({
-            "error": "Bad Request", "message": "Attempt to use wrong item with different element from character."
-        });
-    const costItemAmount = (0, item_1.getPlayerItemSync)(playerId, costItemId);
-    if (costItemAmount === null)
-        return reply.status(400).send({
-            "error": "Bad Request", "message": "You do not own item."
-        });
-    const afterCostItemAmount = costItemAmount - costItemData.count;
-    if (0 > afterCostItemAmount)
-        return reply.status(400).send({
-            "error": "Bad Request", "message": "Not enough of item."
-        });
-    // ensure max over limit step (aligned with client isMaxOverLimitStep)
-    const rarity = characterAssetData.rarity;
-    const maxOver = character_2.characterMaxOverLimits[rarity];
-    if (maxOver === undefined || characterData.overLimitStep < maxOver)
-        return reply.status(400).send({
-            "error": "Bad Request", "message": "Character not at max over limit step."
-        });
-    const drawTier = costItemData.tier;
-    const exStatusPool = (0, assets_1.getExStatusPoolSync)(drawTier);
-    if (exStatusPool === null)
-        return reply.status(500).send({
-            "error": "Internal Server Error", "message": "Status pool not found."
-        });
-    const draw = drawExBoostAbilities(costItemId, exStatusPool);
-    const drawResult = {
-        characterId, statusId: draw.statusId, abilityIdList: draw.abilityIdList
-    };
-    const headers = (0, utils_1.generateDataHeaders)({ viewer_id: viewerId });
-    reply.header("content-type", "application/x-msgpack");
-    yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+    // Ownership, balance and over-limit checks run inside the player write
+    // queue so that overlapping requests each see the balance left by the
+    // previous one instead of all deducting from the same starting value.
+    const outcome = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
         domain: "player", playerId, operation: autoAccept ? "ex_boost_first_draw" : "ex_boost_draw",
     }, () => {
+        const reject = (status, message) => ({ ok: false, status, message });
+        const characterData = (0, character_1.getPlayerCharacterSync)(playerId, characterId);
+        if (characterData === null)
+            return reject(400, "Player does not own character.");
+        if (!costItemData)
+            return reject(400, "Attempt to use invalid cost item.");
+        if ((costItemData.element !== undefined) && (costItemData.element !== characterAssetData.element)) {
+            return reject(400, "Attempt to use wrong item with different element from character.");
+        }
+        const costItemAmount = (0, item_1.getPlayerItemSync)(playerId, costItemId);
+        if (costItemAmount === null)
+            return reject(400, "You do not own item.");
+        const afterCostItemAmount = costItemAmount - costItemData.count;
+        if (0 > afterCostItemAmount)
+            return reject(400, "Not enough of item.");
+        // ensure max over limit step (aligned with client isMaxOverLimitStep)
+        const rarity = characterAssetData.rarity;
+        const maxOver = character_2.characterMaxOverLimits[rarity];
+        if (maxOver === undefined || characterData.overLimitStep < maxOver) {
+            return reject(400, "Character not at max over limit step.");
+        }
+        const drawTier = costItemData.tier;
+        const exStatusPool = (0, assets_1.getExStatusPoolSync)(drawTier);
+        if (exStatusPool === null)
+            return reject(500, "Status pool not found.");
+        const draw = drawExBoostAbilities(costItemId, exStatusPool);
+        const drawResult = {
+            characterId, statusId: draw.statusId, abilityIdList: draw.abilityIdList
+        };
         (0, item_1.updatePlayerItemSync)(playerId, costItemId, afterCostItemAmount);
         if (autoAccept) {
             (0, character_1.updatePlayerCharacterSync)(playerId, characterId, {
                 exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
             });
         }
+        return { ok: true, characterData, drawResult, afterCostItemAmount };
     });
+    if (!outcome.ok)
+        return reply.status(outcome.status).send({
+            "error": outcome.status === 400 ? "Bad Request" : "Internal Server Error", "message": outcome.message
+        });
+    const { characterData, drawResult, afterCostItemAmount } = outcome;
+    const headers = (0, utils_1.generateDataHeaders)({ viewer_id: viewerId });
+    reply.header("content-type", "application/x-msgpack");
     if (autoAccept) {
         return reply.status(200).send({
             data_headers: headers,
