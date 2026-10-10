@@ -237,9 +237,10 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         }
 
         const data = { ...serializeRoomConnection(room), is_same_room: true };
-        if (viewerId === room.host_viewer_id) {
+        if (room.lifecycle.phase !== "BATTLE" && viewerId === room.host_viewer_id) {
             data.raising_state = 1
-        } else if (!sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation)) {
+        } else if (room.lifecycle.phase !== "BATTLE"
+            && !sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation)) {
             data.raising_state = 2
             gameVerboseLog(() => `[MULTI] restore_room: host offline, guest polls raising_state → 2`)
         }

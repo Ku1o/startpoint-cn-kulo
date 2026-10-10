@@ -206,10 +206,11 @@ function registerRoomRoutes(fastify) {
             });
         }
         const data = Object.assign(Object.assign({}, (0, serializer_1.serializeRoomConnection)(room)), { is_same_room: true });
-        if (viewerId === room.host_viewer_id) {
+        if (room.lifecycle.phase !== "BATTLE" && viewerId === room.host_viewer_id) {
             data.raising_state = 1;
         }
-        else if (!SessionManager_1.sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation)) {
+        else if (room.lifecycle.phase !== "BATTLE"
+            && !SessionManager_1.sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation)) {
             data.raising_state = 2;
             (0, game_logging_1.gameVerboseLog)(() => `[MULTI] restore_room: host offline, guest polls raising_state → 2`);
         }

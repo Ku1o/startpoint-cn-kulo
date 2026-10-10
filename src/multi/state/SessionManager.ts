@@ -106,6 +106,13 @@ export class SessionManager {
     private battleLevelNextClients = new Map<string, Set<string>>()
     private battleExpectedCount = new Map<string, number>()
     private battleBarrierCycles = new Map<string, BattleBarrierCycle>()
+    // Roster handed to setBattleExpectedCount at StartBattle, by connection id.
+    // It lets a seat open its battle socket after its lobby socket dropped.
+    private battleRosterSeats = new Map<string, Map<string, {
+        viewerId: number
+        playerId: number | null
+        roomGeneration: number
+    }>>()
     private retiredBattleSeats = new Map<string, Set<string>>()
     private battleHeartbeatTimers = new Map<string, NodeJS.Timeout>()
     private battleLastActivityAt = new Map<string, number>()
@@ -1092,6 +1099,86 @@ export class SessionManager {
         return undefined
     }
 
+    /**
+     * Resolve who owns a battle connection id. The lobby connection that
+     * issued the id is authoritative; when it is gone, a known battle seat for
+     * the same connection id (live, awaiting reconnect, on the StartBattle
+     * roster, or frozen by the five-boss runtime) identifies the viewer. Unknown ids resolve to null.
+     */
+    resolveBattleHandshakeIdentity(roomNumber: string, connectionId: string): {
+        viewerId: number
+        playerId: number | null
+        roomGeneration?: number
+    } | null {
+        const roomClient = this.getRoomClientByConnectionId(roomNumber, connectionId)
+        if (roomClient) {
+            return {
+                viewerId: roomClient.viewerId,
+                playerId: roomClient.playerId,
+                roomGeneration: roomClient.roomGeneration,
+            }
+        }
+        const battleClient = this.cidToBattleClient.get(connectionId)
+        if (battleClient && battleClient.roomNumber === roomNumber && battleClient.viewerId > 0) {
+            return {
+                viewerId: battleClient.viewerId,
+                playerId: battleClient.playerId,
+                roomGeneration: battleClient.roomGeneration,
+            }
+        }
+        let room: any
+        try {
+            room = require("../room/manager").getRoom(roomNumber)
+        } catch (e) {
+            room = undefined
+        }
+        const memberPlayerId = (viewerId: number): number | null => {
+            try {
+                return room ? require("../room/manager").getRoomMemberPlayerId(room, viewerId) : null
+            } catch (e) {
+                return null
+            }
+        }
+        // Battle peers carry the lobby round they started from; a seat that
+        // reconnects without its lobby socket must join that same round.
+        const battleGeneration = (): number | undefined => {
+            for (const id of this.battleClients.get(roomNumber) ?? []) {
+                const peer = this.cidToBattleClient.get(id)
+                if (peer) return peer.roomGeneration
+            }
+            return room?.lifecycle?.phase === "BATTLE"
+                ? Math.max(0, Number(room.lobby_generation ?? 0) - 1)
+                : undefined
+        }
+        for (const seat of this.battleBarrierCycles.get(roomNumber)?.missing.values() ?? []) {
+            if (seat.connectionId === connectionId && seat.viewerId > 0) {
+                return {
+                    viewerId: seat.viewerId,
+                    playerId: memberPlayerId(seat.viewerId),
+                    roomGeneration: battleGeneration(),
+                }
+            }
+        }
+        const rostered = this.battleRosterSeats.get(roomNumber)?.get(connectionId)
+        if (rostered) {
+            return {
+                viewerId: rostered.viewerId,
+                playerId: rostered.playerId ?? memberPlayerId(rostered.viewerId),
+                roomGeneration: rostered.roomGeneration,
+            }
+        }
+        const frozen = room?.five_boss_runtime?.battleIdentityByViewerId
+        if (frozen && typeof frozen === "object") {
+            for (const [viewerKey, identity] of Object.entries(frozen) as [string, any][]) {
+                const viewerId = Number(viewerKey)
+                if (identity?.connectionId === connectionId && Number.isSafeInteger(viewerId) && viewerId > 0) {
+                    return { viewerId, playerId: identity.playerId ?? null, roomGeneration: battleGeneration() }
+                }
+            }
+        }
+        return null
+    }
+
     addClientToRoom(client: SessionClient): Result<void> {
         const addr = this.addr(client.viewerId, client.roomNumber)
         const previous = this.clients.get(addr)
@@ -1241,6 +1328,12 @@ export class SessionManager {
             if (c && (roomGeneration === undefined || c.roomGeneration === roomGeneration)) out.push(c)
         }
         return out
+    }
+
+    /** True while any lobby or battle connection is indexed for the room. */
+    hasRoomConnections(roomNumber: string): boolean {
+        return (this.roomClients.get(roomNumber)?.size ?? 0) > 0
+            || (this.battleClients.get(roomNumber)?.size ?? 0) > 0
     }
 
     hasRoomClients(roomNumber: string): boolean {
@@ -1509,6 +1602,19 @@ export class SessionManager {
         this.battleExpectedCount.set(roomNumber, count)
         this.battleSceneStartedRooms.delete(roomNumber)
         this.pendingBattleLeaves.delete(roomNumber)
+        const roster = new Map<string, { viewerId: number; playerId: number | null; roomGeneration: number }>()
+        for (const seat of seats) {
+            if (!(seat.viewerId > 0) || !seat.connectionId) continue
+            const lobbyClient = this.getRoomClientByConnectionId(roomNumber, seat.connectionId)
+            if (!lobbyClient || lobbyClient.viewerId !== seat.viewerId) continue
+            roster.set(seat.connectionId, {
+                viewerId: seat.viewerId,
+                playerId: lobbyClient.playerId,
+                roomGeneration: lobbyClient.roomGeneration,
+            })
+        }
+        if (roster.size > 0) this.battleRosterSeats.set(roomNumber, roster)
+        else this.battleRosterSeats.delete(roomNumber)
         if (count > 0 && seats.length === count && seats.every(seat => seat.viewerId > 0 && seat.connectionId)
             && new Set(seats.map(seat => this.battleSeatKey(seat))).size === count) {
             // A frozen lobby member might never open a battle socket, so it
@@ -1542,6 +1648,7 @@ export class SessionManager {
         this.sceneReadyClients.delete(roomNumber)
         this.battleLevelNextClients.delete(roomNumber)
         this.battleExpectedCount.delete(roomNumber)
+        this.battleRosterSeats.delete(roomNumber)
         this.battleBarrierLogState.delete(roomNumber)
         this.battleSceneStartedRooms.delete(roomNumber)
         this.pendingBattleLeaves.delete(roomNumber)
@@ -1551,6 +1658,7 @@ export class SessionManager {
         for (const client of this.getClientsInRoom(roomNumber)) clearEquipmentBlock(client)
         this.clearBattleBarrierCycle(roomNumber)
         this.retiredBattleSeats.delete(roomNumber)
+        this.battleRosterSeats.delete(roomNumber)
         clearChainDiagnosticRoom(roomNumber)
         const abandonedTimer = this.abandonedBattleTimers.get(roomNumber)
         if (abandonedTimer) clearTimeout(abandonedTimer)
@@ -1567,6 +1675,10 @@ export class SessionManager {
         for (const key of this.roomConnectionGenerations.keys()) {
             if (key.endsWith(`@${roomNumber}`)) this.roomConnectionGenerations.delete(key)
         }
+        try {
+            const lobby = require("../tcp/lobby")
+            lobby.clearLobbyRoomState?.(roomNumber)
+        } catch (e) {}
     }
 
     sendJson(

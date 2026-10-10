@@ -51,6 +51,11 @@ export const SESSION_MAX_FRAMES_PER_TICK = positiveInteger(
 let server: net.Server | null = null
 const activeSockets = new Set<net.Socket>()
 
+export function handleRuntimeServerError(error: Error): void {
+    const code = (error as NodeJS.ErrnoException).code ?? "unknown"
+    console.error(`[TCP] session server error code=${code}:`, error.message)
+}
+
 export function startSessionServer(): Promise<void> {
     return new Promise((resolve, reject) => {
         if (server) {
@@ -282,10 +287,19 @@ export function startSessionServer(): Promise<void> {
         server.once("error", handleListenError)
         server.listen(SESSION_PORT, SESSION_HOST, () => {
             server?.off("error", handleListenError)
+            // Accept-time failures (for example EMFILE) are emitted on the
+            // listening server. Without a permanent listener they would become
+            // process-level uncaught exceptions.
+            server?.on("error", handleRuntimeServerError)
             console.log(`[TCP] session server listening on ${SESSION_HOST}:${SESSION_PORT}`)
             resolve()
         })
     })
+}
+
+/** The listening session server, if started (diagnostics and tests). */
+export function getSessionServer(): net.Server | null {
+    return server
 }
 
 export function stopSessionServer(): Promise<void> {

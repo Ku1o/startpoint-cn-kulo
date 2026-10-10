@@ -713,6 +713,46 @@ function scheduleRematchRosterCleanup(roomNumber: string): void {
     rematchCleanupTimers.set(roomNumber, timer)
 }
 
+/**
+ * Drop per-room lobby bookkeeping when a room is removed. Room numbers can be
+ * reused, so stale entries here must not leak into a later room.
+ */
+export function clearLobbyRoomState(roomNumber: string): void {
+    const rematchTimer = rematchCleanupTimers.get(roomNumber)
+    if (rematchTimer) clearTimeout(rematchTimer)
+    rematchCleanupTimers.delete(roomNumber)
+    rematchCleanedGeneration.delete(roomNumber)
+    const reconcileTimer = npcReconcileTimers.get(roomNumber)
+    if (reconcileTimer) clearTimeout(reconcileTimer)
+    npcReconcileTimers.delete(roomNumber)
+    npcReconcilePendingRooms.delete(roomNumber)
+    // npcRecruitingRooms is owned by the in-flight recruitment and is always
+    // released in its finally block; clearing it here could let that stale
+    // finally clear a newer room's marker.
+}
+
+/** Test-only view of per-room lobby bookkeeping. */
+export function getLobbyRoomStateForTests(roomNumber: string): {
+    rematchTimer: boolean
+    rematchCleanedGeneration: number | undefined
+    npcReconcileTimer: boolean
+    npcReconcilePending: boolean
+} {
+    return {
+        rematchTimer: rematchCleanupTimers.has(roomNumber),
+        rematchCleanedGeneration: rematchCleanedGeneration.get(roomNumber),
+        npcReconcileTimer: npcReconcileTimers.has(roomNumber),
+        npcReconcilePending: npcReconcilePendingRooms.has(roomNumber),
+    }
+}
+
+/** Test-only seed for per-room lobby bookkeeping. */
+export function seedLobbyRoomStateForTests(roomNumber: string, generation: number): void {
+    rematchCleanedGeneration.set(roomNumber, generation)
+    npcReconcilePendingRooms.add(roomNumber)
+    scheduleNpcReconcile(roomNumber, 60_000)
+}
+
 export function scheduleRematchDisconnectCleanup(roomNumber: string): void {
     const existingTimer = rematchCleanupTimers.get(roomNumber)
     if (existingTimer) clearTimeout(existingTimer)
@@ -954,6 +994,19 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
 
 function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): void {
     markTcpDisconnectReason(client.socket, "client_bye")
+    const room = getRoom(client.roomNumber)
+    // StartBattle advances the generation before the client closes its lobby
+    // socket. That Bye only ends the lobby transport; the frozen battle seat
+    // remains the identity used by /load and restore_room. A late Bye from a
+    // previous round likewise cannot release a seat in the current lobby.
+    if (!room || room.lifecycle.phase !== "LOBBY"
+        || client.roomGeneration !== room.lobby_generation) {
+        sessionManager.removeClient(client)
+        try { client.socket.destroy() } catch (e) {}
+        gameVerboseLog(() => `[LOBBY] transport ended: viewer=${client.viewerId} room=${client.roomNumber}`
+            + ` generation=${client.roomGeneration} phase=${room?.lifecycle.phase ?? "missing"}`)
+        return
+    }
     const set = (sessionManager as any).roomClients?.get?.(client.roomNumber) as Set<string> | undefined
     if (set) {
         const clientsMap = (sessionManager as any).clients as Map<string, SessionClient> | undefined
@@ -967,7 +1020,6 @@ function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): vo
         }
     }
     const hostClient = findHostClient(client.roomNumber)
-    const room = getRoom(client.roomNumber)
     removeRoomMember(client.roomNumber, client.viewerId)
     if (room && room.lifecycle.phase === "LOBBY" && client.roomGeneration === room.lobby_generation) {
         room.expected_real_viewer_ids = room.expected_real_viewer_ids
@@ -1284,17 +1336,23 @@ function handleBroadcast(_socket: net.Socket, client: SessionClient, data: any[]
     )
 }
 
-function handleSend(_socket: net.Socket, _client: SessionClient, data: any[]): void {
-    const targetViewerId = data[1] as number
-    const roomNumber = _client.roomNumber
-    const clientsMap = (sessionManager as any).clients as Map<string, SessionClient> | undefined
-    if (!clientsMap) return
-    for (const c of clientsMap.values()) {
-        if (c.viewerId === targetViewerId && c.roomNumber === roomNumber) {
-            sessionManager.sendJson(c.socket, data)
-            return
-        }
-    }
+function handleSend(_socket: net.Socket, client: SessionClient, data: any[]): void {
+    const targetViewerId = Number(data[1])
+    if (!Number.isSafeInteger(targetViewerId) || targetViewerId <= 0) return
+    // Lobby clients are indexed by viewer@room, so the target is a direct
+    // lookup. Apply the same recipient rules as broadcastToRoom: current
+    // connection, Enter already answered, and the room's current round.
+    const target = sessionManager.getClient(targetViewerId, client.roomNumber)
+    if (!target || target.isBattle || target.superseded || target.enterData === null) return
+    const currentGeneration = getRoom(client.roomNumber)?.lobby_generation
+    if (currentGeneration !== undefined && target.roomGeneration !== currentGeneration) return
+    sessionManager.sendJson(target.socket, data, {
+        roomNumber: client.roomNumber,
+        connectionId: target.connectionId,
+        viewerId: target.viewerId,
+        roomGeneration: target.roomGeneration,
+        channel: "lobby",
+    })
 }
 
 export function handleMessage(socket: net.Socket, data: unknown): void {

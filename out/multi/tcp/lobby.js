@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleMessage = exports.scheduleRematchDisconnectCleanup = exports.recruitNpcMatesForRoom = exports.scheduleNpcReconcile = exports.notifyRoomDisbanded = exports.refreshEquipmentReadiness = exports.checkHostAutoReady = void 0;
+exports.handleMessage = exports.scheduleRematchDisconnectCleanup = exports.seedLobbyRoomStateForTests = exports.getLobbyRoomStateForTests = exports.clearLobbyRoomState = exports.recruitNpcMatesForRoom = exports.scheduleNpcReconcile = exports.notifyRoomDisbanded = exports.refreshEquipmentReadiness = exports.checkHostAutoReady = void 0;
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const SessionManager_1 = require("../state/SessionManager");
 const manager_1 = require("../room/manager");
@@ -672,6 +672,43 @@ function scheduleRematchRosterCleanup(roomNumber) {
     timer.unref();
     rematchCleanupTimers.set(roomNumber, timer);
 }
+/**
+ * Drop per-room lobby bookkeeping when a room is removed. Room numbers can be
+ * reused, so stale entries here must not leak into a later room.
+ */
+function clearLobbyRoomState(roomNumber) {
+    const rematchTimer = rematchCleanupTimers.get(roomNumber);
+    if (rematchTimer)
+        clearTimeout(rematchTimer);
+    rematchCleanupTimers.delete(roomNumber);
+    rematchCleanedGeneration.delete(roomNumber);
+    const reconcileTimer = npcReconcileTimers.get(roomNumber);
+    if (reconcileTimer)
+        clearTimeout(reconcileTimer);
+    npcReconcileTimers.delete(roomNumber);
+    npcReconcilePendingRooms.delete(roomNumber);
+    // npcRecruitingRooms is owned by the in-flight recruitment and is always
+    // released in its finally block; clearing it here could let that stale
+    // finally clear a newer room's marker.
+}
+exports.clearLobbyRoomState = clearLobbyRoomState;
+/** Test-only view of per-room lobby bookkeeping. */
+function getLobbyRoomStateForTests(roomNumber) {
+    return {
+        rematchTimer: rematchCleanupTimers.has(roomNumber),
+        rematchCleanedGeneration: rematchCleanedGeneration.get(roomNumber),
+        npcReconcileTimer: npcReconcileTimers.has(roomNumber),
+        npcReconcilePending: npcReconcilePendingRooms.has(roomNumber),
+    };
+}
+exports.getLobbyRoomStateForTests = getLobbyRoomStateForTests;
+/** Test-only seed for per-room lobby bookkeeping. */
+function seedLobbyRoomStateForTests(roomNumber, generation) {
+    rematchCleanedGeneration.set(roomNumber, generation);
+    npcReconcilePendingRooms.add(roomNumber);
+    scheduleNpcReconcile(roomNumber, 60000);
+}
+exports.seedLobbyRoomStateForTests = seedLobbyRoomStateForTests;
 function scheduleRematchDisconnectCleanup(roomNumber) {
     const existingTimer = rematchCleanupTimers.get(roomNumber);
     if (existingTimer)
@@ -895,6 +932,25 @@ function handleEnter(socket, client, data) {
 function handleBye(_socket, client, _data) {
     var _a, _b;
     (0, disconnect_diagnostics_1.markTcpDisconnectReason)(client.socket, "client_bye");
+    const room = (0, manager_1.getRoom)(client.roomNumber);
+    // StartBattle advances the generation before the client closes its lobby
+    // socket. That Bye only ends the lobby transport; the frozen battle seat
+    // remains the identity used by /load and restore_room. A late Bye from a
+    // previous round likewise cannot release a seat in the current lobby.
+    if (!room || room.lifecycle.phase !== "LOBBY"
+        || client.roomGeneration !== room.lobby_generation) {
+        SessionManager_1.sessionManager.removeClient(client);
+        try {
+            client.socket.destroy();
+        }
+        catch (e) { }
+        (0, game_logging_1.gameVerboseLog)(() => {
+            var _a;
+            return `[LOBBY] transport ended: viewer=${client.viewerId} room=${client.roomNumber}`
+                + ` generation=${client.roomGeneration} phase=${(_a = room === null || room === void 0 ? void 0 : room.lifecycle.phase) !== null && _a !== void 0 ? _a : "missing"}`;
+        });
+        return;
+    }
     const set = (_b = (_a = SessionManager_1.sessionManager.roomClients) === null || _a === void 0 ? void 0 : _a.get) === null || _b === void 0 ? void 0 : _b.call(_a, client.roomNumber);
     if (set) {
         const clientsMap = SessionManager_1.sessionManager.clients;
@@ -908,7 +964,6 @@ function handleBye(_socket, client, _data) {
         }
     }
     const hostClient = findHostClient(client.roomNumber);
-    const room = (0, manager_1.getRoom)(client.roomNumber);
     (0, manager_1.removeRoomMember)(client.roomNumber, client.viewerId);
     if (room && room.lifecycle.phase === "LOBBY" && client.roomGeneration === room.lobby_generation) {
         room.expected_real_viewer_ids = room.expected_real_viewer_ids
@@ -1230,18 +1285,27 @@ function handleBroadcast(_socket, client, data) {
         return;
     SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [2, client.connectionId, messages], `${client.viewerId}@${client.roomNumber}`);
 }
-function handleSend(_socket, _client, data) {
-    const targetViewerId = data[1];
-    const roomNumber = _client.roomNumber;
-    const clientsMap = SessionManager_1.sessionManager.clients;
-    if (!clientsMap)
+function handleSend(_socket, client, data) {
+    var _a;
+    const targetViewerId = Number(data[1]);
+    if (!Number.isSafeInteger(targetViewerId) || targetViewerId <= 0)
         return;
-    for (const c of clientsMap.values()) {
-        if (c.viewerId === targetViewerId && c.roomNumber === roomNumber) {
-            SessionManager_1.sessionManager.sendJson(c.socket, data);
-            return;
-        }
-    }
+    // Lobby clients are indexed by viewer@room, so the target is a direct
+    // lookup. Apply the same recipient rules as broadcastToRoom: current
+    // connection, Enter already answered, and the room's current round.
+    const target = SessionManager_1.sessionManager.getClient(targetViewerId, client.roomNumber);
+    if (!target || target.isBattle || target.superseded || target.enterData === null)
+        return;
+    const currentGeneration = (_a = (0, manager_1.getRoom)(client.roomNumber)) === null || _a === void 0 ? void 0 : _a.lobby_generation;
+    if (currentGeneration !== undefined && target.roomGeneration !== currentGeneration)
+        return;
+    SessionManager_1.sessionManager.sendJson(target.socket, data, {
+        roomNumber: client.roomNumber,
+        connectionId: target.connectionId,
+        viewerId: target.viewerId,
+        roomGeneration: target.roomGeneration,
+        channel: "lobby",
+    });
 }
 function handleMessage(socket, data) {
     if (!Array.isArray(data))
