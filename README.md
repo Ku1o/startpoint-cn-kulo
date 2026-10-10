@@ -40,7 +40,7 @@ cp .env.example .env
 bash scripts/start-cn.sh
 ```
 
-Windows 也可以使用仓库根目录的 `start-cn-production.bat`。首次运行前请按实际网络环境修改 `.env`：局域网真机需要填写服务器 LAN 地址，云服应填写 Cloudflare/CDN 公网地址和联机公网地址。
+Windows 也可以使用仓库根目录的 `start-cn-production.bat`。从 Git 获取源码后，首次运行先执行 `npm ci` 和 `npm run build`，生成本地 `out/`；该 BAT 使用已有产物，不自动编译。云服覆盖包已包含对应运行产物。首次运行前请按实际网络环境修改 `.env`：局域网真机需要填写服务器 LAN 地址，云服应填写 Cloudflare/CDN 公网地址和联机公网地址。
 
 上述启动脚本将 stdout/stderr 合并到 `.logs/cn-server-YYYYMMDD-HH00.log`，按北京时间
 00/04/08/12/16/20 点切分，每四小时一份，同一时段重启追加、不覆盖。当前文件与游戏
@@ -119,7 +119,7 @@ Android 与 iOS 的详细流程见[客户端补丁说明](./client-patch/README.
 
 ## 开发与交付
 
-正常开发与整合在 `main` 进行。普通协作者从最新 `main` 建立临时分支并向 `main` 提交 PR；仓库所有者在任务授权和保护规则允许时可验证后直接推送。正式交付标签按 `Asia/Singapore` 真实日期每日递增编号，标签只固定已有提交，不额外增加代码 commit。服务端 TypeScript 改动需要同时验证并交付对应 `out/` 产物，云服覆盖包只包含运行必需文件，不包含 `.env`、数据库、日志、密钥或本地工作目录。
+正常开发与整合在 `main` 进行。普通协作者从最新 `main` 建立临时分支并向 `main` 提交 PR；仓库所有者在任务授权和保护规则允许时可验证后直接推送。正式交付标签按 `Asia/Singapore` 真实日期每日递增编号，标签只固定已有提交，不额外增加代码 commit。Git 保存源码及编译输入，不跟踪生成的 `out/`；服务端改动通过实际暂存输入的隔离编译检查，云服打包从固定提交生成并核验运行产物。覆盖包不包含 `.env`、数据库、日志、密钥或本地工作目录。详见[运行产物流程](docs/development/runtime-artifacts.md)。
 
 具体分支、同步与整合包规则见[开发与交付流程](./docs/development/branch-workflow.md)。私有仓库边界见[私有仓库说明](./PRIVATE_REPOSITORY.md)。
 

@@ -27,6 +27,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -35,6 +36,8 @@ REPO = str(Path(__file__).resolve().parents[1])
 OUT_ROOT = str(Path(REPO).parent / "outputs" / "server-overlays")
 RECORD = str(Path(REPO).parent / ".codex" / "starpoint-cloud-delivery.json")
 DELIVERY_TIMEZONE = timezone(timedelta(hours=8))
+BUILD_POLICY = "tools/runtime-build-policy.json"
+RUNTIME_EXACT_PATHS = {"docs/generated/character_table.json"}
 
 # 运行相关前缀：只有这些路径可能进入云服包
 RUNTIME_PREFIXES = ("src/", "out/", "assets/", "scripts/", "package.json", "package-lock.json")
@@ -58,6 +61,85 @@ def committed_bytes(source: str, relative: str) -> bytes:
                           capture_output=True, check=True).stdout
 
 
+def uses_source_build(source: str) -> bool:
+    return subprocess.run(["git", "cat-file", "-e", f"{source}:{BUILD_POLICY}"],
+                          cwd=REPO, capture_output=True).returncode == 0
+
+
+def runtime_artifacts(source: str, scratch: Path, dependency_root: str | None = None) -> tuple[dict[str, bytes], dict]:
+    """Read historical blobs or build the complete runtime from this exact SHA."""
+    if not uses_source_build(source):
+        names = [name for name in git("ls-tree", "-r", "--name-only", "-z", source, "--", "out/").split("\0") if name]
+        if any(not is_safe_member(name) for name in names):
+            raise SystemExit("历史运行产物路径不安全")
+        return {name: committed_bytes(source, name) for name in names}, {
+            "mode": "git-blobs", "source_commit": source, "files": names,
+        }
+    helper = Path(__file__).resolve().with_name("build-runtime-artifact.cjs")
+    command = ["node", str(helper), "--repo", REPO, "--source", source, "--output", str(scratch)]
+    if dependency_root:
+        command.extend(["--dependency-root", dependency_root])
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
+    if result.returncode:
+        raise SystemExit(f"固定提交运行构建失败（{source}）：{result.stderr.strip()}")
+    try:
+        identity = json.loads(result.stdout)
+        files = identity["files"]
+        expected_lock = hashlib.sha256(committed_bytes(source, "package-lock.json")).hexdigest()
+        if (identity.get("schema") != 1 or identity.get("source_commit") != source
+                or identity.get("lockfile_sha256") != expected_lock
+                or not isinstance(identity.get("node_version"), str) or not identity["node_version"]
+                or not isinstance(identity.get("typescript_version"), str) or not identity["typescript_version"]
+                or not isinstance(files, list) or not files):
+            raise ValueError("构建身份或产物清单不完整")
+        if any(not isinstance(name, str) or not name.startswith("out/")
+               or "\\" in name or not is_safe_member(name) for name in files):
+            raise ValueError("构建产物路径不安全")
+        if len(files) != len(set(files)):
+            raise ValueError("构建产物清单存在重复路径")
+        policy = json.loads(committed_bytes(source, BUILD_POLICY))
+        required = policy.get("required_outputs")
+        if (policy.get("schema") != 1 or not isinstance(required, list) or not required
+                or any(not isinstance(name, str) or not name.startswith("out/")
+                       or "\\" in name or not is_safe_member(name) for name in required)):
+            raise ValueError("运行构建策略缺少有效的必需入口清单")
+        if set(required) - set(files):
+            raise ValueError("构建产物缺少必需运行入口")
+        emitted = []
+        for file in (scratch / "out").rglob("*"):
+            if file.is_symlink():
+                raise ValueError("构建产物不能为符号链接")
+            if file.is_file():
+                emitted.append(file.relative_to(scratch).as_posix())
+        if sorted(emitted) != sorted(files):
+            raise ValueError("构建产物与完整输出清单不一致")
+        payloads = {name: (scratch / name).read_bytes() for name in files}
+    except (KeyError, TypeError, ValueError, OSError, subprocess.CalledProcessError) as error:
+        raise SystemExit(f"拒绝未知或不完整运行构建（{source}）：{error}") from error
+    return payloads, {"mode": "source-build", **identity}
+
+
+def prepare_overlay(base: str, head: str, dependency_root: str | None = None) -> tuple[list[str], list[str], dict[str, bytes] | None, dict | None]:
+    """Separate runtime deletions from Git untracking during source-only migration."""
+    members, deleted = runtime_members(base, head), deleted_runtime_members(base, head)
+    if not uses_source_build(base) and not uses_source_build(head):
+        return members, deleted, None, None
+    with tempfile.TemporaryDirectory(prefix="starpoint-overlay-build-") as temporary:
+        scratch = Path(temporary)
+        before, base_identity = runtime_artifacts(base, scratch / "base", dependency_root)
+        after, source_identity = runtime_artifacts(head, scratch / "source", dependency_root)
+    # A legacy baseline without any committed runtime is not evidence of an empty deployment.
+    if not before or not after:
+        raise SystemExit("无法确认完整运行基线或目标运行产物；拒绝封包")
+    static = [name for name in members if not name.startswith("out/")]
+    changed = [name for name, value in after.items() if before.get(name) != value]
+    members = sorted(static + changed)
+    deleted = sorted([name for name in deleted if not name.startswith("out/")] + list(before.keys() - after.keys()))
+    payloads = {name: committed_bytes(head, name) for name in static}
+    payloads.update({name: after[name] for name in changed})
+    return members, deleted, payloads, {"baseline": base_identity, "source": source_identity}
+
+
 def sha256_of(path: str) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
@@ -74,7 +156,7 @@ def is_safe_member(name: str) -> bool:
 
 
 def is_runtime_path(relative: str) -> bool:
-    return (relative.startswith(RUNTIME_PREFIXES)
+    return ((relative.startswith(RUNTIME_PREFIXES) or relative in RUNTIME_EXACT_PATHS)
             and not any(relative.startswith(pattern) for pattern in EXCLUDED_PATTERNS)
             and is_safe_member(relative))
 
@@ -109,13 +191,13 @@ def verify_against_head(members: list[str], head: str = "HEAD") -> None:
             raise SystemExit(f"工作区与提交内容不一致，请先提交：{relative}")
 
 
-def build_zip(zip_path: str, members: list[str], source: str = "HEAD") -> None:
+def build_zip(zip_path: str, members: list[str], source: str = "HEAD", payloads: dict[str, bytes] | None = None) -> None:
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for relative in members:
-            archive.writestr(relative, committed_bytes(source, relative))
+            archive.writestr(relative, payloads[relative] if payloads is not None else committed_bytes(source, relative))
 
 
-def verify_zip(zip_path: str, members: list[str], source: str = "HEAD") -> None:
+def verify_zip(zip_path: str, members: list[str], source: str = "HEAD", payloads: dict[str, bytes] | None = None) -> None:
     with zipfile.ZipFile(zip_path) as archive:
         names = archive.namelist()
         if sorted(names) != sorted(members):
@@ -125,7 +207,8 @@ def verify_zip(zip_path: str, members: list[str], source: str = "HEAD") -> None:
         for name in names:
             if not is_safe_member(name):
                 raise SystemExit(f"不安全的成员路径：{name}")
-            if archive.read(name) != committed_bytes(source, name):
+            expected = payloads[name] if payloads is not None else committed_bytes(source, name)
+            if archive.read(name) != expected:
                 raise SystemExit(f"成员字节与目标提交不一致：{name}")
 
 
@@ -204,7 +287,8 @@ def publish_release_tag(tag: str, head: str, base: str, zip_path: str, zip_sha: 
 def update_record(batch: str, zip_path: str, zip_name: str, zip_sha: str, zip_size: int,
                   members: list[str], base: str, head: str, note: str | None, created_at: str,
                   release_tag: str | None = None, source_ref: str = "HEAD",
-                  deleted: list[str] | None = None, publication: dict | None = None) -> dict:
+                  deleted: list[str] | None = None, publication: dict | None = None,
+                  runtime_build: dict | None = None) -> dict:
     with open(RECORD, encoding="utf-8") as handle:
         record = json.load(handle)
     outgoing_latest = record["latest_delivery"]
@@ -216,7 +300,7 @@ def update_record(batch: str, zip_path: str, zip_name: str, zip_sha: str, zip_si
                 "cdn_from", "cdn_to", "archive", "sha256", "file_count", "size",
                 "cloud_deployment_status", "cloud_deployed_by_this_task",
                 "next_batch_assumes_this_delivery_covered", "release_tag", "tag_publication",
-                "source_ref", "deleted_files", "delete_files_list",
+                "source_ref", "deleted_files", "delete_files_list", "runtime_build",
             )
         })
     record["previous_delivery"] = outgoing_latest
@@ -227,6 +311,7 @@ def update_record(batch: str, zip_path: str, zip_name: str, zip_sha: str, zip_si
         "included_through_commit": head,
         "package_source_commit": head,
         "source_ref": source_ref,
+        "runtime_build": runtime_build,
         "release_tag": release_tag,
         "tag_publication": publication or {"name": release_tag, "pushed": False},
         "baseline_delivery": outgoing_latest.get("batch"),
@@ -252,7 +337,10 @@ def update_record(batch: str, zip_path: str, zip_name: str, zip_sha: str, zip_si
             "pushed": True if publication else None,
         },
         "validation": {
-            "members_match_committed_bytes": True,
+            "members_match_committed_bytes": runtime_build is None or runtime_build["source"]["mode"] == "git-blobs" or not any(name.startswith("out/") for name in members),
+            "static_members_match_committed_bytes": True,
+            "runtime_artifact_origins_verified": True,
+            "generated_members_match_fixed_source_build": runtime_build is not None and runtime_build["source"]["mode"] == "source-build",
             "zip_members_match_source_bytes": True,
             "unsafe_member_paths": 0,
             "cdn_archives_included": any(name.startswith("assets/asset-patch/active/") for name in members),
@@ -275,6 +363,7 @@ def main() -> None:
     parser.add_argument("--publish-tag", action="store_true", help="包核验后创建并推送指定标签（须有推送授权）")
     parser.add_argument("--note", default=None, help="部署说明文件（可选，会复制进批次目录）")
     parser.add_argument("--no-record", action="store_true", help="不更新本地交付记录")
+    parser.add_argument("--dependency-root", help="由构建器核验的锁定依赖安装目录；默认隔离 npm ci")
     args = parser.parse_args()
 
     if args.release_tag:
@@ -286,12 +375,11 @@ def main() -> None:
         parser.error("须指定安全批次名或 --release-tag")
     head = git("rev-parse", "--verify", "--end-of-options", f"{args.source}^{{commit}}").strip()
     base = git("rev-parse", "--verify", "--end-of-options", f"{args.base}^{{commit}}").strip()
-    members = runtime_members(base, head)
-    deleted = deleted_runtime_members(base, head)
+    members, deleted, payloads, runtime_build = prepare_overlay(base, head, args.dependency_root)
     if not members and not deleted:
         raise SystemExit("没有需要交付的运行文件")
     if head == git("rev-parse", "HEAD").strip():
-        verify_against_head(members, head)
+        verify_against_head([name for name in members if payloads is None or not name.startswith("out/")], head)
 
     zip_name = f"startpoint-cn-cloud-overlay-{batch}.zip"
     out_dir = os.path.join(OUT_ROOT, batch)
@@ -300,8 +388,24 @@ def main() -> None:
     if os.path.exists(zip_path):
         raise SystemExit(f"拒绝覆盖已存在的包：{zip_path}")
 
-    build_zip(zip_path, members, head)
-    verify_zip(zip_path, members, head)
+    # A readable but incomplete ZIP must never acquire the formal delivery name.
+    # Hard-link publication is atomic and refuses an existing destination on
+    # both Windows and POSIX; rename/replace would overwrite it on POSIX.
+    descriptor, pending_zip = tempfile.mkstemp(prefix=".pending-", suffix=".zip", dir=out_dir)
+    os.close(descriptor)
+    try:
+        if payloads is None:
+            build_zip(pending_zip, members, head)
+            verify_zip(pending_zip, members, head)
+        else:
+            build_zip(pending_zip, members, head, payloads)
+            verify_zip(pending_zip, members, head, payloads)
+        try:
+            os.link(pending_zip, zip_path)
+        except FileExistsError as error:
+            raise SystemExit(f"拒绝覆盖已存在的包：{zip_path}") from error
+    finally:
+        os.unlink(pending_zip)
     zip_sha = sha256_of(zip_path)
     zip_size = os.path.getsize(zip_path)
     write_sidecars(zip_path, zip_name, members, zip_sha, deleted)
@@ -322,13 +426,14 @@ def main() -> None:
     created_at = datetime.now(DELIVERY_TIMEZONE).isoformat(timespec="seconds")
     if not args.no_record and not publication_error:
         update_record(batch, zip_path, zip_name, zip_sha, zip_size, members, base, head,
-                      note_path, created_at, args.release_tag, args.source, deleted, publication)
+                      note_path, created_at, args.release_tag, args.source, deleted, publication, runtime_build)
 
     receipt = {
         "release_tag": args.release_tag,
         "batch": batch,
         "source_commit": head,
         "baseline_commit": base,
+        "runtime_build": runtime_build,
         "archive": zip_name,
         "sha256": zip_sha,
         "deleted_files": deleted,

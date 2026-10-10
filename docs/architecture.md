@@ -64,7 +64,7 @@ flowchart LR
 
 | 操作或证据 | 入口与边界 |
 | --- | --- |
-| 构建服务端 | `npm run build` 编译到 `out/` 并生成 CSS；`dev:cn` 会先构建 |
+| 构建服务端 | `npm run build` 编译到本地忽略的 `out/` 并生成 CSS；`dev:cn` 会先构建。Git 不跟踪生成物，云服包按固定提交隔离生成运行产物，见[运行产物流程](development/runtime-artifacts.md) |
 | Windows 日志启动 | [start-cn-logged.ps1](../scripts/start-cn-logged.ps1) 使用已有生成物，通过日志收集器启动；就绪依据仍取上述监听/就绪记录 |
 | 类型检查 | `npm run typecheck` 只覆盖 `src/**/*.ts`，可能更新 incremental 信息；不覆盖 React 后台 |
 | 后台构建 | `build:admin` 包含依赖安装和后台构建，不能当作无副作用的检查 |

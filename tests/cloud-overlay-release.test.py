@@ -127,6 +127,47 @@ class CloudOverlayReleaseTest(unittest.TestCase):
         self.assertEqual(latest["release_tag"], tag)
         self.assertFalse(latest["tag_publication"]["pushed"])
 
+    def test_partial_write_failure_does_not_publish_and_same_batch_can_retry(self):
+        record_before = Path(self.tool.RECORD).read_bytes()
+        def partial_write(filename, members, *args):
+            with zipfile.ZipFile(filename, "w") as archive:
+                archive.writestr(members[0], b"incomplete but readable archive")
+            raise OSError("injected interrupted archive write")
+        with mock.patch.object(self.tool, "build_zip", side_effect=partial_write):
+            with self.assertRaisesRegex(OSError, "interrupted archive write"):
+                self.invoke("--batch", "retry-write", "--base", self.base)
+        folder = Path(self.tool.OUT_ROOT) / "retry-write"
+        self.assertEqual(list(folder.iterdir()), [])
+        self.assertEqual(Path(self.tool.RECORD).read_bytes(), record_before)
+        result = self.invoke("--batch", "retry-write", "--base", self.base)
+        self.assertTrue(Path(result["zip"]).is_file())
+        with zipfile.ZipFile(result["zip"]) as archive:
+            self.assertEqual(archive.read("out/runtime.js"), b"new output\n")
+
+    def test_verification_failure_does_not_publish_and_same_batch_can_retry(self):
+        record_before = Path(self.tool.RECORD).read_bytes()
+        with mock.patch.object(self.tool, "verify_zip", side_effect=SystemExit("injected member verification failure")):
+            with self.assertRaisesRegex(SystemExit, "member verification failure"):
+                self.invoke("--batch", "retry-verify", "--base", self.base)
+        folder = Path(self.tool.OUT_ROOT) / "retry-verify"
+        self.assertEqual(list(folder.iterdir()), [])
+        self.assertEqual(Path(self.tool.RECORD).read_bytes(), record_before)
+        result = self.invoke("--batch", "retry-verify", "--base", self.base)
+        self.assertTrue(Path(result["zip"]).is_file())
+
+    def test_publication_race_cannot_overwrite_existing_formal_archive(self):
+        real_verify = self.tool.verify_zip
+        folder = Path(self.tool.OUT_ROOT) / "race"
+        destination = folder / "startpoint-cn-cloud-overlay-race.zip"
+        def competing_publication(*args):
+            real_verify(*args)
+            destination.write_bytes(b"independently published archive")
+        with mock.patch.object(self.tool, "verify_zip", side_effect=competing_publication):
+            with self.assertRaisesRegex(SystemExit, "已存在"):
+                self.invoke("--batch", "race", "--base", self.base)
+        self.assertEqual(destination.read_bytes(), b"independently published archive")
+        self.assertEqual(list(folder.iterdir()), [destination])
+
     def test_cdn_zip_bytes_and_inner_production_are_preserved(self):
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w") as archive:
