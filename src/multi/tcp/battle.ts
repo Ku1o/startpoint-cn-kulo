@@ -8,6 +8,7 @@ import { recordFiveBossSignal } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import { markPlayerOnlineFromTcp } from "../../lib/online-presence"
 import { battleTelemetry } from "../battle-telemetry"
+import type { RelayActivity } from "./battle-relay/protocol"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
     const client = sessionManager.findClientBySocket(socket)
@@ -117,5 +118,26 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
         }
         default:
             break
+    }
+}
+
+/** Child-local packets refresh existing leases and diagnostics without replay. */
+export function handleBattleRelayActivity(socket: net.Socket, activity: RelayActivity): void {
+    const client = findBattleClientBySocket(socket)
+    if (!client || socket.destroyed || !sessionManager.isCurrentBattleClient(client)) return
+    const packets = activity.broadcasts + activity.sends + activity.heartbeats
+        + activity.measurements + activity.lineSpeedWarnings
+    if (packets > 0) {
+        fiveBossConnectionDiagnostics.packet(socket, true)
+        sessionManager.noteBattleActivity(client.connectionId)
+        markPlayerOnlineFromTcp(client.viewerId)
+    }
+    battleTelemetry.relayActivity(client.roomNumber, client.viewerId, {
+        packets, broadcasts: activity.broadcasts + activity.sends,
+        lineSpeedWarnings: activity.lineSpeedWarnings, maxGapMs: activity.maxGapMs,
+        relayedOut: activity.relayedOut,
+    })
+    if (activity.maxBackpressureMs >= 100) {
+        battleTelemetry.backpressure(client.roomNumber, client.viewerId, activity.maxBackpressureMs)
     }
 }

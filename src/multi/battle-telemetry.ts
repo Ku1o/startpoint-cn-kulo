@@ -192,6 +192,20 @@ export class BattleTelemetry {
         }
     }
 
+    /** Counts child-local traffic once; parent-forwarded frames use packet(). */
+    relayActivity(roomNumber: string, viewer: number, activity: {
+        packets: number; broadcasts: number; lineSpeedWarnings: number; maxGapMs: number; relayedOut: number
+    }): void {
+        const member = this.member(roomNumber, viewer)
+        if (!member) return
+        member.packets += activity.packets
+        member.broadcasts += activity.broadcasts
+        member.lineSpeedWarnings += activity.lineSpeedWarnings
+        member.relayedOut += activity.relayedOut
+        member.maxInboundGapMs = Math.max(member.maxInboundGapMs, activity.maxGapMs)
+        if (activity.packets > 0) member.lastInboundAt = this.now()
+    }
+
     relayed(roomNumber: string, viewer: number): void {
         const member = this.member(roomNumber, viewer)
         if (member) member.relayedOut++

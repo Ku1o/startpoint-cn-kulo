@@ -18,6 +18,7 @@ const realtime_diagnostics_1 = require("../../lib/realtime-diagnostics");
 const disconnect_diagnostics_1 = require("../tcp/disconnect-diagnostics");
 const battle_telemetry_1 = require("../battle-telemetry");
 const equipment_ready_1 = require("../room/equipment-ready");
+const bridge_1 = require("../tcp/battle-relay/bridge");
 class SessionManager {
     constructor() {
         this.clients = new Map();
@@ -870,6 +871,7 @@ class SessionManager {
         this.closeSupersededSocketsForRoom(roomNumber);
         this.roomClients.delete(roomNumber);
         this.battleClients.delete(roomNumber);
+        this.battleRelayMembershipChanged(roomNumber);
         this.clearBattleExpectedCount(roomNumber);
         this.retiredBattleSeats.delete(roomNumber);
         (0, game_logging_1.gameVerboseLog)(() => `[MULTI] room disbanded: room=${roomNumber} reason=${reason}`);
@@ -930,6 +932,7 @@ class SessionManager {
             this.abandonedBattleTimers.delete(roomNumber);
             this.roomClients.delete(roomNumber);
             this.battleClients.delete(roomNumber);
+            this.battleRelayMembershipChanged(roomNumber);
             this.sceneReadyClients.delete(roomNumber);
             this.battleLevelNextClients.delete(roomNumber);
             this.battleExpectedCount.delete(roomNumber);
@@ -1220,6 +1223,7 @@ class SessionManager {
                 this.cidToBattleClient.delete(client.connectionId);
                 (_d = this.sceneReadyClients.get(client.roomNumber)) === null || _d === void 0 ? void 0 : _d.delete(client.connectionId);
                 (_e = this.battleLevelNextClients.get(client.roomNumber)) === null || _e === void 0 ? void 0 : _e.delete(client.connectionId);
+                this.battleRelayMembershipChanged(client.roomNumber);
             }
             if (!superseded && isCurrentBattleConnection)
                 this.scheduleMissingBattleSeat(client.roomNumber, client);
@@ -1403,6 +1407,7 @@ class SessionManager {
             this.pendingBattleLeaves.delete(client.roomNumber);
         set.add(connectionId);
         this.cidToBattleClient.set(connectionId, client);
+        this.battleRelayMembershipChanged(client.roomNumber);
         this.indexClientSocket(client);
         this.armBattleLoadingLease(connectionId);
         connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "accepted");
@@ -1424,6 +1429,8 @@ class SessionManager {
         }
         this.cidToBattleClient.delete(connectionId);
         if (client)
+            this.battleRelayMembershipChanged(client.roomNumber);
+        if (client)
             this.scheduleMissingBattleSeat(client.roomNumber, client);
     }
     getBattleClient(connectionId) {
@@ -1440,6 +1447,23 @@ class SessionManager {
     }
     isCurrentBattleClient(client) {
         return this.cidToBattleClient.get(client.connectionId) === client;
+    }
+    /** Publish all current members, including parent-owned native sockets. */
+    battleRelayMembershipChanged(roomNumber) {
+        bridge_1.battleRelayBridge.scheduleMembership(roomNumber, () => {
+            var _a;
+            const members = [];
+            for (const connectionId of (_a = this.battleClients.get(roomNumber)) !== null && _a !== void 0 ? _a : []) {
+                const client = this.cidToBattleClient.get(connectionId);
+                if (!client || client.superseded || client.socket.destroyed || !client.socket.writable)
+                    continue;
+                members.push({
+                    sid: (0, bridge_1.isRelayProxySocket)(client.socket) ? client.socket.sid : null,
+                    cid: connectionId, gen: client.roomGeneration,
+                });
+            }
+            return members;
+        });
     }
     snapshotBattleRelayRecipients(source, includeSource = false) {
         if (!this.isCurrentBattleClient(source))

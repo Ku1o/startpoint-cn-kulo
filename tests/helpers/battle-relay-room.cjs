@@ -16,11 +16,12 @@ process.env.CLIENT_ADMISSION_KEYS = path.join(dataDir, 'client-admission.keys.js
 fs.writeFileSync(process.env.CLIENT_ADMISSION_CONFIG, JSON.stringify({ enforce: false, updateMessage: 'sim', builds: [] }))
 fs.writeFileSync(process.env.CLIENT_ADMISSION_KEYS, '{}')
 process.env.BATTLE_LEVEL_NEXT_DEADLINE_MS = '10000'
-process.env.BATTLE_BARRIER_RECONNECT_GRACE_MS = '1000'
+process.env.BATTLE_BARRIER_RECONNECT_GRACE_MS = '10000'
+process.env.MULTI_BATTLE_RELAY_MAX_RESTARTS = '1'
 process.env.SESSION_PORT = '0'
 process.env.SESSION_HOST = '127.0.0.1'
 
-const out = path.resolve(__dirname, '../out')
+const out = path.resolve(__dirname, '../../out')
 const load = name => require(path.join(out, name))
 const originalInterval = global.setInterval
 global.setInterval = (...args) => { const timer = originalInterval(...args); timer.unref(); return timer }
@@ -98,7 +99,8 @@ function percentile(values, p) {
     return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]
 }
 
-async function startFiveBossBattle() {
+async function startFiveBossBattle(options = {}) {
+    process.env.MULTI_BATTLE_RELAY_PROCESS = options.mixed ? '0' : '1'
     const members = [player(), player(), player()]
     const [host] = members
     const room = rooms.createRoom(host.viewerId, host.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
@@ -153,128 +155,25 @@ async function startFiveBossBattle() {
         finally { net.createServer = originalCreateServer }
         const port = rawServer.address().port
         console.warn = (...args) => { lines.push(args.join(' ')) }
-        sims.push(...members.map(m => new SimClient(port, m, room)))
-        await Promise.all(sims.map(sim => sim.open()))
+        if (options.mixed) {
+            sims.push(new SimClient(port, members[0], room)); await sims[0].open()
+            await load('multi/tcp/battle-relay/bridge').battleRelayBridge.start()
+            for (const member of members.slice(1)) { const sim = new SimClient(port, member, room); sims.push(sim); await sim.open() }
+        } else {
+            sims.push(...members.map(m => new SimClient(port, m, room)))
+            await Promise.all(sims.map(sim => sim.open()))
+        }
         for (const sim of sims) sim.sceneReady()
         await Promise.all(sims.map(sim => sim.until(() => sim.battleStarts() === 1)))
-        return { members, room, sims, lines, originalWarn, cleanup }
+        return { members, room, sims, lines, originalWarn, cleanup, port }
     } catch (error) {
         await cleanup()
         throw error
     }
 }
 
-test('five-boss: relay latency, then a silent teammate cannot stall the next scene', { timeout: 60000 }, async () => {
-    const { members, room, sims, lines, cleanup } = await startFiveBossBattle()
-    let ticker, stallTimer
-    try {
 
-        // ~30 frames/s per player for 1.5 s; one 300 ms main-thread stall in the middle.
-        const sent = new Map()
-        let seq = 0
-        ticker = originalInterval(() => {
-            for (const sim of sims) {
-                const id = ++seq
-                sent.set(id, performance.now())
-                sim.send([1, [[0, id]]])
-            }
-        }, 33)
-        // End before the one-second histogram reset so its next poll can
-        // observe the stall before the sampler clears the measurement.
-        stallTimer = setTimeout(() => { const until = performance.now() + 300; while (performance.now() < until); }, 500)
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        clearInterval(ticker)
-        assert.ok(sent.size > 0, 'the simulated battle must send real broadcasts')
-        await Promise.all(sims.map(sim => {
-            const expected = sims.filter(other => other !== sim)
-                .reduce((count, other) => count + other.broadcastsSent, 0)
-            return sim.until(() => sim.frames.filter(frame => frame.data[0] === 2).length === expected)
-        }))
-        const latencies = []
-        for (const sim of sims) {
-            for (const frame of sim.frames) {
-                if (frame.data[0] !== 2) continue
-                const id = frame.data[2]?.[0]?.[1]
-                if (sent.has(id)) latencies.push(frame.at - sent.get(id))
-            }
-        }
-        assert.equal(latencies.length, sent.size * 2, 'every broadcast reaches both other clients')
-        console.log(`[SIM] relay frames=${latencies.length} p50=${percentile(latencies, 0.5).toFixed(1)}ms`
-            + ` p99=${percentile(latencies, 0.99).toFixed(1)}ms max=${Math.max(...latencies).toFixed(1)}ms`)
-
-        // Next scene: two players move on, the third stays connected but silent.
-        const [a, b, c] = sims
-        const startedAt = Date.now()
-        a.levelNext(); b.levelNext()
-        await new Promise(resolve => setTimeout(resolve, 100))
-        a.sceneReady(); b.sceneReady()
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        assert.equal(a.battleStarts(), 1, 'the next scene waits for the third member at first')
-        await a.until(() => a.battleStarts() === 2, 15000)
-        await b.until(() => b.battleStarts() === 2, 1000)
-        const waitedMs = Date.now() - startedAt
-        console.log(`[SIM] next scene released after ${waitedMs}ms without the silent member`)
-        assert.ok(waitedMs >= 10000 && waitedMs < 14000, `released after ${waitedMs}ms`)
-        await c.until(() => c.closed, 1000)
-        assert.deepEqual(a.leaves(), [members[2].connectionId])
-        assert.deepEqual(b.leaves(), [members[2].connectionId])
-
-        // Battle end produces one summary line with populated members.
-        coordinator.commitDisband(room, 'sim_end')
-        const line = lines.find(value => value.startsWith('[MULTI-BATTLE]'))
-        assert.ok(line, 'battle summary emitted')
-        const summary = JSON.parse(line.slice('[MULTI-BATTLE] '.length))
-        console.log(`[SIM] ${line}`)
-        assert.equal(summary.fiveBoss, true)
-        assert.equal(summary.members.length, 3)
-        const silent = summary.members.find(m => m.viewer === members[2].viewerId)
-        assert.deepEqual(silent.disconnects, { level_next_timeout: 1 })
-        assert.equal(silent.levelNext, 0)
-        const mover = summary.members.find(m => m.viewer === members[0].viewerId)
-        assert.equal(mover.levelNext, 1)
-        assert.equal(mover.sceneReady, 2)
-        for (const sim of sims) {
-            const member = summary.members.find(entry => entry.viewer === sim.member.viewerId)
-            const expectedRelays = sims.filter(other => other !== sim)
-                .reduce((count, other) => count + other.broadcastsSent, 0)
-            assert.equal(member.broadcasts, sim.broadcastsSent, 'telemetry counts actual client broadcasts')
-            assert.equal(member.relayedOut, expectedRelays, 'telemetry counts both recipients of every broadcast')
-        }
-        assert.ok(summary.loopLagMaxMs >= 200, `loop lag ${summary.loopLagMaxMs}`)
-        assert.ok(summary.barriers.some(barrier => barrier.kind === 'next_scene' && barrier.waitMs >= 10000))
-        assert.equal(summary.seatsExpired, 1)
-    } finally {
-        clearInterval(ticker)
-        clearTimeout(stallTimer)
-        await cleanup()
-    }
-})
-
-test('five-boss: a teammate dropping mid-battle reaches the others as Leave at once', { timeout: 30000 }, async () => {
-    const { members, room, sims, lines, cleanup } = await startFiveBossBattle()
-    try {
-        const [a, b, c] = sims
-        const droppedAt = performance.now()
-        c.socket.destroy()
-        await a.until(() => a.leaves().length === 1, 2000)
-        await b.until(() => b.leaves().length === 1, 2000)
-        console.log(`[SIM] Leave delivered ${(performance.now() - droppedAt).toFixed(1)}ms after the drop`)
-        assert.deepEqual(a.leaves(), [members[2].connectionId])
-        assert.deepEqual(b.leaves(), [members[2].connectionId])
-        // A finished member closing after Finalized is not a disconnect.
-        b.send([0, [2]])
-        await b.until(() => b.frames.some(frame => JSON.stringify(frame.data) === '[1,[2]]'))
-        b.socket.destroy()
-        await new Promise(resolve => setTimeout(resolve, 300))
-        assert.deepEqual(a.leaves(), [members[2].connectionId])
-        coordinator.commitDisband(room, 'sim_end')
-        const summary = JSON.parse(lines.find(value => value.startsWith('[MULTI-BATTLE]')).slice(15))
-        assert.equal(summary.members.find(m => m.viewer === members[1].viewerId).finalize, 1)
-    } finally {
-        await cleanup()
-    }
-})
-
+module.exports = { startFiveBossBattle, SimClient, load, manager, rooms, coordinator, battleTelemetry }
 test.after(async () => {
     try {
         for (const cleanup of [...activeCleanups]) await cleanup()
