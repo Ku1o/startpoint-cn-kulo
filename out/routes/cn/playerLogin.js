@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.installPlayerLoginGuard = void 0;
+const player_login_rate_limit_1 = require("../../lib/player-login-rate-limit");
 const utils_1 = require("../../utils");
 const player_login_1 = require("../../lib/player-login");
 function installPlayerLoginGuard(app) {
@@ -51,28 +52,15 @@ function installPlayerLoginGuard(app) {
 exports.installPlayerLoginGuard = installPlayerLoginGuard;
 function playerLoginRoutes(app) {
     return __awaiter(this, void 0, void 0, function* () {
-        const buckets = new Map();
-        let nextSweep = 0;
-        function limited(request, restoring) {
-            const now = Date.now(), key = request.ip + (restoring ? ":session" : ":password");
-            if (now >= nextSweep) {
-                for (const [id, bucket] of buckets)
-                    if (bucket.reset <= now)
-                        buckets.delete(id);
-                nextSweep = now + 60000;
-            }
-            if (!buckets.has(key) && buckets.size >= 4096)
-                return true;
-            const existing = buckets.get(key);
-            const bucket = existing && existing.reset > now ? existing : { n: 0, reset: now + 60000 };
-            bucket.n++;
-            buckets.set(key, bucket);
-            return bucket.n > (restoring ? 120 : 30);
-        }
+        const limited = (0, player_login_rate_limit_1.createPlayerLoginRateLimiter)();
         function route(path, handler, admin = false) {
             app.post(path, { bodyLimit: 4096 }, (request, reply) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
                 reply.header("cache-control", "no-store");
-                if (!admin && limited(request, path.endsWith("/resume") || path.endsWith("/logout")))
+                const input = request.body;
+                const body = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+                const restoring = path.endsWith("/resume") || path.endsWith("/logout");
+                if (!admin && limited(request.ip, path, body, restoring ? (_b = (_a = (0, player_login_1.readPlayerLoginSession)(body.token)) === null || _a === void 0 ? void 0 : _a.account_id) !== null && _b !== void 0 ? _b : null : null))
                     return { ok: false, code: "RATE_LIMITED", message: "操作较频繁，请稍后再试。" };
                 try {
                     const body = request.body;

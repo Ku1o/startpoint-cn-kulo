@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
+import { createPlayerLoginRateLimiter } from "../../lib/player-login-rate-limit"
 import { generateDataHeaders } from "../../utils"
 import { bindPlayerLogin, createPlayerLoginCode, loginPlayer, logoutPlayer,
     PlayerLoginError, previewPlayerClaim, readPlayerLoginSession,
@@ -37,24 +38,14 @@ export function installPlayerLoginGuard(app: FastifyInstance): void {
 }
 
 export default async function playerLoginRoutes(app: FastifyInstance): Promise<void> {
-    const buckets = new Map<string, { n: number; reset: number }>()
-    let nextSweep = 0
-    function limited(request: FastifyRequest, restoring: boolean): boolean {
-        const now = Date.now(), key = request.ip + (restoring ? ":session" : ":password")
-        if (now >= nextSweep) {
-            for (const [id, bucket] of buckets) if (bucket.reset <= now) buckets.delete(id)
-            nextSweep = now + 60000
-        }
-        if (!buckets.has(key) && buckets.size >= 4096) return true
-        const existing = buckets.get(key)
-        const bucket = existing && existing.reset > now ? existing : { n: 0, reset: now + 60000 }
-        bucket.n++; buckets.set(key, bucket)
-        return bucket.n > (restoring ? 120 : 30)
-    }
+    const limited = createPlayerLoginRateLimiter()
     function route(path: string, handler: (body: Record<string, unknown>, req: FastifyRequest) => unknown, admin = false) {
         app.post(path, { bodyLimit: 4096 }, async (request: FastifyRequest, reply: FastifyReply) => {
             reply.header("cache-control", "no-store")
-            if (!admin && limited(request, path.endsWith("/resume") || path.endsWith("/logout"))) return { ok: false, code: "RATE_LIMITED", message: "操作较频繁，请稍后再试。" }
+            const input = request.body
+            const body = input && typeof input === "object" && !Array.isArray(input) ? input as Record<string, unknown> : {}
+            const restoring = path.endsWith("/resume") || path.endsWith("/logout")
+            if (!admin && limited(request.ip, path, body, restoring ? readPlayerLoginSession(body.token)?.account_id ?? null : null)) return { ok: false, code: "RATE_LIMITED", message: "操作较频繁，请稍后再试。" }
             try {
                 const body = request.body
                 if (!body || typeof body !== "object" || Array.isArray(body)) throw new PlayerLoginError("请求内容无效。")
