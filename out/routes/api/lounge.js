@@ -14,13 +14,20 @@ const activeAccount_1 = require("../../data/activeAccount");
 const character_1 = require("../../data/domains/character");
 const player_1 = require("../../data/domains/player");
 const session_1 = require("../../data/domains/session");
+const multi_special_exchange_1 = require("../../lib/multi-special-exchange");
+const eligibility_1 = require("../../lounge/eligibility");
 const state_1 = require("../../lounge/state");
 const serializer_1 = require("../../multi/room/serializer");
 const utils_1 = require("../../utils");
 const protocol_1 = require("../../lounge/protocol");
 function positiveSafeInteger(value) {
+    if (typeof value !== "number" && (typeof value !== "string" || !/^\d+$/.test(value)))
+        return null;
     const parsed = Number(value);
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+function requestBody(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 function resolveViewer(body) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -40,7 +47,7 @@ function resolveViewer(body) {
 function hasAccess(room, body) {
     const useCase = positiveSafeInteger(body.use_case);
     const establisherViewerId = positiveSafeInteger(body.establisher_viewer_id);
-    return !!room && useCase !== null && establisherViewerId !== null
+    return !!room && useCase === 1 && !!(0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(room.campaignId) && establisherViewerId !== null
         && typeof body.advice === "string"
         && (0, state_1.matchesLoungeAccess)(room, {
             useCase,
@@ -90,31 +97,29 @@ function sendLoungeDisbanded(reply, viewerId, loungeId, operation) {
 }
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/get_list", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _a;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const useCase = positiveSafeInteger(body.use_case);
-        if (!context || useCase === null)
-            return reply.status(400).send({
-                error: "Bad Request",
-                message: "Invalid request body or viewer id.",
-            });
+        if (!context || useCase !== 1)
+            return sendLoungeNotFound(reply, (_a = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _a !== void 0 ? _a : 0);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: context.viewerId }),
-            data: { lounge_list: (0, state_1.listLounges)(useCase).map(loungeListEntry) },
+            data: { lounge_list: (0, state_1.listLounges)(useCase).filter(room => (0, eligibility_1.canParticipateInLounge)(context.playerId, room.campaignId)).map(loungeListEntry) },
         });
     }));
     fastify.post("/create", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
-        const body = request.body;
+        var _b, _c;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const useCase = positiveSafeInteger(body.use_case);
         const campaignId = positiveSafeInteger(body.campaign_id);
-        if (!context || useCase === null || campaignId === null)
-            return reply.status(400).send({
-                error: "Bad Request",
-                message: "Invalid request body or viewer id.",
-            });
+        if (!context || useCase !== 1 || campaignId === null
+            || !(0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(campaignId)
+            || !(0, eligibility_1.canParticipateInLounge)(context.playerId, campaignId)) {
+            return sendLoungeNotFound(reply, (_b = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _b !== void 0 ? _b : 0);
+        }
         const characterId = Number(context.player.leaderCharacterId) || 1;
         const character = (0, character_1.getPlayerCharacterSync)(context.playerId, characterId);
         const room = (0, state_1.createLounge)({
@@ -126,7 +131,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             hostProfile: {
                 name: context.player.name || `Player${context.viewerId}`,
                 characterId,
-                characterEvolutionLevel: (_a = character === null || character === void 0 ? void 0 : character.evolutionLevel) !== null && _a !== void 0 ? _a : 0,
+                characterEvolutionLevel: (_c = character === null || character === void 0 ? void 0 : character.evolutionLevel) !== null && _c !== void 0 ? _c : 0,
             },
         });
         reply.header("content-type", "application/x-msgpack");
@@ -136,14 +141,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/prepare", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _d;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const loungeId = positiveSafeInteger(body.lounge_id);
         if (!context || loungeId === null)
-            return reply.status(400).send({
-                error: "Bad Request",
-                message: "Invalid request body or viewer id.",
-            });
+            return sendLoungeNotFound(reply, (_d = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _d !== void 0 ? _d : 0);
         const room = (0, state_1.getLounge)(loungeId);
         if (!hasAccess(room, body) || context.viewerId !== room.hostViewerId) {
             return sendLoungeDisbanded(reply, context.viewerId, loungeId, "prepare");
@@ -156,17 +159,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/select", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _e;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const loungeId = positiveSafeInteger(body.lounge_id);
         if (!context || loungeId === null)
-            return reply.status(400).send({
-                error: "Bad Request",
-                message: "Invalid request body or viewer id.",
-            });
+            return sendLoungeNotFound(reply, (_e = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _e !== void 0 ? _e : 0);
         const room = (0, state_1.getLounge)(loungeId);
         if (!hasAccess(room, body))
             return sendLoungeDisbanded(reply, context.viewerId, loungeId, "select");
+        if (!(0, eligibility_1.canParticipateInLounge)(context.playerId, room.campaignId) || !(0, state_1.canAttachLoungeViewer)(room, context.viewerId)) {
+            return sendLoungeNotFound(reply, context.viewerId);
+        }
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: context.viewerId }),
@@ -174,14 +178,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/search", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _f;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const useCase = positiveSafeInteger(body.use_case);
-        if (!context || useCase === null || typeof body.lounge_number !== "string") {
-            return reply.status(400).send({ error: "Bad Request", message: "Invalid request body or viewer id." });
+        if (!context || useCase !== 1 || typeof body.lounge_number !== "string") {
+            return sendLoungeNotFound(reply, (_f = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _f !== void 0 ? _f : 0);
         }
         const room = (0, state_1.getLoungeByNumber)(body.lounge_number);
         const data = room && room.useCase === useCase && room.raisingState === 2
+            && !!(0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(room.campaignId)
+            && (0, eligibility_1.canParticipateInLounge)(context.playerId, room.campaignId)
+            && (0, state_1.canAttachLoungeViewer)(room, context.viewerId)
             ? {
                 lounge_exists: true,
                 advice: room.advice,
@@ -197,17 +205,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/restore", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _g;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const loungeId = positiveSafeInteger(body.lounge_id);
         if (!context || loungeId === null)
-            return reply.status(400).send({
-                error: "Bad Request",
-                message: "Invalid request body or viewer id.",
-            });
+            return sendLoungeNotFound(reply, (_g = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _g !== void 0 ? _g : 0);
         const room = (0, state_1.getLounge)(loungeId);
-        if (!hasAccess(room, body))
+        if (!hasAccess(room, body) || (room.raisingState === 2 && !(0, eligibility_1.canParticipateInLounge)(context.playerId, room.campaignId))) {
             return sendLoungeDisbanded(reply, context.viewerId, loungeId, "restore");
+        }
         const data = connectionData(room);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -216,11 +223,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/share", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _h;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const loungeId = positiveSafeInteger(body.lounge_id);
         if (!context || loungeId === null || !Array.isArray(body.share_type_list)) {
-            return reply.status(400).send({ error: "Bad Request", message: "Invalid request body or viewer id." });
+            return sendLoungeNotFound(reply, (_h = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _h !== void 0 ? _h : 0);
         }
         const room = (0, state_1.getLounge)(loungeId);
         if (!hasAccess(room, body) || context.viewerId !== room.hostViewerId) {

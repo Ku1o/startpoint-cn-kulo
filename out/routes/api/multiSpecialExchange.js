@@ -21,8 +21,13 @@ const multi_special_exchange_1 = require("../../lib/multi-special-exchange");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const utils_1 = require("../../utils");
 function positiveSafeInteger(value) {
+    if (typeof value !== "number" && (typeof value !== "string" || !/^\d+$/.test(value)))
+        return null;
     const parsed = Number(value);
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+function requestBody(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 function resolveViewer(body) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -51,11 +56,25 @@ function drawTicket(playerId, campaignId) {
         return (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "event", playerId, operation: "draw_multi_special_ticket",
         }, () => {
+            var _a;
             const campaign = (0, campaign_1.getPlayerMultiSpecialExchangeCampaignsSync)(playerId)
                 .find(value => value.campaignId === campaignId);
-            if (!campaign || campaign.status !== 1)
+            if (!campaign)
                 return null;
-            const ticketItemId = definition.ticketItemIds[(0, crypto_1.randomInt)(definition.ticketItemIds.length)];
+            const resolved = (0, multi_special_exchange_1.resolveMultiSpecialExchangeCampaign)(campaign, id => { var _a; return (_a = (0, item_1.getPlayerItemSync)(playerId, id)) !== null && _a !== void 0 ? _a : 0; });
+            if ((resolved === null || resolved === void 0 ? void 0 : resolved.status) === 3) {
+                if (campaign.status !== 3 || campaign.ticketItemId !== resolved.ticketItemId) {
+                    (0, campaign_1.updatePlayerMultiSpecialExchangeCampaignSync)(playerId, resolved);
+                }
+                const ticketItemId = resolved.ticketItemId;
+                return { ticketItemId, itemAmount: (_a = (0, item_1.getPlayerItemSync)(playerId, ticketItemId)) !== null && _a !== void 0 ? _a : 0 };
+            }
+            const undecidedLegacy = campaign.status === 2 && campaign.ticketItemId == null
+                && definition.ticketItemIds.every(id => { var _a; return ((_a = (0, item_1.getPlayerItemSync)(playerId, id)) !== null && _a !== void 0 ? _a : 0) === 0; });
+            if (campaign.status !== 1 && (resolved === null || resolved === void 0 ? void 0 : resolved.status) !== 2 && !undecidedLegacy)
+                return null;
+            const ticketItemId = (resolved === null || resolved === void 0 ? void 0 : resolved.status) === 2 && resolved.ticketItemId != null ? resolved.ticketItemId
+                : definition.ticketItemIds[(0, crypto_1.randomInt)(definition.ticketItemIds.length)];
             const itemAmount = (0, item_1.givePlayerItemSync)(playerId, ticketItemId, 1);
             (0, campaign_1.updatePlayerMultiSpecialExchangeCampaignSync)(playerId, {
                 campaignId,
@@ -69,14 +88,12 @@ function drawTicket(playerId, campaignId) {
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     const registerDrawRoute = (path) => {
         fastify.post(path, (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-            const body = request.body;
+            var _a;
+            const body = requestBody(request.body);
             const context = yield resolveViewer(body);
             const campaignId = positiveSafeInteger(body.campaign_id);
             if (!context || campaignId === null)
-                return reply.status(400).send({
-                    error: "Bad Request",
-                    message: "Invalid request body or viewer id.",
-                });
+                return sendResultCode(reply, (_a = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _a !== void 0 ? _a : 0, 4901);
             const definition = (0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(campaignId);
             if (!definition)
                 return sendResultCode(reply, context.viewerId, 4901);
@@ -101,17 +118,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     registerDrawRoute("/single_draw_ticket");
     registerDrawRoute("/multi_draw_ticket");
     fastify.post("/exchange_character", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _a, _b, _c;
+        const body = requestBody(request.body);
         const context = yield resolveViewer(body);
         const campaignId = positiveSafeInteger(body.campaign_id);
         const characterId = positiveSafeInteger(body.character_id);
         const ticketItemId = positiveSafeInteger(body.ticket_item_id);
         if (!context || campaignId === null || characterId === null || ticketItemId === null) {
-            return reply.status(400).send({ error: "Bad Request", message: "Invalid request body or viewer id." });
+            return sendResultCode(reply, (_a = context === null || context === void 0 ? void 0 : context.viewerId) !== null && _a !== void 0 ? _a : 0, 4901);
         }
         const definition = (0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(campaignId);
         if (!definition || !definition.ticketItemIds.includes(ticketItemId)) {
             return sendResultCode(reply, context.viewerId, 4901);
+        }
+        // Only characters listed for this ticket in the client master table
+        // can be selected; other ids are rejected like any failed exchange.
+        if (!(0, multi_special_exchange_1.isMultiSpecialExchangeCharacter)(ticketItemId, characterId)) {
+            return sendResultCode(reply, context.viewerId, 4902);
         }
         const exchangeResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "event", playerId: context.playerId, operation: "exchange_character",
@@ -120,7 +143,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const campaign = (0, campaign_1.getPlayerMultiSpecialExchangeCampaignsSync)(context.playerId)
                 .find(value => value.campaignId === campaignId);
             const ticketAmount = (_a = (0, item_1.getPlayerItemSync)(context.playerId, ticketItemId)) !== null && _a !== void 0 ? _a : 0;
-            if (!campaign || campaign.status !== 3 || campaign.ticketItemId !== ticketItemId || ticketAmount <= 0) {
+            if ((campaign === null || campaign === void 0 ? void 0 : campaign.status) === 4) {
+                // The archive contains completion, but no choice receipt.
+                // Replay completion only, never invent or issue another reward.
+                return { reward: null, newTicketAmount: ticketAmount };
+            }
+            const resolved = campaign && (0, multi_special_exchange_1.resolveMultiSpecialExchangeCampaign)(campaign, id => { var _a; return (_a = (0, item_1.getPlayerItemSync)(context.playerId, id)) !== null && _a !== void 0 ? _a : 0; });
+            if (!resolved || resolved.status !== 3 || resolved.ticketItemId !== ticketItemId || ticketAmount <= 0) {
                 return null;
             }
             const reward = (0, character_1.givePlayerCharacterSync)(context.playerId, characterId);
@@ -137,7 +166,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
         if (!exchangeResult)
             return sendResultCode(reply, context.viewerId, 4902);
-        const characterList = exchangeResult.reward.character
+        const characterList = ((_b = exchangeResult.reward) === null || _b === void 0 ? void 0 : _b.character)
             ? (0, mission_1.reconcileAwakeUnlockCharacterList)(context.playerId, [
                 Object.assign(Object.assign({}, exchangeResult.reward.character), { viewer_id: context.viewerId }),
             ])
@@ -145,7 +174,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const itemList = {
             [ticketItemId]: exchangeResult.newTicketAmount,
         };
-        if (exchangeResult.reward.item) {
+        if ((_c = exchangeResult.reward) === null || _c === void 0 ? void 0 : _c.item) {
             itemList[String(exchangeResult.reward.item.id)] =
                 exchangeResult.reward.item.inventoryCount;
         }

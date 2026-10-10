@@ -4,8 +4,11 @@ import { resolvePlayerIdSync } from "../../data/activeAccount"
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { getPlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
+import { getMultiSpecialExchangeCampaignDefinition } from "../../lib/multi-special-exchange"
+import { canParticipateInLounge as canParticipate } from "../../lounge/eligibility"
 import {
     createLounge,
+    canAttachLoungeViewer,
     getLounge,
     getLoungeByNumber,
     getLoungeOccupancy,
@@ -32,8 +35,13 @@ interface LoungeRequestBody {
 }
 
 function positiveSafeInteger(value: unknown): number | null {
+    if (typeof value !== "number" && (typeof value !== "string" || !/^\d+$/.test(value))) return null
     const parsed = Number(value)
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+function requestBody(value: unknown): LoungeRequestBody {
+    return value !== null && typeof value === "object" && !Array.isArray(value) ? value : {}
 }
 
 async function resolveViewer(body: LoungeRequestBody): Promise<{
@@ -54,7 +62,7 @@ async function resolveViewer(body: LoungeRequestBody): Promise<{
 function hasAccess(room: LoungeRoom | undefined, body: LoungeRequestBody): room is LoungeRoom {
     const useCase = positiveSafeInteger(body.use_case)
     const establisherViewerId = positiveSafeInteger(body.establisher_viewer_id)
-    return !!room && useCase !== null && establisherViewerId !== null
+    return !!room && useCase === 1 && !!getMultiSpecialExchangeCampaignDefinition(room.campaignId) && establisherViewerId !== null
         && typeof body.advice === "string"
         && matchesLoungeAccess(room, {
             useCase,
@@ -109,29 +117,27 @@ function sendLoungeDisbanded(reply: FastifyReply, viewerId: number, loungeId: nu
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/get_list", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as LoungeRequestBody
+        const body = requestBody(request.body)
         const context = await resolveViewer(body)
         const useCase = positiveSafeInteger(body.use_case)
-        if (!context || useCase === null) return reply.status(400).send({
-            error: "Bad Request",
-            message: "Invalid request body or viewer id.",
-        })
+        if (!context || useCase !== 1) return sendLoungeNotFound(reply, context?.viewerId ?? 0)
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: context.viewerId }),
-            data: { lounge_list: listLounges(useCase).map(loungeListEntry) },
+            data: { lounge_list: listLounges(useCase).filter(room => canParticipate(context.playerId, room.campaignId)).map(loungeListEntry) },
         })
     })
 
     fastify.post("/create", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as LoungeRequestBody
+        const body = requestBody(request.body)
         const context = await resolveViewer(body)
         const useCase = positiveSafeInteger(body.use_case)
         const campaignId = positiveSafeInteger(body.campaign_id)
-        if (!context || useCase === null || campaignId === null) return reply.status(400).send({
-            error: "Bad Request",
-            message: "Invalid request body or viewer id.",
-        })
+        if (!context || useCase !== 1 || campaignId === null
+            || !getMultiSpecialExchangeCampaignDefinition(campaignId)
+            || !canParticipate(context.playerId, campaignId)) {
+            return sendLoungeNotFound(reply, context?.viewerId ?? 0)
+        }
         const characterId = Number(context.player.leaderCharacterId) || 1
         const character = getPlayerCharacterSync(context.playerId, characterId)
         const room = createLounge({
@@ -154,13 +160,10 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.post("/prepare", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as LoungeRequestBody
+        const body = requestBody(request.body)
         const context = await resolveViewer(body)
         const loungeId = positiveSafeInteger(body.lounge_id)
-        if (!context || loungeId === null) return reply.status(400).send({
-            error: "Bad Request",
-            message: "Invalid request body or viewer id.",
-        })
+        if (!context || loungeId === null) return sendLoungeNotFound(reply, context?.viewerId ?? 0)
         const room = getLounge(loungeId)
         if (!hasAccess(room, body) || context.viewerId !== room.hostViewerId) {
             return sendLoungeDisbanded(reply, context.viewerId, loungeId, "prepare")
@@ -174,15 +177,15 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.post("/select", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as LoungeRequestBody
+        const body = requestBody(request.body)
         const context = await resolveViewer(body)
         const loungeId = positiveSafeInteger(body.lounge_id)
-        if (!context || loungeId === null) return reply.status(400).send({
-            error: "Bad Request",
-            message: "Invalid request body or viewer id.",
-        })
+        if (!context || loungeId === null) return sendLoungeNotFound(reply, context?.viewerId ?? 0)
         const room = getLounge(loungeId)
         if (!hasAccess(room, body)) return sendLoungeDisbanded(reply, context.viewerId, loungeId, "select")
+        if (!canParticipate(context.playerId, room.campaignId) || !canAttachLoungeViewer(room, context.viewerId)) {
+            return sendLoungeNotFound(reply, context.viewerId)
+        }
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: context.viewerId }),
@@ -191,14 +194,17 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.post("/search", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as LoungeRequestBody
+        const body = requestBody(request.body)
         const context = await resolveViewer(body)
         const useCase = positiveSafeInteger(body.use_case)
-        if (!context || useCase === null || typeof body.lounge_number !== "string") {
-            return reply.status(400).send({ error: "Bad Request", message: "Invalid request body or viewer id." })
+        if (!context || useCase !== 1 || typeof body.lounge_number !== "string") {
+            return sendLoungeNotFound(reply, context?.viewerId ?? 0)
         }
         const room = getLoungeByNumber(body.lounge_number)
         const data = room && room.useCase === useCase && room.raisingState === 2
+            && !!getMultiSpecialExchangeCampaignDefinition(room.campaignId)
+            && canParticipate(context.playerId, room.campaignId)
+            && canAttachLoungeViewer(room, context.viewerId)
             ? {
                 lounge_exists: true,
                 advice: room.advice,
@@ -215,15 +221,14 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.post("/restore", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as LoungeRequestBody
+        const body = requestBody(request.body)
         const context = await resolveViewer(body)
         const loungeId = positiveSafeInteger(body.lounge_id)
-        if (!context || loungeId === null) return reply.status(400).send({
-            error: "Bad Request",
-            message: "Invalid request body or viewer id.",
-        })
+        if (!context || loungeId === null) return sendLoungeNotFound(reply, context?.viewerId ?? 0)
         const room = getLounge(loungeId)
-        if (!hasAccess(room, body)) return sendLoungeDisbanded(reply, context.viewerId, loungeId, "restore")
+        if (!hasAccess(room, body) || (room.raisingState === 2 && !canParticipate(context.playerId, room.campaignId))) {
+            return sendLoungeDisbanded(reply, context.viewerId, loungeId, "restore")
+        }
         const data = connectionData(room)
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -233,11 +238,11 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.post("/share", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as LoungeRequestBody
+        const body = requestBody(request.body)
         const context = await resolveViewer(body)
         const loungeId = positiveSafeInteger(body.lounge_id)
         if (!context || loungeId === null || !Array.isArray(body.share_type_list)) {
-            return reply.status(400).send({ error: "Bad Request", message: "Invalid request body or viewer id." })
+            return sendLoungeNotFound(reply, context?.viewerId ?? 0)
         }
         const room = getLounge(loungeId)
         if (!hasAccess(room, body) || context.viewerId !== room.hostViewerId) {

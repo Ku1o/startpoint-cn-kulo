@@ -7,6 +7,7 @@ const serialize_entities_1 = require("./serialize-entities");
 const types_1 = require("../types");
 const codeMap_1 = require("../codeMap");
 const start_tutorial_state_1 = require("../../lib/start-tutorial-state");
+const multi_special_exchange_1 = require("../../lib/multi-special-exchange");
 const getServerTime = (date) => Math.floor(date.getTime() / 1000);
 function serializePlayerRushEventPlayedParty(deserialized) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
@@ -264,7 +265,10 @@ function serializePlayerSnapshot(toSerialize, context, options) {
                 "term_index": campaign.termIndex
             };
         }),
-        "multi_special_exchange_campaign_list": toSerialize.multiSpecialExchangeCampaignList.map(campaign => {
+        "multi_special_exchange_campaign_list": toSerialize.multiSpecialExchangeCampaignList.flatMap(saved => {
+            const campaign = (0, multi_special_exchange_1.resolveMultiSpecialExchangeCampaign)(saved, id => { var _a; return (_a = toSerialize.itemList[String(id)]) !== null && _a !== void 0 ? _a : 0; });
+            if (!campaign)
+                return [];
             const serialized = {
                 "campaign_id": campaign.campaignId,
                 "status": campaign.status
@@ -272,7 +276,7 @@ function serializePlayerSnapshot(toSerialize, context, options) {
             if (campaign.ticketItemId !== null && campaign.ticketItemId !== undefined) {
                 serialized.ticket_item_id = campaign.ticketItemId;
             }
-            return serialized;
+            return [serialized];
         }),
         "associate_token": "associate_token",
         "config": Object.assign({ "summon_com_seconds": context.summonComSeconds }, (0, attention_config_1.getAttentionConfig)())
