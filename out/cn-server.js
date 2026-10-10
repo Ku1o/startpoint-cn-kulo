@@ -62,6 +62,7 @@ const version_1 = require("./lib/version");
 const custom_cdn_resource_routes_1 = require("./lib/custom-cdn-resource-routes");
 const file_download_1 = require("./lib/file-download");
 const client_address_1 = require("./lib/client-address");
+const crash_report_1 = require("./lib/crash-report");
 const versionCheck_1 = __importDefault(require("./routes/cn/versionCheck"));
 const ios_leiting_1 = __importDefault(require("./routes/cn/ios-leiting"));
 const leitingAuth_1 = __importDefault(require("./routes/cn/leitingAuth"));
@@ -205,7 +206,9 @@ fastify.addHook("onResponse", (request) => __awaiter(void 0, void 0, void 0, fun
     (0, online_presence_1.markPlayerOnline)(body.viewer_id);
 }));
 (0, cn_response_hook_1.installCnResponseEncoding)(fastify);
-function jsonParser(_, body, done) {
+function jsonParser(request, body, done) {
+    if (request.routeOptions.url === "/crash")
+        return done(null, (0, crash_report_1.parseCrashReportBody)(body));
     try {
         done(null, JSON.parse(body));
     }
@@ -214,6 +217,8 @@ function jsonParser(_, body, done) {
     }
 }
 fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" }, (_request, body, done) => {
+    if (_request.routeOptions.url === "/crash")
+        return done(null, (0, crash_report_1.parseCrashReportBody)(body));
     try {
         done(null, (0, msgpackr_1.unpack)(Buffer.from(body, "base64")));
     }
@@ -400,9 +405,9 @@ fastify.post("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, fun
     return reply.status(200).send("OK");
 }));
 fastify.post("/crash", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    // Log crash (truncated to avoid log explosion)
-    const bodyStr = JSON.stringify(request.body);
-    console.log(`[CRASH] ${bodyStr.substring(0, 2000)}`);
+    const bodyStr = (0, crash_report_1.crashReportText)(request.body);
+    // Extract key evidence before limiting the log; seed feedback uses the full report.
+    console.log(`[CRASH] ${JSON.stringify((0, crash_report_1.createCrashLogRecord)(request.body, request.id))}`);
     // Parse C3032 gacha seed mismatches and auto-block bad seeds
     try {
         const seedMatch = bodyStr.match(/seed=(\d+)/);

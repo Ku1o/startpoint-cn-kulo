@@ -5,6 +5,8 @@ const os = require('node:os');
 const path = require('node:path');
 const ts = require('typescript');
 const Fastify = require('fastify');
+const { unpack } = require('msgpackr');
+const crashHelpers = require('../out/lib/crash-report');
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gacha-seed-feedback-'));
 process.env.GACHA_SEED_DIR = directory;
 fs.writeFileSync(path.join(directory, 'confirmed_seeds.json'), JSON.stringify({ fes: { 100: 0, 103: 0 } }));
@@ -20,7 +22,21 @@ assert.ok(start >= 0 && end > start);
 const handlers = ts.transpileModule(server.slice(start, end), {
     compilerOptions: { target: ts.ScriptTarget.ES2020 },
 }).outputText;
-new Function('fastify', 'seedValidator', handlers)(app, validator);
+new Function('fastify', 'seedValidator', 'gameVerboseLog', 'console', ...Object.keys(crashHelpers), handlers)(
+    app, validator, () => {}, { log: () => {} }, ...Object.values(crashHelpers));
+// Also use the production parsers so legacy form crash reports reach the same
+// handler used in production rather than Fastify's default JSON-only parser.
+const source = ts.createSourceFile('cn-server.ts', server, ts.ScriptTarget.Latest, true);
+const parserStatements = source.statements.filter(statement => {
+    if (ts.isFunctionDeclaration(statement)) return statement.name?.text === 'jsonParser';
+    return ts.isExpressionStatement(statement) && ts.isCallExpression(statement.expression)
+        && statement.expression.expression.getText(source) === 'fastify.addContentTypeParser';
+});
+assert.ok(parserStatements.length >= 3);
+const parsers = ts.transpileModule(parserStatements.map(statement => statement.getText(source)).join('\n'), {
+    compilerOptions: { target: ts.ScriptTarget.ES2020 },
+}).outputText;
+new Function('fastify', 'unpack', 'parseCrashReportBody', parsers)(app, unpack, crashHelpers.parseCrashReportBody);
 const star = String.fromCharCode(0xe2, 0x98, 0x85);
 const correction = seed => `C3032 seed=${seed} movie_id=fes 結果レア度=${star}5 play=1`;
 const read = kind => JSON.parse(fs.readFileSync(path.join(directory, `${kind}_seeds.json`), 'utf8'));
@@ -77,4 +93,16 @@ test('the legacy crash-report path still records known rarity without inventing 
     assert.equal(response.statusCode, 200);
     assert.equal(read('confirmed').fes[104], 1);
     assert.equal(read('verified').fes[104], undefined);
+});
+
+test('C3032 correction after a long stack survives mislabeled JSON form parsing and reaches disk', async () => {
+    const payload = JSON.stringify({ stack: 'at client.LoadingTask\n'.repeat(160),
+        message: 'C3032 seed=105 movie_id=fes 結果レア度=★5', viewer_id: 19, resource_version: '1.4.134' });
+    assert.ok(payload.indexOf('C3032') > 2000);
+    const response = await app.inject({ method: 'POST', url: '/crash',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' }, payload });
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body, 'OK');
+    assert.equal(read('confirmed').fes[105], 2);
+    assert.equal(read('verified').fes[105], undefined);
 });

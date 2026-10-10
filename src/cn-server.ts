@@ -25,6 +25,7 @@ import { getPatchManifest } from "./lib/version";
 import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes";
 import { resolvePlainFileInside, sendFileStream } from "./lib/file-download";
 import { trustProxySetting } from "./lib/client-address";
+import { parseCrashReportBody, crashReportText, createCrashLogRecord } from "./lib/crash-report";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import iosLeitingPlugin from "./routes/cn/ios-leiting";
@@ -194,7 +195,8 @@ fastify.addHook("onResponse", async request => {
 
 installCnResponseEncoding(fastify);
 
-function jsonParser(_: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
+function jsonParser(request: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
+    if (request.routeOptions.url === "/crash") return done(null, parseCrashReportBody(body));
     try {
         done(null, JSON.parse(body));
     } catch {
@@ -204,6 +206,7 @@ function jsonParser(_: FastifyRequest, body: string, done: ContentTypeParserDone
 
 fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string" },
     (_request: FastifyRequest, body: string, done) => {
+        if (_request.routeOptions.url === "/crash") return done(null, parseCrashReportBody(body));
         try {
             done(null, unpack(Buffer.from(body, "base64")));
         } catch {
@@ -387,9 +390,9 @@ fastify.post("/debug", async (request, reply) => {
 });
 
 fastify.post("/crash", async (request, reply) => {
-    // Log crash (truncated to avoid log explosion)
-    const bodyStr = JSON.stringify(request.body);
-    console.log(`[CRASH] ${bodyStr.substring(0, 2000)}`);
+    const bodyStr = crashReportText(request.body);
+    // Extract key evidence before limiting the log; seed feedback uses the full report.
+    console.log(`[CRASH] ${JSON.stringify(createCrashLogRecord(request.body, request.id))}`);
 
     // Parse C3032 gacha seed mismatches and auto-block bad seeds
     try {
