@@ -77,6 +77,7 @@ import { getPlayerCharactersManaNodeAwakeLevelsSync, insertPlayerCharactersSync,
 import { insertPlayerDrawnQuestsSync, insertPlayerQuestProgressListSync } from "./quest";
 import { insertPlayerGachaInfoListSync, insertPlayerGachaCampaignListSync , getPlayerGachaInfoListSync, updatePlayerGachaInfoSync, getPlayerGachaCampaignListSync, updatePlayerGachaCampaignSync } from "./gacha";
 import { insertPlayerBoxGachasSync } from "./boxGacha";
+import { getBoxGachaSync } from "../../lib/assets";
 import { insertPlayerRushEventListSync, insertPlayerRushEventClearedFolderListSync, insertPlayerRushEventPlayedPartyListSync } from "./rushEvent";
 import { deletePlayerCategoryMissionsSync, insertPlayerCategoryMissionListSync, insertPlayerClearedRegularMissionListSync, insertPlayerActiveMissionsSync } from "./mission";
 import { insertPlayerPeriodicRewardPointsListSync, insertPlayerStartDashExchangeCampaignsSync, insertPlayerMultiSpecialExchangeCampaignsSync } from "./campaign";
@@ -1036,41 +1037,16 @@ export function insertDefaultPlayerSync(
     // insert active missions
     insertPlayerActiveMissionsSync(playerId, {})
 
-    // insert box gacha
-    insertPlayerBoxGachasSync(playerId, {
-        "1001": [
-            {
-                boxId: 1,
-                resetTimes: 0,
-                remainingNumber: 572,
-                isClosed: false
-            },
-            {
-                boxId: 2,
-                resetTimes: 0,
-                remainingNumber: 647,
-                isClosed: false
-            },
-            {
-                boxId: 3,
-                resetTimes: 0,
-                remainingNumber: 732,
-                isClosed: false
-            },
-            {
-                boxId: 4,
-                resetTimes: 0,
-                remainingNumber: 912,
-                isClosed: false
-            },
-            {
-                boxId: 5,
-                resetTimes: 0,
-                remainingNumber: 1401,
-                isClosed: false
-            },
-        ]
-    })
+    // Seed only a new player's default gacha; imported and existing rows retain their progress.
+    const defaultBoxGacha = getBoxGachaSync(1001)
+    if (defaultBoxGacha !== null) {
+        insertPlayerBoxGachasSync(playerId, {
+            "1001": Object.entries(defaultBoxGacha.boxes).map(([boxId, rewards]) => ({
+                boxId: Number(boxId), resetTimes: 0, isClosed: false,
+                remainingNumber: Object.values(rewards).reduce((total, reward) => total + reward.available, 0),
+            })),
+        })
+    }
 
     // insert start dash campaign list
     insertPlayerStartDashExchangeCampaignsSync(playerId, [])
