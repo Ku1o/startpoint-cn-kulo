@@ -18,8 +18,13 @@ import { installTakeoverUdidGuard } from "./lib/takeover-access";
 import { initializePlayerLogin } from "./lib/player-login";
 import playerLoginRoutes, { installPlayerLoginGuard } from "./routes/cn/playerLogin";
 import { installClientAdmission } from "./lib/client-admission";
-import { sessionManager as playerLoginSessionManager } from "./multi/state/SessionManager";
-import { disconnectLoungePlayerLogin } from "./lounge/state";
+import {
+    getRoomCommandGateway,
+    realtimeOwnerStatus,
+    quiesceRealtimeSessionServer,
+    drainRealtimeWork,
+} from "./multi/coordinator/default-runtime";
+import { quiesceDurableOwnerEvents, drainDurableOwnerEvents } from "./multi/coordinator/durable-owner-event";
 import { installLocalClientCompat } from "./lib/local-client-compat";
 import { getPatchManifest } from "./lib/version";
 import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes";
@@ -117,7 +122,12 @@ import {
 } from "./lib/persistence/writer-client";
 import { gameVerboseLog } from "./lib/game-logging";
 import { installPersistenceHttpErrors } from "./lib/persistence-http-errors";
+import { assertServerAcceptingWork, beginServerShutdown, drainServerWork, isServerShuttingDown, withShutdownCleanup } from "./lib/shutdown-state";
+import { createGracefulShutdown } from "./lib/graceful-shutdown";
+import { cancelActiveLeaderboardSettlements, terminateActiveLeaderboardSettlements } from "./lib/leaderboard/background-worker";
+import { drainPlayerSaveExports, stopPlayerSaveExports } from "./lib/player-save-export";
 
+process.env.MULTI_REALTIME_PROCESS ??= "1";
 const fastify = Fastify({
     logger: {
         // Production-safe default avoids per-request access-log formatting.
@@ -129,6 +139,7 @@ const fastify = Fastify({
     bodyLimit: 262144  // 256KB — covers /single_battle_quest/finish large battle stats
 });
 
+fastify.addHook("onRequest", async () => { assertServerAcceptingWork(); });
 
 installLocalClientCompat(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || (
     getPatchManifest().patches.some(p => p.enabled && p.local_test_only
@@ -223,8 +234,11 @@ fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "st
 fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonParser);
 
 initializePlayerLogin(viewerId => {
-    playerLoginSessionManager.disconnectPlayerLogin(viewerId);
-    disconnectLoungePlayerLogin(viewerId);
+    void (async () => await getRoomCommandGateway().execute("runtime.disconnect", { viewerId }))().catch(async error => {
+        if (isServerShuttingDown() && error?.code === "SERVER_CLOSING") return;
+        console.error("[MULTI-REALTIME] login revocation could not reach owner", error);
+        await import("./multi/coordinator/default-runtime").then(runtime => runtime.failRealtimeOwner());
+    });
 });
 installClientAdmission(fastify);
 installPlayerLoginGuard(fastify);
@@ -510,16 +524,39 @@ const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb(), {
 const leaderboardSettlementScheduler = createLeaderboardSettlementScheduler();
 const dailyVmoneyMailScheduler = createDailyVmoneyMailScheduler(getDb());
 
+let producerStops: Promise<PromiseSettledResult<unknown>[]> | null = null;
+function quiesceServer(): void {
+    if (producerStops) return;
+    beginServerShutdown();
+    const stop = (operation: () => unknown): Promise<unknown> => {
+        try { return Promise.resolve(operation()); }
+        catch (error) { return Promise.reject(error); }
+    };
+    // Stop every source before awaiting long-running accepted work. The owner
+    // stays alive for in-flight business and durable same-ID publications.
+    producerStops = Promise.allSettled([
+        stop(() => rmSync(readyFilePath,{force:true})),
+        stop(() => dailyVmoneyMailScheduler.stop()),
+        stop(() => leaderboardSettlementScheduler.stop()),
+        stop(() => receiveHistoryRetention.stop()),
+        stop(() => quiesceDurableOwnerEvents()),
+        stop(() => quiesceRealtimeSessionServer()),
+        stop(() => withShutdownCleanup(() => seedValidator.close())),
+    ]);
+}
+
 fastify.addHook("onClose", async () => {
-    rmSync(readyFilePath,{force:true});
-    // The multiplayer TCP listener is not owned by Fastify. Stop it first so
-    // no new realtime callback can enqueue a database write while the queues
-    // below are draining.
+    quiesceServer();
+    const stops = await producerStops!;
+    const failedStop = stops.find(result => result.status === "rejected");
+    // Accepted work may enqueue children after awaits. Drain their complete
+    // lifetimes before retiring the owner or taking persistence snapshots.
+    await drainServerWork();
+    await drainDurableOwnerEvents();
+    await drainRealtimeWork();
+    await drainServerWork();
+    await drainPlayerSaveExports();
     await stopSessionServer();
-    await seedValidator.close();
-    dailyVmoneyMailScheduler.stop();
-    await leaderboardSettlementScheduler.stop();
-    await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
     await drainPersistence();
     // Drain the writer thread before its connections and the checkpoint owner
@@ -529,45 +566,39 @@ fastify.addHook("onClose", async () => {
     configurePersistenceSqlExecutor(null);
     await stopSqliteWriter();
     await stopSqliteCheckpointWorker();
+    if (failedStop?.status === "rejected") throw failedStop.reason;
 });
 
-// Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
-// terminating the process forcibly still bypasses every cleanup callback.
-let gracefulShutdown: Promise<void> | null = null;
 const shutdownTimeoutMs = Math.max(
     5_000,
-    Number.parseInt(process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS ?? "15000", 10) || 15_000,
+    Number.parseInt(process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS ?? "180000", 10) || 180_000,
 );
-function requestGracefulShutdown(signal: NodeJS.Signals): void {
-    if (gracefulShutdown) return;
-    console.warn(`[SHUTDOWN] ${signal} received; draining realtime and persistence work`);
-    gracefulShutdown = (async () => {
-        let timeout: NodeJS.Timeout | undefined;
-        try {
-            await Promise.race([
-                fastify.close(),
-                new Promise<never>((_, reject) => {
-                    timeout = setTimeout(() => reject(new Error(
-                        `graceful shutdown timed out after ${shutdownTimeoutMs}ms`,
-                    )), shutdownTimeoutMs);
-                }),
-            ]);
-            console.log("[SHUTDOWN] graceful shutdown complete");
-        } catch (error) {
-            process.exitCode = 1;
-            console.error(`[SHUTDOWN] graceful shutdown failed: ${(error as Error).message}`);
-            // A timed-out close means at least one live handle cannot be
-            // drained. Enforce the service-manager shutdown bound.
-            process.exit(1);
-        } finally {
-            if (timeout) clearTimeout(timeout);
-        }
-    })();
-    void gracefulShutdown;
+const closeGracefully = createGracefulShutdown({
+    timeoutMs: shutdownTimeoutMs,
+    quiesce: quiesceServer,
+    close: () => fastify.close(),
+    cancel: () => {
+        cancelActiveLeaderboardSettlements("server shutdown drain deadline");
+        void stopPlayerSaveExports().catch(error => console.error("[SHUTDOWN] export cancellation failed", error));
+    },
+    terminate: async () => {
+        await Promise.all([terminateActiveLeaderboardSettlements(), stopPlayerSaveExports()]);
+    },
+    failed: () => { process.exitCode = 1; process.exit(1); },
+});
+function requestGracefulShutdown(source: string): void {
+    void closeGracefully(source).then(() => {
+        if (process.connected) process.disconnect();
+    });
 }
 process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
 process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
 process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
+// Use only the trusted parent-child IPC pipe for supervised Windows shutdown.
+if (process.connected) process.on("message", message => {
+    if (message && typeof message === "object" && "type" in message
+        && message.type === "starpoint:shutdown") requestGracefulShutdown("parent IPC");
+});
 startQuestNpcPartyPoolWorker();
 const persistenceWorkerStarted = startSqlitePersistenceWorker(getDb().name);
 if (persistenceWorkerStarted && isSqlitePersistenceWorkerStarted()) {
@@ -589,6 +620,13 @@ fastify.listen({ port, host }, (err, address) => {
         console.error(err);
         process.exit(1);
     }
+    if (isServerShuttingDown()) {
+        void fastify.close().catch(error => {
+            process.exitCode = 1;
+            console.error("[SHUTDOWN] late HTTP startup close failed", error);
+        });
+        return;
+    }
     console.log(`CN StarPoint listening on http://${host}:${port}`);
     receiveHistoryRetention.start();
     leaderboardSettlementScheduler.start();
@@ -598,6 +636,8 @@ fastify.listen({ port, host }, (err, address) => {
         try {
             // Do not publish readiness until both public listeners are bound.
             await startSessionServer();
+            if (isServerShuttingDown()) return;
+            console.log(`[MULTI-REALTIME] startup ownership=${JSON.stringify(realtimeOwnerStatus())}`);
             startSqliteCheckpointWorker(getDb().name, process.env, {
                 onReady: () => {
                     getDb().pragma("wal_autocheckpoint = 0")
@@ -615,6 +655,10 @@ fastify.listen({ port, host }, (err, address) => {
                 database:path.resolve(getDb().name),storageLayoutVersion:getStorageLayoutVersion(getDb()),
             });
         } catch (startupError) {
+            if (isServerShuttingDown() && (startupError as { code?: string })?.code === "SERVER_CLOSING") {
+                await fastify.close();
+                return;
+            }
             console.error(`[STARTUP] realtime listener failed: ${(startupError as Error).message}`);
             process.exitCode = 1;
             await fastify.close();

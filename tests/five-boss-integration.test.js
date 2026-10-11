@@ -575,7 +575,10 @@ test('invalid host fallback leaves AI seats empty until the host corrects its wi
         await coordinator.enqueueRoomCommand(room.room_number, () => {})
         assert.equal(client.mates.filter(mate => mate.comId).length, 2)
         assert.equal(room.npc_count, 2)
-        assert.ok(client.mates.filter(mate => mate.comId).every(mate => mate.party === legal))
+        for (const mate of client.mates.filter(mate => mate.comId)) {
+            assert.deepEqual(mate.party, legal)
+            assert.notEqual(mate.party, legal, 'the serialized business projection must not expose its source party reference')
+        }
         assert.equal(selectionCount, 3)
     } finally {
         manager.removeClient(client)
@@ -665,7 +668,7 @@ test('shared random-recruitment fallback fills AI after the configured timeout',
     }
 })
 
-test('rematch restores the previous AI count and fills the extra AI after the real-player grace', async () => {
+test('rematch restores the previous AI count and fills the extra AI after the real-player grace', async t => {
     const host = player(), guest = player()
     const room = createRoom(host.viewerId, host.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
     room.lobby_generation = 1
@@ -679,11 +682,20 @@ test('rematch restores the previous AI count and fills the extra AI after the re
         write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
     const client = manager.createClient(socket, host.viewerId, room.room_number, `rematch-host-${host.id}`, host.id)
     client.roomGeneration = room.lobby_generation
+    client.enterData = {}
     client.yourself = { viewerId: host.viewerId, playerId: host.id, comId: 0, state: [1], rank: 1,
         party: { characters: [[0, { id: 111001 }]], unison_characters: [], marker: 'host-party' } }
     client.mates = [client.yourself]
     manager.addClientToRoom(client)
     const lobby = load('multi/tcp/lobby')
+    const reservations = load('multi/room/rematch-roster')
+    const mono = require('node:perf_hooks').performance
+    let monotonicNow = mono.now()
+    t.mock.method(mono, 'now', () => monotonicNow)
+    reservations.markMemberSettlementCommitted(room, guest.viewerId)
+    reservations.markRematchReturnWindowOpened(room)
+    const returnDeadline = reservations.getNextReturnDeadline(room)
+    assert.equal(returnDeadline, monotonicNow + 60_000)
     const waitForNpcCount = async expected => {
         const deadline = Date.now() + 3000
         while (Date.now() < deadline && client.mates.filter(m => m.comId).length < expected) {
@@ -700,18 +712,29 @@ test('rematch restores the previous AI count and fills the extra AI after the re
         assert.ok(room.rematch_wait_started_at !== null)
         assert.equal(client.mates.filter(m => m.comId).length, 1)
 
-        // Simulate the post-grace cleanup removing the missing real player.
-        room.expected_real_viewer_ids = [host.viewerId]
+        monotonicNow = returnDeadline - 1
+        assert.deepEqual(reservations.getExpiredReturnViewerIds(room), [])
         lobby.recruitNpcMatesForRoom(room.room_number)
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId, guest.viewerId])
+        assert.equal(client.mates.filter(m => m.comId).length, 1)
+
+        const originalAiParty = structuredClone(client.mates.find(mate => mate.comId).party)
+        // Advance the member's monotonic result/return lease, then exercise
+        // the actual room cleanup rather than editing its expected roster.
+        monotonicNow = returnDeadline + 1
+        lobby.scheduleRematchDisconnectCleanup(room.room_number)
         assert.equal(await waitForNpcCount(2), 2)
+        assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId])
         assert.equal(client.mates.length, 3)
+        assert.deepEqual(client.mates.find(mate => mate.comId === 1).party, originalAiParty)
     } finally {
         manager.removeClient(client)
         load('multi/room/manager').disbandRoom(room.room_number)
     }
 })
 
-test('departed bell guest releases the rematch seat so AI can fill and start again', async () => {
+test('departed bell guest retains its return lease before expiry then AI fills and starts again', async t => {
     const host = player(), guest = player()
     const room = createRoom(host.viewerId, host.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
     room.lobby_generation = 1
@@ -739,6 +762,7 @@ test('departed bell guest releases the rematch seat so AI can fill and start aga
     )
     hostClient.roomGeneration = room.lobby_generation
     guestClient.roomGeneration = room.lobby_generation
+    hostClient.enterData = guestClient.enterData = {}
     hostClient.yourself = { viewerId: host.viewerId, playerId: host.id, comId: 0, state: [1],
         autoplayMode: false, rank: 130, party: {
             characters: [[0, { id: 111001 }]], unison_characters: [],
@@ -757,16 +781,38 @@ test('departed bell guest releases the rematch seat so AI can fill and start aga
     manager.addClientToRoom(guestClient)
     manager.markRescueGuest(room.room_number, guest.viewerId)
     const lobby = load('multi/tcp/lobby')
+    const reservations = load('multi/room/rematch-roster')
+    const mono = require('node:perf_hooks').performance
+    let monotonicNow = mono.now()
+    t.mock.method(mono, 'now', () => monotonicNow)
+    reservations.markMemberSettlementCommitted(room, guest.viewerId)
+    reservations.markRematchReturnWindowOpened(room)
+    reservations.markMemberReturned(room, guest.viewerId)
     try {
         // A transport loss alone still reserves the real seat for reconnect.
         manager.removeClient(guestClient)
         assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId, guest.viewerId])
+        const returnDeadline = reservations.getNextReturnDeadline(room)
+        assert.equal(returnDeadline, monotonicNow + 60_000)
+        monotonicNow = returnDeadline - 1
+        assert.deepEqual(reservations.getExpiredReturnViewerIds(room), [])
 
-        // The host's explicit EnterComs request chooses AI replacement now,
-        // releasing the absent rescue guest without waiting for the reconnect
-        // grace to expire.
+        // Legacy Notify10 can be automatic. It restores the previous COM but
+        // cannot revoke an absent member's individual return lease.
         lobby.handleMessage(hostSocket, [0, [10, [{ name: 'COM1' }, { name: 'COM2' }]]])
         await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId, guest.viewerId])
+        assert.deepEqual(room.member_viewer_ids, [host.viewerId, guest.viewerId])
+        assert.equal(load('multi/room/manager').isRoomMember(room, guest.viewerId), true)
+        assert.equal(hostClient.mates.filter(mate => mate.comId).length, 1)
+
+        monotonicNow = returnDeadline + 1
+        lobby.scheduleRematchDisconnectCleanup(room.room_number)
+        const cleanupDeadline = Date.now() + 3000
+        while (Date.now() < cleanupDeadline && room.expected_real_viewer_ids.includes(guest.viewerId)) {
+            await new Promise(resolve => setTimeout(resolve, 10))
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        }
         assert.deepEqual(room.expected_real_viewer_ids, [host.viewerId])
         assert.deepEqual(room.member_viewer_ids, [host.viewerId])
         assert.equal(room.mates.some(mate => mate.viewer_id === guest.viewerId), false)
@@ -866,6 +912,57 @@ test('five-boss start acknowledges a room lost after the outer gate without char
         playerId: p.id,
         clientPlayId: p.playId,
     }), null)
+})
+
+test('queued five-boss start rejects a replaced battle or frozen run before persistent side effects', async t => {
+    const persistence = load('lib/persistence-coordinator')
+    const manager = load('multi/room/manager')
+    const memory = load('routes/api/singleBattleQuest').activeQuests
+    for (const changedIdentity of ['battleSessionId', 'frozenRunId']) {
+        const p = player(2), room = run([p])
+        room.lifecycle.phase = 'BATTLE'
+        room.lifecycle.battleSessionId = `queued-battle-${room.room_number}`
+        const originalRunId = room.five_boss_runtime.runId
+        const before = {
+            quest: active.getPlayerActiveQuestSync(p.id),
+            memory: memory[p.id],
+            tickets: items.getPlayerItemSync(p.id, mode.ticketItemId),
+            stamina: players.getPlayerSync(p.id).stamina,
+            staminaUsed: players.getPlayerSync(p.id).totalStaminaUsed,
+        }
+        const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+        const originalTransaction = persistence.runPersistenceTransaction
+        let intercepted = 0
+        const mockedTransaction = t.mock.method(persistence, 'runPersistenceTransaction', (context, callback, ...rest) =>
+            originalTransaction(context, () => {
+                if (context.operation === 'five_boss_start') {
+                    intercepted++
+                    // Change identity after the HTTP gate captured the room,
+                    // at the point where the queued transaction begins work.
+                    if (changedIdentity === 'battleSessionId') room.lifecycle.battleSessionId += '-replacement'
+                    else room.five_boss_runtime.runId += '-replacement'
+                }
+                return callback()
+            }, ...rest))
+        try {
+            const response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
+            assert.equal(intercepted, 1, changedIdentity)
+            assert.equal(response.statusCode, 200, response.body)
+            assert.equal(response.json().data_headers.result_code, 4050, changedIdentity)
+            assert.deepEqual(active.getPlayerActiveQuestSync(p.id), before.quest, changedIdentity)
+            assert.equal(memory[p.id], before.memory, changedIdentity)
+            assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), before.tickets, changedIdentity)
+            assert.equal(players.getPlayerSync(p.id).stamina, before.stamina, changedIdentity)
+            assert.equal(players.getPlayerSync(p.id).totalStaminaUsed, before.staminaUsed, changedIdentity)
+            assert.equal(ledger.getFiveBossRunByClientSync({ playerId: p.id, clientPlayId: p.playId }), null)
+            assert.equal(getDb().prepare('SELECT COUNT(*) AS count FROM five_boss_gauntlet_runs WHERE run_id IN (?, ?)')
+                .get(originalRunId, room.five_boss_runtime.runId).count, 0)
+        } finally {
+            mockedTransaction.mock.restore()
+            manager.disbandRoom(room.room_number)
+            await app.close()
+        }
+    }
 })
 
 test('solo full-manual rewards use the whole-run AUTO record and replay exactly once', async () => {
@@ -1146,14 +1243,14 @@ test('stale multiplayer with a missing room field is recovered from its immutabl
 
 test('authenticated SceneReady survives a later TCP close and prevents finish H400', { timeout: 15000 }, async () => {
     const p = player(), room = run([p]), connectionId = `trace-${p.id}`
-    room.lifecycle.phase = 'BATTLE'
-    room.lobby_generation = 1
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    assert.equal(coordinator.commitBattleStart(room).ok, true)
+    assert.ok(load('multi/state/battle-contract').getBattleSessionContract(room))
     room.five_boss_runtime.battleIdentityByViewerId[String(p.viewerId)] = {
         playerId: p.id, connectionId, remoteAddress: '127.0.0.1',
     }
     const runId = room.five_boss_runtime.runId
     const manager = load('multi/state/SessionManager').sessionManager
-    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
     const trace = load('multi/five-boss/connection-diagnostic').fiveBossConnectionDiagnostics
     const { EventEmitter, once } = require('node:events'), net = require('node:net')
     const lobbySocket = new EventEmitter()
@@ -1181,7 +1278,9 @@ test('authenticated SceneReady survives a later TCP close and prevents finish H4
         tcp = load('multi/tcp/server')
         await tcp.startSessionServer()
         net.createServer = originalCreateServer
-        assert.equal((await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })).statusCode, 200)
+        const started = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
+        assert.equal(started.statusCode, 200, started.body)
+        assert.equal(started.json().data_headers.result_code, 1, started.body)
         const connect = async () => {
             const incoming = once(rawServer, 'connection')
             const socket = net.createConnection({ host: '127.0.0.1', port: rawServer.address().port })
@@ -1343,10 +1442,41 @@ test('finish without authenticated battle entry is terminal and forged identity 
             return prepare.call(this, sql)
         }
         try {
+            const admission = load('lib/persistence-admission').persistenceAdmission
+            // Compare every real business table, including shared runs and
+            // indirectly owned rows. Fault-injection triggers are not tables;
+            // no progress, balance or receipt table is excluded.
+            const businessDatabaseDigest = () => {
+                const db = getDb()
+                const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()
+                return JSON.stringify(tables.map(({ name }) => {
+                    const quote = identifier => '"' + identifier.replace(/"/g, '""') + '"'
+                    const statement = db.prepare(`SELECT * FROM ${quote(name)}`)
+                    const columns = statement.columns().map(column => column.name)
+                    const rows = statement.safeIntegers(true).raw().all().map(row => JSON.stringify(row.map(value =>
+                        Buffer.isBuffer(value) ? { blob: value.toString('hex') }
+                            : typeof value === 'bigint' ? { integer: value.toString() } : value))).sort()
+                    return { name, columns, rows }
+                }))
+            }
+            const terminalBefore = businessDatabaseDigest()
+            const rejectedBefore = admission.stats().rejected
             const retries = await Promise.all(Array.from({ length: 20 }, () =>
                 app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })))
-            assert.ok(retries.every(response => response.statusCode === 200))
-            assert.ok(retries.every(response => response.json().data.clear_rank === 0))
+            const admitted = retries.filter(response => response.statusCode === 200)
+            const busy = retries.filter(response => response.statusCode === 503)
+            assert.equal(admitted.length, 8, 'the per-player admission limit must remain eight')
+            assert.equal(busy.length, 12)
+            assert.ok(admitted.every(response => response.json().data.clear_rank === 0))
+            assert.ok(busy.every(response => response.json().code === 'PERSISTENCE_QUEUE_FULL'))
+            assert.equal(admission.stats().rejected - rejectedBefore, 12)
+            assert.equal(admission.stats().total, 0)
+            assert.equal(businessDatabaseDigest(), terminalBefore, 'overflow must preserve all terminal business state')
+            const recovered = await Promise.all(Array.from({ length: 8 }, () =>
+                app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })))
+            assert.ok(recovered.every(response => response.statusCode === 200 && response.json().data.clear_rank === 0))
+            assert.equal(admission.stats().total, 0)
+            assert.equal(businessDatabaseDigest(), terminalBefore, 'recovery must not grant or change business state')
             assert.equal(diagnosticReads, 0)
             const acknowledgements = messages
                 .filter(line => line.startsWith('[FIVE-BOSS-ACK]'))

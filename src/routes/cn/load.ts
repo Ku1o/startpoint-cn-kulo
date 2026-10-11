@@ -8,14 +8,13 @@ import { getContentSnapshot } from "../../content/runtime/content-snapshot";
 import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconciliation";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getDisplayHost } from "../../multi/room/serializer";
-import { getRoom } from "../../multi/room/manager";
-import { sessionManager } from "../../multi/state/SessionManager";
 import { runPermanentValidators } from "../../lib/validate";
 import { activeQuests } from "../api/singleBattleQuest";
 import { getFavoritePartyGroupListSync } from "../../lib/profileFavorite";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { shouldResetMode15RunForStaleActiveQuest } from "../../lib/mode15-active-quest-recovery";
-import { classifyMultiActiveQuestRecovery } from "../../lib/multi-active-quest-recovery";
+import type { MultiActiveQuestRecoveryDecision } from "../../lib/multi-active-quest-recovery";
+import { getRoomCommandGateway } from "../../multi/coordinator/default-runtime";
 import {
     cleanupLegacyMode15RescueProgressSync,
     isMode15RuntimeLoaded,
@@ -43,6 +42,7 @@ import { recordServerWork } from "../../lib/server-work-performance";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { isPersistenceAdmissionError } from "../../lib/persistence-admission";
 import { serializePlayerSnapshot } from "../../data/utils/client-player-snapshot";
+import { withServerWorkAdmission } from "../../lib/shutdown-state";
 
 interface CnLoadBody {
     device_id: number;
@@ -154,6 +154,7 @@ const routes = async (fastify: FastifyInstance) => {
             return reply.status(400).send({ error: "Bad Request", message: "No player found" });
         }
 
+        return await withServerWorkAdmission(async () => {
         // The load snapshot preparation also repairs old saves (including
         // mana boards and stamina). Admit the complete write unit before
         // queueing, read fresh state inside it, and commit it atomically.
@@ -261,16 +262,18 @@ const routes = async (fastify: FastifyInstance) => {
         // Inject unfinished quest lists for battle recovery
         const activeQuest = getPlayerActiveQuestSync(playerId);
         if (activeQuest) {
-            const activeRoom = activeQuest.roomNumber ? getRoom(activeQuest.roomNumber) : undefined;
-            const multiRecovery = classifyMultiActiveQuestRecovery(
-                activeQuest,
-                activeRoom,
-                viewerId,
-                activeQuest.roomNumber
-                    ? sessionManager.isBattleSeatRetired(activeQuest.roomNumber, viewerId)
-                    : false,
-            );
-            if (!multiRecovery.recoverable || isStaleAbyssBattle(activeQuest)) {
+            const multiRecovery = await getRoomCommandGateway().execute("battle.recovery", {
+                quest: activeQuest, viewerId, playerId,
+            }) as MultiActiveQuestRecoveryDecision & { roomPhase: string | null };
+            if (multiRecovery.retained && !isStaleAbyssBattle(activeQuest)) {
+                // A lobby can advance before another member posts its result.
+                // Keep that exact play for finish; legacy clients cannot resume
+                // gameplay after Finalize or rejoin it in a newer room battle.
+                clientData.unfinished_quest_list = [];
+                clientData.unfinished_multi_quest_list = [];
+                gameVerboseLog(() => `[CN-LOAD] retained result play=${activeQuest.playId}`
+                    + ` room=${activeQuest.roomNumber} reason=${multiRecovery.reason}`);
+            } else if (!multiRecovery.recoverable || isStaleAbyssBattle(activeQuest)) {
                 const mode15Quest = isMode15Quest(activeQuest.category, activeQuest.questId);
                 // A stale multiplayer room cannot distinguish a defeat from a
                 // transport loss. Mode15 therefore clears this battle record
@@ -282,7 +285,7 @@ const routes = async (fastify: FastifyInstance) => {
                 gameVerboseLog(() => `[CN-LOAD] stale active quest cleared:`
                     + ` play=${activeQuest.playId} room=${activeQuest.roomNumber ?? "missing"}`
                     + ` reason=${multiRecovery.reason}`
-                    + ` state=${activeRoom?.lifecycle?.phase ?? "missing"}`
+                    + ` state=${multiRecovery.roomPhase ?? "missing"}`
                     + ` mode15=${mode15Quest} multiHost=${activeQuest.isMultiHost}`
                     + ` reset=${shouldResetMode15Run}`);
                 const deleted = await runPersistenceTransaction({
@@ -343,6 +346,7 @@ const routes = async (fastify: FastifyInstance) => {
                 servertime: getServerTime(),
             }),
             data: clientData
+        });
         });
         } catch(e: any) {
             if (hijackUnavailableReply(request, reply)) return reply;

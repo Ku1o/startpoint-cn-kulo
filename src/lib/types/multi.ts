@@ -51,6 +51,8 @@ export interface MultiRoomLifecycle {
     phase: MultiRoomPhase
     version: number
     battleSessionId: string | null
+    /** Internal scene identity; legacy TCP arrays remain unchanged. */
+    sceneEpoch?: number
 }
 
 

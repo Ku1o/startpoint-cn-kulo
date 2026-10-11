@@ -236,7 +236,7 @@ for (const change of ['clear room snapshot map', 'advance to another generation'
         assert.deepEqual(registered.npcPartySnapshot, frozen)
         assert.equal(registered.roomGeneration, battleGeneration)
         assert.equal(registered.battleInstanceId,
-            `${x.room.room_number}:${battleGeneration}:2:1001001`)
+            `${x.room.lifecycle.instanceId}:${battleGeneration}:2:1001001`)
         assert.ok(registered.participants.some(mate => mate.viewerId === x.host.viewerId))
         assert.ok(registered.participants.some(mate => mate.viewerId === x.guest.viewerId))
         assert.equal(registered.participants.some(mate => mate.viewerId === 999999), false)

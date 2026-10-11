@@ -1,39 +1,36 @@
 import * as net from "net"
+import { performance } from "node:perf_hooks"
 import { freezeFiveBossLobby } from "../five-boss/lobby-runtime"
 import { sessionManager, SessionClient } from "../state/SessionManager"
 import { addRoomMember, getRoom, removeRoomMember } from "../room/manager"
 import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
 import { stopRandomRecruitment } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
-import { markPlayerOnlineFromTcp } from "../../lib/online-presence"
-import {
-    getNpcPartySelectionOptions,
-    getRandomPlayerNpcPartiesSync,
-} from "../npc/player-party-pool"
+import { captureRealtimeBusinessContext, invokeRealtimeBusiness, retainRealtimeBusinessTail } from "../coordinator/business-rpc"
+import { isRealtimeOwnerChild } from "../coordinator/runtime-role"
+import { applyPlayerBusinessFacts, getPlayerBusinessFacts, notifyRealtimePresence, type PlayerBusinessFacts } from "../coordinator/business-facts"
 import { isNpcPartyAllowedInRoom } from "../npc/equipment-policy"
-import { isMode15RoomClosed } from "../mode15-room-gate"
-import {
-    isMode15Quest,
-} from "../../lib/mode15-optional"
+import { isMode15RoomClosed, getMode15HostRoomGate } from "../mode15-room-gate"
 import { enforceEquipmentReady, enforceRoomEquipmentReady, freezeEquipmentSelections,
     recordEquipmentPartyChange, setPreparation } from "../room/equipment-ready"
-import { getPlayerSync, updatePlayerPartySlotAsync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { handleAutoplayModeChange } from "./autoplay-mode"
-import { setRealPartySnapshot } from "../party-snapshot"
 import {
     recordRoomAdmissionDenial,
     roomAdmissionRegistry,
 } from "../room/admission"
 import { markTcpDisconnectReason } from "./disconnect-diagnostics"
+import { ensureRematchReturnReservations, getExpiredReturnViewerIds,
+    getNextReturnDeadline, getReservedReturnViewerIds,
+    markMemberReturnDisconnected } from "../room/rematch-roster"
 
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000")
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500")
-const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "60000")
 const npcRecruitingRooms = new Set<string>()
 const npcReconcilePendingRooms = new Set<string>()
 const npcReconcileTimers = new Map<string, NodeJS.Timeout>()
 const rematchCleanupTimers = new Map<string, NodeJS.Timeout>()
+const rematchCleanupDeadlines = new Map<string, number>()
 const rematchCleanedGeneration = new Map<string, number>()
 
 // Original CN client PlayerDefaultName table.  The old summon flow selected
@@ -179,6 +176,22 @@ function countRealPlayers(mates: any[]): number {
     return mates.filter(m => !m.comId).length  // real player has no comId
 }
 
+function missingRematchReturnMembers(room: NonNullable<ReturnType<typeof getRoom>>): number[] {
+    if (room.lobby_generation <= 0) return []
+    ensureRematchReturnReservations(room)
+    const liveViewerIds = new Set(sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
+        .filter(client => !client.isBattle && !client.superseded && client.enterData !== null
+            && !client.socket.destroyed && client.socket.readable && client.socket.writable)
+        .map(client => client.viewerId))
+    for (const viewerId of room.expected_real_viewer_ids) {
+        if (!liveViewerIds.has(viewerId)) markMemberReturnDisconnected(room, viewerId)
+    }
+    // A surviving old lobby socket is not proof of a new Enter. Only the
+    // successful admission path clears a reservation; otherwise an expired
+    // pending-result seat could keep rearming an immediate cleanup forever.
+    return getReservedReturnViewerIds(room)
+}
+
 function normalizeRoster(mates: any[]): any[] {
     const normalized: any[] = []
     const indexes = new Map<string, number>()
@@ -263,6 +276,10 @@ export function checkHostAutoReady(roomNumber: string, reconcileMissingNpcs = tr
     if (!room || room.lifecycle.phase !== "LOBBY") return
     const hostClient = findHostClient(roomNumber)
     if (!hostClient) return
+    if (missingRematchReturnMembers(room).length > 0) {
+        scheduleRematchRosterCleanup(roomNumber)
+        return
+    }
     const hostMate = hostClient.mates.find(m => m.viewerId === hostClient.viewerId)
     if (!hostMate) return
 
@@ -314,10 +331,15 @@ function checkAllReadyAndStart(roomNumber: string, reconcileMissingNpcs = true):
         console.log(`[MODE15] auto rematch denied: completed host room=${roomNumber}`)
         return
     }
+    if (getMode15HostRoomGate(room)?.unknown) return
 
     // Guard: auto continuation must wait for the exact real-player roster from
     // the previous battle.  npc_count is not a safe proxy because a real player
     // may have replaced a COM before the battle began.
+    if (missingRematchReturnMembers(room).length > 0) {
+        scheduleRematchRosterCleanup(roomNumber)
+        return
+    }
     if (room.expected_real_viewer_ids.length > 0) {
         const presentRealViewerIds = new Set(
             hostClient.mates.filter(mate => !mate.comId).map(mate => Number(mate.viewerId)),
@@ -367,6 +389,17 @@ async function handleEnterComs(
     if (!room) return
     const roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
     const roomGeneration = room.lobby_generation
+    if (isRealtimeOwnerChild()) {
+        const version = room.lifecycle.version, category = room.category, questId = room.quest_id
+        const facts = await invokeRealtimeBusiness<PlayerBusinessFacts>("player.facts", {
+            playerId: room.host_player_id, category, questId,
+        })
+        if (getRoom(client.roomNumber) !== room || room.lifecycle.instanceId !== roomInstanceId
+            || room.lobby_generation !== roomGeneration || room.lifecycle.version !== version
+            || room.category !== category || room.quest_id !== questId || client.superseded || client.socket.destroyed) return
+        applyPlayerBusinessFacts(facts)
+        if (!getPlayerBusinessFacts(room.host_player_id, { category, questId })) return
+    }
     if (isMode15RoomClosed(room)) {
         stopRandomRecruitment(client.roomNumber)
         sessionManager.commitRoomDisband(client.roomNumber, "mode15_room_completed")
@@ -394,7 +427,7 @@ async function handleEnterComs(
     // been reduced when a real player joined, so it cannot be used as a cap
     // when that player later leaves or the return lobby is rebuilt.
     const npcLimit = maxNpcCount === undefined ? 3 : Math.max(0, maxNpcCount)
-    let needNPCs = Math.min(3 - realMates.length, npcLimit)
+    let needNPCs = Math.min(Math.max(0, 3 - realMates.length - missingRematchReturnMembers(room).length), npcLimit)
     if (maxNpcCount === undefined) room.npc_count = needNPCs  // persist the actual COM slots for rematch
     if (needNPCs <= 0) {
         gameVerboseLog(() => `[LOBBY] EnterComs: room full (${realMates.length} players), skip NPCs`)
@@ -414,7 +447,7 @@ async function handleEnterComs(
     // resolving, so take a fresh roster snapshot before creating COM slots.
     realMates = collectCanonicalRoomRoster(client.roomNumber, true)
         .filter(m => !m.comId)
-    needNPCs = Math.min(Math.max(0, 3 - realMates.length), npcLimit)
+    needNPCs = Math.min(Math.max(0, 3 - realMates.length - missingRematchReturnMembers(room).length), npcLimit)
     if (maxNpcCount === undefined) room.npc_count = needNPCs
     if (needNPCs === 0) {
         synchronizeRoomRoster(client.roomNumber, realMates.slice(0, 3), true)
@@ -438,12 +471,11 @@ async function handleEnterComs(
     let npcParties: any[] = []
     if (missingPartyCount > 0) {
         try {
-            const selectionOptions = getNpcPartySelectionOptions(room.category, room.quest_id)
-            npcParties = getRandomPlayerNpcPartiesSync(
-                client.playerId,
-                missingPartyCount,
-                selectionOptions,
-            ).map(entry => entry.party)
+            const selectionInstance = room.lifecycle.instanceId, selectionGeneration = room.lobby_generation
+            npcParties = await invokeRealtimeBusiness<any[]>("npc.parties", { playerId: client.playerId,
+                count: missingPartyCount, category: room.category, questId: room.quest_id })
+            if (getRoom(client.roomNumber) !== room || room.lifecycle.instanceId !== selectionInstance
+                || room.lobby_generation !== selectionGeneration || client.superseded || client.socket.destroyed) return
         } catch (error) {
             console.error(`[LOBBY] player NPC party pool selection failed room=${client.roomNumber}`, error)
         }
@@ -575,13 +607,7 @@ async function recruitNpcMatesForRoomAttempt(roomNumber: string, attempt: number
     // reconnect grace. The cleanup timer removes expired expectations and
     // schedules another reconciliation, at which point COMs fill the vacancy.
     if (room.lobby_generation > 0 && room.expected_real_viewer_ids.length > 0) {
-        const liveViewerIds = new Set(
-            sessionManager.getClientsInRoom(roomNumber, room.lobby_generation)
-                .filter(connectedClient => !connectedClient.isBattle)
-                .map(connectedClient => connectedClient.viewerId),
-        )
-        const missingExpectedViewerIds = room.expected_real_viewer_ids
-            .filter(viewerId => !liveViewerIds.has(viewerId))
+        const missingExpectedViewerIds = missingRematchReturnMembers(room)
         if (missingExpectedViewerIds.length > 0) {
             // Two-stage rematch: restore the AI count from the previous
             // battle immediately, but leave one seat free for every real
@@ -665,9 +691,13 @@ export function recruitNpcMatesForRoom(roomNumber: string): void {
 
 function scheduleRematchRosterCleanup(roomNumber: string): void {
     const room = getRoom(roomNumber)
-    if (!room || room.lobby_generation <= 0) return
-    if (rematchCleanedGeneration.get(roomNumber) === room.lobby_generation) return
-    if (rematchCleanupTimers.has(roomNumber)) return
+    if (!room || room.lobby_generation <= 0 || room.lifecycle.phase !== "LOBBY") return
+    missingRematchReturnMembers(room)
+    const deadline = getNextReturnDeadline(room)
+    if (deadline === undefined) return
+    const existingTimer = rematchCleanupTimers.get(roomNumber)
+    if (existingTimer && (rematchCleanupDeadlines.get(roomNumber) ?? Infinity) <= deadline) return
+    if (existingTimer) clearTimeout(existingTimer)
 
     const generation = room.lobby_generation
     const roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
@@ -676,41 +706,37 @@ function scheduleRematchRosterCleanup(roomNumber: string): void {
         void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
             if (rematchCleanupTimers.get(roomNumber) !== timer) return
             rematchCleanupTimers.delete(roomNumber)
+            rematchCleanupDeadlines.delete(roomNumber)
             const currentRoom = getRoom(roomNumber)
-            if (!embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
+            if (currentRoom !== room || !embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
                 || currentRoom.lobby_generation !== generation
                 || currentRoom.lifecycle.phase !== "LOBBY") return
 
-            const liveClients = sessionManager.getClientsInRoom(roomNumber, generation)
-                .filter(client => !client.isBattle)
-            const liveViewerIds = new Set(liveClients.map(client => client.viewerId))
-            const missingViewerIds = currentRoom.expected_real_viewer_ids
-                .filter(viewerId => !liveViewerIds.has(viewerId))
+            const missingViewerIds = new Set(missingRematchReturnMembers(currentRoom))
+            const removedViewerIds = getExpiredReturnViewerIds(currentRoom)
+                .filter(viewerId => missingViewerIds.has(viewerId)
+                    && removeRoomMember(roomNumber, viewerId, generation))
 
-            if (missingViewerIds.length > 0) {
-                for (const viewerId of missingViewerIds) removeRoomMember(roomNumber, viewerId)
-                currentRoom.expected_real_viewer_ids = currentRoom.expected_real_viewer_ids
-                    .filter(viewerId => liveViewerIds.has(viewerId))
-                currentRoom.mates = currentRoom.mates
-                    .filter(mate => mate.viewer_id === null || !missingViewerIds.includes(mate.viewer_id))
-
+            if (removedViewerIds.length > 0) {
                 const hostClient = findHostClient(roomNumber)
                 if (hostClient) {
                     hostClient.mates = hostClient.mates
-                        .filter(mate => mate.comId || !missingViewerIds.includes(Number(mate.viewerId)))
+                        .filter(mate => mate.comId || !removedViewerIds.includes(Number(mate.viewerId)))
                     sessionManager.broadcastToRoom(roomNumber, [1, [1, hostClient.mates]])
                 }
-                console.warn(`[LOBBY] rematch reconnect grace expired: room=${roomNumber} removed=${missingViewerIds.join(",")}`)
+                console.warn(`[LOBBY] rematch reconnect grace expired: room=${roomNumber} removed=${removedViewerIds.join(",")}`)
             }
 
             currentRoom.rematch_wait_started_at = null
-            rematchCleanedGeneration.set(roomNumber, generation)
+            if (getNextReturnDeadline(currentRoom) === undefined) rematchCleanedGeneration.set(roomNumber, generation)
+            else scheduleRematchRosterCleanup(roomNumber)
             checkHostAutoReady(roomNumber)
             if (currentRoom.is_npc_mode) scheduleNpcReconcile(roomNumber)
         }).catch(error => console.error(`[LOBBY] rematch cleanup failed room=${roomNumber}`, error))
-    }, REMATCH_RECONNECT_GRACE_MS)
+    }, Math.max(0, deadline - performance.now()))
     timer.unref()
     rematchCleanupTimers.set(roomNumber, timer)
+    rematchCleanupDeadlines.set(roomNumber, deadline)
 }
 
 /**
@@ -721,6 +747,7 @@ export function clearLobbyRoomState(roomNumber: string): void {
     const rematchTimer = rematchCleanupTimers.get(roomNumber)
     if (rematchTimer) clearTimeout(rematchTimer)
     rematchCleanupTimers.delete(roomNumber)
+    rematchCleanupDeadlines.delete(roomNumber)
     rematchCleanedGeneration.delete(roomNumber)
     const reconcileTimer = npcReconcileTimers.get(roomNumber)
     if (reconcileTimer) clearTimeout(reconcileTimer)
@@ -757,50 +784,23 @@ export function scheduleRematchDisconnectCleanup(roomNumber: string): void {
     const existingTimer = rematchCleanupTimers.get(roomNumber)
     if (existingTimer) clearTimeout(existingTimer)
     rematchCleanupTimers.delete(roomNumber)
+    rematchCleanupDeadlines.delete(roomNumber)
     rematchCleanedGeneration.delete(roomNumber)
     scheduleRematchRosterCleanup(roomNumber)
 }
 
-function releaseMissingRematchMembersForExplicitAi(
+function reserveMissingRematchMembersForLegacyAi(
     room: NonNullable<ReturnType<typeof getRoom>>,
     requester: SessionClient,
-): number[] {
+): void {
     if (room.lobby_generation <= 0
         || requester.viewerId !== room.host_viewer_id
-        || room.expected_real_viewer_ids.length === 0) return []
-
-    const liveViewerIds = new Set(
-        sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
-            .filter(client => !client.isBattle
-                && !client.superseded
-                && !client.socket.destroyed
-                && client.socket.readable
-                && client.socket.writable)
-            .map(client => client.viewerId),
-    )
-    const releasedViewerIds = room.expected_real_viewer_ids
-        .filter(viewerId => viewerId !== room.host_viewer_id && !liveViewerIds.has(viewerId))
-    if (releasedViewerIds.length === 0) return []
-
-    for (const viewerId of releasedViewerIds) {
-        if (sessionManager.isRescueGuest(room.room_number, viewerId)) {
-            sessionManager.ejectRescueGuest(room.room_number, viewerId, "host_ai_replacement")
-        } else {
-            removeRoomMember(room.room_number, viewerId)
-        }
-    }
-
-    // Explicit COM entry means the host chose to replace the currently absent
-    // members now. The old reconnect timer must not keep or later reapply that
-    // roster reservation after the replacement has entered.
-    const cleanupTimer = rematchCleanupTimers.get(room.room_number)
-    if (cleanupTimer) clearTimeout(cleanupTimer)
-    rematchCleanupTimers.delete(room.room_number)
-    rematchCleanedGeneration.delete(room.room_number)
-    room.rematch_wait_started_at = null
-    console.log(`[LOBBY] host AI replacement released absent rematch members:`
-        + ` room=${room.room_number} viewers=${releasedViewerIds.join(",")}`)
-    return releasedViewerIds
+        || room.expected_real_viewer_ids.length === 0) return
+    // Legacy Notify10 also occurs automatically. It cannot prove that the host
+    // chose to revoke another player's result/return lease. Normal expiry owns
+    // destructive replacement, and EnterComs also enforces these reservations.
+    missingRematchReturnMembers(room)
+    scheduleRematchRosterCleanup(room.room_number)
 }
 
 function rejectClaimedAdmission(
@@ -1046,11 +1046,12 @@ function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): vo
     gameVerboseLog(() => `[LOBBY] client ${client.viewerId} left room ${client.roomNumber}`)
 }
 
-function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any[]): void {
+async function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any[]): Promise<void> {
     const currentRoom = getRoom(client.roomNumber)
     if (!currentRoom || currentRoom.lifecycle.phase !== "LOBBY"
         || client.roomGeneration !== currentRoom.lobby_generation) return
     const pd = data[1]
+    const previousSavedPartyId = getPlayerBusinessFacts(Number(client.playerId))?.player.partySlot
     const currentPartyId = data[3] ?? pd?.currentPartyId
     const changed = (currentPartyId !== undefined && currentPartyId !== client.yourself?.currentPartyId)
         || (!!pd?.party && JSON.stringify(pd.party) !== JSON.stringify(client.yourself?.party))
@@ -1076,7 +1077,7 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
         if (client.playerId && pd.party !== undefined) {
             // Keep reconnect handshakes aligned with the in-memory room
             // roster immediately; the low-priority DB save may finish later.
-            setRealPartySnapshot(client.playerId, pd.party)
+            if (!isRealtimeOwnerChild()) require("../party-snapshot").setRealPartySnapshot(client.playerId, pd.party)
         }
         if (currentPartyId !== undefined) {
             client.yourself.currentPartyId = currentPartyId
@@ -1097,16 +1098,30 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
             // Party selection is already authoritative in the in-memory room.
             // Defer the low-priority save so the TCP callback can broadcast the
             // roster without synchronously waiting on SQLite.
-            setImmediate(() => {
-                if (sessionManager.getClient(client.viewerId, client.roomNumber) !== client
-                    || client.superseded || getRoom(client.roomNumber) !== currentRoom
-                    || currentRoom.lifecycle.phase !== "LOBBY"
-                    || client.roomGeneration !== currentRoom.lobby_generation
-                    || client.yourself?.currentPartyId !== partySlot) return
-                void updatePlayerPartySlotAsync(playerId, partySlot).catch(error => {
-                    console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error)
-                })
+            const restoreBusinessContext = captureRealtimeBusinessContext()
+            const partyPersistence = new Promise<void>(resolve => {
+                setImmediate(() => restoreBusinessContext(() => {
+                    if (sessionManager.getClient(client.viewerId, client.roomNumber) !== client
+                        || client.superseded || getRoom(client.roomNumber) !== currentRoom
+                        || currentRoom.lifecycle.phase !== "LOBBY"
+                        || client.roomGeneration !== currentRoom.lobby_generation
+                        || client.yourself?.currentPartyId !== partySlot) { resolve(); return }
+                    void invokeRealtimeBusiness("player.party", { playerId, partyId: partySlot,
+                        category: currentRoom.category, questId: currentRoom.quest_id, party: client.yourself?.party ?? null,
+                        ...(previousSavedPartyId === undefined ? {} : { expectedSavedPartyId: previousSavedPartyId }) })
+                        .catch(error => {
+                            const uncertain = error as { code?: string; confirmation?: Promise<unknown> }
+                            if (uncertain?.code === "BUSINESS_OUTCOME_UNKNOWN" && uncertain.confirmation) return uncertain.confirmation
+                            throw error
+                        }).then(() => resolve(), error => {
+                            console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error)
+                            resolve()
+                        })
+                }))
             })
+            // Hold the accepted frame until the actual save ACK, while allowing
+            // later lobby commands and heartbeats to use the room queue.
+            retainRealtimeBusinessTail(partyPersistence)
         }
         const room = getRoom(client.roomNumber)
         if (room && room.host_viewer_id === client.viewerId && currentPartyId !== undefined) room.host_party_id = currentPartyId
@@ -1164,6 +1179,7 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
 
     const room = getRoom(client.roomNumber)
     if (!room) return
+    if (getMode15HostRoomGate(room)?.unknown) return
     let lifecyclePhase = embeddedMultiCoordinator.ensureLifecycle(room).phase
     if (lifecyclePhase === "RETURNING"
         && sessionManager.isHostOnline(room.host_viewer_id, client.roomNumber)
@@ -1191,6 +1207,10 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
     // host and restored COM mates appear ready. Enforce the same rule at the
     // final mutation boundary so that request cannot overwrite the expected
     // roster and start a 1-real/2-COM rematch before a guest returns.
+    if (lifecyclePhase === "LOBBY" && missingRematchReturnMembers(room).length > 0) {
+        scheduleRematchRosterCleanup(client.roomNumber)
+        return
+    }
     if (room.lobby_generation > 0 && room.expected_real_viewer_ids.length > 0) {
         const presentRealViewerIds = new Set(
             members
@@ -1245,6 +1265,7 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
     const cleanupTimer = rematchCleanupTimers.get(client.roomNumber)
     if (cleanupTimer) clearTimeout(cleanupTimer)
     rematchCleanupTimers.delete(client.roomNumber)
+    rematchCleanupDeadlines.delete(client.roomNumber)
     rematchCleanedGeneration.delete(client.roomNumber)
     const battleStart = lifecyclePhase === "LOBBY"
         ? embeddedMultiCoordinator.commitBattleStart(room)
@@ -1281,10 +1302,40 @@ async function handleNotify(socket: net.Socket, client: SessionClient, data: any
     if (!Array.isArray(notifyData)) return
     const tag = notifyData[0] as number
 
+    if (isRealtimeOwnerChild() && (tag === 3 || tag === 6)) {
+        const room = getRoom(client.roomNumber)
+        if (!room || room.lifecycle.phase !== "LOBBY") return
+        const instance = room.lifecycle.instanceId, generation = room.lobby_generation
+        const version = room.lifecycle.version, category = room.category, questId = room.quest_id
+        const participants = sessionManager.getClientsInRoom(client.roomNumber, generation)
+            .filter(current => !current.isBattle && !current.superseded && current.playerId !== null && current.yourself)
+        const snapshots = participants.map(current => ({ current, connectionId: current.connectionId,
+            partyId: Number(current.equipmentSelectedPartyId ?? current.yourself.currentPartyId ?? 1),
+            wireParty: JSON.stringify(current.yourself.party) }))
+        const requests = snapshots.map(snapshot => invokeRealtimeBusiness<PlayerBusinessFacts>("player.facts", {
+            playerId: snapshot.current.playerId, category: room.category, questId: room.quest_id,
+            partyId: snapshot.partyId, wireParty: snapshot.current.yourself.party,
+        }))
+        if (!snapshots.some(snapshot => snapshot.current.playerId === room.host_player_id)) requests.push(
+            invokeRealtimeBusiness<PlayerBusinessFacts>("player.facts", { playerId: room.host_player_id, category, questId }))
+        const facts = await Promise.all(requests)
+        if (getRoom(client.roomNumber) !== room || room.lifecycle.instanceId !== instance
+            || room.lobby_generation !== generation || room.lifecycle.phase !== "LOBBY"
+            || room.lifecycle.version !== version || room.category !== category || room.quest_id !== questId
+            || snapshots.some(snapshot => snapshot.current.superseded || snapshot.current.socket.destroyed
+                || sessionManager.getClient(snapshot.current.viewerId, client.roomNumber) !== snapshot.current
+                || snapshot.current.connectionId !== snapshot.connectionId
+                || JSON.stringify(snapshot.current.yourself.party) !== snapshot.wireParty)) return
+        facts.forEach(fact => applyPlayerBusinessFacts(fact))
+        if (!getPlayerBusinessFacts(room.host_player_id, { category, questId })) return
+        if (snapshots.some(snapshot => !getPlayerBusinessFacts(Number(snapshot.current.playerId), {
+            category: room.category, questId: room.quest_id, partyId: snapshot.partyId }))) return
+    }
+
     switch (tag) {
         case 0: handleEnter(socket, client, notifyData); break
         case 1: handleBye(socket, client, notifyData); break
-        case 2: handleChangeParty(socket, client, notifyData); break
+        case 2: await handleChangeParty(socket, client, notifyData); break
         case 3: handleReady(socket, client, notifyData); break
         case 4: handleHeartbeat(socket, client, notifyData); break
         case 5: case 8: case 9: break  // Suspend/ChangeAutoStart/Log — silently ignored
@@ -1307,7 +1358,7 @@ async function handleNotify(socket: net.Socket, client: SessionClient, data: any
         case 10: {
             const room = getRoom(client.roomNumber)
             if (room?.is_npc_mode) {
-                releaseMissingRematchMembersForExplicitAi(room, client)
+                reserveMissingRematchMembersForLegacyAi(room, client)
                 await handleEnterComs(client, notifyData[1] as any[])
             } else {
                 gameVerboseLog(() => `[LOBBY] ignored legacy COM summon for real-player room=${client.roomNumber}`)
@@ -1355,7 +1406,7 @@ function handleSend(_socket: net.Socket, client: SessionClient, data: any[]): vo
     })
 }
 
-export function handleMessage(socket: net.Socket, data: unknown): void {
+export function handleMessage(socket: net.Socket, data: unknown): Promise<void> | void {
     if (!Array.isArray(data)) return
     const tag = data[0] as number
     const client = findClientBySocket(socket)
@@ -1369,11 +1420,11 @@ export function handleMessage(socket: net.Socket, data: unknown): void {
         return
     }
 
-    void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, async () => {
+    return embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, async () => {
         const current = findClientBySocket(socket)
         if (!current || current.superseded) return
         if (!socket.destroyed && (tag === 0 || tag === 1 || tag === 2)) {
-            markPlayerOnlineFromTcp(current.viewerId)
+            notifyRealtimePresence(current.viewerId)
         }
         switch (tag) {
             case 0: await handleNotify(socket, current, data); break

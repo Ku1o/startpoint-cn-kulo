@@ -164,6 +164,56 @@ async function startFiveBossBattle() {
     }
 }
 
+for (const relayEnabled of [false, true]) test(`five-boss: all five scenes and final proof over real TCP (relay=${relayEnabled})`, {timeout:30000}, async () => {
+    const previous = process.env.MULTI_BATTLE_RELAY_PROCESS
+    process.env.MULTI_BATTLE_RELAY_PROCESS=relayEnabled?'1':'0'
+    let x
+    try {
+        x=await startFiveBossBattle()
+        const state=load('multi/state/battle-contract')
+        const run=state.getBattleSessionContract(x.room)
+        for (const member of x.members) assert.equal(state.bindBattlePlay(x.room,member.viewerId,member.id,member.playId),true)
+        for (let scene=0;scene<5;scene++) {
+            assert.equal(x.room.lifecycle.sceneEpoch,scene)
+            assert.equal(x.room.lifecycle.battleSessionId,run.battleSessionId)
+            for (let source=0;source<3;source++) {
+                const payload=[1,`five-scene-${scene}-${source}`,source]
+                x.sims[source].send([1,payload])
+                for (let target=0;target<3;target++) if(target!==source) {
+                    await x.sims[target].until(()=>x.sims[target].frames.some(f=>f.data[0]===2&&JSON.stringify(f.data[2])===JSON.stringify(payload)))
+                    assert.equal(x.sims[target].frames.filter(f=>f.data[0]===2&&JSON.stringify(f.data[2])===JSON.stringify(payload)).length,1)
+                }
+            }
+            if(scene===4) break
+            x.sims[0].levelNext()
+            await x.sims[0].until(()=>x.room.lifecycle.sceneEpoch===scene+1)
+            // A late old-scene readiness must not release the new barrier.
+            x.sims[1].sceneReady()
+            x.sims[0].sceneReady()
+            await new Promise(resolve=>setTimeout(resolve,15))
+            assert.ok(x.sims.every(sim=>sim.battleStarts()===scene+1))
+            x.sims[1].levelNext(); x.sims[2].levelNext()
+            x.sims[1].sceneReady(); x.sims[2].sceneReady()
+            await Promise.all(x.sims.map(sim=>sim.until(()=>sim.battleStarts()===scene+2)))
+            assert.ok(x.sims.every(sim=>!sim.closed&&sim.leaves().length===0))
+        }
+        for(const sim of x.sims) sim.send([0,[2]])
+        await Promise.all(x.sims.map(sim=>sim.until(()=>sim.frames.some(f=>JSON.stringify(f.data)==='[1,[2]]'))))
+        await load('multi/five-boss/lobby-runtime').waitForFiveBossSignalPersistence(x.room.five_boss_runtime.runId)
+        for(const member of x.members) {
+            const result=runtime.finishFiveBossBattle({playerId:member.id,clientPlayId:member.playId,
+                requestRoomNumber:x.room.room_number,requestCategory:mode.category,requestQuestId:mode.visibleQuestId,
+                accomplished:true,elapsedTimeMs:30000,randomFloat:()=>0.1})
+            assert.equal(result.kind,'success')
+        }
+        assert.ok(x.sims.every(sim=>sim.battleStarts()===5&&!sim.closed))
+    } finally {
+        if(x) await x.cleanup()
+        if(previous===undefined) delete process.env.MULTI_BATTLE_RELAY_PROCESS
+        else process.env.MULTI_BATTLE_RELAY_PROCESS=previous
+    }
+})
+
 test('five-boss: relay latency, then a silent teammate cannot stall the next scene', { timeout: 60000 }, async () => {
     const { members, room, sims, lines, cleanup } = await startFiveBossBattle()
     let ticker, stallTimer

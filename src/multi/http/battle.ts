@@ -1,4 +1,3 @@
-import { freezeFiveBossLobby } from "../five-boss/lobby-runtime";
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../five-boss/entry-response";
 import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueError,
     isFiveBossContinueRequest } from "../five-boss/continue-runtime";
@@ -10,8 +9,6 @@ import { shouldHandleFiveBossStart, shouldHandleFiveBossMemberRequest,
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { MultiStartBody, MultiFinishBody, MultiAbortBody, PlayContinueBody } from "../types";
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils";
-import { getRoom, getRoomMemberPlayerId, isRoomMember, setRoomBattle } from "../room/manager";
-import { sessionManager } from "../state/SessionManager";
 import { insertActiveQuest, activeQuests, type ActiveQuest } from "../../routes/api/singleBattleQuest";
 import {
     deletePlayerActiveQuestIfPlayIdSync,
@@ -40,16 +37,10 @@ import {
     cacheFinishResponse,
     getCachedFinishResponse,
 } from "../../lib/finish-response-cache";
-import { isMode15RoomClosed } from "../mode15-room-gate";
-import { enforceRoomEquipmentReady, exclusiveWirePartyItems,
-    freezeEquipmentSelections, selectedPartyId } from "../room/equipment-ready";
 import {
-    getMode15ExclusiveGlobalPartyItemsSync,
-    isMode15EquipmentAllowedQuest,
     settleMode15BattleSync,
 } from "../../lib/mode15-optional";
 import { recordSuccessfulQuestNpcParty } from "../npc/player-party-pool";
-import { cloneQuestNpcPartySnapshot } from "../npc/quest-party-pool-shared";
 import { runPersistenceTransaction, runWriterCommand } from "../../lib/persistence-coordinator";
 import {
     MULTI_SETTLE_FINISH,
@@ -59,14 +50,16 @@ import {
 import { getPlayerOperationReceiptSync } from "../../data/domains/player-operation-receipt";
 import { MULTI_FINISH_RECEIPT_OPERATION, multiFinishPlayId, isMultiFinishResponse } from "../../lib/quest/finish/multi-finish-identity";
 import {
-    buildBattleInstanceId,
     getMultiSettlementSnapshot,
     registerMultiSettlementSnapshot,
     transitionMultiSettlementSnapshot,
 } from "../settlement-snapshot";
-import { embeddedMultiCoordinator } from "../coordinator/embedded";
+import { getRoomCommandGateway, assertRealtimeOwnerEpoch } from "../coordinator/default-runtime";
+import { performance } from "node:perf_hooks";
+import { publishDurableOwnerDecision } from "../coordinator/durable-owner-event";
+import type { StartPrepareResult, BattleQueryResult } from "../coordinator/battle-command-handlers";
 import { resolveMultiPlayerContext } from "../player-context";
-import { validateRandomRecruitmentAttention } from "../recruitment";
+import { createRoomCommandId } from "../coordinator/command-protocol";
 import { isValidNormalPartySlotSync } from "../../data/domains/party";
 import { usesNormalCurrentPartySlot } from "../../lib/party-current-slot";
 
@@ -239,11 +232,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         // attention key, but the key's stopped-notice grace can expire during
         // a long lobby wait. Room membership is the stronger proof at this
         // point, so only validate the key for viewers who are not members yet.
-        const attentionRoom = room_number ? getRoom(room_number) : undefined
-        const alreadyRoomMember = !!attentionRoom && isRoomMember(attentionRoom, viewer_id)
+        const attentionProjection = room_number ? await getRoomCommandGateway().execute("battle.query", {
+            roomNumber: room_number, viewerId: viewer_id,
+            ...(body.attention_key ? { attentionKey: body.attention_key } : {}),
+        }) as BattleQueryResult : undefined
+        const alreadyRoomMember = attentionProjection?.member === true
         if (body.attention_key
             && !alreadyRoomMember
-            && !validateRandomRecruitmentAttention(room_number, viewer_id, body.attention_key)) {
+            && !attentionProjection?.attentionValid) {
             return sendMultiStartUnavailable(reply, viewer_id, "attention_expired")
         }
 
@@ -255,77 +251,27 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             return sendMultiStartUnavailable(reply, viewer_id, "quest_missing")
         }
 
-        const roomStart = await embeddedMultiCoordinator.enqueueRoomCommand(room_number, () => {
-            const currentRoom = getRoom(room_number);
-            if (!currentRoom) return { status: "missing" as const };
-            if (currentRoom.category !== category || currentRoom.quest_id !== quest_id) {
-                return { status: "quest_mismatch" as const };
-            }
-            if (!isRoomMember(currentRoom, viewer_id)) {
-                return { status: "forbidden" as const };
-            }
-            const recordedPlayerId = getRoomMemberPlayerId(currentRoom, viewer_id);
-            if (recordedPlayerId !== null && recordedPlayerId !== ctx.playerId) {
-                return { status: "player_mismatch" as const };
-            }
-            if (isMode15RoomClosed(currentRoom)) {
-                return { status: "mode15_closed" as const, room: currentRoom };
-            }
-            if (currentRoom.lifecycle.phase === "LOBBY") {
-                // Validate the entire roster before HTTP can beat TCP to BATTLE.
-                if (!enforceRoomEquipmentReady(currentRoom)) return { status: "unavailable" as const };
-                const peers = sessionManager.getClientsInRoom(room_number, currentRoom.lobby_generation)
-                    .filter(peer => !peer.isBattle && peer.enterData !== null && peer.yourself);
-                if (peers.some(peer => peer.yourself.state?.[0] !== 1)) {
-                    return { status: "unavailable" as const };
-                }
-                const requester = peers.find(peer => peer.viewerId === viewer_id);
-                if (requester && selectedPartyId(requester) !== party_id) {
-                    return { status: "unavailable" as const };
-                }
-            }
-            if (!isMode15EquipmentAllowedQuest(category, quest_id)) {
-                const frozenPartyId = currentRoom.equipmentPartyIds?.[viewer_id];
-                // A later save must not invalidate a battle already approved
-                // for the same selection. Explicit request forgery still fails.
-                if ((frozenPartyId !== undefined && frozenPartyId !== party_id)
-                    || exclusiveWirePartyItems(body.client_battle_party).length > 0
-                    || body.mate_party_ids?.some(party => exclusiveWirePartyItems(party).length > 0)
-                    || (frozenPartyId === undefined
-                        && getMode15ExclusiveGlobalPartyItemsSync(ctx.playerId, 1, party_id).length > 0)) {
-                    return { status: "unavailable" as const };
-                }
-            }
-            if (!freezeFiveBossLobby(currentRoom)) return { status: "unavailable" as const };
-            const sourceGeneration = currentRoom.lifecycle.phase === "BATTLE"
-                ? Math.max(0, currentRoom.lobby_generation - 1) : currentRoom.lobby_generation;
-            if (!setRoomBattle(room_number)) {
-                return { status: "unavailable" as const };
-            }
-            if (!currentRoom.equipmentPartyIds) freezeEquipmentSelections(currentRoom, sourceGeneration);
-            // Take owned copies inside the room queue. Persistence below can
-            // yield while this room returns to LOBBY or starts another battle.
-            const npcPartySnapshot = currentRoom.npcPartySnapshots?.[viewer_id];
-            return {
-                status: "ready" as const,
-                room: currentRoom,
-                roomGeneration: currentRoom.lobby_generation,
-                mateComIds: currentRoom.mates.map(mate => mate.com_id),
-                participants: currentRoom.mates
-                    .map(mate => ({ viewerId: Number(mate.viewer_id), comId: Number(mate.com_id || 0) }))
-                    .filter(mate => Number.isFinite(mate.viewerId) && mate.viewerId > 0),
-                expectedRealViewerIds: currentRoom.expected_real_viewer_ids
-                    .map(Number).filter(id => Number.isFinite(id) && id > 0),
-                isHost: currentRoom.host_viewer_id === viewer_id,
-                isRescueGuest: sessionManager.isRescueGuest(room_number, viewer_id),
-                isRescueFragmentEligible: sessionManager.isRescueFragmentEligibleGuest(room_number, viewer_id),
-                isNewbieRescueGuest: sessionManager.isNewbieRescueGuest(room_number, viewer_id),
-                npcPartySnapshot: questData.fixedParty === undefined
-                    && npcPartySnapshot?.partySlot === party_id
-                    && npcPartySnapshot.sourcePlayerId === ctx.playerId
-                    ? cloneQuestNpcPartySnapshot(npcPartySnapshot) : undefined,
-            };
-        });
+        const prepareId = createRoomCommandId();
+        const durableQuest = getPlayerActiveQuestSync(ctx.playerId), durableSnapshot = getMultiSettlementSnapshot(ctx.playerId, play_id);
+        const durableStart = durableQuest?.isMulti && durableQuest.playId === play_id && durableQuest.roomNumber === room_number
+            && durableQuest.category === category && durableQuest.questId === quest_id
+            && durableSnapshot?.lifecycle === "BATTLE" && durableSnapshot.roomInstanceId
+            && durableSnapshot.viewerId === viewer_id && durableSnapshot.roomNumber === room_number
+            ? { roomInstanceId: durableSnapshot.roomInstanceId, battleSessionId: durableSnapshot.battleInstanceId,
+                playId: play_id, playerId: ctx.playerId, viewerId: viewer_id } : undefined;
+        let roomStart: StartPrepareResult;
+        try {
+            roomStart = await getRoomCommandGateway().execute("battle.start.prepare", {
+                body, playerId: ctx.playerId, fixedParty: questData.fixedParty !== undefined,
+                ...(durableStart ? { durableStart } : {}),
+            }, { commandId: prepareId }) as StartPrepareResult;
+        } catch (error) {
+            // No persistence callback has run. Cancel this exact attempt, including a delayed Prepare.
+            try { await getRoomCommandGateway().execute("battle.start.cancelAttempt", {
+                prepareId, roomNumber: room_number, viewerId: viewer_id, playerId: ctx.playerId, playId: play_id,
+            }); } catch (cancelError) { console.error("[MULTI] prepare cancellation unresolved", cancelError); }
+            throw error;
+        }
         if (roomStart.status === "forbidden") {
             return reply.status(403).send({
                 error: "Forbidden",
@@ -358,7 +304,6 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             });
         }
 
-        const room = roomStart.room;
         if (shouldHandleFiveBossStart(body)) {
             try { return await handleFiveBossStart(body, ctx.playerId, reply); }
             catch (error) {
@@ -394,12 +339,17 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         // selected party. Keeping this write outside the coordinator lets a
         // busy settlement or checkpoint race it and surface SQLITE_BUSY on
         // /multi_battle_quest/start.
-        const previousActiveQuest = activeQuests[ctx.playerId];
+        let previousActiveQuest: ActiveQuest | undefined, insertedActiveQuest: ActiveQuest | undefined;
+        const startDeadline = performance.now() + Math.max(0, roomStart.remainingMs - 100);
         try {
             await runPersistenceTransaction({
                 domain: "multi-settlement", playerId: ctx.playerId, operation: "start",
             }, () => {
+                if (performance.now() >= startDeadline) throw new Error("START_CLAIM_EXPIRED");
+                assertRealtimeOwnerEpoch(roomStart.ownerEpoch, roomStart.claimToken ?? undefined, true);
+                previousActiveQuest = activeQuests[ctx.playerId];
                 insertActiveQuest(ctx.playerId, activeQuest);
+                insertedActiveQuest = activeQuests[ctx.playerId];
                 if (questData.fixedParty === undefined
                     && usesNormalCurrentPartySlot(category)
                     && isValidNormalPartySlotSync(ctx.playerId, party_id)) {
@@ -407,17 +357,25 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 }
             });
         } catch (error) {
-            if (previousActiveQuest) activeQuests[ctx.playerId] = previousActiveQuest;
-            else delete activeQuests[ctx.playerId];
+            if (insertedActiveQuest && activeQuests[ctx.playerId] === insertedActiveQuest) {
+                if (previousActiveQuest) activeQuests[ctx.playerId] = previousActiveQuest;
+                else delete activeQuests[ctx.playerId];
+            }
+            try {
+                await getRoomCommandGateway().execute("battle.play.cancel", {
+                    roomNumber: room_number, roomInstanceId: roomStart.roomInstanceId,
+                    battleSessionId: roomStart.battleSessionId, viewerId: viewer_id,
+                    playerId: ctx.playerId, playId: play_id,
+                    claimToken: roomStart.claimToken,
+                });
+            } catch (cancelError) {
+                console.error(`[MULTI] failed start claim cancellation: play=${play_id}`, cancelError);
+            }
             throw error;
         }
         registerMultiSettlementSnapshot({
-            battleInstanceId: buildBattleInstanceId(
-                room_number,
-                roomStart.roomGeneration,
-                category,
-                quest_id,
-            ),
+            battleInstanceId: roomStart.battleSessionId,
+            roomInstanceId: roomStart.roomInstanceId,
             playerId: ctx.playerId,
             viewerId: viewer_id,
             playId: play_id,
@@ -432,6 +390,18 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             isRescueFragmentEligible: roomStart.isRescueFragmentEligible,
             isNewbieRescueGuest: roomStart.isNewbieRescueGuest,
         });
+        try {
+            await publishDurableOwnerDecision("battle.play.commit", {
+                roomNumber: room_number, roomInstanceId: roomStart.roomInstanceId,
+                battleSessionId: roomStart.battleSessionId, viewerId: viewer_id,
+                playerId: ctx.playerId, playId: play_id,
+                claimToken: roomStart.claimToken,
+            });
+        } catch (commitError) {
+            // The active play already committed. Keep its durable identity and
+            // reply; failure to publish state must not reclassify that write.
+            console.error(`[MULTI] room play commit confirmation failed: play=${play_id}`, commitError);
+        }
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -537,11 +507,13 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 return reply.status(400).send({ error: "Bad Request", message: "Finish does not match the multiplayer play." });
             }
 
-            const finishRoom = activeQuestData.roomNumber
-                ? getRoom(activeQuestData.roomNumber)
-                : undefined;
-            const settlementGeneration = settlementSnapshot?.roomGeneration ?? finishRoom?.lobby_generation ?? 0;
+            const finishProjection = activeQuestData.roomNumber ? await getRoomCommandGateway().execute("battle.query", {
+                roomNumber: activeQuestData.roomNumber, viewerId, playerId, playId,
+            }) as BattleQueryResult : undefined;
+            const finishRoom = finishProjection?.room;
+            const settlementGeneration = settlementSnapshot?.roomGeneration ?? finishProjection?.binding?.generation ?? 0;
             const settlementKey = settlementSnapshot?.battleInstanceId
+                ?? finishProjection?.binding?.battleSessionId
                 ?? `${activeQuestData.roomNumber || body.room_number || "missing"}:${settlementGeneration}:${body.play_id}`;
             const settlementParticipants = settlementSnapshot?.participants ?? (finishRoom?.mates || [])
                 .map(mate => ({
@@ -553,13 +525,13 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 .map(Number)
                 .filter(expectedViewerId => Number.isFinite(expectedViewerId) && expectedViewerId > 0);
             const finishedAsRescueGuest = settlementSnapshot?.isRescueGuest ?? (activeQuestData.roomNumber
-                ? sessionManager.isRescueGuest(activeQuestData.roomNumber, viewerId)
+                ? Boolean(finishProjection?.isRescueGuest)
                 : false);
             const finishedAsRescueFragmentEligible = settlementSnapshot?.isRescueFragmentEligible ?? (activeQuestData.roomNumber
-                ? sessionManager.isRescueFragmentEligibleGuest(activeQuestData.roomNumber, viewerId)
+                ? Boolean(finishProjection?.isRescueFragmentEligible)
                 : false);
             const finishedAsNewbieRescueGuest = settlementSnapshot?.isNewbieRescueGuest ?? (activeQuestData.roomNumber
-                ? sessionManager.isNewbieRescueGuest(activeQuestData.roomNumber, viewerId)
+                ? Boolean(finishProjection?.isNewbieRescueGuest)
                 : false);
 
             const questCategory = activeQuestData.category;
@@ -585,10 +557,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 Number(process.hrtime.bigint() - finishHandlerStartedAt) / 1_000_000,
             );
             const coreStartedAt = process.hrtime.bigint();
-            const settlementWasAlreadyInLobby = settlementSnapshot?.lifecycle === "LOBBY";
 
             const finishedAsHost = settlementSnapshot?.isHost ?? (activeQuestData.roomNumber
-                ? getRoom(activeQuestData.roomNumber)?.host_player_id === playerId
+                ? finishRoom?.host_player_id === playerId
                 : false);
 
             const questAccomplished = Boolean((body as any).is_accomplished);
@@ -640,35 +611,20 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             cacheFinishResponse(finishCacheKey, finishResponse);
             if (settled.applied) {
                 const stillOwnSnapshot = getMultiSettlementSnapshot(playerId, playId) === settlementSnapshot;
-                const settlingSnapshot = stillOwnSnapshot
-                    ? transitionMultiSettlementSnapshot(playerId, playId, "SETTLING") : undefined;
-                if (activeQuestData.roomNumber && stillOwnSnapshot) {
+                if (stillOwnSnapshot) transitionMultiSettlementSnapshot(playerId, playId, "SETTLING");
+                const committedRunId = settlementSnapshot?.battleInstanceId ?? finishProjection?.binding?.battleSessionId;
+                const committedInstanceId = settlementSnapshot?.roomInstanceId ?? finishProjection?.binding?.roomInstanceId;
+                if (activeQuestData.roomNumber && stillOwnSnapshot && committedRunId && committedInstanceId) {
                     try {
-                        await embeddedMultiCoordinator.enqueueRoomCommand(activeQuestData.roomNumber, () => {
-                            const room = getRoom(activeQuestData.roomNumber!);
-                            const matchesBattleGeneration = room?.lobby_generation === settlementGeneration;
-                            const lifecycleAllowsRoomMutation = getMultiSettlementSnapshot(playerId, playId) === settlementSnapshot
-                                && (settlementSnapshot === undefined
-                                    || (!settlementWasAlreadyInLobby && settlingSnapshot?.lifecycle !== "LOBBY"));
-                            if (room && matchesBattleGeneration && lifecycleAllowsRoomMutation) {
-                                const wasPending = room.settlement_return_pending;
-                                const transition = embeddedMultiCoordinator.beginSettlementReturn(room, settlementGeneration);
-                                if (!transition.ok) {
-                                    console.warn(`[MULTI-SETTLEMENT] lifecycle rejected finish room=${room.room_number}`
-                                        + ` viewer=${viewerId} reason=${transition.reason}`);
-                                    return;
-                                }
-                                sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber!);
-                                if (!wasPending) sessionManager.beginSettlementReturnGrace(room.room_number);
-                                transitionMultiSettlementSnapshot(playerId, body.play_id, "RETURN_PENDING");
-                                gameVerboseLog(() => `[MULTI] finish: room ${activeQuestData.roomNumber}`
-                                    + ` entered RETURNING by viewer=${viewerId}`);
-                            } else if (room) {
-                                console.warn(`[MULTI-SETTLEMENT] skipped stale finish room mutation: room=${room.room_number}`
-                                    + ` viewer=${viewerId} finishGeneration=${settlementGeneration}`
-                                    + ` currentGeneration=${room.lobby_generation} lifecycle=${settlementSnapshot?.lifecycle ?? "missing"}`);
-                            }
-                        });
+                        const roomResult = await publishDurableOwnerDecision("battle.settlement.committed", {
+                            roomNumber: activeQuestData.roomNumber,
+                            roomInstanceId: committedInstanceId,
+                            battleSessionId: committedRunId,
+                            generation: settlementGeneration, viewerId, playerId, playId,
+                        }) as { applied: boolean; snapshotPhase?: "LOBBY" | "RETURN_PENDING"; reason?: string } | undefined;
+                        if (roomResult?.applied && roomResult.snapshotPhase) {
+                            transitionMultiSettlementSnapshot(playerId, playId, roomResult.snapshotPhase);
+                        }
                     } catch (error) {
                         // Payment and its replayable response already committed.
                         console.error(`[MULTI] settlement return failed after commit: player=${playerId} play=${playId}`, error);
@@ -758,7 +714,10 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         if (activeQuestData) {
             const abortRoomNumber = activeQuestData.roomNumber;
-            const abortRoom = abortRoomNumber ? getRoom(abortRoomNumber) : undefined;
+            const abortProjection = abortRoomNumber ? await getRoomCommandGateway().execute("battle.query", {
+                roomNumber: abortRoomNumber, viewerId, playerId, playId: activeQuestData.playId,
+            }) as BattleQueryResult : undefined;
+            const abortRoom = abortProjection?.room;
             const hostAborted = abortRoom?.host_player_id === playerId;
             const abortedPlayId = activeQuestData.playId;
             let abortedCurrentPlay = false;
@@ -796,7 +755,10 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                     + ` remaining members continue`);
             }
             if (abortedCurrentPlay && activeQuestData.roomNumber) {
-                sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
+                if (abortProjection?.binding) await publishDurableOwnerDecision("battle.abort.committed", {
+                    roomNumber: activeQuestData.roomNumber, roomInstanceId: abortProjection.binding.roomInstanceId,
+                    battleSessionId: abortProjection.binding.battleSessionId, viewerId, playerId, playId: abortedPlayId,
+                });
             }
             if (!abortedCurrentPlay) {
                 console.warn(`[MULTI] stale abort acknowledged: viewer=${viewerId}`

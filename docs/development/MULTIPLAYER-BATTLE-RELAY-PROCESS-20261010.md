@@ -8,7 +8,7 @@ Heartbeat/Measurement 可本地响应；活动汇报刷新原有租约、在线�
 
 首包之后的 UTF-8 解码器若仍持有半个多字节字符，该连接保留 native，避免移交丢失尚未解码的字节。移交同步或异步失败均关闭原 socket 和 proxy；创建子进程失败没有 exit 事件时，close 仍会释放停止等待。
 
-配置仅有可选开关、`MULTI_BATTLE_RELAY_ACTIVITY_MS`（默认 250 ms）和重启上限；沿用既有收发缓冲与背压限制。回退为关闭开关并按正常流程重启服务。无需数据库 schema、客户端准入、APK/IPA 或 CDN 变更。
+配置包含可选开关、`MULTI_BATTLE_RELAY_ACTIVITY_MS`（默认 250 ms）、重启上限及双向 IPC 条数/字节/年龄预算；沿用既有 TCP 收发缓冲与背压限制。状态快照应用确认、控制门禁、续战与测量口径见[第一阶段说明](MULTIPLAYER-PHASE1-STATE-IPC-20261011.md)。回退为关闭开关并按正常流程重启服务。无需数据库 schema、客户端准入、APK/IPA 或 CDN 变更。
 
 针对性测试：`multi-battle-relay-mixed.test.cjs` 覆盖真实 TCP/正式桥接的双向混合转发、ack 去重、generation 筛选、控制帧顺序、替换 socket、启动失败、子进程退出和 native 降级；`multi-battle-relay-recovery.test.cjs` 在启用模式下复用五重决战 deadline/Leave/Finalize 现有用例；`multi-battle-relay-process.test.cjs` 比较人为主线程阻塞时的转发行为。
 

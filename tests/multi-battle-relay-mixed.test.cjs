@@ -47,25 +47,27 @@ test('failed spawn with error/close but no exit resolves pending start and stop'
     } finally { childProcess.fork = originalFork; await failed.stop() }
 })
 
-test('synchronous handle-send failure closes original TCP socket and proxy without delaying server stop', { timeout: 15000 }, async () => {
-    const { room, members, port, cleanup } = await startFiveBossBattle({ mixed: true })
+test('synchronous handle-send failure closes child-owned sockets, retains native and does not delay server stop', { timeout: 15000 }, async () => {
+    const { room, members, sims, port, cleanup } = await startFiveBossBattle({ mixed: true })
     const server = load('multi/tcp/server').getSessionServer()
     const child = bridge.child
     const originalSend = child.send
     let incoming
     let failedClient
-    const beforeProxies = bridge.activeSockets
+    const previousRestarts = bridge.restarts
     const beforeConnections = await connectionCount(server)
     server.once('connection', socket => { incoming = socket })
     child.send = function(message, ...args) {
-        if (message.t === 'adopt') throw new Error('injected synchronous handle-send failure')
+        if (message.body?.t === 'adopt') throw new Error('injected synchronous handle-send failure')
         return originalSend.call(this, message, ...args)
     }
     try {
         failedClient = new SimClient(port, members[1], room)
         await once(failedClient.socket, 'connect')
         failedClient.send({ socklet: 'cooperation_battle', room_number: room.room_number, connection_id: members[1].connectionId })
-        await failedClient.until(() => failedClient.closed && incoming?.destroyed && bridge.activeSockets === beforeProxies, 3000)
+        await failedClient.until(() => failedClient.closed && incoming?.destroyed && bridge.activeSockets === 0, 3000)
+        assert.equal(sims[0].closed, false, 'native connection survives the failed child IPC channel')
+        assert.equal(bridge.diagnostics().lastFault, 'ipc_send_failed')
         assert.equal(await connectionCount(server), beforeConnections, 'the failed original socket releases its server connection count')
         child.send = originalSend
         await bounded(cleanup(), 3000, 'session server stop hung after handle-send failure')
@@ -75,6 +77,9 @@ test('synchronous handle-send failure closes original TCP socket and proxy witho
         child.send = originalSend
         failedClient?.socket.destroy()
         await cleanup()
+        // Keep this injected fault from spending a later fixture's process-wide
+        // restart budget; production stop/start intentionally retains the budget.
+        bridge.restarts = previousRestarts
     }
 })
 

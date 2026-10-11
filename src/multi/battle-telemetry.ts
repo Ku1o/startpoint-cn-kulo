@@ -6,6 +6,10 @@
 // also kept in a small ring for the management diagnostics endpoint.
 import { monitorEventLoopDelay, type IntervalHistogram } from "node:perf_hooks"
 import { registerMemoryCounters } from "../lib/memory-diagnostics"
+import { BoundedLatencyHistogram } from "./latency-statistics"
+
+export type BattleControlDelayKind = "relay-control" | "member-sync" | "parent-dispatch" | "relay-data-ack"
+const CONTROL_DELAY_KINDS = new Set<BattleControlDelayKind>(["relay-control", "member-sync", "parent-dispatch", "relay-data-ack"])
 
 interface MemberStats {
     viewer: number
@@ -40,6 +44,7 @@ interface BattleSession {
     loopLagMaxMs: number
     /** One-second windows whose worst event-loop delay reached 200 ms. */
     loopStalledSeconds: number
+    controlDelays: Map<BattleControlDelayKind, BoundedLatencyHistogram>
 }
 
 export interface BattleTelemetrySummary {
@@ -58,6 +63,8 @@ export interface BattleTelemetrySummary {
     loopLagMaxMs: number
     loopStalledSeconds: number
     members: Array<Omit<MemberStats, "lastInboundAt">>
+    /** Server-local monotonic spans, never player TCP RTT or one-way latency. */
+    serverControlDelayMs: Partial<Record<BattleControlDelayKind, ReturnType<BoundedLatencyHistogram["snapshot"]>>>
 }
 
 function positiveInteger(name: string, fallback: number, min: number, max: number): number {
@@ -108,6 +115,7 @@ export class BattleTelemetry {
             seatsExpired: 0,
             loopLagMaxMs: 0,
             loopStalledSeconds: 0,
+            controlDelays: new Map(),
         })
         this.ensureLagSampler()
     }
@@ -136,6 +144,7 @@ export class BattleTelemetry {
             loopLagMaxMs: session.loopLagMaxMs,
             loopStalledSeconds: session.loopStalledSeconds,
             members: [...session.members.values()].map(({ lastInboundAt: _, ...member }) => member),
+            serverControlDelayMs: Object.fromEntries([...session.controlDelays].map(([kind, histogram]) => [kind, histogram.snapshot()])),
         }
         if (this.maxRecent > 0) {
             this.recent.push(summary)
@@ -234,6 +243,20 @@ export class BattleTelemetry {
         if (!session) return
         if (session.barriers.length >= MAX_BARRIERS) session.barriers.shift()
         session.barriers.push({ kind, waitMs: Math.round(waitMs) })
+    }
+
+    /** Caller owns both endpoints of this span on the same monotonic clock.
+     * relay-control starts at parent receipt: it excludes pre-receipt IPC wait.
+     * member-sync/data-ack may be bridge-local request-to-confirmation spans. */
+    controlDelay(roomNumber: string, kind: BattleControlDelayKind, durationMs: number): void {
+        const session = this.sessions.get(roomNumber)
+        if (!session || !CONTROL_DELAY_KINDS.has(kind) || !Number.isFinite(durationMs) || durationMs < 0) return
+        let histogram = session.controlDelays.get(kind)
+        if (!histogram) {
+            histogram = new BoundedLatencyHistogram()
+            session.controlDelays.set(kind, histogram)
+        }
+        histogram.record(durationMs)
     }
 
     seatExpired(roomNumber: string): void {

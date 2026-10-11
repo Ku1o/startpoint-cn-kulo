@@ -149,7 +149,8 @@ test('the coordinator opens a summary on BATTLE and closes it when the room leav
     const { battleTelemetry } = require('../out/multi/battle-telemetry')
     const { EmbeddedMultiCoordinator } = require('../out/multi/coordinator/embedded')
     const coordinator = new EmbeddedMultiCoordinator()
-    const r = room({ room_number: '880077', lobby_generation: 0, raising_state: 1, five_boss_runtime: undefined })
+    const r = room({ room_number: '880077', lobby_generation: 0, raising_state: 1, five_boss_runtime: undefined,
+        expected_real_viewer_ids: [11, 12], member_viewer_ids: [11, 12], member_player_ids: { 11: 111, 12: 112 } })
     r.lifecycle = coordinator.createLifecycle()
     const original = console.warn
     const lines = []

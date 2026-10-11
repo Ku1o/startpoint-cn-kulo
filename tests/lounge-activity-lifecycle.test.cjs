@@ -61,12 +61,20 @@ async function until(predicate, label) {
 test.beforeEach(t => {
     // Fake-socket tests isolate roster/state transitions. The final real TCP
     // test and activity integration exercise actual saved qualifications.
-    if (!t.name.startsWith('real TCP')) t.mock.method(eligibility, 'decideLoungeTickets', () => true)
+    if (!t.name.startsWith('real TCP')) {
+        t.mock.method(eligibility, 'decideLoungeTickets', () => true)
+        const business = require('../out/multi/coordinator/business-handlers')
+        const original = business.handleRealtimeBusiness
+        // Fake sockets bypass authenticated handshake; isolate the same ticket
+        // decision at its new parent RPC boundary without inventing player IDs.
+        t.mock.method(business, 'handleRealtimeBusiness', (kind, payload) =>
+            kind === 'lounge.start' ? Promise.resolve(true) : original(kind, payload))
+    }
 })
 test.afterEach(() => lounge.resetLoungesForTests())
 test.after(async () => { await server.stopSessionServer(); getDb().close(); fs.rmSync(directory, { recursive: true, force: true }) })
 
-test('superseded sockets cannot change readiness, start, heartbeat or remove a replacement', () => {
+test('superseded sockets cannot change readiness, start, heartbeat or remove a replacement', async () => {
     const room = makeRoom(), old = join(room, 101, { delayedClose: true })
     const guest = join(room, 102); join(room, 103)
     const replacement = new Socket()
@@ -77,14 +85,14 @@ test('superseded sockets cannot change readiness, start, heartbeat or remove a r
     assert.deepEqual(room.members.get(101).readyState, [1])
     tcp.handleLoungeMessage(old, [0, [1]])
     assert.equal(room.lastActivityAt, 123)
-    tcp.handleLoungeMessage(old, [0, [4]])
+    await tcp.handleLoungeMessage(old, [0, [4]])
     tcp.handleLoungeMessage(old, [0, [6]])
     old.emit('close')
     assert.equal(starts(guest).length, 0)
     assert.equal(room.members.get(101).socket, replacement)
 })
 
-test('pending host replacement cannot ready, heartbeat or start before Enter', () => {
+test('pending host replacement cannot ready, heartbeat or start before Enter', async () => {
     const room = makeRoom(); join(room, 101); const guest = join(room, 102); join(room, 103)
     const replacement = new Socket(); lounge.attachLoungeSocket(room, 101, replacement)
     room.lastActivityAt = 123
@@ -92,7 +100,7 @@ test('pending host replacement cannot ready, heartbeat or start before Enter', (
     assert.deepEqual(room.members.get(101).readyState, [1])
     tcp.handleLoungeMessage(replacement, [0, [1]])
     assert.equal(room.lastActivityAt, 123)
-    tcp.handleLoungeMessage(replacement, [0, [4]])
+    await tcp.handleLoungeMessage(replacement, [0, [4]])
     assert.equal(starts(guest).length, 0)
     assert.equal(room.raisingState, 2)
 })
@@ -127,22 +135,22 @@ test('a handshake without Enter has a bounded lease despite other members activi
     assert.equal(lounge.getLoungeOccupancy(room), 1)
 })
 
-test('Start requires three live entered members and is broadcast only once', () => {
+test('Start requires three live entered members and is broadcast only once', async () => {
     const room = makeRoom(), host = join(room, 101), guest = join(room, 102)
-    tcp.handleLoungeMessage(host, [0, [4]])
+    await tcp.handleLoungeMessage(host, [0, [4]])
     assert.equal(starts(guest).length, 0)
     const third = join(room, 103)
     tcp.handleLoungeMessage(third, [0, [3, [0]]])
-    tcp.handleLoungeMessage(host, [0, [4]])
+    await tcp.handleLoungeMessage(host, [0, [4]])
     assert.equal(starts(guest).length, 0)
     tcp.handleLoungeMessage(third, [0, [3, [1]]])
-    tcp.handleLoungeMessage(host, [0, [4]])
-    tcp.handleLoungeMessage(host, [0, [4]])
+    await tcp.handleLoungeMessage(host, [0, [4]])
+    await tcp.handleLoungeMessage(host, [0, [4]])
     assert.equal(starts(guest).length, 1)
     assert.equal(room.raisingState, 97)
     lounge.prepareLounge(room)
     assert.equal(room.raisingState, 97, 'HTTP prepare cannot reopen an already started lounge')
-    tcp.handleLoungeMessage(host, [0, [4]])
+    await tcp.handleLoungeMessage(host, [0, [4]])
     assert.equal(starts(guest).length, 1)
 })
 
@@ -189,7 +197,7 @@ test('host replacement lease expiry preserves an open room and its host re-entry
     assert.equal(lounge.canAttachLoungeViewer(room, 104), false)
     assert.equal(lounge.canAttachLoungeViewer(room, 101), true)
     const newHost = join(room, 101)
-    tcp.handleLoungeMessage(newHost, [0, [4]])
+    await tcp.handleLoungeMessage(newHost, [0, [4]])
     assert.equal(room.raisingState, 97)
     newHost.destroy()
     assert.equal(room.raisingState, 97, 'a disconnect cannot undo the started transition')
@@ -221,7 +229,7 @@ test('HTTP restore reports open/started/dismissed states without reopening a sta
     }
     try {
         assert.equal((await restore()).raising_state, 2)
-        tcp.handleLoungeMessage(host, [0, [4]])
+        await tcp.handleLoungeMessage(host, [0, [4]])
         assert.equal((await restore()).raising_state, 97)
         const prepared = await app.inject({ method: 'POST', url: '/lounge/prepare', payload })
         assert.equal(prepared.statusCode, 200)
@@ -234,10 +242,10 @@ test('HTTP restore reports open/started/dismissed states without reopening a sta
     } finally { await app.close() }
 })
 
-test('a started host Bye is normal selection handoff and cannot dismiss slower guests', () => {
+test('a started host Bye is normal selection handoff and cannot dismiss slower guests', async () => {
     const room = makeRoom(), host = join(room, 101), guest = join(room, 102)
     join(room, 103)
-    tcp.handleLoungeMessage(host, [0, [4]])
+    await tcp.handleLoungeMessage(host, [0, [4]])
     const before = guest.frames.length
     tcp.handleLoungeMessage(host, [0, [6]])
     assert.equal(room.raisingState, 97)
@@ -246,10 +254,10 @@ test('a started host Bye is normal selection handoff and cannot dismiss slower g
     assert.equal(guest.frames.length, before, 'no dismissed or mates frame after Start')
 })
 
-test('replacing a spent lounge retires it without cancelling slower selection clients', () => {
+test('replacing a spent lounge retires it without cancelling slower selection clients', async () => {
     const room = makeRoom(), host = join(room, 101), guest = join(room, 102)
     join(room, 103)
-    tcp.handleLoungeMessage(host, [0, [4]])
+    await tcp.handleLoungeMessage(host, [0, [4]])
     const before = guest.frames.length
     const next = makeRoom()
     assert.equal(lounge.getLounge(room.id), undefined)

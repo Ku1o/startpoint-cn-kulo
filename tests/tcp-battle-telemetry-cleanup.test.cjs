@@ -54,7 +54,7 @@ async function fixture(t) {
         ['../../lib/memory-diagnostics', memory],
         ['../../lib/client-admission', { clientAdmission: () => ({ checkActivity: () => ({ ok: true }) }) }],
         ['./handshake', { handleHandshake() {} }],
-        ['./battle', { handleBattleMessage() {} }],
+        ['./battle', { handleBattleMessage() {}, discardPinnedBattleControlsForShutdown() {} }],
         ['../state/SessionManager', { sessionManager: manager }],
         ['../../lib/game-logging', { gameVerboseLog() {} }],
         ['./reliable-send', { clearReliableSendState() {} }],
@@ -71,6 +71,7 @@ async function fixture(t) {
         const socket = new EventEmitter()
         Object.assign(socket, { remoteAddress: '127.0.0.1', remotePort: 1,
             setNoDelay() {}, setKeepAlive() {}, setEncoding() {},
+            pause() { this.paused = true; return this },
             destroy() { socket.emit('close', false) } })
         connectionHandler(socket)
         const client = { socket, connectionId: 'same-battle-seat', roomNumber,

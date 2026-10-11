@@ -1,7 +1,5 @@
-import {
-    getMode15ExclusiveItemIds,
-    isMode15EquipmentAllowedQuest,
-} from "../../lib/mode15-optional"
+import { isRealtimeOwnerChild } from "../coordinator/runtime-role"
+import { getQuestBusinessPolicy, getKnownExclusiveBusinessItemIds } from "../coordinator/business-facts"
 
 const PARTY_ITEM_FIELDS = [
     "equipments", "equipmentIds", "equipment_ids",
@@ -28,7 +26,8 @@ export function exclusivePartyItems(party: any): number[] {
     }
     return [...new Set([
         ...ids.filter(id => FANTASY_ITEM_IDS.has(id)),
-        ...getMode15ExclusiveItemIds(ids),
+        ...(isRealtimeOwnerChild() ? ids.filter(id => getKnownExclusiveBusinessItemIds().includes(id))
+            : require("../../lib/mode15-optional").getMode15ExclusiveItemIds(ids)),
     ])]
 }
 
@@ -40,6 +39,7 @@ export function isNpcPartyAllowedInRoom(
 ): boolean {
     if (!party || typeof party !== "object") return false
     return (category !== undefined && questId !== undefined
-        && isMode15EquipmentAllowedQuest(category, questId))
+        && (isRealtimeOwnerChild() ? getQuestBusinessPolicy(category, questId)?.equipmentAllowed === true
+            : require("../../lib/mode15-optional").isMode15EquipmentAllowedQuest(category, questId)))
         || exclusivePartyItems(party).length === 0
 }

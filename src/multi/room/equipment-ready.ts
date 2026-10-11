@@ -1,11 +1,13 @@
-import { getPlayerSync } from "../../data/domains/player"
-import { getMode15ExclusiveGlobalPartyItemsSync,
-    isMode15EquipmentAllowedQuest } from "../../lib/mode15-optional"
+import { isRealtimeOwnerChild } from "../coordinator/runtime-role"
+import { getPlayerBusinessFacts, getQuestBusinessPolicy, refreshRealtimePlayerFacts } from "../coordinator/business-facts"
 import { exclusivePartyItems } from "../npc/equipment-policy"
 import type { MultiRoom } from "../types"
 import { sessionManager, type SessionClient } from "../state/SessionManager"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
-import { captureQuestNpcPartySnapshot } from "../npc/quest-party-snapshot"
+function isMode15EquipmentAllowedQuest(category: number, questId: number): boolean {
+    return isRealtimeOwnerChild() ? getQuestBusinessPolicy(category, questId)?.equipmentAllowed === true
+        : require("../../lib/mode15-optional").isMode15EquipmentAllowedQuest(category, questId)
+}
 
 function getRoom(roomNumber: string): MultiRoom | undefined {
     return (require("./manager") as typeof import("./manager")).getRoom(roomNumber)
@@ -38,14 +40,19 @@ export function selectedPartyId(client: SessionClient): number {
     // HTTP /party/edit can finish before TCP ChangeParty, while TCP can arrive
     // before the deferred player.partySlot write. Explicit changes win.
     return client.equipmentSelectedPartyId
-        ?? Number(getPlayerSync(Number(client.playerId))?.partySlot
+        ?? Number((isRealtimeOwnerChild() ? getPlayerBusinessFacts(Number(client.playerId))?.partyId
+            : require("../../data/domains/player").getPlayerSync(Number(client.playerId))?.partySlot)
             || client.yourself?.currentPartyId || 1)
 }
 
 export function hasRestrictedEquipment(room: MultiRoom, client: SessionClient): boolean {
     if (isMode15EquipmentAllowedQuest(room.category, room.quest_id)) return false
     if (exclusiveWirePartyItems(client.yourself?.party).length) return true
-    return getMode15ExclusiveGlobalPartyItemsSync(
+    if (isRealtimeOwnerChild()) {
+        const facts = getPlayerBusinessFacts(Number(client.playerId), { category: room.category, questId: room.quest_id, partyId: selectedPartyId(client) })
+        return !facts || facts.restrictedEquipment
+    }
+    return require("../../lib/mode15-optional").getMode15ExclusiveGlobalPartyItemsSync(
         Number(client.playerId), 1, selectedPartyId(client),
     ).length > 0
 }
@@ -150,8 +157,10 @@ export function freezeEquipmentSelections(room: MultiRoom, generation = room.lob
         const partyId = selectedPartyId(client)
         room.equipmentPartyIds[client.viewerId] = partyId
         try {
-            const snapshot = captureQuestNpcPartySnapshot(Number(client.playerId), room.category,
-                room.quest_id, partyId, client.yourself?.party)
+            const snapshot = isRealtimeOwnerChild()
+                ? getPlayerBusinessFacts(Number(client.playerId), { category: room.category, questId: room.quest_id, partyId })?.questNpcPartySnapshot
+                : require("../npc/quest-party-snapshot").captureQuestNpcPartySnapshot(Number(client.playerId), room.category,
+                    room.quest_id, partyId, client.yourself?.party)
             if (snapshot) room.npcPartySnapshots[client.viewerId] = snapshot
         } catch (error) {
             // History is optional; a capture failure must not reject the battle.
@@ -165,12 +174,15 @@ export async function notifyEquipmentPartySaved(playerId: number, changedPartyId
     selectionChanged: boolean): Promise<void> {
     if (!selectionChanged && !changedPartyIds.length) return
     for (const client of sessionManager.getLobbyClientsForPlayer(playerId)) {
+        const initialRoom = getRoom(client.roomNumber)
+        if (!initialRoom) continue
+        const facts = await refreshRealtimePlayerFacts(playerId, { category: initialRoom.category, questId: initialRoom.quest_id })
         await embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
             const room = getRoom(client.roomNumber)
             if (!room || room.lifecycle.phase !== "LOBBY"
                 || client.roomGeneration !== room.lobby_generation
                 || sessionManager.getClient(client.viewerId, client.roomNumber) !== client) return
-            const selected = getPlayerSync(playerId)?.partySlot
+            const selected = facts.partyId
             if (selected === undefined || (!selectionChanged && !changedPartyIds.includes(selected))) return
             recordEquipmentPartyChange(client, selected)
             // Do not replace the client's wire party with a DB edit. Wait for
