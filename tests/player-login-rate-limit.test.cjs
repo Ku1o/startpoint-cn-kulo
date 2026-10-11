@@ -28,14 +28,15 @@ test('shared loopback supports more than thirty different valid player logins', 
         assert.equal(r.ok, true, 'shared peer account ' + i + ': ' + r.code)
     }
 })
-test('one normalized username is limited across addresses and account operations', async t => {
+test('login and binding share normalized identities without locking registration', async t => {
     const post = await appFixture(t)
     for (let i = 0; i < 30; i++) {
         const r = await post('/player-auth/login', { username: i % 2 ? 'LIMITFIXTURE0' : 'limitfixture0', password: 'BadPassword7' }, '198.51.100.' + (i + 1))
         assert.notEqual(r.code, 'RATE_LIMITED')
     }
     const before = db.prepare('SELECT count(*) n FROM accounts').get().n
-    assert.equal((await post('/player-auth/register', { username: 'LimitFixture0', password: 'FixturePass7' }, '203.0.113.10')).code, 'RATE_LIMITED')
+    assert.equal((await post('/player-auth/bind', { username: 'LimitFixture0', password: 'FixturePass7', proof: 'unused' }, '203.0.113.10')).code, 'RATE_LIMITED')
+    assert.notEqual((await post('/player-auth/register', { username: 'LimitFixture0', password: 'FixturePass7' }, '203.0.113.10')).code, 'RATE_LIMITED')
     assert.equal(db.prepare('SELECT count(*) n FROM accounts').get().n, before)
     assert.equal((await post('/player-auth/login', { username: 'LimitFixture1', password: 'FixturePass7' })).ok, true)
 })

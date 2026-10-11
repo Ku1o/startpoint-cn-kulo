@@ -116,6 +116,7 @@ import {
     stopSqliteWriter,
 } from "./lib/persistence/writer-client";
 import { gameVerboseLog } from "./lib/game-logging";
+import { installPersistenceHttpErrors } from "./lib/persistence-http-errors";
 
 const fastify = Fastify({
     logger: {
@@ -194,6 +195,7 @@ fastify.addHook("onResponse", async request => {
 });
 
 installCnResponseEncoding(fastify);
+installPersistenceHttpErrors(fastify);
 
 function jsonParser(request: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
     if (request.routeOptions.url === "/crash") return done(null, parseCrashReportBody(body));
@@ -298,123 +300,89 @@ fastify.post(`${apiPrefix}/episode_trial_reading/finish`, async (_request, reply
     return stubMsgpackReply(reply, {});
 });
 
-async function persistSeedFeedback(): Promise<void> {
-    try { await seedValidator.flushPersistence(); }
-    catch {
-        // SeedPersistence logs the failure and retains changes for retry.
-        // Keep the existing best-effort beacon response contract on disk errors.
+// Public diagnostic feedback keeps the legacy OK response, but cannot create
+// arbitrary pools or force one disk-flush waiter for every public request.
+fastify.addHook("onRequest", async (request, reply) => {
+    const route = request.routeOptions.url;
+    if (route !== "/debug" && route !== "/crash") return;
+    if (!seedValidator.allowPublicFeedbackRequest(request.ip)) return reply.status(200).send("OK");
+});
+
+function parseSeedFeedbackFields(text: string, allowStarFallback = false) {
+    // Read whole tokens: "fes-other", "5.1" and "10" must never become
+    // known movie "fes", rarity 5 or play=1. Conflicting fields are ambiguous.
+    const fields = new Map<string, string>();
+    const pattern = /(?:^|[\s,|;:"'\\{(\[])(seed|movie_id|play|結果レア度)=([^\s,|;"'\\})\]]*)/g;
+    for (const match of text.matchAll(pattern)) {
+        if (fields.has(match[1]) && fields.get(match[1]) !== match[2]) return;
+        fields.set(match[1], match[2]);
     }
+    const seedText = fields.get("seed");
+    const movieId = fields.get("movie_id") ?? "normal";
+    const playText = fields.get("play");
+    if (!seedText || !/^\d+$/.test(seedText) || !movieId
+        || (playText !== undefined && !/^[01]$/.test(playText))) return;
+    const seed = Number(seedText);
+    if (!Number.isSafeInteger(seed) || seed < 0) return;
+    let rarityText = fields.get("結果レア度");
+    if (rarityText === undefined && allowStarFallback) {
+        rarityText = text.match(/(?:★|â)[^\s,|;"'\\})\]]*/)?.[0];
+    }
+    const rarity = rarityText?.match(/^(?:★|â)([3-5])$/);
+    if (rarityText !== undefined && !rarity) return;
+    return { movieId, seed, rarity: rarity ? Number(rarity[1]) : undefined,
+        didPlay: playText === undefined ? null : playText === "1" };
+}
+
+function parseC3032Beacon(loc: unknown, source: string): void {
+    if (typeof loc !== "string" || loc.length > 8192 || !loc.includes("C3032")) return;
+    const fields = parseSeedFeedbackFields(loc, true);
+    if (!fields || fields.rarity === undefined) return;
+    seedValidator.applyPublicFeedback(source, {
+        kind: "c3032", ...fields,
+    }, true);
+}
+
+function parsePlayBeacon(loc: unknown, source: string): void {
+    if (typeof loc !== "string" || loc.length > 8192 || !loc.startsWith("PLAY|")) return;
+    const fields = parseSeedFeedbackFields(loc);
+    if (!fields || fields.didPlay === null) return;
+    seedValidator.applyPublicFeedback(source, {
+        kind: "play", ...fields,
+    }, true);
 }
 
 fastify.get("/debug", async (request, reply) => {
-    const ts = new Date().toISOString();
-    const loc = (request.query as any)?.loc || "unknown";
-    // Parse C3032 from beacon query string (04e patch sends via CrashUtil.debugBeacon)
-    try { parseC3032Beacon(loc); } catch (_) {}
-    try { parsePlayBeacon(loc); } catch (_) {}
-    if (typeof loc === "string" && (loc.includes("C3032") || loc.startsWith("PLAY|"))) {
-        await persistSeedFeedback();
-    }
+    const loc = (request.query as { loc?: unknown })?.loc;
+    try { parseC3032Beacon(loc, request.ip); parsePlayBeacon(loc, request.ip); } catch (_) {}
     return reply.status(200).send("OK");
 });
 
-// Parse C3032 from beacon loc string — ★ garbled to â, extract digits via garbled pattern
-function parseC3032Beacon(loc: string): void {
-    if (!loc.includes("C3032")) return;
-    const seedMatch = loc.match(/seed=(\d+)/);
-    if (!seedMatch) return;
-    const badSeed = parseInt(seedMatch[1], 10);
-    const movieMatch = loc.match(/movie_id=(\w+)/);
-    const movieId = movieMatch ? movieMatch[1] : "normal";
-    gameVerboseLog(() => `[DBG-BCN] C3032 seed=${badSeed} movieId=${movieId}`);
-    const starDigits = [...loc.matchAll(/â(\d)/g)];
-    // first match = ball rarity (結果レア度), second = char rarity (キャラクターレア度)
-    const ballRarity = starDigits.length > 0 ? parseInt(starDigits[0][1], 10) : 3;
-    // Extract play= field (0=no animation, 1=played) — APK 04e patch v2
-    const playMatch = loc.match(/play=(\d)/);
-    const didPlay = playMatch ? playMatch[1] === '1' : null;
-    const r = ballRarity - 3; // 0=★3, 1=★4, 2=★5
-    if (didPlay !== null) seedValidator.recordPlay(movieId, badSeed, didPlay);  // record for flushAll
-    // C3032 = client-verified rarity → verifiedPool (superset of playPool/confirmPool)
-    gameVerboseLog(() => `[DBG-BCN] C3032 → moveToVerified [${movieId}] seed=${badSeed} ★${ballRarity}`);
-    seedValidator.moveToVerified(movieId, badSeed, r);
-    if (didPlay === false) {
-        gameVerboseLog(() => `[DBG-BCN] C3032 → confirm [${movieId}] seed=${badSeed} ★${ballRarity}`);
-        seedValidator.confirm(movieId, badSeed, r);  // play=0 → confirmPool
-    }
-    const playStr = didPlay === true ? ' play=1' : didPlay === false ? ' play=0' : '';
-    gameVerboseLog(() => `[BEACON] C3032 → ${didPlay === true ? 'play' : 'confirm'} seed ${badSeed} ★${ballRarity}${playStr} [${movieId}]`);
-    if (didPlay === null) { seedValidator.addPending(movieId, badSeed, r); }
-}
-
-// PLAY beacon — every draw reports play=1|0 (APK 04e Patch 5)
-// Format: PLAY|play=1|seed=10000001, movie_id=fes
-function parsePlayBeacon(loc: string): void {
-    if (loc.startsWith("PLAY|")) {
-        const seedMatch = loc.match(/seed=(\d+)/);
-        if (!seedMatch) { gameVerboseLog(() => `[PLAY] no seed in: ${loc.substring(0,80)}`); return; }
-        const seed = parseInt(seedMatch[1], 10);
-        const movieMatch = loc.match(/movie_id=(\w+)/);
-        const movieId = movieMatch ? movieMatch[1] : "normal";
-        const playMatch = loc.match(/play=(\d)/);
-        const didPlay = playMatch ? playMatch[1] === '1' : false;
-        gameVerboseLog(() => `[DBG-BCN] PLAY seed=${seed} play=${didPlay?'1':'0'} movieId=${movieId}`);
-        seedValidator.recordPlay(movieId, seed, didPlay);  // record for flushAll
-        if (didPlay) {
-            const r = seedValidator.getSentR(movieId, seed);
-            if (r !== undefined && r !== null) {
-                seedValidator.addPlay(movieId, seed, r, true);
-                seedValidator.moveToVerified(movieId, seed, r);
-                gameVerboseLog(() => `[PLAY] playPool seed=${seed} movie=${movieId}`);
-            } else {
-                gameVerboseLog(() => `[PLAY] play=1 skipped seed=${seed} getSentR=${r === null ? 'null' : 'undefined'} (already cleaned up by prior beacon)`);
-            }
-        } else {
-            const r = seedValidator.getSentR(movieId, seed);
-            gameVerboseLog(() => `[DBG-BCN] PLAY play=0 → confirm [${movieId}] seed=${seed} r=${r !== undefined && r !== null ? '★'+(r+3) : r === null ? 'null' : 'undefined'}`);
-            if (r !== undefined) seedValidator.confirm(movieId, seed, r);
-        }
-    }
-}
-
 fastify.post("/debug", async (request, reply) => {
-    const ts = new Date().toISOString();
-    const loc = (request.body as any)?.loc || "unknown";
-    gameVerboseLog(() => `[BEACON ${ts}] ${loc}`);
-
-    // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
-    try { parseC3032Beacon(loc); } catch (_) {}
-
-    if (typeof loc === "string" && loc.includes("C3032")) await persistSeedFeedback();
+    const loc = (request.body as { loc?: unknown })?.loc;
+    if (typeof loc === "string") gameVerboseLog(() => `[BEACON ${new Date().toISOString()}] ${loc.slice(0, 8192)}`);
+    try { parseC3032Beacon(loc, request.ip); parsePlayBeacon(loc, request.ip); } catch (_) {}
     return reply.status(200).send("OK");
 });
 
 fastify.post("/crash", async (request, reply) => {
     const bodyStr = crashReportText(request.body);
-    // Extract key evidence before limiting the log; seed feedback uses the full report.
+    // Logging remains structured and bounded. Seed evidence uses the full report.
     console.log(`[CRASH] ${JSON.stringify(createCrashLogRecord(request.body, request.id))}`);
-
-    // Parse C3032 gacha seed mismatches and auto-block bad seeds
     try {
-        const seedMatch = bodyStr.match(/seed=(\d+)/);
-        if (seedMatch && bodyStr.includes("C3032")) {
-            const badSeed = parseInt(seedMatch[1], 10);
-            const ballMatch = bodyStr.match(/結果レア度=★(\d)/);
-            const ballRarity = ballMatch ? parseInt(ballMatch[1], 10) : 0;
-            const r = ballRarity - 3;
-            const movieMatch = bodyStr.match(/movie_id=(\w+)/);
-            const movieId = movieMatch ? movieMatch[1] : "normal";
-            // Crash path: no play= info → pendingPlay (rarity known, play unknown)
-            if (r >= 0 && r <= 2) seedValidator.addPending(movieId, badSeed, r);
-            console.log(`[CRASH] seed ${badSeed} device★${ballRarity} movie=${movieId}`);
+        const fields = parseSeedFeedbackFields(bodyStr);
+        if (fields && fields.rarity !== undefined && bodyStr.includes("C3032")) {
+            // Legacy crash reports do not imply successful animation playback.
+            seedValidator.applyPublicFeedback(request.ip, {
+                kind: "crash", movieId: fields.movieId,
+                seed: fields.seed, rarity: fields.rarity,
+            }, true);
         }
-    } catch (e) {}
-
-    if (bodyStr.includes("C3032")) await persistSeedFeedback();
-
+    } catch (_) {}
+    // The existing bounded feedback state feeds the normal batched writer.
+    // Public requests never enqueue a persistence barrier; close still drains it.
     return reply.status(200).send("OK");
 });
-
 
 fastify.register(cnToolPlugin, { prefix: `${apiPrefix}/tool` });
 fastify.register(reproduceApiPlugin, { prefix: `${apiPrefix}/reproduce` });
@@ -550,7 +518,7 @@ fastify.addHook("onClose", async () => {
     await stopSessionServer();
     await seedValidator.close();
     dailyVmoneyMailScheduler.stop();
-    leaderboardSettlementScheduler.stop();
+    await leaderboardSettlementScheduler.stop();
     await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
     await drainPersistence();

@@ -121,9 +121,11 @@ export function recordFiveBossSignal(
             : signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp")
     const key = fiveBossSignalKey(runId, playerId)
     const previous = pendingFiveBossSignalWrites.get(key) ?? Promise.resolve()
-    const pending = previous.then(() => runPersistenceTransaction({
+    // Acquire admission now. The coordinator already preserves per-player
+    // order; waiting on another tail here would bypass its upstream bound.
+    const attempted = runPersistenceTransaction({
         domain: "multi-settlement", playerId, operation: `five_boss_${signal}`,
-    }, () => recordMemberBattleSignalSync({ runId, playerId, roomNumber, signal })))
+    }, () => recordMemberBattleSignalSync({ runId, playerId, roomNumber, signal }))
         .then(() => {
             const currentRuntime = room.five_boss_runtime
             if (signal === "scene_ready"
@@ -135,7 +137,11 @@ export function recordFiveBossSignal(
                 signal === "scene_ready" ? "battle_entry_recorded"
                     : signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp")
         })
-        .catch(error => {
+    // Observe both immediately, but retain earlier proof writes in the HTTP
+    // drain even if a later signal is rejected before it can enter the queue.
+    const pending = Promise.all([previous, attempted]).then(() => {})
+        .catch(async error => {
+            await previous
             // This handler terminates the chain: it must never throw, or the
             // next queued signal and the cleanup below would see a rejection.
             try {

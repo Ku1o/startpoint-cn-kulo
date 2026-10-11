@@ -24,8 +24,11 @@ const crashStatement = ast.statements.find(statement => ts.isExpressionStatement
     && ts.isCallExpression(statement.expression)
     && statement.expression.expression.getText(ast) === 'fastify.post'
     && statement.expression.arguments[0]?.getText(ast) === '"/crash"');
+const feedbackFieldsStatement = ast.statements.find(statement => ts.isFunctionDeclaration(statement)
+    && statement.name?.text === 'parseSeedFeedbackFields');
 assert.ok(parserStatements.length >= 3, 'production content parsers must be extracted');
 assert.ok(crashStatement, 'production /crash handler must be extracted');
+assert.ok(feedbackFieldsStatement, 'production feedback field parser must be extracted');
 const compile = statements => ts.transpileModule(statements.map(statement => statement.getText(ast)).join('\n'), {
     compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS },
 }).outputText;
@@ -42,8 +45,11 @@ function fixture() {
     let flushes = 0;
     installParsers(app);
     const names = ['fastify', 'seedValidator', 'persistSeedFeedback', 'console', ...Object.keys(helpers)];
-    new Function(...names, compile([crashStatement]))(app, {
-        addPending: (...args) => pending.push(args),
+    new Function(...names, compile([feedbackFieldsStatement, crashStatement]))(app, {
+        applyPublicFeedback: (_source, feedback) => {
+            pending.push([feedback.movieId, feedback.seed, feedback.rarity - 3]);
+            return 'accepted';
+        },
     }, async () => { flushes++; }, { log: (...args) => logs.push(args) }, ...Object.values(helpers));
     app.post('/api/index.php/parser-regression', async request => ({ body: request.body ?? null }));
     return { app, logs, pending, flushes: () => flushes };
@@ -252,7 +258,7 @@ test('production /crash parsers accept JSON mislabeled as form, MessagePack, and
             assert.equal(structuredLog(logs).format, expected);
         }
         assert.deepEqual(pending, Array.from({ length: 5 }, () => ['fes', 501, 1]));
-        assert.equal(flushes(), 5);
+        assert.equal(flushes(), 0, 'public crash requests must not wait for a disk flush');
     } finally { await app.close(); }
 });
 

@@ -41,6 +41,7 @@ import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-deliv
 import { performance } from "node:perf_hooks";
 import { recordServerWork } from "../../lib/server-work-performance";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { isPersistenceAdmissionError } from "../../lib/persistence-admission";
 import { serializePlayerSnapshot } from "../../data/utils/client-player-snapshot";
 
 interface CnLoadBody {
@@ -153,110 +154,95 @@ const routes = async (fastify: FastifyInstance) => {
             return reply.status(400).send({ error: "Bad Request", message: "No player found" });
         }
 
-        const player = getPlayerSync(playerId);
-        if (player === null) {
-            return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
-        }
-
-        const now = getServerDate();
-        await runPersistenceTransaction({
+        // The load snapshot preparation also repairs old saves (including
+        // mana boards and stamina). Admit the complete write unit before
+        // queueing, read fresh state inside it, and commit it atomically.
+        const { now, prepared } = await runPersistenceTransaction({
             domain: "player", playerId, operation: "load_maintenance",
         }, () => {
+            const now = getServerDate();
+            const current = getPlayerSync(playerId);
+            if (!current) throw new Error("No player data.");
             ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
-            dailyResetPlayerDataSync(player, now);
-            collectPlayerDataPooledExpSync(player, now);
-
-            // Keep the login timestamp with the same player-owned transaction
-            // as the other load maintenance writes.
-            if (now.toDateString() !== player.lastLoginTime.toDateString()) {
-                updatePlayerSync({ id: player.id, lastLoginTime: now });
+            dailyResetPlayerDataSync(current, now);
+            collectPlayerDataPooledExpSync(current, now);
+            if (now.toDateString() !== current.lastLoginTime.toDateString()) {
+                updatePlayerSync({ id: playerId, lastLoginTime: now });
             }
-        });
-        markLoadPhase("load.maintenance")
+            markLoadPhase("load.maintenance")
 
-        // Equipment is needed by both validation and serialization. Validators
-        // mutate this request-local object when they repair a row.
-        const equipmentList = getPlayerEquipmentListSync(playerId)
-        runPermanentValidators(playerId, { player, equipmentList });
+            // Maintenance can change the base row. Validators mutate these
+            // request-local snapshots; none escape if this transaction fails.
+            const currentPlayer = getPlayerSync(playerId)
+            if (!currentPlayer) throw new Error("No player data.");
+            const equipmentList = getPlayerEquipmentListSync(playerId)
+            runPermanentValidators(playerId, { player: currentPlayer, equipmentList }, { throwOnError: true });
+            markLoadPhase("load.player")
 
-        // Daily reset and pooled EXP collection may update the base row. Read
-        // it once after those mutations, then reuse the fresh snapshot through
-        // the remaining synchronous /load pipeline.
-        const currentPlayer = getPlayerSync(playerId)
-        if (currentPlayer === null) {
-            return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
-        }
-        markLoadPhase("load.player")
+            const characterList = getPlayerCharactersSync(playerId)
+            const characterManaNodeList = getPlayerCharactersManaNodesSync(playerId)
+            const partyGroupList = getPlayerPartyGroupListSync(playerId)
+            const questProgress = getPlayerQuestProgressSync(playerId)
+            markLoadPhase("load.snapshot")
 
-        const characterList = getPlayerCharactersSync(playerId)
-        const characterManaNodeList = getPlayerCharactersManaNodesSync(playerId)
-        const partyGroupList = getPlayerPartyGroupListSync(playerId)
-        const questProgress = getPlayerQuestProgressSync(playerId)
-        markLoadPhase("load.snapshot")
-
-        reconcileActiveMissionFacts({
-            playerId,
-            player: currentPlayer,
-            characterList,
-            characterManaNodeList,
-            equipmentList,
-            partyGroupList,
-            questProgress,
-            repository: getContentSnapshot().repository,
-            now: getServerTime() * 1000,
-        })
-        const removedMode15RescueRows = cleanupLegacyMode15RescueProgressSync(playerId)
-        if (removedMode15RescueRows > 0) {
-            console.log(`[MODE15] removed legacy rescue progress: player=${playerId} rows=${removedMode15RescueRows}`)
-        }
-        // AdventEvent quest visibility points at Mode15's Rush quests.  The
-        // legacy client cannot resolve that cross-event condition until the
-        // corresponding Rush event exists in its player model.  A completed
-        // or failed run removes the server row, so recreate the empty shell
-        // before serializing /load instead of requiring a visit to Rush first.
-        if (
-            isMode15RuntimeLoaded()
-            && getPlayerRushEventSync(playerId, MODE15_RUSH_EVENT_ID) === null
-        ) {
-            insertPlayerRushEventSync(
+            reconcileActiveMissionFacts({
                 playerId,
-                getDefaultPlayerRushEventSync(MODE15_RUSH_EVENT_ID),
-            )
-            console.log(`[MODE15] initialized Rush state during load: player=${playerId}`)
-        }
-        const repairedGauntletCompletions =
-            repairAllGauntletCompletionClassificationsSync(playerId)
-        if (repairedGauntletCompletions.length > 0) {
-            console.log(
-                `[RUSH] repaired completed classification during load: `
-                + `player=${playerId} events=${repairedGauntletCompletions.join(",")}`,
-            )
-        }
-        const serializedQuestProgress = removedMode15RescueRows > 0
-            || repairedGauntletCompletions.length > 0
-            ? getPlayerQuestProgressSync(playerId)
-            : questProgress
-        markLoadPhase("load.reconcile")
-        // Include Rush state in the initial payload so the legacy client can
-        // evaluate cross-event clear conditions on a cold visit. Optional
-        // saved party slots are normalized to null before packing (rather than
-        // MessagePack's unsupported undefined extension, 0xD4).
-        refreshPlayerAbyssTowersSync(playerId)
-        const assemblyStartedAt = performance.now()
-        const prepared = prepareClientSerializedData(playerId, {
-            viewerId: accountId,
-            serializeRushEventData: true,
-            preloadedPlayer: currentPlayer,
-            preloadedCharacterList: characterList,
-            preloadedCharacterManaNodeList: characterManaNodeList,
-            preloadedEquipmentList: equipmentList,
-            preloadedPartyGroupList: partyGroupList,
-            preloadedQuestProgress: serializedQuestProgress,
+                player: currentPlayer,
+                characterList,
+                characterManaNodeList,
+                equipmentList,
+                partyGroupList,
+                questProgress,
+                repository: getContentSnapshot().repository,
+                now: now.getTime(),
+            })
+            const removedMode15RescueRows = cleanupLegacyMode15RescueProgressSync(playerId)
+            if (removedMode15RescueRows > 0) {
+                console.log(`[MODE15] removed legacy rescue progress: player=${playerId} rows=${removedMode15RescueRows}`)
+            }
+            // Preserve the empty Rush shell required for cross-event visibility
+            // on a cold load, including after a completed or failed Mode15 run.
+            if (
+                isMode15RuntimeLoaded()
+                && getPlayerRushEventSync(playerId, MODE15_RUSH_EVENT_ID) === null
+            ) {
+                insertPlayerRushEventSync(
+                    playerId,
+                    getDefaultPlayerRushEventSync(MODE15_RUSH_EVENT_ID),
+                )
+                console.log(`[MODE15] initialized Rush state during load: player=${playerId}`)
+            }
+            const repairedGauntletCompletions =
+                repairAllGauntletCompletionClassificationsSync(playerId)
+            if (repairedGauntletCompletions.length > 0) {
+                console.log(
+                    `[RUSH] repaired completed classification during load: `
+                    + `player=${playerId} events=${repairedGauntletCompletions.join(",")}`,
+                )
+            }
+            const serializedQuestProgress = removedMode15RescueRows > 0
+                || repairedGauntletCompletions.length > 0
+                ? getPlayerQuestProgressSync(playerId)
+                : questProgress
+            markLoadPhase("load.reconcile")
+            refreshPlayerAbyssTowersSync(playerId)
+            const assemblyStartedAt = performance.now()
+            const prepared = prepareClientSerializedData(playerId, {
+                viewerId: accountId,
+                serializeRushEventData: true,
+                preloadedPlayer: currentPlayer,
+                preloadedCharacterList: characterList,
+                preloadedCharacterManaNodeList: characterManaNodeList,
+                preloadedEquipmentList: equipmentList,
+                preloadedPartyGroupList: partyGroupList,
+                preloadedQuestProgress: serializedQuestProgress,
+            });
+            recordServerWork("load.assemble", performance.now() - assemblyStartedAt)
+            if (!prepared) throw new Error("No player data.");
+            return { now, prepared };
         });
-        recordServerWork("load.assemble", performance.now() - assemblyStartedAt)
-        if (prepared === null) {
-            return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
-        }
+        // Pure response conversion runs after COMMIT. Saved optional party slots
+        // still normalize to null before MessagePack encoding.
         const conversionStartedAt = performance.now()
         const clientData: any = serializePlayerSnapshot(
             prepared.data,
@@ -359,8 +345,10 @@ const routes = async (fastify: FastifyInstance) => {
             data: clientData
         });
         } catch(e: any) {
-            console.error(`[CN-LOAD] ERROR:`, e.message, e.stack);
             if (hijackUnavailableReply(request, reply)) return reply;
+            // Preserve the game protocol's bounded-queue retry response.
+            if (isPersistenceAdmissionError(e)) throw e;
+            console.error(`[CN-LOAD] ERROR:`, e.message, e.stack);
             return reply.status(500).send({ error: "Internal Server Error", message: e.message });
         }
     });

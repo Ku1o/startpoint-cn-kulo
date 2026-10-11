@@ -1,4 +1,5 @@
 import { performance } from "node:perf_hooks"
+import { AsyncLocalStorage } from "node:async_hooks"
 import { getDb } from "../data/db"
 import { registerMemoryCounters } from "./memory-diagnostics"
 import { createWriterCommandContext, getWriterCommand } from "./persistence/command-registry"
@@ -10,6 +11,9 @@ import {
     writerThreadSettings,
 } from "./persistence/writer-client"
 import { recordServerWork } from "./server-work-performance"
+import { persistenceAdmission } from "./persistence-admission"
+import { persistenceWriteGate } from "./persistence-write-gate"
+import { assertServerAcceptingWork, withServerWorkAdmission } from "./shutdown-state"
 import { drainPlayerWriteQueues, runImmediateTransactionWithRetry, withPlayerWriteQueue } from "./sqlite-write-coordinator"
 
 /**
@@ -57,6 +61,9 @@ export interface PersistenceTransactionOptions<T> {
 }
 
 let globalWriteTail = Promise.resolve()
+// An async command owns one admission slot through its nested sync work.
+// The active flag prevents detached callbacks from reusing a released slot.
+const admittedCommand = new AsyncLocalStorage<{ active: boolean }>()
 // The first migration step keeps SQLite in the main process. Nested domain
 // transactions belong to the outer command for metrics, but retain savepoints
 // so a caught inner error cannot leave partial writes in the outer transaction.
@@ -95,6 +102,8 @@ registerMemoryCounters("persistence", () => {
     const counters: Record<string, number | boolean | null> = {}
     counters["writer.fallbacks"] = writerFallbackCount
     counters["writer.startupWaits"] = writerStartupWaitCount
+    for (const [key, value] of Object.entries(persistenceAdmission.stats())) counters[`admission.${key}`] = value
+    for (const [key, value] of Object.entries(persistenceWriteGate.stats())) counters[`writeGate.${key}`] = value
     for (const [domain, value] of persistenceStats) {
         counters[`domain.${domain}.queued`] = value.queued
         counters[`domain.${domain}.committed`] = value.committed
@@ -120,6 +129,31 @@ function enqueueGlobalWrite<T>(operation: () => Promise<T>): Promise<T> {
         try { return await operation() }
         finally { release() }
     })
+}
+
+function enqueuePersistence<T>(context: PersistenceContext, operation: () => Promise<T>, exclusive = false): Promise<T> {
+    try { return withServerWorkAdmission(() => enqueueAcceptedPersistence(context, operation, exclusive)) }
+    catch (error) { statsFor(context.domain).failed++; return Promise.reject(error) }
+}
+
+function enqueueAcceptedPersistence<T>(context: PersistenceContext, operation: () => Promise<T>, exclusive: boolean): Promise<T> {
+    let release: () => void
+    try { release = persistenceAdmission.acquire(context.playerId) }
+    catch (error) {
+        statsFor(context.domain).failed++
+        return Promise.reject(error)
+    }
+    // Capacity includes running work and all upstream waiting chains, not only
+    // commands already handed to the optional SQLite writer thread.
+    const admission = { active: true }
+    const execute = () => admittedCommand.run(admission, async () => {
+        const releaseGate = await persistenceWriteGate.acquire(exclusive)
+        try { return await operation() }
+        finally { releaseGate() }
+    })
+    const pending = context.playerId === undefined
+        ? enqueueGlobalWrite(execute) : withPlayerWriteQueue(context.playerId, execute)
+    return pending.finally(() => { admission.active = false; release() })
 }
 
 function withPersistenceContext<T>(context: PersistenceContext, operation: () => T): T {
@@ -193,10 +227,7 @@ export async function runPersistenceTransaction<T>(
         }
     }
 
-    if (context.playerId !== undefined) {
-        return withPlayerWriteQueue(context.playerId, execute)
-    }
-    return enqueueGlobalWrite(execute)
+    return enqueuePersistence(context, execute)
 }
 
 /**
@@ -237,8 +268,7 @@ export function runPersistenceSqlCommand(
             recordServerWork("persistence.transaction", transactionMs)
         }
     }
-    if (context.playerId !== undefined) return withPlayerWriteQueue(context.playerId, execute)
-    return enqueueGlobalWrite(execute)
+    return enqueuePersistence(context, execute)
 }
 
 /**
@@ -284,10 +314,7 @@ export async function runWriterCommand<Args, Result>(
         }
     }
 
-    if (context.playerId !== undefined) {
-        return withPlayerWriteQueue(context.playerId, execute)
-    }
-    return enqueueGlobalWrite(execute)
+    return enqueuePersistence(context, execute)
 }
 
 /** Bounded wait so the first requests after a restart do not fail on warm-up. */
@@ -385,16 +412,20 @@ export function runPersistenceTransactionSync<T>(
     context: PersistenceContext,
     operation: () => T,
 ): T {
+    assertServerAcceptingWork()
     // better-sqlite3 creates a savepoint when already inside a transaction.
     // Do not replace this with operation(): some callers catch an inner failure
     // and continue, and still require that inner operation to roll back.
     if (activePersistenceContext) return getDb().transaction(operation)()
+    persistenceWriteGate.assertSynchronousWriteAllowed()
 
     const stats = statsFor(context.domain)
     stats.queued++
     stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed)
     const startedAt = performance.now()
+    let release: (() => void) | undefined
     try {
+        if (!admittedCommand.getStore()?.active) release = persistenceAdmission.acquire(context.playerId)
         const result = getDb().transaction(() => (
             withPersistenceContext(context, operation)
         )).immediate()
@@ -404,11 +435,51 @@ export function runPersistenceTransactionSync<T>(
         stats.failed++
         throw error
     } finally {
+        release?.()
         const transactionMs = performance.now() - startedAt
         stats.transactionMs += transactionMs
         stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs)
         recordServerWork("persistence.transaction", transactionMs)
     }
+}
+
+/**
+ * A worker owns its own SQLite transaction. Never await it inside a transaction
+ * on the main connection. Normal admitted commands wait without blocking the
+ * event loop; legacy raw SQL fails promptly instead of busy-waiting on its lock.
+ * The operation must wait for worker exit/connection close before resolving.
+ */
+export function runBackgroundPersistenceTask<T, Prepared = void>(
+    context: PersistenceContext,
+    operation: (prepared: Prepared) => Promise<T>,
+    prepare?: () => Prepared,
+    beforePrepare?: () => void,
+): Promise<T> {
+    if (admittedCommand.getStore()?.active || getDb().inTransaction) {
+        return Promise.reject(new Error("Background persistence cannot start inside another persistence command or transaction."))
+    }
+    const stats = statsFor(context.domain)
+    stats.queued++
+    stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed)
+    return enqueuePersistence(context, async () => {
+        const db = getDb()
+        const busyTimeout = db.pragma("busy_timeout", { simple: true }) as number
+        db.pragma("busy_timeout = 0")
+        try {
+            // Cancellation of an accepted but still queued worker must be
+            // checked before even the short preparation BEGIN.
+            beforePrepare?.()
+            // Wait for prior native writers before even the small preparation
+            // transaction, otherwise BEGIN here could still stall the main loop.
+            const prepared = prepare ? db.transaction(() => withPersistenceContext(context, prepare)).immediate() : undefined
+            const result = await operation(prepared as Prepared)
+            stats.committed++
+            return result
+        } catch (error) {
+            stats.failed++
+            throw error
+        } finally { db.pragma(`busy_timeout = ${busyTimeout}`) }
+    }, true)
 }
 
 /** Wait for queued asynchronous persistence work before a graceful shutdown. */
