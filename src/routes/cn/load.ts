@@ -1,5 +1,6 @@
+import { getPlayerBusinessDateSync } from "../../lib/player-time-compat"
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { generateDataHeaders, getServerTime, getServerDate } from "../../utils";
+import { generateDataHeaders, getServerTime, getServerDate, getRealServerDate, getTimeOffset, withServerClock } from "../../utils";
 import { collectPlayerDataPooledExpSync, dailyResetPlayerDataSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { deletePlayerActiveQuestIfPlayIdSync, getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { getSession } from "../../data/domains/session"
@@ -42,6 +43,7 @@ import { recordServerWork } from "../../lib/server-work-performance";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { isPersistenceAdmissionError } from "../../lib/persistence-admission";
 import { serializePlayerSnapshot } from "../../data/utils/client-player-snapshot";
+import { formatClientDisplayDateTime } from "../../lib/client-display-time";
 import { withServerWorkAdmission } from "../../lib/shutdown-state";
 
 interface CnLoadBody {
@@ -62,8 +64,7 @@ function fillClientDefaults(d: any) {
     if (d.user_info) {
         if (typeof d.user_info.last_login_time === 'number') {
             const dt = new Date(d.user_info.last_login_time * 1000);
-            const p = (n: number) => n.toString().padStart(2, '0');
-            d.user_info.last_login_time = `${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())} ${p(dt.getHours())}:${p(dt.getMinutes())}:${p(dt.getSeconds())}`;
+            d.user_info.last_login_time = formatClientDisplayDateTime(dt);
         }
         d.user_info.is_bought_fund_ex_quest ??= false;
         d.user_info.is_bought_fund_main_quest ??= false;
@@ -164,12 +165,10 @@ const routes = async (fastify: FastifyInstance) => {
             const now = getServerDate();
             const current = getPlayerSync(playerId);
             if (!current) throw new Error("No player data.");
-            ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
+            ensureDailyVmoneyMailForPlayerSync(playerId, getRealServerDate().getTime());
             dailyResetPlayerDataSync(current, now);
             collectPlayerDataPooledExpSync(current, now);
-            if (now.toDateString() !== current.lastLoginTime.toDateString()) {
-                updatePlayerSync({ id: playerId, lastLoginTime: now });
-            }
+            updatePlayerSync({ id: playerId, lastLoginTime: getPlayerBusinessDateSync(playerId, now) });
             markLoadPhase("load.maintenance")
 
             // Maintenance can change the base row. Validators mutate these
@@ -228,7 +227,7 @@ const routes = async (fastify: FastifyInstance) => {
             markLoadPhase("load.reconcile")
             refreshPlayerAbyssTowersSync(playerId)
             const assemblyStartedAt = performance.now()
-            const prepared = prepareClientSerializedData(playerId, {
+            const prepared = withServerClock(now, () => prepareClientSerializedData(playerId, {
                 viewerId: accountId,
                 serializeRushEventData: true,
                 preloadedPlayer: currentPlayer,
@@ -237,7 +236,7 @@ const routes = async (fastify: FastifyInstance) => {
                 preloadedEquipmentList: equipmentList,
                 preloadedPartyGroupList: partyGroupList,
                 preloadedQuestProgress: serializedQuestProgress,
-            });
+            }), getTimeOffset() ?? 0);
             recordServerWork("load.assemble", performance.now() - assemblyStartedAt)
             if (!prepared) throw new Error("No player data.");
             return { now, prepared };

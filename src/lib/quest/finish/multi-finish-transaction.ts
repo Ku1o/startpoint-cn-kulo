@@ -1,3 +1,5 @@
+import { getPlayerClientExpTime } from "../../player-time-compat"
+import { isSupportedBattleClockVersion } from "../../battle-clock-compatibility"
 import type { MultiFinishBody } from "../../../multi/types"
 import type { ActiveQuest } from "../../../routes/api/singleBattleQuest"
 import type { BattleQuest, PlayerRewardResult } from "../../types"
@@ -67,6 +69,9 @@ export function settleMultiQuestFinishInTransaction(args: MultiFinishTransaction
     if (getPlayerOperationReceiptSync(playerId, "quest_finish.single", playId) !== null) {
         return { response: null, applied: false }
     }
+    if (getPlayerOperationReceiptSync(playerId, "clock_migration.abort", playId) !== null) {
+        return { response: null, applied: false }
+    }
     if (multiFinishPlayId(playId) === null || !activeQuestData.isMulti
         || activeQuestData.playId !== playId || body.play_id !== playId
         || Number(body.quest_id) !== Number(questId) || Number(body.category) !== Number(questCategory)
@@ -75,9 +80,14 @@ export function settleMultiQuestFinishInTransaction(args: MultiFinishTransaction
         return { response: null, applied: false }
     }
     const persisted = getPlayerActiveQuestSync(playerId)
-    const persistentMatches = persisted?.isMulti === true && persisted.playId === playId
+    const persistentMatches = persisted?.isMulti === true && isSupportedBattleClockVersion(persisted.clockVersion) && persisted.playId === playId
         && Number(persisted.questId) === Number(questId) && Number(persisted.category) === Number(questCategory)
     if (!allowFrozenSnapshot && !persistentMatches) return { response: null, applied: false }
+    if (!persistentMatches && activeQuestData.clockVersion !== 1) return { response: null, applied: false }
+    if (persistentMatches) {
+        activeQuestData.startedAtMs = persisted!.startedAtMs ?? undefined
+        activeQuestData.clockVersion = persisted!.clockVersion
+    }
     const player = getPlayerSync(playerId)
     if (player === null) throw new Error(`Multi finish player no longer exists: ${playerId}`)
     // calculate clear rank
@@ -338,7 +348,7 @@ export function settleMultiQuestFinishInTransaction(args: MultiFinishTransaction
             "user_info": {
                 "free_mana": finalPlayerData?.freeMana ?? newMana,
                 "exp_pool": finalPlayerData?.expPool ?? rewardCharacterExpResult.exp_pool,
-                "exp_pooled_time": getServerTime(playerData.expPooledTime),
+                "exp_pooled_time": getPlayerClientExpTime(playerData),
                 "free_vmoney": finalPlayerData?.freeVmoney ?? playerData.freeVmoney,
                 "rank_point": newRankPoint,
                 "degree_id": playerData.degreeId ?? 1,

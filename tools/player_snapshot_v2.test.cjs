@@ -48,6 +48,19 @@ function createAccount(insertAccountSync, label) {
     })
 }
 
+function businessDatabaseDigest(database) {
+    const tables = database.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()
+    return JSON.stringify(tables.map(({ name }) => {
+        const quote = identifier => '"' + identifier.replace(/"/g, '""') + '"'
+        const statement = database.prepare(`SELECT * FROM ${quote(name)}`)
+        const columns = statement.columns().map(column => column.name)
+        const rows = statement.safeIntegers(true).raw().all().map(row => JSON.stringify(row.map(value =>
+            Buffer.isBuffer(value) ? { blob: value.toString('hex') }
+                : typeof value === 'bigint' ? { integer: value.toString() } : value))).sort()
+        return { name, columns, rows }
+    }))
+}
+
 function identityState() {
     return Object.fromEntries(["accounts", "sessions", "device_bindings", "player_login_credentials", "player_login_sessions"]
         .map(table => [table, db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()]))
@@ -71,6 +84,20 @@ function dailyState(playerId) {
     const grants = db.prepare("SELECT * FROM daily_vmoney_mail_grants WHERE player_id=? ORDER BY bucket").all(playerId)
     return grants.map(grant => ({ grant, mail: db.prepare("SELECT * FROM players_mails WHERE id=? AND player_id=?")
         .get(grant.mail_id, playerId) }))
+}
+
+function assertDailyMailsPreserved(playerId, before, remapped) {
+    const after = dailyState(playerId)
+    assert.equal(after.length, before.length)
+    for (let index = 0; index < before.length; index++) {
+        const old = before[index], current = after[index]
+        assert.ok(current.mail, "preserved grant must reference a mail owned by the target")
+        assert.deepEqual({ ...current.grant, mail_id: old.grant.mail_id }, old.grant)
+        assert.deepEqual({ ...current.mail, id: old.mail.id }, old.mail, "all daily mail fields and claim status survive")
+        assert.equal(current.grant.mail_id, current.mail.id)
+        if (remapped) assert.notEqual(current.mail.id, old.mail.id, "V2 archive restore must remap the target daily mail id")
+        else assert.equal(current.mail.id, old.mail.id, "skipped/rejected imports must keep the original mail id")
+    }
 }
 
 function targetState(playerId) {
@@ -108,7 +135,7 @@ function seedRepresentativeState(playerId, otherPlayerId) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(700001, playerId, 99, "V2 邮件", "邮件正文", 1, 123, 5, "0000-00-00 00:00:00", "2026-08-22T00:00:00.000Z", 0, null)
     db.prepare(`INSERT INTO players_mails (id,player_id,subject,description,type,number,receive_time,create_time)
-        VALUES(700002,?,'来源归档邮件','ordinary source history',4,321,'2026-08-20T01:00:00.000Z','2026-08-20T00:00:00.000Z')`).run(playerId)
+        VALUES(700002,?,'来源日邮','must stay on source',4,321,'2026-08-20T01:00:00.000Z','2026-08-20T00:00:00.000Z')`).run(playerId)
     db.prepare("INSERT INTO daily_vmoney_mail_grants(bucket,player_id,mail_id,created_at_ms) VALUES('2026-08-20',?,700002,1234567)").run(playerId)
     db.prepare(`INSERT INTO players_receive_history
         (id, player_id, type, type_id, number, reason_id, create_time)
@@ -258,7 +285,8 @@ function runFreshDatabaseTests(api) {
         entry.policy === "reset" && entry.tables.includes("players_repair_versions")))
     assert.equal(Object.hasOwn(snapshot.data.tables, "daily_vmoney_mail_grants"), false)
     assert.ok(snapshot.summary.excludedState.some(entry =>
-        entry.policy === "reset" && entry.tables.includes("daily_vmoney_mail_grants")))
+        entry.policy === "preserve-target" && entry.tables.includes("daily_vmoney_mail_grants")))
+    assert.deepEqual(snapshot.dailyMailBasis, { version: 1, mails: [{ bucket: "2026-08-20", mailId: 700002 }] })
     assert.equal(Object.hasOwn(snapshot.data.tables, "leaderboard_runs"), false)
     assert.ok(snapshot.summary.excludedState.some(entry =>
         entry.policy === "preserve-target" && entry.tables.includes("leaderboard_runs")))
@@ -266,7 +294,7 @@ function runFreshDatabaseTests(api) {
     assert.equal(snapshot.data.tables.players_practice_battle_history.rows.length, 1)
 
     const targetAccountId = db.prepare(`SELECT account_id FROM players WHERE id = ?`).get(target.id).account_id
-    const originalIdentity = identityState(), sourceBefore = targetState(source.id)
+    const originalIdentity = identityState(), sourceBefore = targetState(source.id), targetDailyBefore = dailyState(target.id)
     const result = api.restorePlayerSaveSnapshotV2Sync(snapshot, target.id, { includeArchiveHistory: true })
     assert.equal(result.skippedTables.length, 0)
     assert.ok(result.restoredRows > 1)
@@ -277,11 +305,11 @@ function runFreshDatabaseTests(api) {
     assert.equal(restoredPlayer.free_vmoney, 8765)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_active_quests WHERE player_id = ?`).get(target.id).count, 0)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_repair_versions WHERE player_id = ?`).get(target.id).count, 0)
-    assert.equal(db.prepare(`SELECT COUNT(*) count FROM daily_vmoney_mail_grants WHERE player_id = ?`).get(target.id).count, 0)
+    assertDailyMailsPreserved(target.id, targetDailyBefore, true)
     assert.deepEqual(identityState(), originalIdentity, "credentials, UID, device bindings and account metadata stay on the target")
     assert.deepEqual(targetState(source.id), sourceBefore, "export/import must leave source identity, progress and daily grants intact")
-    assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=? AND subject='来源归档邮件'").get(target.id).n, 1)
-    assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=?").get(target.id).n, 2)
+    assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=? AND subject='来源日邮'").get(target.id).n, 0)
+    assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=?").get(target.id).n, 3)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_follows WHERE follower_player_id = ? AND followed_player_id = ?`).get(target.id, other.id).count, 1)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(target.id, "snapshot-target").count, 1)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(target.id, "snapshot-source").count, 0)
@@ -296,7 +324,7 @@ function runFreshDatabaseTests(api) {
     db.prepare("INSERT INTO daily_vmoney_mail_grants(bucket,player_id,mail_id,created_at_ms) VALUES('2026-08-21',?,?,1234569)")
         .run(noHistoryTarget.id, Number(noHistoryMail.lastInsertRowid))
     seedLoginIdentity(noHistoryTarget.id, "nohistory")
-    const noHistoryIdentity = identityState()
+    const noHistoryDailyBefore = dailyState(noHistoryTarget.id), noHistoryIdentity = identityState()
     db.prepare(`INSERT INTO players_practice_battle_history
         (id, player_id, play_id, category_id, create_time, elapsed_time_ms, finish_kind, quest_id, total_damage)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -311,7 +339,7 @@ function runFreshDatabaseTests(api) {
     ].sort())
     const keptMails = db.prepare(`SELECT subject FROM players_mails WHERE player_id = ?`).all(noHistoryTarget.id)
     assert.deepEqual(keptMails, [{ subject: "保留目标历史" }])
-    assert.equal(dailyState(noHistoryTarget.id).length, 0, "excluded grant ledger resets even when archive history is skipped")
+    assertDailyMailsPreserved(noHistoryTarget.id, noHistoryDailyBefore, false)
     assert.deepEqual(identityState(), noHistoryIdentity)
     const keptPracticeHistory = db.prepare(`
         SELECT play_id FROM players_practice_battle_history WHERE player_id = ?
@@ -332,21 +360,18 @@ function runFreshDatabaseTests(api) {
     assert.deepEqual(afterRollback.data, beforeRollback.data, "failed restore must roll back every write")
     assert.deepEqual(targetState(noHistoryTarget.id), rawBeforeRollback, "rollback also preserves excluded grants and all login identity")
 
-    const lateFailureMail = db.prepare(`INSERT INTO players_mails(player_id,subject,description,type,number,create_time)
-        VALUES(?,'回滚前目标邮件','rollback fixture',1,1,'2026-08-21T00:00:00.000Z')`).run(target.id)
-    db.prepare("INSERT INTO daily_vmoney_mail_grants(bucket,player_id,mail_id,created_at_ms) VALUES('2026-08-21',?,?,1234571)")
-        .run(target.id, Number(lateFailureMail.lastInsertRowid))
     const lateFailureBefore = targetState(target.id)
-    db.exec(`CREATE TEMP TRIGGER fail_snapshot_mail_insert AFTER INSERT ON players_mails
+    db.exec(`CREATE TEMP TRIGGER fail_snapshot_daily_mapping AFTER UPDATE OF mail_id ON daily_vmoney_mail_grants
         WHEN NEW.player_id=${target.id}
-        BEGIN SELECT RAISE(ABORT,'fixture archive mail insertion failure'); END`)
+        BEGIN SELECT RAISE(ABORT,'fixture daily mapping failure'); END`)
     try {
-        assert.throws(() => api.restorePlayerSaveSnapshotV2Sync(snapshot, target.id), /fixture archive mail insertion failure/)
-    } finally { db.exec("DROP TRIGGER fail_snapshot_mail_insert") }
-    assert.deepEqual(targetState(target.id), lateFailureBefore, "mail insertion failure rolls back archive replacement, ledger deletion and login identity")
+        assert.throws(() => api.restorePlayerSaveSnapshotV2Sync(snapshot, target.id), /fixture daily mapping failure/)
+    } finally { db.exec("DROP TRIGGER fail_snapshot_daily_mapping") }
+    assert.deepEqual(targetState(target.id), lateFailureBefore, "failure after mail insertion and grant remapping rolls back exact rows and IDs")
+    const retryDailyBefore = dailyState(target.id)
     api.restorePlayerSaveSnapshotV2Sync(snapshot, target.id)
-    assert.equal(dailyState(target.id).length, 0)
-    assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=?").get(target.id).n, 2, "retry imports source history exactly once")
+    assertDailyMailsPreserved(target.id, retryDailyBefore, true)
+    assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=?").get(target.id).n, 3, "retry does not duplicate target grants or source mail")
     assert.deepEqual(identityState(), lateFailureBefore.identity)
     assert.deepEqual(targetState(source.id).daily, sourceBefore.daily)
 
@@ -424,7 +449,7 @@ async function runHttpIntegrationTests(api, fixture) {
             VALUES(?,'HTTP目标日邮','preserve HTTP target',4,789,'2026-08-20T02:00:00.000Z','2026-08-20T00:00:00.000Z')`).run(importTarget.id)
         db.prepare("INSERT INTO daily_vmoney_mail_grants(bucket,player_id,mail_id,created_at_ms) VALUES('2026-08-20',?,?,1234570)")
             .run(importTarget.id, Number(importMail.lastInsertRowid))
-        const importBefore = targetState(importTarget.id)
+        const importBefore = targetState(importTarget.id), importDailyBefore = dailyState(importTarget.id)
         const imported = await app.inject({
             method: "POST",
             url: `/api/player/save?id=${importTarget.id}`,
@@ -447,6 +472,7 @@ async function runHttpIntegrationTests(api, fixture) {
         assert.equal(rollbackSnapshot.playerId, importTarget.id)
         assert.equal(rollbackSnapshot.summary.playerName, "冒险者")
         assert.deepEqual(rollbackSnapshot.data, importBefore.snapshot, "automatic backup is the destination before replacement")
+        assert.deepEqual(rollbackSnapshot.dailyMailBasis, { version: 1, mails: [{ bucket: "2026-08-20", mailId: Number(importMail.lastInsertRowid) }] })
         const rollbackInfo = JSON.parse(fs.readFileSync(path.join(backupDirectory, "backup-info.json"), "utf8"))
         assert.equal(rollbackInfo.includesFullDatabase, false)
         assert.equal(rollbackInfo.sourceSnapshotVersion, 2)
@@ -459,25 +485,21 @@ async function runHttpIntegrationTests(api, fixture) {
         assert.equal(fs.existsSync(path.join(accountCleanupBackup, "marker.txt")), true)
         assert.equal(db.prepare(`SELECT name FROM players WHERE id = ?`).get(importTarget.id).name, "完整存档来源")
         assert.equal(db.prepare("SELECT account_id FROM players WHERE id=?").get(importTarget.id).account_id, importAccount.id)
-        assert.equal(dailyState(importTarget.id).length, 0)
+        assertDailyMailsPreserved(importTarget.id, importDailyBefore, true)
         assert.deepEqual(identityState(), importBefore.identity)
         assertHistoryWasRemapped(fixture.sourcePlayerId, importTarget.id)
-        assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=? AND subject='来源归档邮件'").get(importTarget.id).n, 1)
+        assert.equal(db.prepare("SELECT count(*) n FROM players_mails WHERE player_id=? AND subject='来源日邮'").get(importTarget.id).n, 0)
 
-        const failedImportMail = db.prepare(`INSERT INTO players_mails(player_id,subject,description,type,number,create_time)
-            VALUES(?,'HTTP回滚前目标邮件','rollback fixture',1,1,'2026-08-21T00:00:00.000Z')`).run(importTarget.id)
-        db.prepare("INSERT INTO daily_vmoney_mail_grants(bucket,player_id,mail_id,created_at_ms) VALUES('2026-08-21',?,?,1234572)")
-            .run(importTarget.id, Number(failedImportMail.lastInsertRowid))
         const failedImportBefore = targetState(importTarget.id)
-        db.exec(`CREATE TEMP TRIGGER fail_http_mail_insert AFTER INSERT ON players_mails
+        db.exec(`CREATE TEMP TRIGGER fail_http_daily_mapping AFTER UPDATE OF mail_id ON daily_vmoney_mail_grants
             WHEN NEW.player_id=${importTarget.id}
-            BEGIN SELECT RAISE(ABORT,'fixture HTTP archive mail insertion failure'); END`)
+            BEGIN SELECT RAISE(ABORT,'fixture HTTP daily mapping failure'); END`)
         try {
             const failedImport = await app.inject({ method: "POST", url: `/api/player/save?id=${importTarget.id}`,
                 ...createMultipartJson(exportedSnapshot) })
             assert.equal(failedImport.statusCode, 500, failedImport.body)
             assert.deepEqual(targetState(importTarget.id), failedImportBefore, "HTTP late SQL failure preserves exact mail/grant/identity rows")
-        } finally { db.exec("DROP TRIGGER fail_http_mail_insert") }
+        } finally { db.exec("DROP TRIGGER fail_http_daily_mapping") }
 
         const legacyAccount = createAccount(api.insertAccountSync, "http-v1-import")
         const legacyTarget = api.insertDefaultPlayerSync(legacyAccount.id)
@@ -510,7 +532,8 @@ async function runHttpIntegrationTests(api, fixture) {
             playerId: fixture.sourcePlayerId,
             data: api.getMergedPlayerDataSync(fixture.sourcePlayerId),
         }
-        const legacyBefore = targetState(legacyTarget.id)
+        const legacyStateBefore = businessDatabaseDigest(db)
+        const legacyBefore = targetState(legacyTarget.id), legacyDailyBefore = dailyState(legacyTarget.id)
         const backupsBeforeLegacy = fs.readdirSync(automaticBackupRoot).sort()
         const legacyImported = await app.inject({
             method: "POST",
@@ -519,7 +542,10 @@ async function runHttpIntegrationTests(api, fixture) {
         })
         assert.equal(legacyImported.statusCode, 400, legacyImported.body)
         assert.match(legacyImported.json().error, /仅支持 V2 完整存档/)
+        assert.equal(businessDatabaseDigest(db), legacyStateBefore,
+            "rejected V1 HTTP import must preserve all target player state")
         assert.deepEqual(targetState(legacyTarget.id), legacyBefore, "unsupported V1 must fail before any destination mutation")
+        assertDailyMailsPreserved(legacyTarget.id, legacyDailyBefore, false)
         assert.deepEqual(fs.readdirSync(automaticBackupRoot).sort(), backupsBeforeLegacy, "rejected V1 must not create/prune safety backups")
         assert.equal(db.prepare(`SELECT account_id FROM players WHERE id = ?`).get(legacyTarget.id).account_id, legacyAccount.id)
         assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_follows WHERE follower_player_id = ?`).get(legacyTarget.id).count, 1)

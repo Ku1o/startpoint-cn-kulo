@@ -1,3 +1,4 @@
+import { getPlayerClientExpTime } from "../../player-time-compat"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { existsSync } from "../../file-exists"
@@ -16,6 +17,7 @@ import { deletePlayerActiveQuestIfPlayIdSync, getPlayerActiveQuestSync } from ".
 import { getPlayerOperationReceiptSync, insertPlayerOperationReceiptSync } from "../../../data/domains/player-operation-receipt"
 import { getPlayerSingleQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../../data/domains/quest"
 import { isSingleFinishResponse, SINGLE_FINISH_RECEIPT_OPERATION } from "./single-finish-identity"
+import { isSupportedBattleClockVersion, getBattleClockDate, CLOCK_ABORT_OPERATION } from "../../battle-clock-compatibility"
 import { insertPlayerPracticeBattleHistorySync } from "../../../data/domains/practice-battle-history"
 import {
     getPlayerCarnivalEventRecordsSync,
@@ -161,21 +163,25 @@ export function settleSingleQuestFinishInTransaction(
         if (getPlayerOperationReceiptSync(playerId, "quest_finish.multi", receiptPlayId) !== null) {
             return { response: null, timing: null }
         }
+        if (getPlayerOperationReceiptSync(playerId, CLOCK_ABORT_OPERATION, receiptPlayId) !== null) {
+            return { response: null, timing: null }
+        }
     }
-    if (activeQuestData.isMulti) return { response: null, timing: null }
+    // An existing response may be replayed, but a new payment needs a proven
+    // real-clock registration. An old request body has no trustworthy basis.
+    if (activeQuestData.isMulti || !registered) return { response: null, timing: null }
     // The queued command may run after another /start replaced the registration.
     // Consume only the registration resolved for this finish, inside its transaction.
     if (registered) {
         const persisted = getPlayerActiveQuestSync(playerId)
-        if (persisted === null || persisted.isMulti || persisted.playId !== activeQuestData.playId
+        if (persisted === null || !isSupportedBattleClockVersion(persisted.clockVersion) || persisted.isMulti || persisted.playId !== activeQuestData.playId
             || Number(persisted.questId) !== Number(questId)
             || Number(persisted.category) !== Number(questCategory)
             || !deletePlayerActiveQuestIfPlayIdSync(playerId, activeQuestData.playId)) {
             return { response: null, timing: null }
         }
-    }
-    if (!registered && getPlayerActiveQuestSync(playerId) !== null) {
-        return { response: null, timing: null }
+        activeQuestData.startedAtMs = persisted.startedAtMs ?? undefined
+        activeQuestData.clockVersion = persisted.clockVersion
     }
     const playerData: Player | null = getPlayerSync(playerId)
     if (playerData === null) throw new Error(`Single finish player no longer exists: ${playerId}`)
@@ -201,7 +207,7 @@ export function settleSingleQuestFinishInTransaction(
             recordAbyssFloorFinishSync({
                 category: questCategory, questId, revision: activeQuestData.questTimeRevision,
                 viewerId, elapsedTimeMs: clearTime, startedAtMs: activeQuestData.startedAtMs,
-                nowMs: getServerTime() * 1000, accomplished: true,
+                nowMs: getBattleClockDate(activeQuestData.clockVersion ?? 0).getTime(), accomplished: true,
                 registered,
                 matchingPlay: body.play_id === activeQuestData.playId
                     && Number(body.quest_id) === questId && Number(body.category) === questCategory,
@@ -669,7 +675,7 @@ export function settleSingleQuestFinishInTransaction(
                 "user_info": {
                     "free_mana": finalPlayerData?.freeMana ?? newMana,
                     "exp_pool": finalPlayerData?.expPool ?? rewardCharacterExpResult.exp_pool,
-                    "exp_pooled_time": getServerTime(playerData.expPooledTime),
+                    "exp_pooled_time": getPlayerClientExpTime(playerData),
                     "free_vmoney": finalPlayerData?.freeVmoney ?? playerData.freeVmoney,
                     "rank_point": newRankPoint,
                     "degree_id": playerData.degreeId ?? 1,

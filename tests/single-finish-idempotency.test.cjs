@@ -253,31 +253,45 @@ if (replay) {
                 }
             })
 
-            await t.test('rebuilt distinct plays settle and a repeated one dedupes', async () => {
+            await t.test('unregistered plays are rejected and three registered plays settle with deduplication', async () => {
                 const p = makePlayer()
+                const untouched = snapshot(p.id)
+                const unknown = await finish(p, { play_id: 'unregistered-old', api_count: 2 })
+                assert.equal(unknown.statusCode, 400, unknown.body)
+                assert.deepEqual(snapshot(p.id), untouched, 'unknown play cannot write any player-linked state')
                 const before = balances(p.id)
-                decode(await finish(p, { play_id: 'rebuilt-1', api_count: 2 }))
-                decode(await finish(p, { play_id: 'rebuilt-2', api_count: 3 }))
+                assert.equal((await start(p, 'registered-1')).statusCode, 200)
+                decode(await finish(p, { play_id: 'registered-1', api_count: 2 }))
+                assert.equal((await start(p, 'registered-2')).statusCode, 200)
+                decode(await finish(p, { play_id: 'registered-2', api_count: 3 }))
+                assert.equal((await start(p, 'registered-3')).statusCode, 200)
                 const [a, b] = await Promise.all([
-                    finish(p, { play_id: 'rebuilt-3', api_count: 4 }),
-                    finish(p, { play_id: 'rebuilt-3', api_count: 5 }),
+                    finish(p, { play_id: 'registered-3', api_count: 4 }),
+                    finish(p, { play_id: 'registered-3', api_count: 5 }),
                 ])
                 assert.deepEqual(decode(a), decode(b))
                 assertPaid(before, balances(p.id), 3)
                 assert.equal(receiptRows(p.id).length, 3)
             })
 
-            await t.test('three tokenless finishes preserve every balance and daily update', async () => {
+            await t.test('tokenless finishes require a registration and each registered play owns its durable identity', async () => {
                 const p = makePlayer()
+                const untouched = snapshot(p.id)
+                const rejected = await Promise.all([finish(p), finish(p), finish(p)])
+                rejected.forEach(response => assert.equal(response.statusCode, 400, response.body))
+                assert.deepEqual(snapshot(p.id), untouched, 'missing request identity cannot create a playable registration or payout')
                 const before = balances(p.id)
-                const responses = await Promise.all([finish(p), finish(p), finish(p)])
-                responses.forEach(decode)
+                for (const playId of ['tokenless-1', 'tokenless-2', 'tokenless-3']) {
+                    assert.equal((await start(p, playId)).statusCode, 200)
+                    decode(await finish(p))
+                }
                 assertPaid(before, balances(p.id), 3)
-                assert.equal(receiptRows(p.id).length, 0, 'no api_count or invented token becomes durable')
+                assert.deepEqual(receiptRows(p.id).map(row => row.request_key), ['tokenless-1', 'tokenless-2', 'tokenless-3'], 'durable identity comes from each real registration')
             })
 
             await t.test('settlement reads fresh balances after session validation', async t => {
                 const p = makePlayer()
+                assert.equal((await start(p, 'fresh')).statusCode, 200)
                 const before = balances(p.id)
                 const original = validator.validateSessionAndPlayer
                 let injected = false
@@ -300,6 +314,32 @@ if (replay) {
                 assert.equal(after.boss_boost_point, before.boss_boost_point + 1)
                 assert.ok(after.total_mana_obtained >= before.total_mana_obtained + 11 + 135)
                 assert.equal(injected, true)
+            })
+
+            await t.test('a persisted legacy version-zero play restores and settles once without migration', async () => {
+                const clock = compiled('utils')
+                const originalOffset = clock.getLegacyTimeOffset()
+                const legacyOffset = -421 * 86400_000
+                clock.setServerTimeOffset(legacyOffset)
+                try {
+                    const p = makePlayer()
+                    assert.equal((await start(p, 'legacy-durable')).statusCode, 200)
+                    const registered = db.prepare('SELECT * FROM players_active_quests WHERE player_id=?').get(p.id)
+                    assert.equal(registered.clock_version, 1)
+                    db.prepare('UPDATE players_active_quests SET clock_version=0,started_at_ms=? WHERE player_id=?')
+                        .run(registered.started_at_ms + legacyOffset, p.id)
+                    delete single.activeQuests[p.id]
+                    const schemaBefore = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all()
+                    const before = balances(p.id)
+                    const first = decode(await finish(p, { play_id: 'legacy-durable', api_count: 2 }))
+                    assertPaid(before, balances(p.id))
+                    assert.equal(receiptRows(p.id).length, 1)
+                    const settled = snapshot(p.id)
+                    assert.deepEqual(decode(await finish(p, { play_id: 'legacy-durable', api_count: 3 })), first)
+                    assert.deepEqual(snapshot(p.id), settled)
+                    assert.deepEqual(db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all(), schemaBefore,
+                        'restoring an existing play cannot configure cutover or create migration tables')
+                } finally { clock.setServerTimeOffset(originalOffset) }
             })
 
             await t.test('receipt failure rolls back the entire reward chain and permits the same play retry', async () => {

@@ -4,7 +4,9 @@ import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueErro
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../../multi/five-boss/entry-response";
 import { startFiveBossSolo, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync } from "../../multi/five-boss/solo-runtime";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { deletePlayerActiveQuestIfPlayIdSync, deletePlayerActiveQuestSync, getPlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
+import { deletePlayerActiveQuestIfPlayIdSync, deletePlayerActiveQuestSync, getPlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountIfPlayIdSync } from "../../data/domains/quest_active"
+import { clientSerializeDate } from "../../data/utils/date"
+import { getBattleClockDate, isSupportedBattleClockVersion } from "../../lib/battle-clock-compatibility"
 import { getPlayerOperationReceiptSync } from "../../data/domains/player-operation-receipt"
 import { isSingleFinishResponse, SINGLE_FINISH_RECEIPT_OPERATION, singleFinishPlayId } from "../../lib/quest/finish/single-finish-identity"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
@@ -13,7 +15,7 @@ import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
 import { insertPlayerPracticeBattleHistorySync } from "../../data/domains/practice-battle-history"
 import { getQuestFromCategorySync } from "../../lib/assets";
 import { BattleQuest, QuestCategory } from "../../lib/types";
-import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils";
+import { generateDataHeaders, getServerTime, getServerDate, getRealServerDate, realToVirtual } from "../../utils";
 import { PartyCategory, UserRushEventPlayedParty } from "../../data/types";
 import { computeRealTimeStamina } from "../../lib/stamina";
 import { getStaminaCost } from "../../lib/stamina-cost";
@@ -176,6 +178,7 @@ export interface ActiveQuest {
     continueCount: number,
     startedAtMs?: number
     questTimeRevision?: string | null
+    clockVersion?: number
 }
 
 const continueVmoneyCost = 50;
@@ -183,10 +186,14 @@ const continueVmoneyCost = 50;
 export const activeQuests: Record<number, ActiveQuest> = {}
 
 export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
-    const startedAtMs = quest.startedAtMs ?? getServerTime() * 1000
+    const startedAtMs = quest.startedAtMs ?? getRealServerDate().getTime()
     const questTimeRevision = isAbyssFiniteQuest(quest.category, quest.questId)
         ? getAbyssTimeRevision(Math.floor(quest.questId / 1000)) : null
-    activeQuests[playerId] = { ...quest, startedAtMs, questTimeRevision }
+    // The caller may freeze this same object for a delayed multiplayer finish.
+    // Its clock identity must match the committed registration, not only cache.
+    quest.startedAtMs = startedAtMs
+    quest.questTimeRevision = questTimeRevision
+    quest.clockVersion = 1
     // Persist to DB for battle recovery across server restarts
     insertPlayerActiveQuestSync(playerId, {
         playerId,
@@ -206,6 +213,7 @@ export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
         partySlot: quest.partySlot ?? null,
         questTimeRevision,
     })
+    activeQuests[playerId] = { ...quest }
 }
 
 const routes = async (fastify: FastifyInstance) => {
@@ -469,6 +477,11 @@ const routes = async (fastify: FastifyInstance) => {
             allowRebuild: false,
         })
         const abortQuest = resolvedAbortQuest?.quest
+        if (abortQuest && (
+            (body.play_id && body.play_id !== abortQuest.playId)
+            || (body.category !== undefined && body.category !== abortQuest.category)
+            || (body.quest_id !== undefined && body.quest_id !== abortQuest.questId)
+        )) return reply.status(400).send({ error: "Bad Request", message: "Active quest does not match abort request." })
         let practiceHistoryRecord: ReturnType<typeof buildPracticeBattleHistoryRecord> | null = null
         if (abortQuest?.category === QuestCategory.PRACTICE) {
             const requestedPlayId = typeof body.play_id === "string" ? body.play_id.trim() : ""
@@ -508,7 +521,7 @@ const routes = async (fastify: FastifyInstance) => {
                     + `player=${playerId} quest=${abortQuest.questId} play=${abortQuest.playId}`,
                 )
             } else {
-                const abortedAtMs = getServerTime() * 1000
+                const abortedAtMs = getBattleClockDate(abortQuest.clockVersion ?? 0).getTime()
                 try {
                     practiceHistoryRecord = buildPracticeBattleHistoryRecord({
                         playerId,
@@ -538,9 +551,11 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Keep the failure transition, history row, and active-quest deletion
         // atomic so a partial settlement cannot erase the recoverable battle.
-        await runPersistenceTransaction({
+        const aborted = await runPersistenceTransaction({
             domain: "single-quest", playerId, operation: "abort",
         }, () => {
+            const current = getPlayerActiveQuestSync(playerId)
+            if (!abortQuest || !current || current.playId !== abortQuest.playId || !isSupportedBattleClockVersion(current.clockVersion)) return false
             if (abortQuest && !abortQuest.isMulti && isFiveBossGauntletQuest(abortQuest.category, abortQuest.questId)) {
                 abortFiveBossSoloSync(playerId, abortQuest.playId)
             }
@@ -553,13 +568,17 @@ const routes = async (fastify: FastifyInstance) => {
                 )
             }
             if (practiceHistoryRecord !== null) {
-                insertPlayerPracticeBattleHistorySync(practiceHistoryRecord)
+                const now = getRealServerDate()
+                insertPlayerPracticeBattleHistorySync({ ...practiceHistoryRecord,
+                    create_time: clientSerializeDate(new Date(now.getTime() + 8 * 3600_000)),
+                    elapsed_time_ms: Math.max(0, getBattleClockDate(current.clockVersion ?? 0).getTime() - current.startedAtMs!),
+                })
             }
-            deletePlayerActiveQuestSync(playerId)
+            return deletePlayerActiveQuestIfPlayIdSync(playerId, abortQuest.playId)
         })
 
-        delete activeQuests[playerId]
-        if (abortQuest && isMode15Quest(abortQuest.category, abortQuest.questId)) {
+        if (aborted && activeQuests[playerId]?.playId === abortQuest?.playId) delete activeQuests[playerId]
+        if (aborted && abortQuest && isMode15Quest(abortQuest.category, abortQuest.questId)) {
             console.log(
                 `[MODE15] single battle aborted; run reset: player=${playerId} category=${abortQuest.category} quest=${abortQuest.questId}`,
             )
@@ -731,7 +750,8 @@ const routes = async (fastify: FastifyInstance) => {
             partySlot: questData.fixedParty === undefined ? partyId : undefined,
             playId: body.play_id,
             continueCount: 0,
-            startedAtMs: getServerTime() * 1000,
+            startedAtMs: getRealServerDate().getTime(),
+            clockVersion: 1,
         }
 
         let afterStamina = 0
@@ -741,6 +761,8 @@ const routes = async (fastify: FastifyInstance) => {
                 domain: "single-quest", playerId, operation: "start",
             }, () => {
                 const currentPlayer = getPlayerSync(playerId) ?? player
+                const startedAtMs = getRealServerDate().getTime()
+                activeQuest.startedAtMs = startedAtMs
                 if (entryCost && entryCost.itemId > 0) {
                     const playerItemCount = getPlayerItemSync(playerId, entryCost.itemId) ?? 0
                     if (playerItemCount < entryCost.itemCount) {
@@ -910,28 +932,27 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No active quest to continue."
         })
 
-        const freeVmoney = player.freeVmoney
-        const vmoney = player.vmoney
-        const freeVmoneyCost = Math.min(freeVmoney, continueVmoneyCost)
-        const paidVmoneyCost = continueVmoneyCost - freeVmoneyCost
-        if (vmoney < paidVmoneyCost) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Not enough vmoney to continue"
+        const continued = await runPersistenceTransaction({ domain: "single-quest", playerId, operation: "continue" }, () => {
+            const current = getPlayerActiveQuestSync(playerId)
+            const freshPlayer = getPlayerSync(playerId)
+            if (!current || !freshPlayer || !isSupportedBattleClockVersion(current.clockVersion) || current.isMulti
+                || current.playId !== activeQuestData.playId || (playId && playId !== current.playId)
+                || current.questId !== questId || current.category !== category) {
+                return { ok: false as const, message: "No matching active quest to continue." }
+            }
+            const freeCost = Math.min(freshPlayer.freeVmoney, continueVmoneyCost)
+            const paidCost = continueVmoneyCost - freeCost
+            if (freshPlayer.vmoney < paidCost) return { ok: false as const, message: "Not enough vmoney to continue" }
+            const newFreeVmoney = freshPlayer.freeVmoney - freeCost
+            const newVmoney = freshPlayer.vmoney - paidCost
+            const continueCount = current.continueCount + 1
+            updatePlayerSync({ id: playerId, freeVmoney: newFreeVmoney, vmoney: newVmoney })
+            if (!updatePlayerActiveQuestContinueCountIfPlayIdSync(playerId, current.playId, continueCount)) throw new Error("Active play changed during continue.")
+            return { ok: true as const, newFreeVmoney, newVmoney, continueCount }
         })
-
-        const newFreeVmoney = freeVmoney - freeVmoneyCost
-        const newVmoney = vmoney - paidVmoneyCost
-
-        // update the player's vmoney balances
-        updatePlayerSync({
-            id: playerId,
-            freeVmoney: newFreeVmoney,
-            vmoney: newVmoney
-        })
-
-        // increment continue count for battle recovery
-        activeQuestData.continueCount++
-        updatePlayerActiveQuestContinueCountSync(playerId, activeQuestData.continueCount)
+        if (!continued.ok) return reply.status(400).send({ error: "Bad Request", message: continued.message })
+        const { newFreeVmoney, newVmoney } = continued
+        if (activeQuests[playerId]?.playId === activeQuestData.playId) activeQuests[playerId].continueCount = continued.continueCount
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

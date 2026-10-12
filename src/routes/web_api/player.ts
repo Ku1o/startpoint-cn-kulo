@@ -1,3 +1,4 @@
+import { getPlayerBusinessDateSync, getPlayerBusinessOffsetSync } from "../../lib/player-time-compat"
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { validatePlayerField, VALID_CHARACTER_IDS, VALID_ITEM_IDS, MAX_INT } from "./validation";
 import { wantsJson } from "./http";
@@ -309,8 +310,8 @@ const routes = async (fastify: FastifyInstance) => {
             // A manually assigned balance is an exact snapshot. Start its
             // regeneration from the current virtual time instead of retaining
             // a checkpoint copied from another clock position.
-            extra.expPooledTime = getServerDate()
-            extra.timeOffset = getTimeOffset() ?? 0
+            extra.expPooledTime = getPlayerBusinessDateSync(playerId)
+            extra.timeOffset = getPlayerBusinessOffsetSync(playerId)
         }
 
         try {

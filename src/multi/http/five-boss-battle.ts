@@ -1,3 +1,4 @@
+import { getPlayerClientExpTime } from "../../lib/player-time-compat"
 import type { FastifyReply } from "fastify"
 import type { Player } from "../../data/types"
 import type { PlayerActiveQuest } from "../../data/types"
@@ -319,7 +320,7 @@ function buildFinishData(
         user_info: {
             free_mana: player.freeMana,
             exp_pool: player.expPool,
-            exp_pooled_time: getServerTime(player.expPooledTime),
+            exp_pooled_time: getPlayerClientExpTime(player),
             free_vmoney: player.freeVmoney,
             rank_point: player.rankPoint,
             // getRankDegree 算出来的是玩家 **rank**(高 rank 号如 250),不是称号表 degree 的键;

@@ -1,5 +1,6 @@
 import { performance } from "node:perf_hooks"
 import { AsyncLocalStorage } from "node:async_hooks"
+import { getLegacyTimeOffset, withServerClock } from "../utils"
 import { getDb } from "../data/db"
 import { registerMemoryCounters } from "./memory-diagnostics"
 import { createWriterCommandContext, getWriterCommand } from "./persistence/command-registry"
@@ -159,7 +160,12 @@ function enqueueAcceptedPersistence<T>(context: PersistenceContext, operation: (
 function withPersistenceContext<T>(context: PersistenceContext, operation: () => T): T {
     const previous = activePersistenceContext
     activePersistenceContext = context
-    try { return operation() }
+    try {
+        // Capture the content clock after BEGIN/queueing. Existing player
+        // markers affect EXP/day/week storage only, never content visibility.
+        const offset = getLegacyTimeOffset() ?? 0
+        return withServerClock(Date.now() + offset, operation, offset)
+    }
     finally { activePersistenceContext = previous }
 }
 
@@ -385,7 +391,9 @@ function runRegisteredWriterCommandInProcess<Args, Result>(
         { domain: context.domain, operation: context.operation, playerId: context.playerId },
         effect => effects.push(effect),
     )
-    const result = handler(args, commandContext) as Result
+    // Acquire the SQLite write lock before capturing the command clock. A
+    // busy lock can outlive a content deadline just like the async queue can.
+    const result = runPersistenceTransactionSync(context, () => handler(args, commandContext)) as Result
     for (const effect of effects) {
         try {
             effect()

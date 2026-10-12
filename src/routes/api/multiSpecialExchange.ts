@@ -1,3 +1,4 @@
+import { getPlayerClientExpTime } from "../../lib/player-time-compat"
 import { randomInt } from "crypto"
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import { resolvePlayerIdSync } from "../../data/activeAccount"
@@ -188,7 +189,7 @@ const routes = async (fastify: FastifyInstance) => {
                 user_info: player ? {
                     free_mana: player.freeMana,
                     exp_pool: player.expPool,
-                    exp_pooled_time: getServerTime(player.expPooledTime),
+                    exp_pooled_time: getPlayerClientExpTime(player),
                     free_vmoney: player.freeVmoney,
                 } : undefined,
                 encyclopedia_info: {},

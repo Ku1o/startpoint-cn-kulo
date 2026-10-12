@@ -1,3 +1,4 @@
+import { getPlayerClientExpTime } from "../../lib/player-time-compat"
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../five-boss/entry-response";
 import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueError,
     isFiveBossContinueRequest } from "../five-boss/continue-runtime";
@@ -116,7 +117,7 @@ function buildTerminalMultiFinishAcknowledgement(
             user_info: {
                 free_mana: player.freeMana,
                 exp_pool: player.expPool,
-                exp_pooled_time: getServerTime(player.expPooledTime),
+                exp_pooled_time: getPlayerClientExpTime(player),
                 free_vmoney: player.freeVmoney,
                 rank_point: player.rankPoint,
                 degree_id: player.degreeId ?? 1,
@@ -180,6 +181,7 @@ function activeQuestFromPersistent(
         continueCount: quest.continueCount,
         startedAtMs: quest.startedAtMs ?? undefined,
         questTimeRevision: quest.questTimeRevision ?? null,
+        clockVersion: quest.clockVersion,
     }
 }
 

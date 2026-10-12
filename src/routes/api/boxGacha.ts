@@ -1,3 +1,4 @@
+import { getPlayerClientExpTime } from "../../lib/player-time-compat"
 // Handles the insertion of mana into characters.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -432,7 +433,7 @@ const routes = async (fastify: FastifyInstance) => {
                 userInfo: {
                     free_mana: responsePlayer.freeMana,
                     exp_pool: responsePlayer.expPool,
-                    exp_pooled_time: getServerTime(responsePlayer.expPooledTime),
+                    exp_pooled_time: getPlayerClientExpTime(responsePlayer),
                 },
             }
         })

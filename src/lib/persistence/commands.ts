@@ -1,4 +1,5 @@
 import { registerWriterCommand } from "./command-registry"
+import { getServerDate } from "../../utils"
 import {
     MISSION_SETTLE_CATEGORIES,
     MULTI_CLEANUP_ACTIVE_QUEST,
@@ -45,7 +46,7 @@ registerWriterCommand<MissionSettleCategoriesArgs, MissionSettlementResult>(
     args => settleMissionCategories(
         args.playerId,
         args.categories,
-        new Date(args.evaluationTimeMs),
+        getServerDate(),
     ),
 )
 
@@ -75,7 +76,7 @@ registerWriterCommand<MultiRecordBattleFactsArgs, MultiRecordBattleFactsResult>(
         () => {
             const missionBattleFacts = recordMissionBattleFacts(
                 args.finishCtx,
-                new Date(args.evaluationTimeMs),
+                getServerDate(),
             )
             if (!args.fixedParty) {
                 recordQuestRecommendedPartySafe(args.finishCtx)
@@ -117,6 +118,6 @@ registerWriterCommand<MultiSettleFinishArgs, MultiSettleFinishResult>(
     MULTI_SETTLE_FINISH,
     args => runPersistenceTransactionSync(
         { domain: "multi-settlement", playerId: args.playerId, operation: "finish" },
-        () => settleMultiQuestFinishInTransaction(args),
+        () => settleMultiQuestFinishInTransaction({ ...args, evaluationTimeMs: getServerDate().getTime() }),
     ),
 )

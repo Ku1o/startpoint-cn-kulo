@@ -397,6 +397,10 @@ const routes = async (fastify: FastifyInstance) => {
         }, () => {
             const player = getPlayerSync(playerId)
             if (player === null) return reject("No players bound to account.", 500)
+            const now = getServerDate()
+            if (shopType === ShopType.EVENT_ITEM && !isShopItemAvailable(shopItemData, now)) {
+                return reject("Event shop item is not currently available.")
+            }
 
             if (degreeIds.some(degreeId => hasPlayerDegreeSync(playerId, degreeId))) {
                 return reject("Player already owns this degree.")
@@ -417,7 +421,6 @@ const routes = async (fastify: FastifyInstance) => {
                 grantedLevelCount: number
             } | null = null
             if (isEnhancementShop) {
-                const now = getServerDate()
                 if (!isShopItemAvailable(shopItemData, now)) return reject("Enhancement item is not currently available.")
 
                 const equipmentId = shopItemData.equipmentId

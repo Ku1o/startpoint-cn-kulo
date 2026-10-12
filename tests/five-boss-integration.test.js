@@ -36,6 +36,20 @@ const { createRoom } = load('multi/room/manager')
 global.setInterval = originalInterval
 let sequence = 0
 
+function businessDatabaseDigest(database) {
+    const tables = database.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()
+    return JSON.stringify(tables.map(({ name }) => {
+        const quote = identifier => '"' + identifier.replace(/"/g, '""') + '"'
+        const statement = database.prepare(`SELECT * FROM ${quote(name)}`)
+        const columns = statement.columns().map(column => column.name)
+        const rows = statement.safeIntegers(true).raw().all().map(row => JSON.stringify(row.map(value =>
+            Buffer.isBuffer(value) ? { blob: value.toString('hex') }
+                : typeof value === 'bigint' ? { integer: value.toString() } : value))).sort()
+        return { name, columns, rows }
+    }))
+}
+
+
 function player(tickets = 2) {
     const id = ++sequence
     const account = accounts.insertAccountSync({ appId: 'wf_cn', idpAlias: '', idpCode: 'test', idpId: `five-${id}`, status: 'normal' })
@@ -1443,23 +1457,8 @@ test('finish without authenticated battle entry is terminal and forged identity 
         }
         try {
             const admission = load('lib/persistence-admission').persistenceAdmission
-            // Compare every real business table, including shared runs and
-            // indirectly owned rows. Fault-injection triggers are not tables;
-            // no progress, balance or receipt table is excluded.
-            const businessDatabaseDigest = () => {
-                const db = getDb()
-                const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()
-                return JSON.stringify(tables.map(({ name }) => {
-                    const quote = identifier => '"' + identifier.replace(/"/g, '""') + '"'
-                    const statement = db.prepare(`SELECT * FROM ${quote(name)}`)
-                    const columns = statement.columns().map(column => column.name)
-                    const rows = statement.safeIntegers(true).raw().all().map(row => JSON.stringify(row.map(value =>
-                        Buffer.isBuffer(value) ? { blob: value.toString('hex') }
-                            : typeof value === 'bigint' ? { integer: value.toString() } : value))).sort()
-                    return { name, columns, rows }
-                }))
-            }
-            const terminalBefore = businessDatabaseDigest()
+            const digest = () => businessDatabaseDigest(getDb())
+            const terminalBefore = digest(p.id, getDb())
             const rejectedBefore = admission.stats().rejected
             const retries = await Promise.all(Array.from({ length: 20 }, () =>
                 app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })))
@@ -1471,12 +1470,12 @@ test('finish without authenticated battle entry is terminal and forged identity 
             assert.ok(busy.every(response => response.json().code === 'PERSISTENCE_QUEUE_FULL'))
             assert.equal(admission.stats().rejected - rejectedBefore, 12)
             assert.equal(admission.stats().total, 0)
-            assert.equal(businessDatabaseDigest(), terminalBefore, 'overflow must preserve all terminal business state')
+            assert.equal(digest(p.id, getDb()), terminalBefore, 'overflow must preserve all terminal business state')
             const recovered = await Promise.all(Array.from({ length: 8 }, () =>
                 app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })))
             assert.ok(recovered.every(response => response.statusCode === 200 && response.json().data.clear_rank === 0))
             assert.equal(admission.stats().total, 0)
-            assert.equal(businessDatabaseDigest(), terminalBefore, 'recovery must not grant or change business state')
+            assert.equal(digest(p.id, getDb()), terminalBefore, 'recovery must not grant or change business state')
             assert.equal(diagnosticReads, 0)
             const acknowledgements = messages
                 .filter(line => line.startsWith('[FIVE-BOSS-ACK]'))
@@ -1927,7 +1926,7 @@ function seedRewardFinish(p, category, questId, host = true) {
     }
     const quest = { playId: p.playId, category, questId, useBoostPoint: false,
         useBossBoostPoint: false, isAutoStartMode: true, isMulti: category === 7,
-        isMultiHost: host, continueCount: 0, startedAtMs: Date.now(), matePlayerIds: [], mateComIds: [],
+        isMultiHost: host, clockVersion: 1, continueCount: 0, startedAtMs: Date.now(), matePlayerIds: [], mateComIds: [],
         questTimeRevision: category === 24 ? load('lib/abyss-time-revision').getAbyssTimeRevision() : null }
     load('routes/api/singleBattleQuest').activeQuests[p.id] = quest
     // A registered solo battle has both memory and a durable active row. Seed
@@ -1980,6 +1979,31 @@ test('Fantasy real multiplayer finish grants one ticket for full host clear; not
     const p = player(0)
     const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
     try {
+        // A fresh frozen play without a proven real-clock basis must not settle.
+        const digest = () => businessDatabaseDigest(getDb())
+        const receipts = () => getDb().prepare(
+            "SELECT * FROM player_operation_receipts WHERE player_id=? ORDER BY operation, request_key"
+        ).all(p.id)
+        for (const clockVersion of [undefined, 0]) {
+            p.playId += '-unproven-' + String(clockVersion)
+            const body = { ...seedRewardFinish(p, 7, 300098003, true), is_accomplished: true }
+            const frozen = load('multi/settlement-snapshot').getMultiSettlementSnapshot(p.id, p.playId)
+            assert.equal(frozen.activeQuest.clockVersion, 1)
+            for (const quest of [load('routes/api/singleBattleQuest').activeQuests[p.id], frozen.activeQuest]) {
+                if (clockVersion === undefined) delete quest.clockVersion
+                else quest.clockVersion = clockVersion
+            }
+            assert.equal(active.getPlayerActiveQuestSync(p.id), null, 'no durable current-clock play may mask the negative fixture')
+            const before = digest(p.id, getDb()), beforeReceipts = receipts()
+            assert.equal(beforeReceipts.length, 0, 'each rejected play must be fresh, without a replay receipt')
+            const tickets = items.getPlayerItemSync(p.id, 10000143)
+            const rejected = await app.inject({ method: 'POST', url: '/finish', payload: body })
+            assert.equal(rejected.statusCode, 400, rejected.body)
+            assert.equal(rejected.json().message, 'No unsettled multiplayer play.')
+            assert.equal(digest(p.id, getDb()), before, 'unproven clock must preserve all business state')
+            assert.equal(items.getPlayerItemSync(p.id, 10000143), tickets)
+            assert.deepEqual(receipts(), beforeReceipts, 'unproven clock must not create a finish receipt')
+        }
         for (const [questId, host, accomplished, expected] of [
             [300098001, true, true, 0], [300098002, true, true, 0],
             [300098003, false, true, 0], [300098003, true, false, 0],
