@@ -72,6 +72,15 @@ export function runWithTcpBusinessAdmission<T>(operation: () => T | Promise<T>):
 }
 
 const businessAdmission = new AsyncLocalStorage<unknown>()
+
+/** Admission upkeep outlives a handshake; its timer must inherit neither the
+ * accepted TCP frame nor its parent-issued proof. Ordinary detached business
+ * calls keep the strict ended-work rejection and normal transport budgets.
+ */
+export function createSocketAdmissionMaintenanceTimer(create: () => NodeJS.Timeout): NodeJS.Timeout {
+    return tcpBusinessContext.run(undefined, () => businessAdmission.run(undefined, create))
+}
+
 export function runWithRealtimeBusinessAdmission<T>(proof: unknown, operation: () => T): T {
     return businessAdmission.run(proof === undefined ? undefined : cloneCommandJson(proof), operation)
 }

@@ -1,21 +1,43 @@
 import type { Socket } from "node:net"
 import { performance } from "node:perf_hooks"
 import { isRealtimeOwnerChild } from "./runtime-role"
-import { invokeRealtimeBusiness } from "./business-rpc"
+import { invokeRealtimeBusiness, createSocketAdmissionMaintenanceTimer } from "./business-rpc"
+import { markTcpDisconnectReason } from "../tcp/disconnect-diagnostics"
 
 interface Lease { socket: Socket; id: number; token: unknown; session: unknown; expires: number; activity: boolean; deadline?: NodeJS.Timeout }
 const leases = new Map<Socket, Lease>()
 let sequence = 0, polling = false
 let timer: NodeJS.Timeout | undefined
+let lastRefreshFailureLogAt = -Infinity
+const refreshFailureReasons = new Set([
+    "TCP_BUSINESS_WORK_ENDED", "REALTIME_BUSINESS_CHANNEL_UNAVAILABLE",
+    "BUSINESS_CHANNEL_CLOSED", "BUSINESS_PENDING_BUDGET", "BUSINESS_OUTCOME_UNKNOWN",
+    "BUSINESS_OWNER_EPOCH_MISMATCH", "BUSINESS_HANDLER_FAILED", "BUSINESS_RESULT_LIMIT",
+    "BUSINESS_SEND_FAILED", "SERVER_CLOSING",
+])
+
+function reportRefreshFailure(error: unknown): void {
+    const now = performance.now()
+    if (now - lastRefreshFailureLogAt < 30_000) return
+    lastRefreshFailureLogAt = now
+    const failure = error as { code?: unknown; message?: unknown } | null
+    const candidate = failure?.code ?? failure?.message
+    // Never include a payload, token, session, arbitrary message or stack.
+    const reason = typeof candidate === "string" && refreshFailureReasons.has(candidate)
+        ? candidate : "ADMISSION_REFRESH_FAILED"
+    console.warn(`[MULTI-ADMISSION] socket lease refresh failed: reason=${reason}`)
+}
 function apply(lease: Lease, result: { ok: boolean; remainingMs: number }): boolean {
     if (!result.ok || !Number.isFinite(result.remainingMs) || result.remainingMs <= 0) {
         if (lease.deadline) clearTimeout(lease.deadline)
+        markTcpDisconnectReason(lease.socket, "admission")
         leases.delete(lease.socket); lease.socket.destroy(); return false
     }
     lease.expires = performance.now() + Math.min(60_000, result.remainingMs)
     if (lease.deadline) clearTimeout(lease.deadline)
     lease.deadline = setTimeout(() => {
         if (leases.get(lease.socket) !== lease) return
+        markTcpDisconnectReason(lease.socket, "admission")
         leases.delete(lease.socket); lease.socket.destroy()
     }, Math.max(1, lease.expires - performance.now()))
     lease.deadline.unref()
@@ -39,13 +61,17 @@ async function poll(): Promise<void> {
                     const result = response.find(item => item.id === value.id)
                     if (result) apply(value, { ...result, remainingMs: result.remainingMs - (performance.now() - requestedAt) })
                 }
-            } catch {
+            } catch (error) {
+                reportRefreshFailure(error)
                 // Preserve the original finite capability while the business process is busy.
                 for (const value of batch) value.activity = true
             }
         }
     } finally {
-        for (const value of leases.values()) if (performance.now() >= value.expires) { leases.delete(value.socket); value.socket.destroy() }
+        for (const value of leases.values()) if (performance.now() >= value.expires) {
+            markTcpDisconnectReason(value.socket, "admission")
+            leases.delete(value.socket); value.socket.destroy()
+        }
         polling = false
     }
 }
@@ -62,7 +88,10 @@ export async function authorizeSocketAdmission(socket: Socket, token: unknown, s
     if (!result.ok) return false
     leases.set(socket, lease)
     socket.once("close", () => { if (lease.deadline) clearTimeout(lease.deadline); leases.delete(socket) })
-    if (!timer) { timer = setInterval(() => { void poll() }, 5000); timer.unref() }
+    if (!timer) {
+        timer = createSocketAdmissionMaintenanceTimer(() => setInterval(() => { void poll() }, 5000))
+        timer.unref()
+    }
     return apply(lease, { ...result, remainingMs: result.remainingMs - (performance.now() - requestedAt) })
 }
 export function checkSocketAdmission(socket: Socket, token: unknown, session: unknown): boolean {
