@@ -73,12 +73,17 @@ export function runWithTcpBusinessAdmission<T>(operation: () => T | Promise<T>):
 
 const businessAdmission = new AsyncLocalStorage<unknown>()
 
-/** Admission upkeep outlives a handshake; its timer must inherit neither the
- * accepted TCP frame nor its parent-issued proof. Ordinary detached business
- * calls keep the strict ended-work rejection and normal transport budgets.
+/** Independent realtime upkeep starts new business work when its timer fires.
+ * Clear only the timer's inherited TCP frame and command proof; ordinary
+ * continuations retain ended-work rejection and normal transport budgets.
  */
-export function createSocketAdmissionMaintenanceTimer(create: () => NodeJS.Timeout): NodeJS.Timeout {
+export function createRealtimeMaintenanceTimer(create: () => NodeJS.Timeout): NodeJS.Timeout {
     return tcpBusinessContext.run(undefined, () => businessAdmission.run(undefined, create))
+}
+
+/** Socket lease upkeep is one independent realtime maintenance task. */
+export function createSocketAdmissionMaintenanceTimer(create: () => NodeJS.Timeout): NodeJS.Timeout {
+    return createRealtimeMaintenanceTimer(create)
 }
 
 export function runWithRealtimeBusinessAdmission<T>(proof: unknown, operation: () => T): T {

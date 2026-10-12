@@ -6,7 +6,7 @@ import { addRoomMember, getRoom, removeRoomMember } from "../room/manager"
 import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
 import { stopRandomRecruitment } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
-import { captureRealtimeBusinessContext, invokeRealtimeBusiness, retainRealtimeBusinessTail } from "../coordinator/business-rpc"
+import { captureRealtimeBusinessContext, createRealtimeMaintenanceTimer, invokeRealtimeBusiness, retainRealtimeBusinessTail } from "../coordinator/business-rpc"
 import { isRealtimeOwnerChild } from "../coordinator/runtime-role"
 import { applyPlayerBusinessFacts, getPlayerBusinessFacts, notifyRealtimePresence, type PlayerBusinessFacts } from "../coordinator/business-facts"
 import { isNpcPartyAllowedInRoom } from "../npc/equipment-policy"
@@ -536,7 +536,7 @@ async function handleEnterComs(
 
     gameVerboseLog(() => `[LOBBY] EnterComs: room=${client.roomNumber} real=${realMates.length} npc=${npcMates.length} total=${client.mates.length}`)
 
-    const joinTimer = setTimeout(() => {
+    const joinTimer = createRealtimeMaintenanceTimer(() => setTimeout(() => {
         void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
             const currentRoom = getRoom(client.roomNumber)
             if (!embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
@@ -551,14 +551,14 @@ async function handleEnterComs(
                 roomGeneration,
             )
         }).catch(e => console.error("[LOBBY] EnterComs send-mates error", e))
-    }, NPC_JOIN_DELAY_MS)
+    }, NPC_JOIN_DELAY_MS))
     joinTimer.unref()
 
     // No legal party was available. Wait for a real roster/party change;
     // an automatic ready callback would otherwise recruit the same empty pool.
     if (npcMates.length === 0) return
 
-    const readyTimer = setTimeout(() => {
+    const readyTimer = createRealtimeMaintenanceTimer(() => setTimeout(() => {
         void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
             const currentRoom = getRoom(client.roomNumber)
             if (!embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
@@ -578,7 +578,7 @@ async function handleEnterComs(
             // legal parties must not make its own ready callback recruit again.
             checkHostAutoReady(client.roomNumber, false)
         }).catch(e => console.error("[LOBBY] EnterComs npc-ready error", e))
-    }, NPC_JOIN_DELAY_MS + NPC_READY_DELAY_MS)
+    }, NPC_JOIN_DELAY_MS + NPC_READY_DELAY_MS))
     readyTimer.unref()
 }
 
@@ -594,12 +594,20 @@ async function recruitNpcMatesForRoomAttempt(roomNumber: string, attempt: number
     const hostClient = findHostClient(roomNumber)
     if (!hostClient?.yourself) {
         if (attempt < 40) {
-            const retryTimer = setTimeout(() => {
+            const roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
+            const roomGeneration = room.lobby_generation
+            const retryTimer = createRealtimeMaintenanceTimer(() => setTimeout(() => {
                 void embeddedMultiCoordinator.enqueueRoomCommand(
                     roomNumber,
-                    () => recruitNpcMatesForRoomAttempt(roomNumber, attempt + 1),
+                    () => {
+                        const currentRoom = getRoom(roomNumber)
+                        if (currentRoom !== room || !embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
+                            || currentRoom.lobby_generation !== roomGeneration
+                            || currentRoom.lifecycle.phase !== "LOBBY") return
+                        return recruitNpcMatesForRoomAttempt(roomNumber, attempt + 1)
+                    },
                 ).catch(error => console.error(`[LOBBY] AI recruitment retry failed room=${roomNumber}`, error))
-            }, 250)
+            }, 250))
             retryTimer.unref()
         } else {
             gameVerboseLog(() => `[LOBBY] AI recruitment skipped: host not ready room=${roomNumber}`)
@@ -675,21 +683,42 @@ async function recruitNpcMatesForRoomAttempt(roomNumber: string, attempt: number
 
 export function scheduleNpcReconcile(roomNumber: string, delayMs = 100): void {
     if (npcReconcileTimers.has(roomNumber)) return
-    const timer = setTimeout(() => {
+    const room = getRoom(roomNumber)
+    if (!room) return
+    const roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
+    const roomGeneration = room.lobby_generation
+    const timer = createRealtimeMaintenanceTimer(() => setTimeout(() => {
+        if (npcReconcileTimers.get(roomNumber) !== timer) return
         npcReconcileTimers.delete(roomNumber)
         void embeddedMultiCoordinator.enqueueRoomCommand(
             roomNumber,
-            () => recruitNpcMatesForRoomAttempt(roomNumber, 0),
+            () => {
+                const currentRoom = getRoom(roomNumber)
+                if (currentRoom !== room || !embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
+                    || currentRoom.lobby_generation !== roomGeneration
+                    || currentRoom.lifecycle.phase !== "LOBBY") return
+                return recruitNpcMatesForRoomAttempt(roomNumber, 0)
+            },
         ).catch(error => console.error(`[LOBBY] AI reconciliation failed room=${roomNumber}`, error))
-    }, delayMs)
+    }, delayMs))
     timer.unref()
     npcReconcileTimers.set(roomNumber, timer)
 }
 
 export function recruitNpcMatesForRoom(roomNumber: string): void {
+    const room = getRoom(roomNumber)
+    if (!room) return
+    const roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
+    const roomGeneration = room.lobby_generation
     void embeddedMultiCoordinator.enqueueRoomCommand(
         roomNumber,
-        () => recruitNpcMatesForRoomAttempt(roomNumber, 0),
+        () => {
+            const currentRoom = getRoom(roomNumber)
+            if (currentRoom !== room || !embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
+                || currentRoom.lobby_generation !== roomGeneration
+                || currentRoom.lifecycle.phase !== "LOBBY") return
+            return recruitNpcMatesForRoomAttempt(roomNumber, 0)
+        },
     ).catch(error => console.error(`[LOBBY] AI recruitment failed room=${roomNumber}`, error))
 }
 
@@ -706,7 +735,7 @@ function scheduleRematchRosterCleanup(roomNumber: string): void {
     const generation = room.lobby_generation
     const roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
     room.rematch_wait_started_at = Date.now()
-    const timer = setTimeout(() => {
+    const timer = createRealtimeMaintenanceTimer(() => setTimeout(() => {
         void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
             if (rematchCleanupTimers.get(roomNumber) !== timer) return
             rematchCleanupTimers.delete(roomNumber)
@@ -737,7 +766,7 @@ function scheduleRematchRosterCleanup(roomNumber: string): void {
             checkHostAutoReady(roomNumber)
             if (currentRoom.is_npc_mode) scheduleNpcReconcile(roomNumber)
         }).catch(error => console.error(`[LOBBY] rematch cleanup failed room=${roomNumber}`, error))
-    }, Math.max(0, deadline - performance.now()))
+    }, Math.max(0, deadline - performance.now())))
     timer.unref()
     rematchCleanupTimers.set(roomNumber, timer)
     rematchCleanupDeadlines.set(roomNumber, deadline)
@@ -939,7 +968,18 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
             // COM mates from the mode flag rather than npc_count, because the
             // latter may transiently be zero while the return lobby rebuilds
             // its real-player roster.
-            setTimeout(() => recruitNpcMatesForRoom(client.roomNumber), 500)
+            const roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
+            const roomGeneration = room.lobby_generation
+            const timer = createRealtimeMaintenanceTimer(() => setTimeout(() => {
+                const currentRoom = getRoom(client.roomNumber)
+                if (currentRoom !== room || !embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
+                    || currentRoom.lobby_generation !== roomGeneration
+                    || currentRoom.lifecycle.phase !== "LOBBY"
+                    || client.superseded || client.socket.destroyed
+                    || findHostClient(client.roomNumber) !== client) return
+                recruitNpcMatesForRoom(client.roomNumber)
+            }, 500))
+            timer.unref()
         }
         scheduleRematchRosterCleanup(client.roomNumber)
     } else {
