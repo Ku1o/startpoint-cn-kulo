@@ -164,7 +164,10 @@ test('real party save blocks current gear, ignores other SETs/retries, and repai
     assert.equal(x.clients[1].equipmentReadyBlock, undefined)
     await x.notify(1, [3, [1]])
     assert.equal(x.clients[1].isReady, true)
-    assert.equal(x.room.readyCountdownPending, true)
+    assert.equal(x.clients[0].isReady, true, 'two legal members still auto-ready the host')
+    assert.equal(x.room.readyCountdownPending, false)
+    assert.ok(x.clients.every(c => c.socket.frames.every(f => f[1][0] !== 10)),
+        'two-player manual rooms must not receive an automatic countdown')
     assert.equal(equipment.hasRestrictedEquipment(x.room, x.clients[1]), false)
 })
 

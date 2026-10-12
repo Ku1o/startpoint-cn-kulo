@@ -362,7 +362,11 @@ function checkAllReadyAndStart(roomNumber: string, reconcileMissingNpcs = true):
             return
         }
     }
-    if (hostClient.mates.length < 2) return
+    // The LAN client can only auto-start a full party. Two ready members
+    // remain eligible for manual StartBattle, without a misleading countdown.
+    if (hostClient.mates.length < 3) return
+    const hostMate = hostClient.mates.find(mate => mate.viewerId === room.host_viewer_id)
+    if (hostMate?.autoStart !== true) return
 
     const allReady = hostClient.mates.every(m => m.state?.[0] === 1)
     if (!allReady) return
@@ -1173,6 +1177,30 @@ function handleHeartbeat(socket: net.Socket, client: SessionClient, _data: any[]
     sessionManager.sendJson(socket, [1, [11, client.connectionId]])
 }
 
+function handleChangeAutoStart(socket: net.Socket, client: SessionClient, data: any[]): void {
+    const autoStart = data[1]
+    if (typeof autoStart !== "boolean") return
+    const room = getRoom(client.roomNumber)
+    if (!room || room.lifecycle.phase !== "LOBBY"
+        || client.roomGeneration !== room.lobby_generation
+        || client.isBattle || client.superseded || !client.yourself
+        || client.enterData === null || socket.destroyed || client.socket !== socket
+        || sessionManager.getClient(client.viewerId, client.roomNumber) !== client
+        || findClientBySocket(socket) !== client) return
+
+    const roster = collectCanonicalRoomRoster(client.roomNumber, true, room.lobby_generation)
+    const mate = roster.find(current => !current.comId
+        && current.viewerId === client.viewerId && current.connectionId === client.connectionId)
+    if (!mate || (mate.autoStart === autoStart && client.yourself.autoStart === autoStart)) return
+
+    client.yourself.autoStart = autoStart
+    mate.autoStart = autoStart
+    synchronizeRoomRoster(client.roomNumber, roster, false, true, room.lobby_generation)
+    if (client.viewerId === room.host_viewer_id) room.readyCountdownPending = false
+    sessionManager.broadcastToRoom(client.roomNumber, [1, [4, client.connectionId, autoStart]])
+    checkHostAutoReady(client.roomNumber)
+}
+
 function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: any[]): void {
     const battleAlreadyInitialized = !!(sessionManager as any).battleExpectedCount?.has?.(client.roomNumber)
     if (battleAlreadyInitialized) return
@@ -1338,7 +1366,7 @@ async function handleNotify(socket: net.Socket, client: SessionClient, data: any
         case 2: await handleChangeParty(socket, client, notifyData); break
         case 3: handleReady(socket, client, notifyData); break
         case 4: handleHeartbeat(socket, client, notifyData); break
-        case 5: case 8: case 9: break  // Suspend/ChangeAutoStart/Log — silently ignored
+        case 5: case 9: break  // Suspend/Log — silently ignored
         case 6: handleStartBattle(socket, client, notifyData); break
         case 7: {
             const change = handleAutoplayModeChange(
@@ -1355,6 +1383,7 @@ async function handleNotify(socket: net.Socket, client: SessionClient, data: any
             }
             break
         }
+        case 8: handleChangeAutoStart(socket, client, notifyData); break
         case 10: {
             const room = getRoom(client.roomNumber)
             if (room?.is_npc_mode) {
