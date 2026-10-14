@@ -99,7 +99,7 @@ registerWriterCommand<MultiRecordBattleFactsArgs, MultiRecordBattleFactsResult>(
                 args.finishCtx.playerId,
                 args.partyCharacterIdsArray,
                 args.characterExpReward,
-                !args.fixedParty,
+                args.fixedParty,
             )
             return { missionBattleFacts, steamRobotMissionId, rewardCharacterExpResult }
         },
