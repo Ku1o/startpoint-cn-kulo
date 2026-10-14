@@ -355,20 +355,29 @@ export function settleSingleQuestFinishInTransaction(
         const partyCharacterIds = [...bodyPartyStatistics.characters, ...bodyPartyStatistics.unison_characters]
 
         if (questCategory === QuestCategory.PRACTICE) {
-            insertPlayerPracticeBattleHistorySync(buildPracticeBattleHistoryRecord({
-                playerId,
-                playId: activeQuestData.playId,
-                categoryId: questCategory,
-                questId,
-                finishKind: questAccomplished ? 0 : 1,
-                createdAt: new Date(),
-                elapsedTimeMs: clearTime,
-                score: body.score,
-                clearRank: questAccomplished ? clearRank : null,
-                party: bodyPartyStatistics,
-                statistics: body.statistics,
-                equipmentList: getPlayerEquipmentListSync(playerId),
-            }))
+            let practiceHistoryRecord: ReturnType<typeof buildPracticeBattleHistoryRecord> | null = null
+            try {
+                practiceHistoryRecord = buildPracticeBattleHistoryRecord({
+                    playerId,
+                    playId: activeQuestData.playId,
+                    categoryId: questCategory,
+                    questId,
+                    finishKind: questAccomplished ? 0 : 1,
+                    createdAt: new Date(),
+                    elapsedTimeMs: clearTime,
+                    score: body.score,
+                    clearRank: questAccomplished ? clearRank : null,
+                    party: bodyPartyStatistics,
+                    statistics: body.statistics,
+                    equipmentList: getPlayerEquipmentListSync(playerId),
+                })
+            } catch (error) {
+                console.warn(
+                    `[PRACTICE-HISTORY] invalid finish history payload: player=${playerId} `
+                    + `quest=${questId} error=${(error as Error).message}`,
+                )
+            }
+            if (practiceHistoryRecord !== null) insertPlayerPracticeBattleHistorySync(practiceHistoryRecord)
         }
 
         // Build finish context for mission trackers
