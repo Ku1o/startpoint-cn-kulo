@@ -23,6 +23,8 @@ import { markTcpDisconnectReason } from "./disconnect-diagnostics"
 import { ensureRematchReturnReservations, getExpiredReturnViewerIds,
     getNextReturnDeadline, getReservedReturnViewerIds,
     markMemberReturnDisconnected } from "../room/rematch-roster"
+import { findBattlePlayBinding, getBattleSessionContract } from "../state/battle-contract"
+import { isFiveBossGauntletQuest } from "../five-boss/contract"
 
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000")
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500")
@@ -32,6 +34,132 @@ const npcReconcileTimers = new Map<string, NodeJS.Timeout>()
 const rematchCleanupTimers = new Map<string, NodeJS.Timeout>()
 const rematchCleanupDeadlines = new Map<string, number>()
 const rematchCleanedGeneration = new Map<string, number>()
+
+interface PendingFiveBossReturnEnter {
+    room: NonNullable<ReturnType<typeof getRoom>>
+    instanceId: string
+    generation: number
+    battleSessionId: string
+    runId: string
+    playerId: number
+    playId: string
+    connectionGeneration: number
+    data: any[]
+    deadline: number
+    timer: NodeJS.Timeout | null
+    closed: () => void
+}
+// One entry per existing host connection, never an independent room cache.
+const pendingFiveBossReturnEnters = new WeakMap<SessionClient, PendingFiveBossReturnEnter>()
+// Match the default TCP frame budget; retain no unbounded party payload.
+const PENDING_RETURN_ENTER_MAX_BYTES = 262_144
+const configuredReturnWait = Number(process.env.REMATCH_RESULT_WAIT_MAX_MS)
+const PENDING_RETURN_ENTER_WAIT_MS = Math.min(180_000,
+    Number.isFinite(configuredReturnWait) && configuredReturnWait > 0 ? configuredReturnWait : 180_000)
+
+export function clearPendingFiveBossReturnEnter(client: SessionClient, reason: string): void {
+    const pending = pendingFiveBossReturnEnters.get(client)
+    if (!pending) return
+    pendingFiveBossReturnEnters.delete(client)
+    if (pending.timer) clearTimeout(pending.timer)
+    client.socket.removeListener("end", pending.closed)
+    client.socket.removeListener("close", pending.closed)
+    gameVerboseLog(() => `[LOBBY] pending return Enter cleared: room=${client.roomNumber}`
+        + ` viewer=${client.viewerId} generation=${pending.generation} reason=${reason}`)
+}
+
+function failPendingReturnEnter(client: SessionClient, reason: string): void {
+    clearPendingFiveBossReturnEnter(client, reason)
+    if (sessionManager.getClient(client.viewerId, client.roomNumber) !== client
+        || client.superseded || client.socket.destroyed || client.enterData !== null) return
+    // Stop the indexed waiter before buffered Ready/Start or heartbeats can act.
+    sessionManager.removeClient(client)
+    sessionManager.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]])
+    client.socket.end()
+    console.warn(`[LOBBY] pending return Enter rejected: room=${client.roomNumber}`
+        + ` viewer=${client.viewerId} reason=${reason}`)
+}
+
+function queueFiveBossHostReturnEnter(client: SessionClient, data: any[], room: PendingFiveBossReturnEnter["room"]): void {
+    const member = getBattleSessionContract(room)?.members.get(client.viewerId)
+    if (!isFiveBossGauntletQuest(room.category, room.quest_id) || !room.five_boss_runtime || room.host_viewer_id !== client.viewerId
+        || client.playerId === null || member?.playerId !== client.playerId
+        || member.phase !== "SETTLED" || !member.playId || !member.playCommitted
+        || !room.lifecycle.battleSessionId || client.roomGeneration !== room.lobby_generation
+        || client.roomInstanceId !== room.lifecycle.instanceId || client.isBattle || client.superseded
+        || client.enterData !== null || client.socket.destroyed || !client.socket.readable || !client.socket.writable
+        || sessionManager.getClient(client.viewerId, client.roomNumber) !== client) return
+    if (pendingFiveBossReturnEnters.has(client)) return // Replay cannot extend the deadline or add listeners.
+    let snapshot: any[]
+    try {
+        const json = JSON.stringify(data)
+        if (Buffer.byteLength(json, "utf8") > PENDING_RETURN_ENTER_MAX_BYTES) {
+            failPendingReturnEnter(client, "frame_budget"); return
+        }
+        snapshot = JSON.parse(json)
+    } catch { failPendingReturnEnter(client, "invalid_enter"); return }
+    const pending: PendingFiveBossReturnEnter = {
+        room, instanceId: room.lifecycle.instanceId, generation: room.lobby_generation,
+        battleSessionId: room.lifecycle.battleSessionId, runId: room.five_boss_runtime.runId,
+        playerId: client.playerId, playId: member.playId, connectionGeneration: client.connectionGeneration,
+        data: snapshot, deadline: performance.now() + PENDING_RETURN_ENTER_WAIT_MS, timer: null,
+        closed: () => { if (pendingFiveBossReturnEnters.get(client) === pending) clearPendingFiveBossReturnEnter(client, "socket_closed") },
+    }
+    pendingFiveBossReturnEnters.set(client, pending)
+    client.socket.once("end", pending.closed)
+    client.socket.once("close", pending.closed)
+    const ownerUnavailable = () => {
+        if (pendingFiveBossReturnEnters.get(client) !== pending) return
+        clearPendingFiveBossReturnEnter(client, "owner_unavailable")
+        // No authority mutation outside the room FIFO; socket close owns its normal cleanup.
+        if (client.superseded || client.enterData !== null || client.socket.destroyed) return
+        try { sessionManager.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]]) } catch { /* closing */ }
+        try { client.socket.destroy() } catch { /* already gone */ }
+    }
+    const expire = () => {
+        try { void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
+            if (pendingFiveBossReturnEnters.get(client) !== pending) return
+            const currentRoom = getRoom(client.roomNumber)
+            if (currentRoom !== pending.room || currentRoom?.lifecycle.instanceId !== pending.instanceId) {
+                failPendingReturnEnter(client, "stale_instance"); return
+            }
+            const remaining = pending.deadline - performance.now()
+            if (remaining > 0) {
+                pending.timer = createRealtimeMaintenanceTimer(() => setTimeout(expire, remaining))
+                pending.timer.unref(); return
+            }
+            failPendingReturnEnter(client, "result_wait_expired")
+        }).catch(ownerUnavailable) } catch { ownerUnavailable() }
+    }
+    pending.timer = createRealtimeMaintenanceTimer(() => setTimeout(expire, PENDING_RETURN_ENTER_WAIT_MS))
+    pending.timer.unref()
+    gameVerboseLog(() => `[LOBBY] pending return Enter queued: room=${client.roomNumber}`
+        + ` viewer=${client.viewerId} generation=${pending.generation} run=${pending.runId}`)
+}
+
+/** Called synchronously inside the terminal room command, after BEGIN_RETURN. */
+export function replayFiveBossHostReturnEnter(room: PendingFiveBossReturnEnter["room"], runId: string): void {
+    const client = sessionManager.getClient(room.host_viewer_id, room.room_number)
+    const pending = client && pendingFiveBossReturnEnters.get(client)
+    if (!client || !pending) return
+    if (performance.now() >= pending.deadline) {
+        failPendingReturnEnter(client, "result_wait_expired"); return
+    }
+    const binding = findBattlePlayBinding(room, client.viewerId, pending.playerId, pending.playId)
+    if (pending.room !== room || pending.instanceId !== room.lifecycle.instanceId
+        || pending.generation !== room.lobby_generation || pending.battleSessionId !== room.lifecycle.battleSessionId
+        || pending.runId !== runId || room.lifecycle.phase !== "RETURNING" || !binding?.current
+        || binding.phase !== "SETTLED" || binding.generation !== pending.generation
+        || client.playerId !== pending.playerId || client.roomGeneration !== pending.generation
+        || client.roomInstanceId !== pending.instanceId || client.connectionGeneration !== pending.connectionGeneration
+        || client.isBattle || client.superseded || client.enterData !== null || client.socket.destroyed
+        || !client.socket.readable || !client.socket.writable || findClientBySocket(client.socket) !== client) {
+        failPendingReturnEnter(client, "stale_return_identity"); return
+    }
+    clearPendingFiveBossReturnEnter(client, "terminal_replay")
+    // No nested enqueue/await: handleEnter may clear the run identity while completing return.
+    handleEnter(client.socket, client, pending.data)
+}
 
 // Original CN client PlayerDefaultName table.  The old summon flow selected
 // names from this table client-side; the server-side AI entry needs the same
@@ -777,6 +905,7 @@ function scheduleRematchRosterCleanup(roomNumber: string): void {
  * reused, so stale entries here must not leak into a later room.
  */
 export function clearLobbyRoomState(roomNumber: string): void {
+    for (const client of sessionManager.getClientsInRoom(roomNumber)) clearPendingFiveBossReturnEnter(client, "room_cleared")
     const rematchTimer = rematchCleanupTimers.get(roomNumber)
     if (rematchTimer) clearTimeout(rematchTimer)
     rematchCleanupTimers.delete(roomNumber)
@@ -881,7 +1010,10 @@ function commitClaimedAdmission(socket: net.Socket, client: SessionClient): bool
 
 function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): void {
     const existingRoom = getRoom(client.roomNumber)
-    if (existingRoom?.lifecycle.phase === "BATTLE") return
+    if (existingRoom?.lifecycle.phase === "BATTLE") {
+        queueFiveBossHostReturnEnter(client, data, existingRoom)
+        return
+    }
     const ed = data[1] ?? {}
     if (!client.yourself) return
 

@@ -208,3 +208,72 @@ test('member release rejects battle and stale-generation callers; display/socket
     room.mates.push({ viewer_id: 89999, com_id: 0 })
     assert.equal(rooms.isRoomMember(room, 89999), false)
 })
+
+test('actual SessionManager replacement/removal clear only the owned early host Enter', async t => {
+    const { room, host } = lobbyFixture(t, 1)
+    t.mock.method(load('multi/coordinator/business-facts'), 'notifyRealtimePresence', () => {})
+    const contract = load('multi/state/battle-contract')
+    room.quest_id = 1099001
+    room.lifecycle.phase = 'BATTLE'
+    room.lifecycle.battleSessionId = 'early-return-session-hooks'
+    room.five_boss_runtime = { runId: 'early-return-hook-run' }
+    host.enterData = null
+    contract.ensureBattleSessionContract(room)
+    assert.equal(contract.bindBattlePlay(room, host.viewerId, host.playerId, 'early-return-hook-play'), true)
+    contract.markBattleMemberPhase(room, host.viewerId, 'SETTLED')
+    await lobby.handleMessage(host.socket, [0, [0, { party: {}, autoStart: false }, 1]])
+    assert.equal(host.socket.listenerCount('end'), 1)
+    assert.equal(host.socket.listenerCount('close'), 1)
+    const pendingCloseListener = host.socket.listeners('close')[0]
+
+    const replacement = sessionManager.createClient(new Socket(), host.viewerId, room.room_number,
+        host.connectionId, host.playerId)
+    replacement.roomGeneration = room.lobby_generation
+    replacement.yourself = { ...host.yourself }
+    sessionManager.addClientToRoom(replacement)
+    assert.equal(host.socket.listenerCount('end'), 0)
+    assert.equal(host.socket.listeners('close').includes(pendingCloseListener), false)
+    await lobby.handleMessage(replacement.socket, [0, [0, { party: {}, autoStart: false }, 1]])
+    assert.equal(replacement.socket.listenerCount('end'), 1)
+
+    sessionManager.removeClient(host)
+    assert.equal(sessionManager.getClient(host.viewerId, room.room_number), replacement)
+    assert.equal(replacement.socket.listenerCount('end'), 1)
+    sessionManager.removeClient(replacement)
+    assert.equal(replacement.socket.listenerCount('end'), 0)
+    assert.equal(replacement.socket.listenerCount('close'), 0)
+})
+
+test('actual terminal replay completes SessionManager return without retaining host-return grace', async t => {
+    const { room, host, peers } = lobbyFixture(t, 1)
+    t.mock.method(load('multi/coordinator/business-facts'), 'notifyRealtimePresence', () => {})
+    room.quest_id = 1099001
+    room.is_npc_mode = false
+    room.npc_count = 0
+    room.lifecycle.phase = 'BATTLE'
+    room.lifecycle.battleSessionId = 'actual-host-return-run'
+    room.five_boss_runtime = { runId: 'actual-host-return-five-run' }
+    host.enterData = null
+    const contract = load('multi/state/battle-contract')
+    contract.ensureBattleSessionContract(room)
+    contract.bindBattlePlay(room, host.viewerId, host.playerId, 'actual-host-return-play')
+    const executor = new (load('multi/coordinator/command-executor').RoomCommandExecutor)()
+    load('multi/coordinator/five-boss-command-handlers').registerFiveBossCommandHandlers(executor)
+    const gateway = new (load('multi/coordinator/command-gateway').RoomCommandGateway)(executor)
+    await gateway.execute('fiveBoss.terminal', { roomNumber: room.room_number,
+        runId: room.five_boss_runtime.runId, runStatus: 'active', viewerId: host.viewerId,
+        playerId: host.playerId, playId: 'actual-host-return-play' })
+    await lobby.handleMessage(host.socket, [0, [0, { autoStart: false }, 1]])
+    assert.equal(host.enterData, null)
+    const terminal = { roomNumber: room.room_number, runId: room.five_boss_runtime.runId, runStatus: 'settled' }
+    assert.equal((await gateway.execute('fiveBoss.terminal', terminal)).applied, true)
+    assert.equal(room.lifecycle.phase, 'LOBBY')
+    assert.equal(room.settlement_return_pending, false)
+    assert.equal(sessionManager.settlementReturnTimers.has(room.room_number), false)
+    assert.notEqual(host.enterData, null)
+    assert.deepEqual(roster.getReservedReturnViewerIds(room), peers)
+    assert.equal(host.socket.frames.filter(frame => frame[0] === 1 && frame[1]?.[0] === 0).length, 1)
+    assert.equal((await gateway.execute('fiveBoss.terminal', terminal)).applied, false)
+    assert.equal(host.socket.frames.filter(frame => frame[0] === 1 && frame[1]?.[0] === 0).length, 1)
+    assert.equal(sessionManager.settlementReturnTimers.has(room.room_number), false)
+})

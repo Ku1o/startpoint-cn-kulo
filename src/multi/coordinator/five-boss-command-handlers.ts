@@ -214,7 +214,10 @@ export function registerFiveBossCommandHandlers(executor: RoomCommandExecutor): 
             const transition = embeddedMultiCoordinator.applyRoomCommand(room, { roomNumber: p.roomNumber,
                 identity: embeddedMultiCoordinator.identity(room), kind: "BEGIN_RETURN" })
             if (!transition.ok) return { applied: false, reason: transition.reason }
-            markRematchReturnWindowOpened(room); delete room.five_boss_runtime
+            markRematchReturnWindowOpened(room)
+            const { replayFiveBossHostReturnEnter } = require("../tcp/lobby") as typeof import("../tcp/lobby")
+            replayFiveBossHostReturnEnter(room, p.runId)
+            delete room.five_boss_runtime
             if (!wasPending) sessionManager.beginSettlementReturnGrace(p.roomNumber)
             return { applied: true }
         }))

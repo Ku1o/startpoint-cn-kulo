@@ -1235,6 +1235,7 @@ export class SessionManager {
         client.superseded = false
         this.clients.set(addr, client)
         if (previous && previous !== client && previous.socket !== client.socket) {
+            require("../tcp/lobby").clearPendingFiveBossReturnEnter(previous, "connection_replaced")
             clearEquipmentBlock(previous)
             previous.superseded = true
             this.unindexClientSocket(previous)
@@ -1266,6 +1267,7 @@ export class SessionManager {
     }
 
     removeClient(client: SessionClient): Result<void> {
+        require("../tcp/lobby").clearPendingFiveBossReturnEnter(client, "connection_removed")
         clearEquipmentBlock(client)
         if (client.isBattle) fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed",
             this.cidToBattleClient.get(client.connectionId) === client ? "current_connection" : "stale_connection")
