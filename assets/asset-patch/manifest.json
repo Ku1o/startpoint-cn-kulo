@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.135",
+  "cdn_version": "1.4.136",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -25456,6 +25456,41 @@
       "created_at": "2026-10-11",
       "audit": {
         "directory": "assets/asset-patch/audit/vyrn-liangyue-atlas-final-1.4.135",
+        "report": "report.json"
+      }
+    },
+    {
+      "id": "five-boss-evil-cannon-preload-1.4.136",
+      "type": "patch",
+      "name": "五重决战邪恶小怪绿色炮弹预载修复",
+      "description": "为三条邪恶Boss补入固定风属性的小怪炮击预载声明，避免按父Boss暗属性仅采集黑色炮弹。",
+      "version": "1.4.136",
+      "depends_on": "1.4.135",
+      "enabled": true,
+      "archive": "pinball-1.4.135-1.4.136-1-five-boss-evil-cannon-preload.zip",
+      "archive_size": 358759,
+      "chain": [
+        "pinball-1.4.135-1.4.136-1-five-boss-evil-cannon-preload.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.135-1.4.136-1-five-boss-evil-cannon-preload.zip",
+          "size": 358759,
+          "sha256": "483324a08673c81aea27cfdcf662e64b3e772a717b25ab1276f2100ada657d32",
+          "members": 2,
+          "files": [
+            "production/upload/d2/d5a267930ba55b6589348347e495a7bbd7685f",
+            "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/d2/d5a267930ba55b6589348347e495a7bbd7685f",
+        "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6"
+      ],
+      "created_at": "2026-10-13",
+      "audit": {
+        "directory": "assets/asset-patch/audit/five-boss-evil-cannon-preload-1.4.136",
         "report": "report.json"
       }
     }
