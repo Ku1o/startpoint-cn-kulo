@@ -1,7 +1,7 @@
 {
   "1001": {
     "name": "红机兵海茵莱特 ::quest_rank::",
-    "clearRewardId": 200014004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -13,7 +13,7 @@
   },
   "2001": {
     "name": "碧机兵克拉格 ::quest_rank::",
-    "clearRewardId": 200017004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -25,7 +25,7 @@
   },
   "3001": {
     "name": "苍机兵维尔努斯 ::quest_rank::",
-    "clearRewardId": 200018004,
+    "clearRewardId": 34,
     "bRankTime": 792000,
     "aRankTime": 702000,
     "sRankTime": 612000,
@@ -38,7 +38,7 @@
   "1001001": {
     "scoreRewardGroupId": 7000010,
     "name": "红机兵海茵莱特 ::quest_rank::",
-    "clearRewardId": 1061004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -51,7 +51,7 @@
   "1002001": {
     "scoreRewardGroupId": 7000011,
     "name": "苍机兵维尔努斯 ::quest_rank::",
-    "clearRewardId": 1062004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -64,7 +64,7 @@
   "1003001": {
     "scoreRewardGroupId": 7000012,
     "name": "橙机兵吉布西兹 ::quest_rank::",
-    "clearRewardId": 1063004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -77,7 +77,7 @@
   "1004001": {
     "scoreRewardGroupId": 7000013,
     "name": "碧机兵克拉格 ::quest_rank::",
-    "clearRewardId": 1064004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -90,7 +90,7 @@
   "1005001": {
     "scoreRewardGroupId": 7000014,
     "name": "闪机兵艾赞 ::quest_rank::",
-    "clearRewardId": 1065004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -103,7 +103,7 @@
   "1006001": {
     "scoreRewardGroupId": 7000015,
     "name": "暗机兵德古兰 ::quest_rank::",
-    "clearRewardId": 1066004,
+    "clearRewardId": 34,
     "bRankTime": 738000,
     "aRankTime": 603000,
     "sRankTime": 468000,
@@ -116,7 +116,7 @@
   "100000001": {
     "scoreRewardGroupId": 7000014,
     "name": "闪机兵艾赞 ::quest_rank::",
-    "clearRewardId": 200053004,
+    "clearRewardId": 34,
     "bRankTime": 792000,
     "aRankTime": 702000,
     "sRankTime": 612000,
@@ -129,7 +129,7 @@
   "100001001": {
     "scoreRewardGroupId": 7000012,
     "name": "橙机兵吉布西兹 ::quest_rank::",
-    "clearRewardId": 200064004,
+    "clearRewardId": 34,
     "bRankTime": 792000,
     "aRankTime": 702000,
     "sRankTime": 612000,

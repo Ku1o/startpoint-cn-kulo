@@ -53,6 +53,7 @@ import { trackSteamRobotChallengeMission } from "../../mission/steam-robot-chall
 import { getContentSnapshot } from "../../../content/runtime/content-snapshot"
 import { recordQuestRecommendedPartySafe } from "../recommended-party-history"
 import { buildPracticeBattleHistoryRecord } from "../practice-battle-history"
+import { BattleHistoryPayloadValidationError } from "../battle-history"
 import { givePlayerRewardSync, givePlayerRewardsSync, givePlayerScoreRewardsSync } from "../../quest"
 import { handleRushEventFinish } from "./rush-handler"
 import { handleRoguePerRoundDrops } from "./rogue-drops"
@@ -272,7 +273,7 @@ export function settleSingleQuestFinishInTransaction(
         if (adjustPlayerExpPoolSync(playerId, questData.poolExpReward, 'single_battle_base_reward') === null) {
             throw new Error(`Failed to grant single battle EXP to player ${playerId}`)
         }
-        clearReward = !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward !== undefined
+        clearReward = !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward != null
             ? givePlayerRewardSync(playerId, questData.clearReward)
             : null
         const isExpertSingleEvent = questCategory === QuestCategory.EXPERT_SINGLE_EVENT
@@ -355,20 +356,32 @@ export function settleSingleQuestFinishInTransaction(
         const partyCharacterIds = [...bodyPartyStatistics.characters, ...bodyPartyStatistics.unison_characters]
 
         if (questCategory === QuestCategory.PRACTICE) {
-            insertPlayerPracticeBattleHistorySync(buildPracticeBattleHistoryRecord({
-                playerId,
-                playId: activeQuestData.playId,
-                categoryId: questCategory,
-                questId,
-                finishKind: questAccomplished ? 0 : 1,
-                createdAt: new Date(),
-                elapsedTimeMs: clearTime,
-                score: body.score,
-                clearRank: questAccomplished ? clearRank : null,
-                party: bodyPartyStatistics,
-                statistics: body.statistics,
-                equipmentList: getPlayerEquipmentListSync(playerId),
-            }))
+            // A storage failure must abort settlement, even when telemetry is optional.
+            const equipmentList = getPlayerEquipmentListSync(playerId)
+            let practiceHistoryRecord: ReturnType<typeof buildPracticeBattleHistoryRecord> | null = null
+            try {
+                practiceHistoryRecord = buildPracticeBattleHistoryRecord({
+                    playerId,
+                    playId: activeQuestData.playId,
+                    categoryId: questCategory,
+                    questId,
+                    finishKind: questAccomplished ? 0 : 1,
+                    createdAt: new Date(),
+                    elapsedTimeMs: clearTime,
+                    score: body.score,
+                    clearRank: questAccomplished ? clearRank : null,
+                    party: bodyPartyStatistics,
+                    statistics: body.statistics,
+                    equipmentList,
+                })
+            } catch (error) {
+                if (!(error instanceof BattleHistoryPayloadValidationError)) throw error
+                console.warn(
+                    `[PRACTICE-HISTORY] invalid finish history payload: player=${playerId} `
+                    + `quest=${questId} error=${error.message}`,
+                )
+            }
+            if (practiceHistoryRecord !== null) insertPlayerPracticeBattleHistorySync(practiceHistoryRecord)
         }
 
         // Build finish context for mission trackers
