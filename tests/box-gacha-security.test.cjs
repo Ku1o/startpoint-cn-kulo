@@ -139,6 +139,23 @@ test('close, reset and get_box_list reject invalid identifier types without chan
     }
 })
 
+test('unsupported pass-card points preserve currency, rewards and box state', async t => {
+    const content = master(1)
+    content.boxes[1][REWARD_KEY] = { type: 5, count: 10, available: 1, tier: 0 }
+    const app = await appFor(t, content)
+    for (const existing of [false, true]) {
+        const p = await subject()
+        if (existing) seedBox(p, { remaining: 1 })
+        const before = digest(p)
+        const response = await post(app, p, 'exec')
+        assert.equal(response.statusCode, 500, response.body)
+        assert.equal(db.inTransaction, false)
+        assert.equal(digest(p), before)
+        assert.equal(amount(p, CURRENCY), 10000)
+        assert.equal(facts(p).length, 0)
+    }
+})
+
 test('draw count above actual per-reward inventory is rejected instead of partially executed', async t => {
     const p = await subject(), app = await appFor(t, master(3))
     seedBox(p, { remaining: 999, drawn: 1 })
