@@ -185,3 +185,15 @@ test('legacy co-op battle-facts command grants character EXP unless the party is
         else assert.equal(gained, 100, 'free parties gain character EXP')
     }
 })
+
+test('multiplayer party snapshot keeps exactly one unison slot per member', () => {
+    const { playerId } = createPlayer()
+    const party = buildRealParty(playerId, {
+        name: '', characterIds: [null, 999999999, null],
+        unisonCharacterIds: [null, null, null],
+        equipmentIds: [null, null, null], abilitySoulIds: [null, null, null],
+    })
+    assert.equal(party.characters.length, 3)
+    assert.equal(party.unison_characters.length, 3)
+    assert.deepEqual(party.unison_characters, [[1], [1], [1]])
+})
