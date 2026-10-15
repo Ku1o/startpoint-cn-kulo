@@ -272,7 +272,7 @@ export function settleSingleQuestFinishInTransaction(
         if (adjustPlayerExpPoolSync(playerId, questData.poolExpReward, 'single_battle_base_reward') === null) {
             throw new Error(`Failed to grant single battle EXP to player ${playerId}`)
         }
-        clearReward = !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward !== undefined
+        clearReward = !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward != null
             ? givePlayerRewardSync(playerId, questData.clearReward)
             : null
         const isExpertSingleEvent = questCategory === QuestCategory.EXPERT_SINGLE_EVENT
