@@ -157,3 +157,31 @@ test('hard multi solo finish pays the clear reward instead of returning 500', as
     }
     assert.equal(withReward - withoutReward, 30)
 })
+
+test('legacy co-op battle-facts command grants character EXP unless the party is fixed', () => {
+    const handler = getWriterCommand(MULTI_RECORD_BATTLE_FACTS)
+    for (const fixedParty of [false, true]) {
+        const { playerId } = createPlayer()
+        const characterId = Object.keys(getPlayerCharactersSync(playerId))[0]
+        assert.ok(characterId, 'default player owns a character')
+        const expBefore = getPlayerCharacterSync(playerId, characterId).exp
+        handler({
+            finishCtx: {
+                playerId, questCategory: QuestCategory.BOSS_BATTLE, questId: 1001001,
+                questAccomplished: true, clearTime: 60_000, clearRank: 1,
+                party: { characters: [{ id: Number(characterId) }, null, null],
+                    unison_characters: [null, null, null] },
+                statistics: {}, player: getPlayerSync(playerId),
+                questPreviouslyCompleted: false, questProgress: null,
+                partySlot: 1, isMulti: true, isMultiHost: true,
+            },
+            partyCharacterIdsArray: [Number(characterId)],
+            characterExpReward: 100,
+            fixedParty,
+            evaluationTimeMs: Date.now(),
+        }, { meta: {}, afterCommit() {} })
+        const gained = getPlayerCharacterSync(playerId, characterId).exp - expBefore
+        if (fixedParty) assert.equal(gained, 0, 'fixed parties keep character EXP unchanged')
+        else assert.equal(gained, 100, 'free parties gain character EXP')
+    }
+})
