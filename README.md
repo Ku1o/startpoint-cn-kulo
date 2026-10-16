@@ -43,9 +43,9 @@ bash scripts/start-cn.sh
 Windows 也可以使用仓库根目录的 `start-cn-production.bat`。从 Git 获取源码后，首次运行先执行 `npm ci` 和 `npm run build`，生成本地 `out/`；该 BAT 使用已有产物，不自动编译。云服覆盖包已包含对应运行产物。首次运行前请按实际网络环境修改 `.env`：局域网真机需要填写服务器 LAN 地址，云服应填写 Cloudflare/CDN 公网地址和联机公网地址。
 
 上述启动脚本将 stdout/stderr 合并到 `.logs/cn-server-YYYYMMDD-HH00.log`，按北京时间
-00/04/08/12/16/20 点切分，每四小时一份，同一时段重启追加、不覆盖。当前文件与游戏
-PID 见 `.logs/cn-server-current.json`。生产 BAT 保留 7 天，普通日志入口保留 30 天，
-调试入口保留 3 天。直接运行游戏 JS 不自动轮转，详见
+00/04/08/12/16/20 点切分，每四小时一份；日志实时追加并在短窗口内同步到磁盘，同一
+时段重启追加、不覆盖。当前文件与游戏 PID 见 `.logs/cn-server-current.json`。生产
+BAT 保留 7 天，普通日志入口保留 30 天，调试入口保留 3 天。直接运行游戏 JS 不自动轮转，详见
 [四小时日志说明](docs/development/SERVER-FOUR-HOUR-LOGS-20261005.md)。
 
 `.env.example` 列出全部运行参数及安全默认值。3 Mbps 上行云服建议保留以下 `/load` 压缩配置：
