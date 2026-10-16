@@ -31,6 +31,7 @@ import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes
 import { resolvePlainFileInside, sendFileStream } from "./lib/file-download";
 import { trustProxySetting } from "./lib/client-address";
 import { parseCrashReportBody, crashReportText, createCrashLogRecord } from "./lib/crash-report";
+import { installProcessGuards } from "./lib/process-guards";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import iosLeitingPlugin from "./routes/cn/ios-leiting";
@@ -598,6 +599,17 @@ process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
 if (process.connected) process.on("message", message => {
     if (message && typeof message === "object" && "type" in message
         && message.type === "starpoint:shutdown") requestGracefulShutdown("parent IPC");
+});
+// A stray rejected promise is logged and the server keeps serving players;
+// an uncaught synchronous exception is logged and then drains like a stop
+// signal, because state touched by the throwing code may be inconsistent.
+installProcessGuards({
+    onFatal: () => {
+        process.exitCode = 1;
+        // After a fatal error, do not wait for leftover handles to let the
+        // event loop drain on its own.
+        void closeGracefully("uncaughtException").then(() => process.exit(process.exitCode ?? 1));
+    },
 });
 startQuestNpcPartyPoolWorker();
 const persistenceWorkerStarted = startSqlitePersistenceWorker(getDb().name);
