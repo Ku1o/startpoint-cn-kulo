@@ -3,8 +3,7 @@
 ## Android 当前入口
 
 **开始 APK/SWF 工作先读 [ANDROID-BASELINE.md](./ANDROID-BASELINE.md)，再运行 [基线检查器](./verify_android_baseline.py)。**
-最新已验收公网和内网包的路径、APK/SWF 哈希、UUID 与验收依据统一登记在
-[android-accepted.json](./android-accepted.json)。2026-09-09 应用户要求完成离线验收后，当前基线为深渊续战 Lens 公网/内网累计成品；验收范围见 [验收记录](./ACCEPTANCE-ABYSS-AUTOSTART-20260909.md)，不等同于真机测试。
+当前后续开发基线是 2026-10-17 PR43 旧服兼容、新准入、ARM64/x86_64 公网包，登记为 `accepted_offline`。精确身份读取 [android-accepted.json](./android-accepted.json) 的 `variants.public`，范围见 [登记记录](./ACCEPTANCE-PR43-ANDROID-COMPAT-20261017.md)。目前没有同功能 LAN 登记；需要内网版时从当前公网基线转换。
 
 幻想武器和能力魂在非幻想关卡的准备页不可出战规则、服务端适用范围对齐及尚未生成
 APK/IPA 的交付边界见
@@ -13,7 +12,7 @@ APK/IPA 的交付边界见
 本会话新增的关注按钮、本人资料路由、标题 `CNtips_b` 隐藏及环境切换流程见
 [rush-leaderboard/TITLE-CNTIPS.md](./rush-leaderboard/TITLE-CNTIPS.md)。
 新增 Lens 724/422 能力、稻穗/基诺维、五重地图及手动 Auto 锁、5900101 铁钢限制见
-[Lens 累计方法](./lens0907-0908/README.md)。深渊续战跨关阵容复用见 [续战方法](./abyss-autostart/README.md)。新修改从当前续战累计成品继续；原 Lens v3、9 月 6 日标题包及下文各专题旧包仅描述历史实现，不能覆盖当前登记。
+[Lens 累计方法](./lens0907-0908/README.md)。深渊续战跨关阵容复用见 [续战方法](./abyss-autostart/README.md)。新修改从当前登记的 PR43 累计成品继续；原 Lens v3、9 月 6 日标题包及下文各专题旧包仅描述历史实现，不能覆盖当前登记。
 
 累计保留免登录与私服地址、MOD 五合一、幻想连战路由/战斗/结算/图标修复、角色轮播优化、
 通用排行榜和资料导航、标题与游戏内数据继承入口、深渊装备限制，以及最新资料页和标题修复。

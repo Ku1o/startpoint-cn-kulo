@@ -36,6 +36,10 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
         acceptance = record["acceptance"]
         if acceptance.get("result") != "accepted" or acceptance.get("scope") != "public_release_and_offline_identity" or not acceptance.get("audit"):
             raise ValueError("acceptance must record an explicit result, release scope and audit")
+    if variant not in record["variants"]:
+        raise ValueError(
+            f"No current {variant} Android baseline is registered; derive it from the latest public baseline. "
+            "Use --record only for explicit historical reproduction.")
     entry = record["variants"][variant]
     if identity == (6, "accepted_offline"):
         acceptance = record["acceptance"]
@@ -78,6 +82,9 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
             "accepted_on": entry.get("accepted_on", record["accepted_on"]),
             "acceptance_audit": entry.get("acceptance_audit", record.get("acceptance", {}).get("audit")),
             "main_abc_index": entry.get("main_abc_index", 284),
+            "main_abc_index_kind": entry.get("main_abc_index_kind"),
+            "main_abc_raw_tag_index": entry.get("main_abc_raw_tag_index"),
+            "doabc_count": entry.get("doabc_count"),
             "method_bodies_checked": entry["local_build_checks"]["method_bodies_checked"],
             "device_tested_by_this_check": False,
             "apk": str(path), "apk_sha256": entry["apk_sha256"],
