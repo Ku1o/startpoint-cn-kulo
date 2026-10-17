@@ -1,0 +1,253 @@
+{
+  "symbols": {
+    "__ZN4MMgc2GC21privateWriteBarrierRCEPKvS2_S2_": {
+      "address": "0x10054a400"
+    },
+    "__ZN7avmplus11op_add_a_aaEPNS_7AvmCoreExx": {
+      "address": "0x10050b640"
+    },
+    "__ZN7avmplus12finddef_missEPPNS_12ScriptObjectEPNS_11MethodFrameE": {
+      "address": "0x10050a8e8"
+    },
+    "__ZN7avmplus14ExceptionFrame6endTryEv": {
+      "address": "0x1004d4000"
+    },
+    "__ZN7avmplus14ExceptionFrame8beginTryEPNS_7AvmCoreE": {
+      "address": "0x1004d3fa0"
+    },
+    "__ZN7avmplus14coerceobj_atomEPNS_9MethodEnvExPNS_6TraitsE": {
+      "address": "0x10050af94"
+    },
+    "__ZN7avmplus7AvmCore16atomWriteBarrierEPN4MMgc2GCEPKvPxx": {
+      "address": "0x1004abb34"
+    },
+    "__ZN7avmplus7AvmCore7compareExx": {
+      "address": "0x1004a7098"
+    },
+    "__ZN7avmplus7AvmCore9intToAtomEi": {
+      "address": "0x1004a7d54"
+    },
+    "__ZN8halfmoon5Stubs10do_atom2nsEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a2716c"
+    },
+    "__ZN8halfmoon5Stubs11do_atom2intEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a27174"
+    },
+    "__ZN8halfmoon5Stubs11do_newarrayEPN7avmplus11MethodFrameEiPx": {
+      "address": "0x100a2735c"
+    },
+    "__ZN8halfmoon5Stubs11do_tonumberEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a26a18"
+    },
+    "__ZN8halfmoon5Stubs12do_applytypeEPN7avmplus11MethodFrameEiPx": {
+      "address": "0x100a27700"
+    },
+    "__ZN8halfmoon5Stubs12do_atom2boolEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a27160"
+    },
+    "__ZN8halfmoon5Stubs12do_atom2uintEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a271a8"
+    },
+    "__ZN8halfmoon5Stubs12do_constructEPN7avmplus11MethodFrameExiPx": {
+      "address": "0x100a271f0"
+    },
+    "__ZN8halfmoon5Stubs12do_newobjectEPN7avmplus11MethodFrameEiPx": {
+      "address": "0x100a274d8"
+    },
+    "__ZN8halfmoon5Stubs12do_tobooleanEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a26a30"
+    },
+    "__ZN8halfmoon5Stubs12do_uint2atomEPN7avmplus11MethodFrameEj": {
+      "address": "0x100a27138"
+    },
+    "__ZN8halfmoon5Stubs13do_abc_astypeEPN7avmplus11MethodFrameEPNS1_6TraitsEx": {
+      "address": "0x100a26e6c"
+    },
+    "__ZN8halfmoon5Stubs13do_abc_equalsEPN7avmplus11MethodFrameExx": {
+      "address": "0x100a26e1c"
+    },
+    "__ZN8halfmoon5Stubs13do_abc_istypeEPN7avmplus11MethodFrameEPNS1_6TraitsEx": {
+      "address": "0x100a26e54"
+    },
+    "__ZN8halfmoon5Stubs13do_abc_typeofEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a26858"
+    },
+    "__ZN8halfmoon5Stubs13do_castobjectEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a274cc"
+    },
+    "__ZN8halfmoon5Stubs13do_caststringEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a273ac"
+    },
+    "__ZN8halfmoon5Stubs13do_lessequalsEPN7avmplus11MethodFrameExx": {
+      "address": "0x100a270e0"
+    },
+    "__ZN8halfmoon5Stubs14do_abc_getpropEPN7avmplus11MethodFrameEPKNS1_9MultinameEx": {
+      "address": "0x100a26eec"
+    },
+    "__ZN8halfmoon5Stubs14do_abc_setpropEPN7avmplus11MethodFrameEPKNS1_9MultinameExx": {
+      "address": "0x100a26d2c"
+    },
+    "__ZN8halfmoon5Stubs14do_array_get_dEPN7avmplus11MethodFrameEdPNS1_11ArrayObjectE": {
+      "address": "0x100a27098"
+    },
+    "__ZN8halfmoon5Stubs14do_array_get_iEPN7avmplus11MethodFrameEiPNS1_11ArrayObjectE": {
+      "address": "0x100a27090"
+    },
+    "__ZN8halfmoon5Stubs14do_array_get_uEPN7avmplus11MethodFrameEjPNS1_11ArrayObjectE": {
+      "address": "0x100a27088"
+    },
+    "__ZN8halfmoon5Stubs14do_array_set_iEPN7avmplus11MethodFrameEiPNS1_11ArrayObjectEx": {
+      "address": "0x100a26b6c"
+    },
+    "__ZN8halfmoon5Stubs14do_array_set_uEPN7avmplus11MethodFrameEjPNS1_11ArrayObjectEx": {
+      "address": "0x100a26b58"
+    },
+    "__ZN8halfmoon5Stubs14do_atom2doubleEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a271cc"
+    },
+    "__ZN8halfmoon5Stubs14do_atom2stringEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a27158"
+    },
+    "__ZN8halfmoon5Stubs14do_toprimitiveEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a26a10"
+    },
+    "__ZN8halfmoon5Stubs15do_abc_callpropEPN7avmplus11MethodFrameEPKNS1_9MultinameEiPx": {
+      "address": "0x100a2725c"
+    },
+    "__ZN8halfmoon5Stubs15do_abc_getpropxEPN7avmplus11MethodFrameEPKNS1_9MultinameExx": {
+      "address": "0x100a26f48"
+    },
+    "__ZN8halfmoon5Stubs15do_abc_initpropEPN7avmplus11MethodFrameEPKNS1_9MultinameExx": {
+      "address": "0x100a26d2c"
+    },
+    "__ZN8halfmoon5Stubs15do_abc_nextnameEPN7avmplus11MethodFrameExi": {
+      "address": "0x100a276d8"
+    },
+    "__ZN8halfmoon5Stubs15do_abc_setpropxEPN7avmplus11MethodFrameEPKNS1_9MultinameExxx": {
+      "address": "0x100a26c28"
+    },
+    "__ZN8halfmoon5Stubs16do_abc_callsuperEPN7avmplus11MethodFrameEPKNS1_9MultinameEiPx": {
+      "address": "0x100a27468"
+    },
+    "__ZN8halfmoon5Stubs16do_abc_nextvalueEPN7avmplus11MethodFrameExi": {
+      "address": "0x100a276ec"
+    },
+    "__ZN8halfmoon5Stubs16do_greaterequalsEPN7avmplus11MethodFrameExx": {
+      "address": "0x100a27100"
+    },
+    "__ZN8halfmoon5Stubs17do_abc_astypelateEPN7avmplus11MethodFrameExx": {
+      "address": "0x100a26e98"
+    },
+    "__ZN8halfmoon5Stubs17do_abc_istypelateEPN7avmplus11MethodFrameExx": {
+      "address": "0x100a27480"
+    },
+    "__ZN8halfmoon5Stubs17do_concat_stringsEPN7avmplus11MethodFrameEPNS1_6StringES5_": {
+      "address": "0x100a277bc"
+    },
+    "__ZN8halfmoon5Stubs17do_loadenv_stringEPN7avmplus11MethodFrameEiPNS1_6StringE": {
+      "address": "0x100a26914"
+    },
+    "__ZN8halfmoon5Stubs18do_abc_deletepropxEPN7avmplus11MethodFrameEPKNS1_9MultinameExx": {
+      "address": "0x100a27604"
+    },
+    "__ZN8halfmoon5Stubs20do_getpropertylate_iEPN7avmplus11MethodFrameEix": {
+      "address": "0x100a27054"
+    },
+    "__ZN8halfmoon5Stubs20do_getpropertylate_uEPN7avmplus11MethodFrameEjx": {
+      "address": "0x100a27034"
+    },
+    "__ZN8halfmoon5Stubs20do_loadenv_interfaceEPN7avmplus11MethodFrameEPNS1_10MethodInfoEPNS1_12ScriptObjectE": {
+      "address": "0x100a268c0"
+    },
+    "__ZN8halfmoon5Stubs20do_loadenv_namespaceEPN7avmplus11MethodFrameEiPNS1_9NamespaceE": {
+      "address": "0x100a269bc"
+    },
+    "__ZN8halfmoon5Stubs20do_setpropertylate_iEPN7avmplus11MethodFrameEixx": {
+      "address": "0x100a26b24"
+    },
+    "__ZN8halfmoon5Stubs20do_setpropertylate_uEPN7avmplus11MethodFrameEjxx": {
+      "address": "0x100a26b04"
+    },
+    "__ZN8halfmoon5Stubs21do_vectordouble_get_iEPN7avmplus11MethodFrameEiPNS1_18DoubleVectorObjectE": {
+      "address": "0x100a270d0"
+    },
+    "__ZN8halfmoon5Stubs21do_vectordouble_get_uEPN7avmplus11MethodFrameEjPNS1_18DoubleVectorObjectE": {
+      "address": "0x100a270c8"
+    },
+    "__ZN8halfmoon5Stubs21do_vectordouble_set_iEPN7avmplus11MethodFrameEiPNS1_18DoubleVectorObjectEd": {
+      "address": "0x100a26bb0"
+    },
+    "__ZN8halfmoon5Stubs21do_vectordouble_set_uEPN7avmplus11MethodFrameEjPNS1_18DoubleVectorObjectEd": {
+      "address": "0x100a26ba8"
+    },
+    "__ZN8halfmoon5Stubs6do_eqsEPN7avmplus11MethodFrameEPNS1_6StringES5_": {
+      "address": "0x100a27124"
+    },
+    "__ZN8halfmoon5Stubs7do_callEPN7avmplus11MethodFrameExiPx": {
+      "address": "0x100a273ec"
+    },
+    "__ZN8halfmoon5Stubs7do_negiEPN7avmplus11MethodFrameEi": {
+      "address": "0x100a26a60"
+    },
+    "__ZN8halfmoon5Stubs8do_throwEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a272ec"
+    },
+    "__ZN8halfmoon5Stubs8do_tointEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a26a20"
+    },
+    "__ZN8halfmoon5Stubs9do_abc_inEPN7avmplus11MethodFrameExx": {
+      "address": "0x100a27504"
+    },
+    "__ZN8halfmoon5Stubs9do_castnsEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a26824"
+    },
+    "__ZN8halfmoon5Stubs9do_touintEPN7avmplus11MethodFrameEx": {
+      "address": "0x100a26a28"
+    },
+    "__ZNK7avmplus10MethodInfo16activationTraitsEv": {
+      "address": "0x1004daeac"
+    },
+    "__ZNK7avmplus9MethodEnv12hasnextprotoERxRi": {
+      "address": "0x1004d9444"
+    },
+    "__setjmp": {
+      "address": "0x1057d66e4"
+    },
+    "_llBeginCatch": {
+      "address": "0x100a25f84"
+    },
+    "_llCoreTakeSample": {
+      "address": "0x100a26814"
+    },
+    "_llDoubleToAtom": {
+      "address": "0x100a267bc"
+    },
+    "_llDoubleToInt32": {
+      "address": "0x100a267c0"
+    },
+    "_llGetPoolSameWorker": {
+      "address": "0x100a26144"
+    },
+    "_llGetString": {
+      "address": "0x100a26130"
+    },
+    "_llGetVectorTraits": {
+      "address": "0x100a267c8"
+    },
+    "_llMod": {
+      "address": "0x100a267c4"
+    },
+    "_llNPE": {
+      "address": "0x100a2676c"
+    },
+    "_llNewActivation": {
+      "address": "0x100a26678"
+    },
+    "_llNewFunction": {
+      "address": "0x100a263cc"
+    },
+    "_llUPE": {
+      "address": "0x100a26780"
+    }
+  }
+}

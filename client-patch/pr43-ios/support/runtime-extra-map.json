@@ -1,0 +1,20 @@
+{
+  "__ZN8halfmoon5Stubs11do_newcatchEPN7avmplus11MethodFrameEPNS1_6TraitsE": {
+    "address": 4305616384
+  },
+  "__ZN8halfmoon5Stubs6do_d2bEPN7avmplus11MethodFrameEd": {
+    "address": 4305611344
+  },
+  "_llLoadCatchTraits": {
+    "address": 4305608836
+  },
+  "_llNewClass": {
+    "address": 4305609176
+  },
+  "_builtin_traits_any": {
+    "address": 4400599960
+  },
+  "_sdk_aotInfo": {
+    "address": 4399529392
+  }
+}
