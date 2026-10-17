@@ -1,0 +1,15 @@
+{
+  "description": "可以直接调用 better-sqlite3 transaction() 的文件（基础设施、迁移、快照恢复、worker 本地数据库）。新增条目须经仓库所有者同意。",
+  "transaction": [
+    { "path": "src/lib/persistence-coordinator.ts", "reason": "持久化协调器本身" },
+    { "path": "src/lib/sqlite-*", "reason": "SQLite 写入/检查点基础设施" },
+    { "path": "src/lib/storage-layout.ts", "reason": "存储布局迁移" },
+    { "path": "src/data/db.ts", "reason": "数据库连接与初始化" },
+    { "path": "src/data/schema.ts", "reason": "表结构迁移" },
+    { "path": "src/data/initializers/**", "reason": "初始化与数据迁移" },
+    { "path": "src/data/updaters/**", "reason": "数据迁移" },
+    { "path": "src/data/snapshots/**", "reason": "存档快照恢复" },
+    { "path": "src/data/readers/load-snapshot.ts", "reason": "存档快照读取" },
+    { "path": "src/workers/**", "reason": "worker 本地数据库" }
+  ]
+}

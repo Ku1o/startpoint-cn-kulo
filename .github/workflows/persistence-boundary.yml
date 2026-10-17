@@ -1,0 +1,25 @@
+name: persistence-boundary
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  persistence-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Persistence boundary regression
+        run: node --test tests/persistence-boundary.test.cjs
+
+      - name: Persistence boundary scan (added lines only)
+        run: node tools/check-persistence-boundary.cjs --base "origin/${{ github.base_ref }}"
