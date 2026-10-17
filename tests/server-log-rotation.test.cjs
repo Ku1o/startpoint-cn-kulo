@@ -7,7 +7,8 @@ const { pipeline, finished } = require('node:stream/promises')
 const { spawn, execFileSync } = require('node:child_process')
 const { once } = require('node:events')
 const {
-    FOUR_HOURS_MS, logBucket, RotatingLogWriter, logChannel, runLoggedServer,
+    FOUR_HOURS_MS, LOG_SYNC_INTERVAL_MS, PARTIAL_LINE_FLUSH_MS,
+    logBucket, RotatingLogWriter, logChannel, runLoggedServer,
 } = require('../scripts/run-cn-logged.cjs')
 
 const root = path.resolve(__dirname, '..')
@@ -97,6 +98,27 @@ test('line capture preserves split UTF-8, stderr, CRLF and final partial output 
     assert.ok(stderr.every(line => line.length < 66_000))
 })
 
+test('partial lines flush while streams stay open without duplicating a later newline', async t => {
+    const directory = temporary(t)
+    const writer = new RotatingLogWriter({ directory })
+    const channel = logChannel(writer, 'stdout', null, 30)
+    channel.write(Buffer.from('first'))
+    await new Promise(resolve => setTimeout(resolve, 100))
+    channel.write(Buffer.from('\r'))
+    channel.write(Buffer.from('\nsecond'))
+    await new Promise(resolve => setTimeout(resolve, 10))
+    channel.write(Buffer.from('-part\n'))
+    channel.end()
+    await finished(channel)
+    await close(writer)
+
+    const content = fs.readFileSync(path.join(directory, fs.readdirSync(directory)[0]), 'utf8')
+    const records = content.split('\n').filter(Boolean)
+    assert.equal(records.length, 2)
+    assert.match(records[0], /\[stdout\] first$/)
+    assert.match(records[1], /\[stdout\] second-part$/)
+})
+
 test('many short lines are batched rather than written once per line', async t => {
     const directory = temporary(t)
     const writer = new RotatingLogWriter({ directory })
@@ -109,6 +131,27 @@ test('many short lines are batched rather than written once per line', async t =
     assert.ok(writes < 10, `unexpected writes: ${writes}`)
     const content = fs.readFileSync(path.join(directory, fs.readdirSync(directory)[0]), 'utf8')
     assert.equal(content.split('[stdout] sample').length - 1, 5000)
+})
+
+test('realtime writes coalesce durable syncs and flush before close', async t => {
+    const directory = temporary(t)
+    const writer = new RotatingLogWriter({ directory, syncIntervalMs: 100 })
+    await writer.rotate(Date.now())
+    const original = writer.file.datasync.bind(writer.file)
+    let syncs = 0
+    writer.file.datasync = async () => {
+        syncs++
+        return original()
+    }
+    for (let index = 0; index < 100; index++) {
+        await write(writer, 'stdout', `realtime-${index}`)
+    }
+    assert.equal(syncs, 0)
+    await new Promise(resolve => setTimeout(resolve, 250))
+    assert.equal(syncs, 1)
+    await write(writer, 'stderr', 'final-dirty-line')
+    await close(writer)
+    assert.equal(syncs, 2)
 })
 
 test('new prefixed combined logs remain readable by both analysis tools', async t => {
@@ -183,6 +226,59 @@ test('collector drains real child output, preserves exit code and records the re
     assert.match(content, /\[stdout\] stdout-tail/)
     assert.match(content, /\[stderr\] stderr-tail/)
     assert.equal(fs.readdirSync(directory).filter(name => name.endsWith('.log')).length, 1)
+})
+
+test('collector makes output without a newline visible while the child is still running', {
+    timeout: 10_000,
+}, async t => {
+    const directory = temporary(t)
+    const marker = path.join(directory, 'release-child')
+    const running = runLoggedServer({
+        root, directory,
+        args: ['-e', `
+            const fs = require('node:fs');
+            process.stdout.write('live-partial');
+            const timer = setInterval(() => {
+                if (!fs.existsSync(${JSON.stringify(marker)})) return;
+                clearInterval(timer);
+                process.exit(0);
+            }, 20);
+        `],
+    })
+    let released = false
+    t.after(async () => {
+        if (released) return
+        fs.mkdirSync(directory, { recursive: true })
+        fs.writeFileSync(marker, 'release')
+        await running.catch(() => {})
+        fs.rmSync(directory, { recursive: true, force: true })
+    })
+
+    const receiptPath = path.join(directory, 'cn-server-current.json')
+    const deadline = Date.now() + 5_000
+    let receipt
+    let content = ''
+    while (Date.now() < deadline) {
+        try {
+            receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'))
+            content = fs.readFileSync(receipt.log, 'utf8')
+            if (content.includes('[stdout] live-partial')) break
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error
+        }
+        await new Promise(resolve => setTimeout(resolve, 20))
+    }
+    assert.ok(receipt?.pid)
+    assert.equal(receipt.exitedAt, undefined)
+    assert.match(content, /\[stdout\] live-partial/)
+    assert.doesNotThrow(() => process.kill(receipt.pid, 0))
+    await new Promise(resolve =>
+        setTimeout(resolve, LOG_SYNC_INTERVAL_MS + PARTIAL_LINE_FLUSH_MS))
+    assert.match(fs.readFileSync(receipt.log, 'utf8'), /\[stdout\] live-partial/)
+
+    fs.writeFileSync(marker, 'release')
+    released = true
+    assert.equal(await running, 0)
 })
 
 test('unwritable destination fails before launching a child', async t => {

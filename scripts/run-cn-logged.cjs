@@ -7,6 +7,8 @@ const { pipeline, finished } = require('node:stream/promises')
 const { StringDecoder } = require('node:string_decoder')
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
+const LOG_SYNC_INTERVAL_MS = 100
+const PARTIAL_LINE_FLUSH_MS = 100
 const MAX_LINE_CHARS = 64 * 1024
 
 function logBucket(timeMs, debug = false) {
@@ -43,26 +45,39 @@ async function pruneLogs(directory, retentionDays, timeMs, debug, currentPath) {
 }
 
 class RotatingLogWriter extends Writable {
-    constructor({ directory, retentionDays = 30, debug = false, now = Date.now, onRotate = () => {} }) {
+    constructor({
+        directory,
+        retentionDays = 30,
+        debug = false,
+        now = Date.now,
+        onRotate = () => {},
+        syncIntervalMs = LOG_SYNC_INTERVAL_MS,
+    }) {
         super({ objectMode: true, highWaterMark: 16 })
         if (!Number.isInteger(retentionDays) || retentionDays < 1 || retentionDays > 3650) {
             throw new RangeError('Retention days must be an integer from 1 to 3650.')
+        }
+        if (!Number.isInteger(syncIntervalMs) || syncIntervalMs < 1 || syncIntervalMs > 60_000) {
+            throw new RangeError('Log sync interval must be an integer from 1 to 60000 milliseconds.')
         }
         this.directory = path.resolve(directory)
         this.retentionDays = retentionDays
         this.debug = debug
         this.now = now
         this.onRotate = onRotate
+        this.syncIntervalMs = syncIntervalMs
         this.file = null
         this.bucket = null
+        this.dirty = false
+        this.syncTimer = null
+        this.syncChain = Promise.resolve()
     }
 
     async rotate(timeMs) {
         const bucket = logBucket(timeMs, this.debug)
         if (this.bucket?.start === bucket.start) return
         await fs.promises.mkdir(this.directory, { recursive: true })
-        await this.file?.close()
-        this.file = null
+        await this.closeFile()
         const filePath = path.join(this.directory, bucket.name)
         // Append across restarts within the same four-hour bucket.
         this.file = await fs.promises.open(filePath, 'a')
@@ -87,6 +102,8 @@ class RotatingLogWriter extends Writable {
             if (!bytesWritten) throw new Error('Log file write made no progress.')
             offset += bytesWritten
         }
+        this.dirty = true
+        this.scheduleSync()
     }
 
     _final(callback) {
@@ -97,10 +114,49 @@ class RotatingLogWriter extends Writable {
         this.closeFile().then(() => callback(error), closeError => callback(error || closeError))
     }
 
-    async closeFile() {
+    scheduleSync() {
+        if (this.syncTimer) return
+        this.syncTimer = setTimeout(() => {
+            this.syncTimer = null
+            this.syncCurrentFile().catch(error => this.destroy(error))
+        }, this.syncIntervalMs)
+        this.syncTimer.unref()
+    }
+
+    async syncCurrentFile() {
         const file = this.file
+        if (!file || !this.dirty) {
+            await this.syncChain
+            return
+        }
+        this.dirty = false
+        this.syncChain = this.syncChain.then(() => file.datasync())
+        await this.syncChain
+    }
+
+    async closeFile() {
+        if (this.syncTimer) {
+            clearTimeout(this.syncTimer)
+            this.syncTimer = null
+        }
+        const file = this.file
+        if (!file) {
+            await this.syncChain
+            return
+        }
+        let failure
+        try {
+            await this.syncCurrentFile()
+        } catch (error) {
+            failure = error
+        }
         this.file = null
-        await file?.close()
+        try {
+            await file.close()
+        } catch (error) {
+            failure ??= error
+        }
+        if (failure) throw failure
     }
 }
 
@@ -110,13 +166,56 @@ function writeLines(writer, channel, lines) {
     })
 }
 
-function logChannel(writer, channel, mirror) {
+function logChannel(writer, channel, mirror, partialLineFlushMs = PARTIAL_LINE_FLUSH_MS) {
+    if (!Number.isInteger(partialLineFlushMs)
+        || partialLineFlushMs < 1 || partialLineFlushMs > 60_000) {
+        throw new RangeError('Partial line flush interval must be an integer from 1 to 60000 milliseconds.')
+    }
     const decoder = new StringDecoder('utf8')
     let pending = ''
+    let partialTimer = null
+    let skipLeadingTerminator = false
+    let operation = Promise.resolve()
+    let stream
+
+    function clearPartialTimer() {
+        if (!partialTimer) return
+        clearTimeout(partialTimer)
+        partialTimer = null
+    }
+
+    function enqueue(action) {
+        operation = operation.then(action)
+        return operation
+    }
+
+    async function flushPartialLine() {
+        if (!pending) return
+        const text = pending
+        pending = ''
+        skipLeadingTerminator = true
+        await writeLines(writer, channel, [text])
+    }
+
+    function schedulePartialFlush() {
+        if (partialTimer || !pending) return
+        partialTimer = setTimeout(() => {
+            partialTimer = null
+            enqueue(flushPartialLine).catch(error => stream.destroy(error))
+        }, partialLineFlushMs)
+        partialTimer.unref()
+    }
+
     async function consume(text, final = false) {
         if (mirror && text) {
             await new Promise((resolve, reject) =>
                 mirror.write(text, error => error ? reject(error) : resolve()))
+        }
+        if (skipLeadingTerminator && text) {
+            if (text === '\r') return
+            if (text.startsWith('\r\n')) text = text.slice(2)
+            else if (text.startsWith('\n') || text.startsWith('\r')) text = text.slice(1)
+            skipLeadingTerminator = false
         }
         pending += text
         let lines = []
@@ -150,15 +249,24 @@ function logChannel(writer, channel, mirror) {
             }
         }
         if (lines.length) await writeLines(writer, channel, lines)
+        if (final) clearPartialTimer()
+        else if (pending) schedulePartialFlush()
+        else clearPartialTimer()
     }
-    return new Writable({
+    stream = new Writable({
         write(chunk, _encoding, callback) {
-            consume(decoder.write(chunk)).then(() => callback(), callback)
+            enqueue(() => consume(decoder.write(chunk))).then(() => callback(), callback)
         },
         final(callback) {
-            consume(decoder.end(), true).then(() => callback(), callback)
+            clearPartialTimer()
+            enqueue(() => consume(decoder.end(), true)).then(() => callback(), callback)
+        },
+        destroy(error, callback) {
+            clearPartialTimer()
+            callback(error)
         },
     })
+    return stream
 }
 
 function saveReceipt(file, receipt, onlyIfOwned = false) {
@@ -302,4 +410,7 @@ if (require.main === module) {
     }
 }
 
-module.exports = { FOUR_HOURS_MS, logBucket, RotatingLogWriter, logChannel, runLoggedServer }
+module.exports = {
+    FOUR_HOURS_MS, LOG_SYNC_INTERVAL_MS, PARTIAL_LINE_FLUSH_MS,
+    logBucket, RotatingLogWriter, logChannel, runLoggedServer,
+}
