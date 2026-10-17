@@ -28626,17 +28626,18 @@
       "created_at": "2026-10-17"
     },
     {
-      "id": "ios-cutins-alignment-1.4.232",
+      "id": "balance-1017d-1.4.232",
       "type": "patch",
-      "name": "iOS 技能切入图补齐与版本对齐",
-      "description": "补齐八份万圣技能切入图，并对齐六份已有角色技能切入图。",
+      "name": "平衡表：瑞西塔尔/塞里奥尔/露迪/深渊之兽/莫弥亚/玛格诺斯×2 / iOS 技能切入图对齐",
+      "description": "合并平衡调整与既有 iOS 技能切入图修复；两组件原始归档字节保持不变。",
       "version": "1.4.232",
       "depends_on": "1.4.231",
       "enabled": true,
       "archive": "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip",
-      "archive_size": 2937814,
+      "archive_size": 3869036,
       "chain": [
-        "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip"
+        "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip",
+        "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip"
       ],
       "files": [
         "production/ios_upload/28/1102adc9cec02aba2023fed506e3073826de94",
@@ -28652,7 +28653,20 @@
         "production/ios_upload/ce/a1878f2ac3ae24e75d8e3e4fb2fa0db9c87aaa",
         "production/ios_upload/da/a18a037eafa9c7de075b4479a36816b1e310c6",
         "production/ios_upload/de/cf5fe6e94a668a1a391df435000e97a35f94b4",
-        "production/ios_upload/e2/be0bdfec3dbdc1cf0ceb25238ba40fb633df1c"
+        "production/ios_upload/e2/be0bdfec3dbdc1cf0ceb25238ba40fb633df1c",
+        "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+        "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+        "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+        "production/upload/3d/7fb826e88d47d20d6f4d665b2bc16ffef3de2b",
+        "production/upload/5a/9034b60624cef700b59e9300b67c6aa2517774",
+        "production/upload/83/d64861cbbdb4bd31036cf2c84f4e6ccfd53127",
+        "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+        "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "production/upload/cb/df715e681dadddcf63881aee40d35899e608af",
+        "production/upload/d2/ef852bba91d9c7e0cb366246550877b39fb33e",
+        "production/upload/de/516e8cee5e613081284a3d7375abcbc004a1c6",
+        "production/upload/ef/5de5d2a774816930002ab6f9117865c6eb08bf",
+        "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
       ],
       "archive_integrity": [
         {
@@ -28676,11 +28690,32 @@
             "production/ios_upload/de/cf5fe6e94a668a1a391df435000e97a35f94b4",
             "production/ios_upload/e2/be0bdfec3dbdc1cf0ceb25238ba40fb633df1c"
           ]
+        },
+        {
+          "name": "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip",
+          "size": 931222,
+          "sha256": "44bfea67425b0e20d448aa5068355ad05e20e4d8b59663252d719dffb2bdc608",
+          "members": 13,
+          "files": [
+            "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+            "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+            "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+            "production/upload/3d/7fb826e88d47d20d6f4d665b2bc16ffef3de2b",
+            "production/upload/5a/9034b60624cef700b59e9300b67c6aa2517774",
+            "production/upload/83/d64861cbbdb4bd31036cf2c84f4e6ccfd53127",
+            "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+            "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+            "production/upload/cb/df715e681dadddcf63881aee40d35899e608af",
+            "production/upload/d2/ef852bba91d9c7e0cb366246550877b39fb33e",
+            "production/upload/de/516e8cee5e613081284a3d7375abcbc004a1c6",
+            "production/upload/ef/5de5d2a774816930002ab6f9117865c6eb08bf",
+            "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+          ]
         }
       ],
       "created_at": "2026-10-17",
       "audit": {
-        "directory": "assets/asset-patch/audit/ios-cutins-alignment-1.4.232",
+        "directory": "assets/asset-patch/audit/balance-ios-integration-1.4.232",
         "report": "report.json"
       }
     }
