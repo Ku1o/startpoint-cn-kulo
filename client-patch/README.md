@@ -59,11 +59,9 @@ P-code 方法体和带血统门禁的构建器见 [Android 账号继承入口补
 ## iOS 1.8.4
 
 **当前累计基线见 [ios-accepted.json](./ios-accepted.json)，后续 IPA 修改先运行 [iOS 基线检查器](./verify_ios_baseline.py)。**
-2026-09-09 应用户要求，深渊续战 Lens 累计 IPA 已完成离线验收并登记为当前基线，仍为 unsigned；本次没有安装或真机测试。
-它保留 Lens 的全部 33 个原生方法、此前资料页修复及 iOS 标题 `CNtips_b` 原有行为，新增一个续战方法。
-具体方法见 [iOS 深渊续战](./ios-abyss-autostart/README.md)，范围见 [验收记录](./ACCEPTANCE-ABYSS-AUTOSTART-20260909.md)。
-原 [iOS Lens](./ios-lens0907-0908/README.md)、9 月 8 日 [资料页关注与本人路由包](./ios-profile-follow/README.md)
-及诊断包都是历史版本，不替代当前登记。
+当前登记为 2026-10-17 PR43 旧服材料兼容、新准入、ARM64 公网未签名 IPA，层级 `accepted_offline`；身份与验证范围见 [本批登记记录](./ACCEPTANCE-PR43-IOS-COMPAT-20261017.md)，方法、AOT 与封包流程见 [PR43 iOS 配方](./pr43-ios/README.md)。目前没有同功能内网变体。后续从该成品及配套完整 ABC 继续，保留各平台累计修复。
+
+9 月深渊续战、Lens、资料页和 10 月 4 日修复包均保留各自历史记录，不替代当前登记；旧包真机结论不自动覆盖当前成品。
 
 已经通过真机回归的 iOS 五合一、数据继承、幻想连战及幻想魂珠纹理修复流程见
 [iOS 1.8.4 私服客户端补丁](./ios-five-in-one/README.md)。幻想魂珠补丁的独立设计与维护实现见
