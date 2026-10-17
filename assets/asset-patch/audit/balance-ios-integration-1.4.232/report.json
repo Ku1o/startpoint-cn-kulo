@@ -1,0 +1,339 @@
+{
+  "id": "balance-ios-integration-1.4.232",
+  "version": "1.4.232",
+  "depends_on": "1.4.231",
+  "archive_rename": {
+    "from": "pinball-1.4.231-1.4.232-1-balance-1017d-local.zip",
+    "to": "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip",
+    "sha256": "44bfea67425b0e20d448aa5068355ad05e20e4d8b59663252d719dffb2bdc608",
+    "reason": "Unique consecutive (from,to,seq) keys required by the download route."
+  },
+  "chain": [
+    "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip",
+    "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip",
+      "size": 2937814,
+      "sha256": "abee13268e03a40aa44a599905a543edb5c7a19d543afdb52c3388f1969dce42",
+      "members": 14,
+      "files": [
+        "production/ios_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+        "production/ios_upload/2c/f831794cd75d99b7ebad45b2fcc27f09c1a724",
+        "production/ios_upload/46/bb9d637ee8fca5b39fb82b4574165a60729b85",
+        "production/ios_upload/4e/ba3ad74e4f1580f671fd594c300918f8f8dfcf",
+        "production/ios_upload/7d/34ec806aaa975812df9324a8dcd2fc304a55aa",
+        "production/ios_upload/82/2b599e8885b67297215945fa49e65baca043e5",
+        "production/ios_upload/92/6da1eb28c9e62d1e1e6f35521b5e49f71af77d",
+        "production/ios_upload/93/d3fdfb479d386c265f508848f8f6a42eecf52b",
+        "production/ios_upload/a2/f7dd3504d98835d1ef0d4a9609e795ecf92e54",
+        "production/ios_upload/ca/af8700e092755f7902f3bc36f7dbc15fe6efa2",
+        "production/ios_upload/ce/a1878f2ac3ae24e75d8e3e4fb2fa0db9c87aaa",
+        "production/ios_upload/da/a18a037eafa9c7de075b4479a36816b1e310c6",
+        "production/ios_upload/de/cf5fe6e94a668a1a391df435000e97a35f94b4",
+        "production/ios_upload/e2/be0bdfec3dbdc1cf0ceb25238ba40fb633df1c"
+      ]
+    },
+    {
+      "name": "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip",
+      "size": 931222,
+      "sha256": "44bfea67425b0e20d448aa5068355ad05e20e4d8b59663252d719dffb2bdc608",
+      "members": 13,
+      "files": [
+        "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+        "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+        "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+        "production/upload/3d/7fb826e88d47d20d6f4d665b2bc16ffef3de2b",
+        "production/upload/5a/9034b60624cef700b59e9300b67c6aa2517774",
+        "production/upload/83/d64861cbbdb4bd31036cf2c84f4e6ccfd53127",
+        "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+        "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "production/upload/cb/df715e681dadddcf63881aee40d35899e608af",
+        "production/upload/d2/ef852bba91d9c7e0cb366246550877b39fb33e",
+        "production/upload/de/516e8cee5e613081284a3d7375abcbc004a1c6",
+        "production/upload/ef/5de5d2a774816930002ab6f9117865c6eb08bf",
+        "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+      ]
+    }
+  ],
+  "archive_size": 3869036,
+  "archive_size_semantics": "Total bytes of the enabled edge components.",
+  "files": [
+    "production/ios_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+    "production/ios_upload/2c/f831794cd75d99b7ebad45b2fcc27f09c1a724",
+    "production/ios_upload/46/bb9d637ee8fca5b39fb82b4574165a60729b85",
+    "production/ios_upload/4e/ba3ad74e4f1580f671fd594c300918f8f8dfcf",
+    "production/ios_upload/7d/34ec806aaa975812df9324a8dcd2fc304a55aa",
+    "production/ios_upload/82/2b599e8885b67297215945fa49e65baca043e5",
+    "production/ios_upload/92/6da1eb28c9e62d1e1e6f35521b5e49f71af77d",
+    "production/ios_upload/93/d3fdfb479d386c265f508848f8f6a42eecf52b",
+    "production/ios_upload/a2/f7dd3504d98835d1ef0d4a9609e795ecf92e54",
+    "production/ios_upload/ca/af8700e092755f7902f3bc36f7dbc15fe6efa2",
+    "production/ios_upload/ce/a1878f2ac3ae24e75d8e3e4fb2fa0db9c87aaa",
+    "production/ios_upload/da/a18a037eafa9c7de075b4479a36816b1e310c6",
+    "production/ios_upload/de/cf5fe6e94a668a1a391df435000e97a35f94b4",
+    "production/ios_upload/e2/be0bdfec3dbdc1cf0ceb25238ba40fb633df1c",
+    "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+    "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+    "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+    "production/upload/3d/7fb826e88d47d20d6f4d665b2bc16ffef3de2b",
+    "production/upload/5a/9034b60624cef700b59e9300b67c6aa2517774",
+    "production/upload/83/d64861cbbdb4bd31036cf2c84f4e6ccfd53127",
+    "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+    "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+    "production/upload/cb/df715e681dadddcf63881aee40d35899e608af",
+    "production/upload/d2/ef852bba91d9c7e0cb366246550877b39fb33e",
+    "production/upload/de/516e8cee5e613081284a3d7375abcbc004a1c6",
+    "production/upload/ef/5de5d2a774816930002ab6f9117865c6eb08bf",
+    "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+  ],
+  "prior_ios_audit": "assets/asset-patch/audit/ios-cutins-alignment-1.4.232/report.json",
+  "validation": {
+    "passed": true,
+    "components": {
+      "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip": {
+        "size": 2937814,
+        "sha256": "abee13268e03a40aa44a599905a543edb5c7a19d543afdb52c3388f1969dce42",
+        "members": 14
+      },
+      "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip": {
+        "size": 931222,
+        "sha256": "44bfea67425b0e20d448aa5068355ad05e20e4d8b59663252d719dffb2bdc608",
+        "members": 13
+      }
+    },
+    "total_size": 3869036,
+    "members": 27,
+    "component_intersection": [],
+    "prefix_to_231_preserved": true,
+    "continuous_unique_enabled_versions": true,
+    "winning_resources": 27,
+    "tables": [
+      {
+        "logical": "master/string/custom_ability_string.orderedmap",
+        "keys_before": 691,
+        "keys_after": 691,
+        "changed_keys": [
+          "desc_override_lion_swordman_moon",
+          "desc_override_lion_swordman_moon_1",
+          "desc_override_lion_swordman_moon_3",
+          "desc_override_lady_android_halloween_3",
+          "ability_skill_blade_witch_halloween_combo_summon",
+          "desc_override_blade_witch_halloween",
+          "desc_override_blade_witch_halloween_2",
+          "desc_override_blade_witch_halloween_3",
+          "desc_override_lich_halloween_2",
+          "desc_override_lich_halloween_3",
+          "desc_override_lich_halloween_5"
+        ]
+      },
+      {
+        "logical": "master/ability/ability.orderedmap",
+        "keys_before": 3555,
+        "keys_after": 3555,
+        "changed_keys": [
+          "1199963",
+          "1199901",
+          "1199903",
+          "1399853",
+          "1699852",
+          "1699853",
+          "1499852",
+          "1499853",
+          "1499855"
+        ],
+        "typed_rows": 12,
+        "parser_errors": 0,
+        "parser_warnings": 14,
+        "new_parser_warnings": [],
+        "official_precedent_exceptions": []
+      },
+      {
+        "logical": "master/character/unique_condition.orderedmap",
+        "keys_before": 161,
+        "keys_after": 162,
+        "changed_keys": [
+          "16998501"
+        ]
+      },
+      {
+        "logical": "master/character/character_text.orderedmap",
+        "keys_before": 602,
+        "keys_after": 602,
+        "changed_keys": [
+          "169980",
+          "169985"
+        ]
+      },
+      {
+        "logical": "master/skill/action_skill.orderedmap",
+        "keys_before": 666,
+        "keys_after": 666,
+        "changed_keys": [
+          "abyss_beast_playable",
+          "blade_witch_halloween"
+        ]
+      },
+      {
+        "logical": "master/ability/leader_ability.orderedmap",
+        "keys_before": 593,
+        "keys_after": 593,
+        "changed_keys": [
+          "119996",
+          "119990",
+          "169985"
+        ],
+        "typed_rows": 8,
+        "parser_errors": 0,
+        "parser_warnings": 15,
+        "new_parser_warnings": [
+          {
+            "key": "169985",
+            "row": 4,
+            "detail": "c34 instant_trigger.character_groups 为空（被读取时会渲染 null角色/空组文案）"
+          },
+          {
+            "key": "169985",
+            "row": 4,
+            "detail": "c47 instant_content.target.character_groups 为空（被读取时会渲染 null角色/空组文案）"
+          }
+        ],
+        "official_precedent_exceptions": []
+      }
+    ],
+    "dsl": [
+      {
+        "member": "production/upload/3d/7fb826e88d47d20d6f4d665b2bc16ffef3de2b",
+        "sha256": "3f9a85c771af7b50947c6d989ca6dcd607ac0511b68bfb8cf5f2901db0c38dc5",
+        "fully_decoded_amf3": true,
+        "effective_before_archive": "pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip"
+      },
+      {
+        "member": "production/upload/5a/9034b60624cef700b59e9300b67c6aa2517774",
+        "sha256": "5695698d0e37a7b63c93424da6a1433ebb20b94325481652fb01ef7b2a5c425a",
+        "fully_decoded_amf3": true,
+        "effective_before_archive": "pinball-1.4.220-1.4.221-11-halloween4-characters-local.zip"
+      },
+      {
+        "member": "production/upload/83/d64861cbbdb4bd31036cf2c84f4e6ccfd53127",
+        "sha256": "505399dac9767870accd9bee4a3864bbc6f53425da624597f1a519c3dc6f7219",
+        "fully_decoded_amf3": true,
+        "effective_before_archive": "pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip"
+      },
+      {
+        "member": "production/upload/cb/df715e681dadddcf63881aee40d35899e608af",
+        "sha256": "965394c10b2027ba4c38cce3651bb878e64afca831634e547419169ddc50a129",
+        "fully_decoded_amf3": true,
+        "effective_before_archive": "pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip"
+      },
+      {
+        "member": "production/upload/d2/ef852bba91d9c7e0cb366246550877b39fb33e",
+        "sha256": "6c1f269cd34c052877e59c5e472430c271f8ff10473e932b517ba0d120f3831d",
+        "fully_decoded_amf3": true,
+        "effective_before_archive": "pinball-1.4.220-1.4.221-11-halloween4-characters-local.zip"
+      },
+      {
+        "member": "production/upload/de/516e8cee5e613081284a3d7375abcbc004a1c6",
+        "sha256": "1b421de488e78f1fe8659a7ef0a527c08b0060b8e9016eafbc708dc519bf9841",
+        "fully_decoded_amf3": true,
+        "effective_before_archive": "pinball-1.4.228-1.4.229-1-balance-1017c-local.zip"
+      },
+      {
+        "member": "production/upload/ef/5de5d2a774816930002ab6f9117865c6eb08bf",
+        "sha256": "8ca226cddad46e48274f9072dab36dc9c6505834698c0abe1707dc585ac0d150",
+        "fully_decoded_amf3": true,
+        "effective_before_archive": "pinball-1.4.228-1.4.229-1-balance-1017c-local.zip"
+      }
+    ],
+    "text": [
+      {
+        "path": "assets/cdndata/character_text.json",
+        "character": "169980",
+        "changed_columns_zero_based": [
+          5,
+          7
+        ]
+      },
+      {
+        "path": "assets/cdndata/character_text_rank_p5b.json",
+        "character": "169980",
+        "changed_columns_zero_based": [
+          5,
+          7
+        ]
+      },
+      {
+        "path": "assets/cdndata/character_text_rank_p5b.json",
+        "character": "169985",
+        "changed_columns_zero_based": [
+          5,
+          7
+        ]
+      }
+    ],
+    "ios_member_identity_reused": 14,
+    "leader_warning_review": {
+      "character": "169985",
+      "row": 4,
+      "warnings": 2,
+      "blocking": false,
+      "trigger": "Initial (0), parseAt25 returns parameterless value; c34 is not consumed.",
+      "target": "Multiball (8), parseAt46 returns parameterless value; c47 is not consumed.",
+      "basis": "Static original client parser branches and preserved row dispatch; no device claim."
+    },
+    "prior_mana_ios_audit_eac_sources_unchanged": true,
+    "persisted_ids_or_schema_changed": false,
+    "http_checked": false,
+    "device_validated": false,
+    "deployed": false
+  },
+  "update_boundary": "This combines undeployed 232 components. A client already reporting 1.4.232 receives no new edge; same-version cached clients do not automatically fetch missing components.",
+  "offline_route_validation": {
+    "passed": true,
+    "manifest_sha256": "145dab050971ab387270a30d459107c685d07b0ca038e8919ac9b413a9ce0cb0",
+    "chain_warnings": [],
+    "duplicate_sequence_rejected": true,
+    "cases": [
+      {
+        "device": "Android",
+        "resVer": "1.4.231",
+        "archives": [
+          "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip",
+          "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip"
+        ],
+        "totalSize": 3869036,
+        "asset_update": true
+      },
+      {
+        "device": "Android",
+        "resVer": "1.4.232",
+        "archives": [],
+        "totalSize": 0,
+        "asset_update": false
+      },
+      {
+        "device": "iOS",
+        "resVer": "1.4.231",
+        "archives": [
+          "pinball-1.4.231-1.4.232-1-ios-cutins-alignment-20261017.zip",
+          "pinball-1.4.231-1.4.232-2-balance-1017d-local.zip"
+        ],
+        "totalSize": 3869036,
+        "asset_update": true
+      },
+      {
+        "device": "iOS",
+        "resVer": "1.4.232",
+        "archives": [],
+        "totalSize": 0,
+        "asset_update": false
+      }
+    ],
+    "header_envelope_stubbed": true,
+    "listener_started": false,
+    "http_requests": 0,
+    "database_opened": false,
+    "baseline_scope": "Worktree has no pristine CDN catalog; these non-initial requests use active patches only."
+  }
+}
