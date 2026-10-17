@@ -2,3 +2,21 @@
 # This exact finding is from its generated JavaScript entering version control.
 # Other commits, locations, and rules remain subject to secret scanning.
 35c9b3043a3414208f6acd40d5f8766a9491e871:out/routes/openapi.js:generic-api-key:25
+
+# Exact SHA-256 findings from the pinned private ABC dependency inventory.
+# Each value was checked against the corresponding ABC; these are file digests.
+# Only this commit, file, rule and line are excluded; future changes are scanned.
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:84
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:149
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:150
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:152
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:156
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:164
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:165
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:166
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:167
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:190
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:191
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:196
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:256
+a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:257
