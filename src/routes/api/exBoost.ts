@@ -12,7 +12,7 @@ import { randomInt } from "crypto"
 import { clientSerializeDate } from "../../data/utils"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
-import { characterMaxOverLimits } from "./character"
+import { getCharacterMaxOverLimit } from "../../lib/character-overlimit"
 import orderedExAbility from "../../../assets/ex_ability.json"
 
 interface ExBoostDrawBody {
@@ -212,7 +212,7 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
 
         // ensure max over limit step (aligned with client isMaxOverLimitStep)
         const rarity = characterAssetData.rarity
-        const maxOver = characterMaxOverLimits[rarity]
+        const maxOver = getCharacterMaxOverLimit(characterId, rarity)
         if (maxOver === undefined || characterData.overLimitStep < maxOver) {
             return reject(400, "Character not at max over limit step.")
         }
