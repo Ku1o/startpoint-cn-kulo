@@ -20,3 +20,20 @@ a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependenc
 a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:196
 a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:256
 a694b6f039f06d80c625980e057cafeed2a6abbe:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:257
+
+# The historical integration contains the identical pinned dependency inventory.
+# Apply the same verified digest exclusions to its exact commit findings.
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:84
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:149
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:150
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:152
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:156
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:164
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:165
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:166
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:167
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:190
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:191
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:196
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:256
+0229eca2b747e37d3f34c79a83134a935489249e:client-patch/pr43-ios/support/dependency-hashes.json:generic-api-key:257
