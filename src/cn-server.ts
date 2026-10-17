@@ -587,8 +587,11 @@ const closeGracefully = createGracefulShutdown({
     },
     failed: () => { process.exitCode = 1; process.exit(1); },
 });
-function requestGracefulShutdown(source: string): void {
+function requestGracefulShutdown(source: string, forceExit = false): void {
     void closeGracefully(source).then(() => {
+        // After a fatal error, do not wait for leftover handles to let the
+        // event loop drain on its own.
+        if (forceExit) process.exit(process.exitCode ?? 1);
         if (process.connected) process.disconnect();
     });
 }
@@ -606,9 +609,7 @@ if (process.connected) process.on("message", message => {
 installProcessGuards({
     onFatal: () => {
         process.exitCode = 1;
-        // After a fatal error, do not wait for leftover handles to let the
-        // event loop drain on its own.
-        void closeGracefully("uncaughtException").then(() => process.exit(process.exitCode ?? 1));
+        requestGracefulShutdown("uncaughtException", true);
     },
 });
 startQuestNpcPartyPoolWorker();
