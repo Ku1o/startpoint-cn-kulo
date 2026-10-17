@@ -1,0 +1,445 @@
+{
+  "rows": [
+    {
+      "android_body": 5759,
+      "ios_body": 5845,
+      "ios_method": 6084,
+      "ios_body_sha256": "4d31a31bcc76e5207e451de19f99412493a2c0e7be9f9bc42849c9d585dbbf97",
+      "ios_label": "pinball.asset.master::MasterBinaryMap/getIndex|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 19909,
+      "ios_body": 20095,
+      "ios_method": 21102,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.common.data.localStore::MiscDataLogic/setAutoSpeedLevel|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 21430,
+      "ios_body": 21616,
+      "ios_method": 22918,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.common.data.quest.battle::BattleQuestBaseImpl/resolvePathCollectionForDashPanel|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 21446,
+      "ios_body": 21632,
+      "ios_method": 22934,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.common.data.quest.battle::BattleQuestBaseImpl/leadingResolvePathCollection|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 30917,
+      "ios_body": 31214,
+      "ios_method": 33649,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.context.reproduce::ReproduceFileRecordImpl/saveLog|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 30966,
+      "ios_body": 31263,
+      "ios_method": 33717,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.context.restore::Restore/saveBattleRestore|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 31072,
+      "ios_body": 31369,
+      "ios_method": 33843,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.context.scene::LogicSceneTransition/deactivatePreviousScene|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 37884,
+      "ios_body": 38249,
+      "ios_method": 41543,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.loading::ProductionLoading/resetAssets|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 38042,
+      "ios_body": 38407,
+      "ios_method": 41700,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.loading.battle::BattleStartProductionViewService/setupTextureAtlas|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 38045,
+      "ios_body": 38410,
+      "ios_method": 41703,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.loading.battle::BattleStartProductionViewService/prepare|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 38428,
+      "ios_body": 38793,
+      "ios_method": 42098,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.loading.local::LocalLoading/startChild|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 53155,
+      "ios_body": 53565,
+      "ios_method": 57742,
+      "ios_body_sha256": "4210b3064a089aca740850e98bdbf902bb524a18f8ab525e662c03f6bbff5c37",
+      "ios_label": "pinball.scene.battle.battle.enemy::EnemyImpl/isBattleDebugToughnessPointGaugeVisible|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 53486,
+      "ios_body": 53896,
+      "ios_method": 58073,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.battle.enemy::EnemyImpl/applyAttack|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 58371,
+      "ios_body": 58880,
+      "ios_method": 63503,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.battle.flipper::BattleFlipperImpl/update|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 58431,
+      "ios_body": 58940,
+      "ios_method": 63571,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.battle.flipper::BattleFlipperView/draw|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 58762,
+      "ios_body": 59271,
+      "ios_method": 63979,
+      "ios_body_sha256": "045ef9af7ba3816562d23a0ea8ce8ff65b7794df68aab995094eb886efbfdf0f",
+      "ios_label": "pinball.scene.battle.battle.hud::HudMemberStatus/update|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 60180,
+      "ios_body": 60689,
+      "ios_method": 65745,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.battle.squad.member::MemberImpl/startPowerFlip|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 60192,
+      "ios_body": 60701,
+      "ios_method": 65757,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.battle.squad.member::MemberImpl/scheduleDirectAttack|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 60292,
+      "ios_body": 60801,
+      "ios_method": 65857,
+      "ios_body_sha256": "4d31a31bcc76e5207e451de19f99412493a2c0e7be9f9bc42849c9d585dbbf97",
+      "ios_label": "pinball.scene.battle.battle.squad.member::MemberImpl/getTotalConditions|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 60305,
+      "ios_body": 60814,
+      "ios_method": 65870,
+      "ios_body_sha256": "41bbe0f11e75c8ab8145459d71c263a2e9541e8d92d802e2f39aea3cde5cf21a",
+      "ios_label": "pinball.scene.battle.battle.squad.member::MemberImpl/getStatModifierSkillGaugeCharging|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 60430,
+      "ios_body": 60939,
+      "ios_method": 65995,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.scene.battle.battle.squad.member::MemberImpl/getConditionsIncludingOuterEnvironments|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 61868,
+      "ios_body": 62377,
+      "ios_method": 67661,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.battle.zone.yakumono::YakumonoManagerImpl/deactivate|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 61871,
+      "ios_body": 62380,
+      "ios_method": 67664,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.battle.zone.yakumono::YakumonoManagerImpl/activate|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 62884,
+      "ios_body": 63393,
+      "ios_method": 68806,
+      "ios_body_sha256": "4d31a31bcc76e5207e451de19f99412493a2c0e7be9f9bc42849c9d585dbbf97",
+      "ios_label": "pinball.scene.battle.derailleur::BattleDerailleur/getDeferralLevel|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 63135,
+      "ios_body": 63644,
+      "ios_method": 69083,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.battle.state::BattleScenePlayingStateImpl/proceedBattles|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 65499,
+      "ios_body": 66125,
+      "ios_method": 71953,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.character::CharacterScene/viewDidChange|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 65790,
+      "ios_body": 66416,
+      "ios_method": 72268,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.character.cell::CharacterCellView/drawWithAdvanceFlag|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 66148,
+      "ios_body": 66774,
+      "ios_method": 72663,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.character.characterTable::CharacterTable/applyCharacters|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 66173,
+      "ios_body": 66799,
+      "ios_method": 72691,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.character.characterTable::CharacterTableView/present|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 66178,
+      "ios_body": 66804,
+      "ios_method": 72696,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.character.characterTable::CharacterTableView/draw|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 66180,
+      "ios_body": 66806,
+      "ios_method": 72698,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.character.characterTable::CharacterTableView/applyPatch|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 66664,
+      "ios_body": 67296,
+      "ios_method": 73229,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.character.partyCarousel.page::PartyCarouselPageView/apply|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 67041,
+      "ios_body": 67673,
+      "ios_method": 73638,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.scene.character.useCase.base::CharacterUseCaseBase/getListCharactersInParties|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 74852,
+      "ios_body": 75511,
+      "ios_method": 82542,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.home::HomeView/<ctor>",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 81061,
+      "ios_body": 81782,
+      "ios_method": 89711,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.scene.shop.shopTop::ShopTopScene/listCellEnabledResolver|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 84274,
+      "ios_body": 85019,
+      "ios_method": 93255,
+      "ios_body_sha256": "40f248c1b4990a2e8a20cf40c7957334062ac03d438edd49bb001407658a5cfa",
+      "ios_label": "pinball.ui.component.characterVoice::CharacterVoiceLogic/createVoicePathMap|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 92330,
+      "ios_body": 17702,
+      "ios_method": 18394,
+      "ios_body_sha256": "0d4e75542c91bd4cd9b2d87c00c56f0b2e37e6a83a2f929f0fba128a9ae45adf",
+      "ios_label": "pinball.common.data.character::BattleCharacterLogic/resolveFollowingPathCollection|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 17542,
+      "ios_body": 17621,
+      "ios_method": 18290,
+      "ios_body_sha256": "4d31a31bcc76e5207e451de19f99412493a2c0e7be9f9bc42849c9d585dbbf97",
+      "ios_label": "pinball.common.data.character::GeneralCharacterLogic/get_maxOverLimitStep|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 18060,
+      "ios_body": 18246,
+      "ios_method": 18971,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.common.data.character.parameter::OwnedOverLimitLogic/getOwnAwakingCrystalToOverLimit|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 18063,
+      "ios_body": 18249,
+      "ios_method": 18974,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.common.data.character.parameter::OwnedOverLimitLogic/getAwakingCrystalToOverLimit|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 18061,
+      "ios_body": 18247,
+      "ios_method": 18972,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.common.data.character.parameter::OwnedOverLimitLogic/getOverLimitState|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 17768,
+      "ios_body": 17954,
+      "ios_method": 18655,
+      "ios_body_sha256": "4d31a31bcc76e5207e451de19f99412493a2c0e7be9f9bc42849c9d585dbbf97",
+      "ios_label": "pinball.common.data.character::OwnedCharacterLogic/getPossibleOverLimitCountByItem|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 17568,
+      "ios_body": 17647,
+      "ios_method": 18316,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.common.data.character::GeneralCharacterLogic/getPedestalImagePath|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 17588,
+      "ios_body": 17667,
+      "ios_method": 18336,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.common.data.character::GeneralCharacterLogic/getHalfPedestalImagePath|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 87354,
+      "ios_body": 88119,
+      "ios_method": 96481,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.ui.component.pixelArtCharacter::PixelArtCharacter/getPedestalImagePath|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 73067,
+      "ios_body": 73726,
+      "ios_method": 80527,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.scene.expod.overLimitWindow::OverLimitWindow/getOverLimitState|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 73055,
+      "ios_body": 73714,
+      "ios_method": 80515,
+      "ios_body_sha256": "333e0a1e27815d0ceee55c473fe3dc93d56c63e3bee2b3b4aee8eed6d70191a3",
+      "ios_label": "pinball.scene.expod.overLimitWindow::OverLimitWindow/run|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 73065,
+      "ios_body": 73724,
+      "ios_method": 80525,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.scene.expod.overLimitWindow::OverLimitWindow/getStatusInformation|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    },
+    {
+      "android_body": 33543,
+      "ios_body": 33891,
+      "ios_method": 36710,
+      "ios_body_sha256": "ccf5360dcc1e18fdf89baebff7ff0230fd92a9a68bae4dabaac88b46f8b77cb7",
+      "ios_label": "pinball.dialog.expod.overLimit::ExpodOverLimitByItemDialog/getDescription|1",
+      "signature_equal": true,
+      "missing_ios_own_fields": []
+    }
+  ]
+}

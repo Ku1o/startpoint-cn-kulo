@@ -1,0 +1,16 @@
+{
+  "ipa_sha256": "66b1057cc7cd9e66da7a38aa9e4963d7effe2220f0889a9fcff4cfa1eeac77e0",
+  "size_bytes": 167038327,
+  "native_member": "Payload/worldflipper.app/worldflipper",
+  "native_sha256": "bde4cb2273d9b2f7df4aa06c3b3152edd32be56586974b8bb696767df97e176a",
+  "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+  "swf_sha256": "1d986e575b5948865a1b1eb733bee964207f71c9fe881bcff2be0204d089d3ea",
+  "bundle_id": "com.kulo.wf",
+  "version": "1.8.4",
+  "build": "1.8.46",
+  "full_abc_sha256": "a3a7e2b465f14472164a2b7cb61fcdd7b57c3987cb76bf2e8cfa095620270ab8",
+  "full_abc_sha1": "42b71efd1b0fb201485b093dbb1c94e08ebfedbd",
+  "aot_info_file_offset": 104549248,
+  "aot_method_count": 101466,
+  "admission_id": "ios-184-author-1047-public-20261001"
+}
