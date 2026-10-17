@@ -319,10 +319,11 @@ def _encode_eac_alpha_block(values: tuple[int, ...]) -> bytes:
     best_err = 1 << 60
     best_base = 0
     best_table = 0
-    best_multiplier = 0
+    best_multiplier = 1
     best_indices: tuple[int, ...] = ()
     for table_index, modifiers in enumerate(_EAC_ALPHA_MODS):
-        for multiplier in range(16):
+        # Khronos Data Format 1.4 §22.3 forbids zero in encoded alpha blocks.
+        for multiplier in range(1, 16):
             # selector 的最佳分配取决于 base，先用块均值作为稳定的基值估计，
             # 再在其邻域试探；alpha 修正表的 selector 集合整体接近对称。
             estimate = (sum(values) + 8) // 16
@@ -359,7 +360,8 @@ def _encode_eac_alpha_block(values: tuple[int, ...]) -> bytes:
     packed = 0
     for index, selector in enumerate(best_indices):
         packed |= selector << (45 - index * 3)
-    return bytes((best_base, (best_table << 4) | best_multiplier)) + packed.to_bytes(6, "big")
+    # Bits 55..52 are multiplier; bits 51..48 are table index (Table 22.5).
+    return bytes((best_base, (best_multiplier << 4) | best_table)) + packed.to_bytes(6, "big")
 
 
 def encode_eac_alpha(rgba: bytearray, w: int, h: int) -> bytes:
@@ -441,8 +443,9 @@ def decode_eac_alpha(data: bytes, w: int, h: int) -> bytearray:
     for block_index in range(nbx * nby):
         block = data[block_index * 8:(block_index + 1) * 8]
         base = block[0]
-        table_index = block[1] >> 4
-        multiplier = block[1] & 0x0F
+        table_index = block[1] & 0x0F
+        # Decoders still accept zero and evaluate modifier * 0 as zero (§22.3).
+        multiplier = block[1] >> 4
         packed = int.from_bytes(block[2:8], "big")
         bx = block_index % nbx
         by = block_index // nbx

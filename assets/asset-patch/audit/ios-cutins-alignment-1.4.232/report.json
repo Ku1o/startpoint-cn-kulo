@@ -1,0 +1,1835 @@
+{
+  "scope": "independent_ios_cutins_from_effective_source_pngs",
+  "source_revision": "51bb6013161c165ab32004c6abcee38a78f4292b",
+  "input_version": "1.4.231",
+  "output_version": "1.4.232",
+  "encoder": "wf_atf.build_cutin_atf_ios",
+  "workers": 4,
+  "original_archives_rewritten": false,
+  "android_resources_changed": false,
+  "standard_vector": {
+    "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+    "section": "22.3",
+    "block_hex": "672d6db6db6db6db",
+    "base": 103,
+    "table": 13,
+    "multiplier": 2,
+    "selector": 3,
+    "expected_all_16_alpha": 83,
+    "decoded_alpha_hex": "53535353535353535353535353535353",
+    "passed": true
+  },
+  "items": [
+    {
+      "logical": "character/unicorn_lancer_rose/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+      "sha256": "aee6a48e565b354e832f66fa3b36a39455b02c992a7ce8505f13364a305bbaa2",
+      "size": 172826,
+      "decoded_source_png_sha256": "94df262e12df5075b3495559f83cd1dbf17cf23d6bde7760d536d4ec7188b3d6",
+      "source_png": {
+        "member": "production/medium_upload/22/3839a14f7ecd68526aab72061f0e6d9d5409c9",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "3045d3c44363a503e952457aca5dcf45e13bc55c3046334da59fc9980dd2b76f",
+        "sha256": "19a92358e1824fa0582b6a8fd0b4df8979016707872cf657be823a9cd83e9fd9",
+        "size": 552789,
+        "archive": "pinball-1.4.136-1.4.220-8-hui-share-20261016.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "2ba944431cd12ba9cbad1a888d73b369b56b455addf0c345c5fd09d6574dee93",
+        "sha256": "e76b902cd297afd1a1f48136e2d9116392c83fe6a97d167b39ca65823165c604",
+        "size": 155016,
+        "archive": "pinball-1.4.136-1.4.220-10-hui-share-20261016.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "2bcad61ffd13823c0731f1d504652955cd3cf03b78167e5f16f470a9c7e88024",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "9d2823261c7701b186d120f501bf1601655c240e94a15601db7dc630bc0f3107",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "15fc9a369f112060156cb7ce723339037f4fe66070aaecd4d413871d80a3da5b",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "3d65cd5e8789b95b16a48fbc8405de5b73e0af805e1c6d4c17c85d2d58ca155a",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "f6eda554d1977c9977c5b19f945328c04a401f47ec25f53544d10a47b94531d0",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "eee7bab4a208caa21564f7f73b12bbcb7f342ae2721de8e84829706f9fa0bb11",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "a0be982de5be38b23e6db46851d94503478a5bf875c97177bfd6ec7f1722d14a",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "3f722966291e572ba385b65eb00f1173dc6fd6f2929f7c26ca1fc7bfa4debdd0",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "297d857f62224674d87d40cf4d27fd99ac388c465dd3fc91adee69e64470bb52",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "8fa9c673426f1eef850ca6165ba8b02732505aacc1018fc8761b35b2c87e2039",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "594e519ae499312b29433b7dd8a97ff068defcba9755b6d5d00e84c524d67b06",
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "encoder_fixed": true
+      }
+    },
+    {
+      "logical": "character/crystal_swordman_halloween/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/2c/f831794cd75d99b7ebad45b2fcc27f09c1a724",
+      "sha256": "7bf42f4f0efc595d034ef0ebee4ad1208a3931763cf93dab26c9bb5c16bff8e7",
+      "size": 251164,
+      "decoded_source_png_sha256": "ccbaa7473871fc4759665fb3ffcbe84862b91d5a5b05351b699ef27ee608a235",
+      "source_png": {
+        "member": "production/medium_upload/b6/0d9d150e5c34b39011f23444ac3bca7698187a",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "7be1d939f4cd51dd6ce686e0c00648539ef53e726b5542b563aa3743c6093e2b",
+        "sha256": "61172e3a72450bf12a973b8f20f407e0a4f472d4abfaf54b9c0838ce901d9b0a",
+        "size": 822987,
+        "archive": "pinball-1.4.220-1.4.221-7-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/2c/f831794cd75d99b7ebad45b2fcc27f09c1a724",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e119834d9ea6b672351961e969c4fbe2c8e9827f394940d4246e905c4633b391",
+        "sha256": "06ddd877d59ae0fa3ecd1b83a9f00a37d7cf2a5ba666dbc53b85293f338dafd7",
+        "size": 218944,
+        "archive": "pinball-1.4.220-1.4.221-8-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 32832,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "789637d10a64214f8f38e2fc76b65f6b131256351f8a363bd165c14a0456ed1a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "44e95f6d26220b5fd5d16440ee7d64f363490ed002406dfc31be1f777e732912",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "c46af9ba6fb1493c3638cfe8053fcbf5d9305a5903aba5dd8e95e3c9d3584e2d",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "fa66d1460b000a27fdd570a8e601b0c82cb444b7792b536026f9bd129f98790b",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "3217a2ffc6b2d2245139141246784aa79a2a8c590015c020f8ea035f9d7d5e3a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "c247919705906d4ca1ec8436f6306ec12f81efc862a8f9cd894a289360ca8232",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "af24586d486b42d214baf5fdea46651380cf80fcc80e3cfd86b9ad915dacb4c0",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "b58c4d30d8e1b325fec6490d090bf22a421e915c4001c1ab90a6a5ab064a7bdc",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "bc8399569f71efd50a51c967512ad3b9a32e3962a0cd21511adc5c4f6e5c3dc5",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "35d1785c7e0d9f3a549118b53d587e7a9566dc87d5313fa35ce27698a07852b3",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "4d6a8e90039fc9782a1bbbd3cced923633e38eb83cf857d2e795e9ea13ef7d4d",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 9.644586563110352,
+        "standard_alpha_mae_after_adapter": 0.06150627136230469
+      }
+    },
+    {
+      "logical": "character/lady_android_halloween/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/46/bb9d637ee8fca5b39fb82b4574165a60729b85",
+      "sha256": "98b0eca2f146c99a8d0b7b2a1c60120e4ddab57f0ea6b437a758c27a2213a764",
+      "size": 199802,
+      "decoded_source_png_sha256": "68656d7913e2a9dbee4463bf398a4485d9f09468a9f8c5e168452a2461deda25",
+      "source_png": {
+        "member": "production/medium_upload/65/9926b195e179b7b97e5fc3e84fb91e4333cf7d",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "7be1d939f4cd51dd6ce686e0c00648539ef53e726b5542b563aa3743c6093e2b",
+        "sha256": "e99b0dea1600efa5693bd6541ab4a8b665ef1420da15e1a9ead9c4d6f073cbb7",
+        "size": 606977,
+        "archive": "pinball-1.4.220-1.4.221-7-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/46/bb9d637ee8fca5b39fb82b4574165a60729b85",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e119834d9ea6b672351961e969c4fbe2c8e9827f394940d4246e905c4633b391",
+        "sha256": "58ffe4321979d6976d2ec6e0e6a9448cc152d94fce98d40349828064816ff670",
+        "size": 178183,
+        "archive": "pinball-1.4.220-1.4.221-8-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 37815,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "8556d95afc75d2a691518ea0f3891c2f0b7b09fd5b9ee1d8c5a6379443c45de0",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "6db1d8e5e246fbcd5494ec46a9f56bedbeed89f540c4bcef6a1006b5d7bce168",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "bf1ab2d8810bc88a6d556838826020d390d2c2c6e782c246ce435d6cce89e1f5",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "ade49f50632e5edb128da143ba258b46b6cb8ff2c10a5eba58f269afda598ad0",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "4dce23c04753f74ed5e2e9809abc2d3c066c45ec9ef102d640bb3e42cf62a68d",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "bf5f24af92051ca3227cda267c5a58d0b3fd4d24fc012fefa98ffc8f254b529b",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "e52b3ac231af5f5cd0e66bd191f55a4c2d7d963ae2c7a84ce03a8873b78ef0b7",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "5d476385abf5f165f0bb7110689e8fdb25c264e5cd861271499fd38f41208984",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "cad09597d1d1a13ff7eb8ae22e73cbf016feb7b8006fd81a2eb5c5b7f2d39cff",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "ed33c5fa88986addbb653b0d6f827969758b8df1ba27825ebe8b481845da3aae",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 3.7242679595947266,
+        "standard_alpha_mae_after_adapter": 0.21828269958496094
+      }
+    },
+    {
+      "logical": "character/lich_halloween/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/4e/ba3ad74e4f1580f671fd594c300918f8f8dfcf",
+      "sha256": "ae56e9ae2071b18db144b55a4dfed008716b17604b8ca63fd15894c3e5fb7ee2",
+      "size": 250037,
+      "decoded_source_png_sha256": "d5b72e0e771f9f936e6328bbc4b56196ee54c8003b03f30312a8748f5a7cdb9f",
+      "source_png": {
+        "member": "production/medium_upload/32/f0fa750b01a58a6a92a5ee3306701c7c987bf9",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "7be1d939f4cd51dd6ce686e0c00648539ef53e726b5542b563aa3743c6093e2b",
+        "sha256": "979304ee8fa355220d32b3ebf8875752c8d16e3a0bcab75adba31a6a47b069ce",
+        "size": 751865,
+        "archive": "pinball-1.4.220-1.4.221-7-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/4e/ba3ad74e4f1580f671fd594c300918f8f8dfcf",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e119834d9ea6b672351961e969c4fbe2c8e9827f394940d4246e905c4633b391",
+        "sha256": "8f02871c57c5b1d1ccd5671461b74f83c8afda68590a3af15c801ff142dbeb38",
+        "size": 217869,
+        "archive": "pinball-1.4.220-1.4.221-8-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 33258,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "ed02849ec10c79c96444c8f07745893588967c6a728804ecc7791a070ac63a41",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "afe1e9d90ca282da756b13460c97055ae1084b9b082f18d87a8ece3b0dd8e80b",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "b74551ebdca15c733c933aab9e02174a8fa29b2958414ea871ec8eb966e27d64",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "da5dcb3d5a574a7f0c7b96d14c50184a0987ea0030dc1f66cd99250a15fffd1b",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "453beaf1ccf7959f37e62308c5ed2ce4bdc4390c3d1e7edcc64f6d1b4372e36d",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "87604d2bb0e1e193b25eeb8d4f72715e254967ffd04c566fcc2f37f951efe8fc",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "258c04990f2fc82a89e4d4dfa520ec2038017383f694f4fb823cb40632296fef",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "7058d583aeac5517e866948c26f6c1d56f2e63ff29eab8f53d136e3258050c93",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "2959be40db13f1a84389ece297236a07e3d4e955111befe195de2d13058ce09b",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "e0cc58caee723db97ff5cd77ecb855418c8d2bd224a3f0c106599e141b7238b5",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "cbe5cfdf7c2118a9c3d78ef1d684f3afa089201352886449a06a6511cfef74a7",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 9.707687377929688,
+        "standard_alpha_mae_after_adapter": 0.2014007568359375
+      }
+    },
+    {
+      "logical": "character/lich_halloween/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/7d/34ec806aaa975812df9324a8dcd2fc304a55aa",
+      "sha256": "4ab2c7b492bd94a319ff2758dc1d684b7766dc5e0c50e5cd2406d38bc8874beb",
+      "size": 198486,
+      "decoded_source_png_sha256": "0f244bd34f7bf874817446b939b33e960cbaa9d3e8e6c3c5b2f93dab3b0b1000",
+      "source_png": {
+        "member": "production/medium_upload/0d/4360073b265f6c549bf2961b6c95d6d14b4b37",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "7be1d939f4cd51dd6ce686e0c00648539ef53e726b5542b563aa3743c6093e2b",
+        "sha256": "9d08eb39a448d3e6c7f2efd55a771c85ba13fbb904986bda6ca40249b95f483d",
+        "size": 593725,
+        "archive": "pinball-1.4.220-1.4.221-7-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/7d/34ec806aaa975812df9324a8dcd2fc304a55aa",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e119834d9ea6b672351961e969c4fbe2c8e9827f394940d4246e905c4633b391",
+        "sha256": "c2eda41019b5853e7854083f06eafa9e4fc314a25f3d9423eb99d674d6f3ebb1",
+        "size": 175475,
+        "archive": "pinball-1.4.220-1.4.221-8-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 37315,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "dd6f32eec66682b345bf1f5c90785f9c5a8766e052a4f6105f719c6183c00c53",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "a3fe4a8227a23586aacffd749c9a7fb9d20966cf19c7d9f51dfa33e8b7725a24",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "9b64722cd09fa6d19dca5bb03ffbe923902ec71252a65cbae58d2c6a33c42ff0",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "02d40f8722ab281fccdb2f2a6732fb982a0ada52bcd716a5617a1ee92f6fa233",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "24dbb3c5828299f8c97ab1de9c0a8baa6bdf132a84128f81e80a1b1f0def1157",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "71e1bc702bae7c5fcc510f740e7bfce0e8653e05dfd8da55f51473d0c5efc805",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "513038757a0f57edd8a924f7955ad7d3e310f1b461971b7b2ecc02289969c820",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "f822831fd45c2b2feeb3f751c4e0b96348138479b461222f38589c1fb3f22d92",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "f17f24d3f305d3aebe073d9c742b850805cc4064a6b9170554557529fbc386d9",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "5ec291abdd1e7317f5335b8c223738ed14ef426ac6aa445bb61ef85d11d8a853",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "8254c329a92850f6d539dd376f4816ee2764517da5e0235514af433164480d7a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 4.216962814331055,
+        "standard_alpha_mae_after_adapter": 0.1831645965576172
+      }
+    },
+    {
+      "logical": "character/black_wolf_knight_moon/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/82/2b599e8885b67297215945fa49e65baca043e5",
+      "sha256": "f834527f72a160f026693db7edb22b48ac3e5d9409e67beb63aaac5793256e2a",
+      "size": 203215,
+      "decoded_source_png_sha256": "95efcf08974d2e636191de5d11f26fbf04ef5a48966f2f2a3ff48e07853cd26a",
+      "source_png": {
+        "member": "production/medium_upload/98/6cba1ffda4b40a75402d80e6dbcc6f8d72df98",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "56493db3e3e0ac314467fa2c0efbaa15e84d9f7ebd83fbdf6e4cbf03d084cb64",
+        "sha256": "bc77ea07b0729cc50cf5fb072b93640e8a7d2fc5caf2e44fba3d8f1f7dfb0d8f",
+        "size": 654635,
+        "archive": "pinball-1.4.136-1.4.220-4-hui-share-20261016.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/82/2b599e8885b67297215945fa49e65baca043e5",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "2ba944431cd12ba9cbad1a888d73b369b56b455addf0c345c5fd09d6574dee93",
+        "sha256": "42be2fdd40fc20f6666fd9b399b64c4bc864455f7ee3ada272d852ebb6540dea",
+        "size": 185180,
+        "archive": "pinball-1.4.136-1.4.220-10-hui-share-20261016.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "47acbbe5bfcee4e87e1c68c7fb5c01c710ec146d78d0c099cb2dc474dce35d88",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "a1b25e4ce9c180fc13ce27926d89faf3c76f8ed81ba14b08582ac051e22b1435",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "5cc06778e6dad9fdf1777461c9bd79007d8a8f3974b527d8e4f27f39a8de281e",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "2e775076933d6730d887dff13b3fd0d81414db493353c83ea966cdf9edd953e2",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "4a49e42d7ce3b5ddf37c4b4c0ce57c358daaa3ab4974f3000d135220d0c7a9da",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "f7ccc7d2e7fe3cad9a4d0d67af2a0b44d59b9c4697da805945ff3e046ba8234b",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "468ee0ff4023c128ec79673416ec0c4661c33baf9a08b0e2bcac1a228293e21f",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "81170958b4895b8b7730d6b40f59ddbd56fa39033aa15c2b2ed27a3179b112df",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "0925d2e4126f99386bfbefa1e6902bda51aad95057f60a0b05af60a78fdd2417",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "fcb19dd9149ba5cb3f1aa6fa75b6688d8e0db4fdbd5d77285d5561e3268fc353",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "c337ded6f56c07205fb7b391654d7d463c9e0c726869523ae6024c9bec878878",
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "encoder_fixed": true
+      }
+    },
+    {
+      "logical": "character/lady_android_halloween/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/92/6da1eb28c9e62d1e1e6f35521b5e49f71af77d",
+      "sha256": "8b127e8c2ff6e4413686e47024add9fabc0bf8d99129d283032de2e5758a437c",
+      "size": 142374,
+      "decoded_source_png_sha256": "418487478ecf09f377b5773947888154ba15fb14ac10f59b23158214620c67de",
+      "source_png": {
+        "member": "production/medium_upload/9d/319ff9883e41aa18c12de7d3b0100bc479a2bb",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "7be1d939f4cd51dd6ce686e0c00648539ef53e726b5542b563aa3743c6093e2b",
+        "sha256": "ecf7bfe0f13d8aabd3eafdeaf852a45240c32d8bd6a96f9442b0fcb5258a0037",
+        "size": 444442,
+        "archive": "pinball-1.4.220-1.4.221-7-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/92/6da1eb28c9e62d1e1e6f35521b5e49f71af77d",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e91ddabdf5e517efd6e19e92eaefa6f46bd89cc7c48d1a1abb0fc972e2806ca6",
+        "sha256": "d6fafe1a73681bb39a5f4e1fe38004a705f125e747e626546f7f07e7933aaf85",
+        "size": 127638,
+        "archive": "pinball-1.4.220-1.4.221-9-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 39789,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "f47f02bc36b8a9655239dcef74f208a82968a49017f448f614833a421315b601",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "4b4e73fcb4784c811875a211033a591458004f20ab874ed37b449e6845cf4db7",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "f3e6159d10aa76268a91c1b6fe8cfbeac27404e809a37d6dfbd621f22a284fb9",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "6546e0319c1d607f9fc03079bae1cf6c8f73fda2206159ec6aaeb0980212d85d",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "f1b1ef9bea701fd25dc296553ae6dc61859c2fb60d5376a591e48eb5a03eda91",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "5d3debf80b6721ad09226d25f2a49511d19baf2fd54a84e0b6a3577ba07922c5",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "6369c0ccc737db3486b71cba8f11ee71040e6f63426b7fdb63c4e25e7ea449b6",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "66acdebdbeddb425a817a1008d8550272c3a3f59e5e85f215872aa8fc8b02473",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "da7e8e8d8d1804fb331ce229c83bd60395e9f3849906db2a6a63744cb15b76b6",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "f3fe997b8d1ce8187681a84a35ee34efa871dd7ed39df22ac2d9b2b5d745220a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "74cd9ef9c7e15f57bdad73c511462ca65cb674c46c49639c60f1b44650fa1dcb",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 2.579681396484375,
+        "standard_alpha_mae_after_adapter": 0.12726211547851562
+      }
+    },
+    {
+      "logical": "character/blade_witch_halloween/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/93/d3fdfb479d386c265f508848f8f6a42eecf52b",
+      "sha256": "b07ce5eb3d865c5ba1ebaf5e7a3f1b1e784be9d38ba3559a773cbf0cdd3354e6",
+      "size": 165769,
+      "decoded_source_png_sha256": "272141b623c60d5fc1f859e3d5bb9de9fd2f566c942dea5bd1c4639b1b63d3f0",
+      "source_png": {
+        "member": "production/medium_upload/1a/9139a388c576aea22ce684c0e57f227e60c463",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "7be1d939f4cd51dd6ce686e0c00648539ef53e726b5542b563aa3743c6093e2b",
+        "sha256": "a7205c6bdceda18ae0e45be08798a0332bbbde2a2181d2fb32469111c485358a",
+        "size": 489400,
+        "archive": "pinball-1.4.220-1.4.221-7-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/93/d3fdfb479d386c265f508848f8f6a42eecf52b",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e91ddabdf5e517efd6e19e92eaefa6f46bd89cc7c48d1a1abb0fc972e2806ca6",
+        "sha256": "076db8cf1d5734bad559e5bb08736ff70350e94b182335cb2dd0e574f1f17f1b",
+        "size": 148080,
+        "archive": "pinball-1.4.220-1.4.221-9-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 38225,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "c517ddc86a8cd7b65bc9263bfc14036e3c82c1cd26f37b720ac5bc00b20afced",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "dc060fec475cce484b671bf8e280bd4e7f9d5e48a319d60bef42b8963fa93252",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "5800948f7caf732a578e84aaa9a98fbcb9bb575b3681e191d7c42ff2c97d8886",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "48075272f863addd024acd0e2065d2e052b6d9a4e68f606486433f7580b5ef2a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "293d7348c98548ca8ffe399563bf09554f9643492a5576e03c882c32645e9500",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "754dbe2d6b48bcaa6a4d6de59ffa0702f6cbe2eb6c318dacfc48f3beea861df1",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "8a4bc9e479d9972e9e5a2a0b7eed4b89d40614bb3b1716eedfd5a876fd7ccb25",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "6beea3408f4781783979317b8d36e89043333a9f1d2fb6a4d2a4cc897a913679",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "877176b00d33fc80a8d1e82293e999014369176206490850821143ccd0cf6f63",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "e9cae1840b9cfb0d008574412553cf77ac12280b505d0c5e2d06c5fe38119dbe",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 3.77294921875,
+        "standard_alpha_mae_after_adapter": 0.14937591552734375
+      }
+    },
+    {
+      "logical": "character/seris_dragon_king/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/a2/f7dd3504d98835d1ef0d4a9609e795ecf92e54",
+      "sha256": "c7ef1a4e75e53b8a940c7a9c8544ad2818d393fb52d9deea14304eaea3371cdb",
+      "size": 287838,
+      "decoded_source_png_sha256": "1ad5d9f9a59cc6c28c965cf7170bc2dac9ea0382c8a823641551de18171eb9f6",
+      "source_png": {
+        "member": "production/medium_upload/df/56a73979016c7f29168ebe7418733f57b422f1",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "ae6370791f7fd5671f583dce4c4e0cba59ae2b21389cd0494ca2e174231ee392",
+        "sha256": "dbea58edf976f0c59708a582104bc139e7934a8b83c2eb4910edcea995498700",
+        "size": 1037312,
+        "archive": "pinball-1.4.136-1.4.220-6-hui-share-20261016.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/a2/f7dd3504d98835d1ef0d4a9609e795ecf92e54",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "3045d3c44363a503e952457aca5dcf45e13bc55c3046334da59fc9980dd2b76f",
+        "sha256": "ddba2d71135e030b008e9f5665ff2453c7c6f64fd7ed0cd75d91cb0238c68dbc",
+        "size": 260854,
+        "archive": "pinball-1.4.136-1.4.220-8-hui-share-20261016.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "45137f1fb01187afc423394d1e998c7f09a784a3b5c6e16d9949e6b2ce4beb21",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "0c51e74429b345186f92eed796d159ecd7ac27e4b9f20bde8782c0155593f274",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "bbde7111a3133a0d7e19acf675c2ee0b9d3a20a5095e6d58e24b99a5c10c88f5",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "f8c48af3aa657ec2251c740a5c21d4deac90c1beb64e222f485f10c2fccabd5a",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "b1a4edf87ea7c57aba4092708d53b1ee5da078291fa3aa9a9a2ffd229a07f0d7",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "9a419a12c39ee460c1af48ee2b3513787d2c8b17eab15c686cedc7d7c6c083d7",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "0ebcf64a9aa09beda7ff4bada56986ce6395a948d0ac265473ff1fc4074d24bf",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "9f5e26d177239c765e27bdac1f9b90c99736490587a6ea2ff3c2e6b5d48bd592",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "2772fd69f81e7a2c4ec93dd2a2566f156f12ad6a3112496d7d0ea603a01036c3",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "b6e2c63144f1cd8b806ef4206dea177ec4e756614d9ee5b6521dac2136a67ba7",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "50868f20258bbc9cce0da2719e8654c108733dd2f663b8737c574ec0ead93eb3",
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "encoder_fixed": true
+      }
+    },
+    {
+      "logical": "character/white_wolf_gerald/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/ca/af8700e092755f7902f3bc36f7dbc15fe6efa2",
+      "sha256": "a234930d9d07d857374617db9a2f85adeabb12d43aad439150c5db0170770555",
+      "size": 222391,
+      "decoded_source_png_sha256": "e26517969fe052babbf9f22f4461ec579ec5e819d84ad79a1af35b4530c637f5",
+      "source_png": {
+        "member": "production/medium_upload/7b/597ce5a8c2c5177c3279971bba58c6d0d71d91",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "2cf8702d3a32967270dcb418c3730f99a333029e7745f1b74518fb141a9e258e",
+        "sha256": "c3ac7f0fe704a24835a89f8d69013fb8eb6917c4a295bfb5e6c8b52097129dfe",
+        "size": 694862,
+        "archive": "pinball-1.4.136-1.4.220-7-hui-share-20261016.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/ca/af8700e092755f7902f3bc36f7dbc15fe6efa2",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "ae6370791f7fd5671f583dce4c4e0cba59ae2b21389cd0494ca2e174231ee392",
+        "sha256": "2b3ef7fc12d33c3d9d8c053d99eb3020c193fe1323c1456ec1e98db403ed95a2",
+        "size": 198973,
+        "archive": "pinball-1.4.136-1.4.220-6-hui-share-20261016.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "8019f1f2750fa79c65296976ba265ea5b302b0717a813552f72596b15e763bc8",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "d6f43afb6f4e12c4b662834adeb684b36f49d4210be0fbcfb3cb23983b244f89",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "f16a8508a895b06d39d286952490e789e98a4b54f1b60fc22e8e43d6d1ec5faa",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "7645c06f89f144b37d5a565d4022c533e5a9a3185b623919304a55efcf3817fd",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "64b35111fc178ae408586a574c173de01b1b73aa086f8432b0268855066aeddd",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "d41395a9cc511ec8144298f083d10ca3e602730ce89f7712acdc8cd6d4312f5d",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "91d1034628389180b444fc1f4f4996021ed19277c61255eeba73215fcd088f2c",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "322a64df3709323d656951ec0397f317ffaf541f1ab638e724dbf9e83146bc21",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "3fed5893458f276445cedeb11dcdb333c890c2eda81d76168db2ede13c0cfd28",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "0876ad9bfa0af917e179fae79b0a9dd0749f25aa1c221e7a3489528ca8ac0e26",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "892f60b39450a0e770f00a836761c8e964fd74671ae2cc51cff36cde4f914c12",
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "encoder_fixed": true
+      }
+    },
+    {
+      "logical": "character/crystal_swordman_halloween/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/ce/a1878f2ac3ae24e75d8e3e4fb2fa0db9c87aaa",
+      "sha256": "57e5d54f03e383b9d9edcbb818bf2796584bf4d624cdf757609a8b867a8bb02f",
+      "size": 161237,
+      "decoded_source_png_sha256": "7ee8e6dd872b46fae5b241adba9a7467d4307459c48b10ab9121499a77a9178b",
+      "source_png": {
+        "member": "production/medium_upload/20/2fc31982ca96d4464de34857301b27584ec245",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "7be1d939f4cd51dd6ce686e0c00648539ef53e726b5542b563aa3743c6093e2b",
+        "sha256": "a5eecd0f435688c6bc718b026a9d4d540ade63ff2ea716dcdf383f3cb90630ae",
+        "size": 459334,
+        "archive": "pinball-1.4.220-1.4.221-7-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/ce/a1878f2ac3ae24e75d8e3e4fb2fa0db9c87aaa",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e91ddabdf5e517efd6e19e92eaefa6f46bd89cc7c48d1a1abb0fc972e2806ca6",
+        "sha256": "831874cf0dadca111387f1c09f7980ad1c463871503e50a6656c6c4a5c7b0e1c",
+        "size": 141875,
+        "archive": "pinball-1.4.220-1.4.221-9-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 37739,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "53b94953c4867dacce5c6de6eb6cde1a9cf5aa916e0b7511f6c887283d5cdf2d",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "d407c5e0ad3fbb66e79168616ead651d14f803eeb2550d06fade24706a430a62",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "4e2a967d91d2003e1a498e5deb33a582222374b88ccd786e0e08d967cfdb139a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "6c41b41ca4dd52b7f0e093f796c88c3db7d4152facc5232f05b8c7b77b087054",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "448eaddb2aea54eb5bc7f5326cb74055f35f35447b6550cf1d0a158dc44fe93c",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "a621c61f74b8578735df006b99f214821e96fa082ffe2fb64628f123203efbda",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "7e27df17cfb39002bf0b5861be1b99ef94f469a3f4b5cb5d7f8d8c35761e16c3",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "7ef7d9adf0db08e9db2278dd07f32cec5c44ff4587a1f1466a9343afe6796c75",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "aab2510509f7783152f012019700af7b6d0872e75775ee5143f0be422cdf5aca",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "409521f02c8b29bd4f76b832de53a56fb64ac90f85f6fdce1545f53c643b2219",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "5c62e091b8c0565f1bafad0dad5934276143ae2ccef7a5381e8ada5b1a8d26d2",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 4.794492721557617,
+        "standard_alpha_mae_after_adapter": 0.16350936889648438
+      }
+    },
+    {
+      "logical": "character/black_wolf_knight_moon/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/da/a18a037eafa9c7de075b4479a36816b1e310c6",
+      "sha256": "9c504679e4ef5178bf5cd0fdb164ca73b453f502d92ca0ee2b33cd205f4d0e79",
+      "size": 187567,
+      "decoded_source_png_sha256": "8eebe8a39bc5cfbe9bc336e6433819d065ae30d105873b28599dd23d89c6c936",
+      "source_png": {
+        "member": "production/medium_upload/44/9e553cd2495b16377093fe41c5c59ffb35b63c",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "2cf8702d3a32967270dcb418c3730f99a333029e7745f1b74518fb141a9e258e",
+        "sha256": "4712ef5f7f6dd103f2576002c6bbaa85fcc04941c67fb578e823f0add9006208",
+        "size": 578917,
+        "archive": "pinball-1.4.136-1.4.220-7-hui-share-20261016.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/da/a18a037eafa9c7de075b4479a36816b1e310c6",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "2ba944431cd12ba9cbad1a888d73b369b56b455addf0c345c5fd09d6574dee93",
+        "sha256": "58480ec81c060ec8ea07b1a694fe58b9ff91f649b04d26b7a738e573c79e7d8e",
+        "size": 170884,
+        "archive": "pinball-1.4.136-1.4.220-10-hui-share-20261016.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "e93256d5f32111b659fc8a67de33cac2f3f0be6c69cea91a2ac03d8191ca73b8",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "3bd2044fac97b8ce096b611ee36cebec6b02c3eea9e860d8dccc12190e2638de",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "b206ffb8a6ec8a145eca121e1e8f49890250af0a0d741831324c18d71be4f9b3",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "0e34aedfe5feb7e9fe55ae6a63b5ae22b84399252463d0044a2a2709c1fbdebf",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "439a55c8e75c476bc3c5887705abcf060bb79833b39509997198f3a2557e21ce",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "f0b3100c450511c7a0b9aa2ccb653296ecc5bdfd974ca42e79e77970cdb1731e",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "269eb0e4a5159bcbc18c2c6db9d779b2d75404e5eaff34c6a3461de1e80d2670",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "47be221a2656b8e3f18314df63f82fbd47028b644bafb42288f67d3d4f3a5869",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "3bf70a9f12f10fd5e440e46fdc20471a85aaf777f13615795a8c1d66504b40dc",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "fc04f709814338335488aae4aa328443155e92ffa802dfd901965b906daf7767",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "9a7b7b3a5d50781b4f4768cd7ce223168f6b449b78ad6ac594db5788c3b805d1",
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "encoder_fixed": true
+      }
+    },
+    {
+      "logical": "character/seris_dragon_king/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/de/cf5fe6e94a668a1a391df435000e97a35f94b4",
+      "sha256": "d0285e0627c1f82ef4beaf1006932ec9cf0fd5f143587bdf32de0c7e5309f228",
+      "size": 238274,
+      "decoded_source_png_sha256": "3d462998ebdc825d99e61290fffebf0e5ffcaac25b5048353256971954b644c9",
+      "source_png": {
+        "member": "production/medium_upload/06/3863b313acda23a9fe8ccc7dcfce9cc5ebd448",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "ae6370791f7fd5671f583dce4c4e0cba59ae2b21389cd0494ca2e174231ee392",
+        "sha256": "ffa6a86cc4c5f001eef223b2f4e654851650274c7345d3e62343081d8b898931",
+        "size": 770821,
+        "archive": "pinball-1.4.136-1.4.220-6-hui-share-20261016.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/de/cf5fe6e94a668a1a391df435000e97a35f94b4",
+        "edge": "hui-share-20261016-1.4.220",
+        "archive_sha256": "9abd7db241b22681044786ba5003b919dc1bda8c024eee3d3596598d38ba8825",
+        "sha256": "b99a92f813273a62bd24941ee19e290e3430e348aa690d814ce17a4030de1ecb",
+        "size": 214004,
+        "archive": "pinball-1.4.136-1.4.220-9-hui-share-20261016.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "8b64aee43a76ad73d929bd8194ef782e265bc8b5bb08d45d018b0cb7eb5a9642",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "48645dd5bb5938349558a8d99687fa08442eeaeb4222f2ce696b1ce17fb87651",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "b013d72aad774819eb4ce5742daea2d897d25bfe35a8ea856382ea3ad27b1bce",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "98d784f826cbaf644ad2a9b3ecf411d007d83c0b2821fa39130d5c027dc0e4a6",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "843b985f18ff53486eed9d0c22111aad48e439ab269b460c1ed75b35be7a91c1",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "e0e9b7e7fb74db3f633911aa7468ed83528ad166b7aa643687d92387d751dfc1",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "147221d3f256144c6b2a3c1cf826e858fd9feb82bcec0da632246b225cf9008c",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "db29d388a77eeb665df2458a67a6dbfa87cdd975f2a08d4bf16d25afdd29869a",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "19f214366c03a4f1f8aafe5209216a6c8462d12a5979426a66eeed5db201f137",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "67023384f68549754ab24d20c26987cc1460f73e6678d273c15fa88130ecfe49",
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "79bec7ff3e69d1b470eb8684f2005a867a7980222474cbc1afd26a9a4f206d4a",
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "encoder_fixed": true
+      }
+    },
+    {
+      "logical": "character/blade_witch_halloween/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/e2/be0bdfec3dbdc1cf0ceb25238ba40fb633df1c",
+      "sha256": "e3594f7b45ec65632839a8eb7c4a2e200b5cbc0b1c22185d4af230188c286e4a",
+      "size": 266455,
+      "decoded_source_png_sha256": "2e0539e8833b5569853f5043bb64d671f7e1a0ca4d6a7322bb13bae50ce27520",
+      "source_png": {
+        "member": "production/medium_upload/5f/e9d1e8e393bb3e495aff77344c7df4331ec38d",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "52ff8e1a3b1eea3fe7fb409eab92d32708d85e3417794cca7324970ac0ce0577",
+        "sha256": "662c16442373e34573155e31b69d5942543fb51a6ec25d165f05f638f43a0f1c",
+        "size": 828600,
+        "archive": "pinball-1.4.220-1.4.221-6-halloween4-characters-local.zip"
+      },
+      "android_reference": {
+        "member": "production/android_upload/e2/be0bdfec3dbdc1cf0ceb25238ba40fb633df1c",
+        "edge": "halloween4-characters-1.4.221",
+        "archive_sha256": "e119834d9ea6b672351961e969c4fbe2c8e9827f394940d4246e905c4633b391",
+        "sha256": "4e3fd90d47c4ef1699d42a38212f39a4a798aa38356474df17f82d043ca7c98a",
+        "size": 232839,
+        "archive": "pinball-1.4.220-1.4.221-8-halloween4-characters-local.zip"
+      },
+      "platform_pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_ios_mips_decoded": true,
+      "standard_eac_validation": {
+        "spec": "https://registry.khronos.org/DataFormat/specs/1.4/dataformat.1.4.pdf",
+        "section": "22.3",
+        "blocks_normalized": 43693,
+        "zero_multiplier_blocks_normalized": 31764,
+        "mips": [
+          {
+            "level": 0,
+            "w": 1024,
+            "h": 512,
+            "standard_alpha_sha256": "90ea4dd23445de62a83cdf4892e1da5b0d20c83774c539c0a99d13fb5d455784",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 1,
+            "w": 512,
+            "h": 256,
+            "standard_alpha_sha256": "6a28f3279cef727eac24390ba9d22403a383cea57271b2da0eca30c1e5bb8051",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 2,
+            "w": 256,
+            "h": 128,
+            "standard_alpha_sha256": "63f0d056bef813ebe670a7615530e7c425308da0ac0256f4abe5b8eeaceb45e3",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 3,
+            "w": 128,
+            "h": 64,
+            "standard_alpha_sha256": "c83d97d22929357033cc3d4b635b9a961553b7387d8fab6a3ef35b585bafe9ac",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 4,
+            "w": 64,
+            "h": 32,
+            "standard_alpha_sha256": "52dd81f940512a5eabb791831ff4fbb117f23f991761593393e296118ec93245",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 5,
+            "w": 32,
+            "h": 16,
+            "standard_alpha_sha256": "5d4d0e7e0d22bdbbf6b43bf3d420a3187b8ace8c97467c3e41d83cc7f85b8f57",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 6,
+            "w": 16,
+            "h": 8,
+            "standard_alpha_sha256": "d55421848b06650aa07fbf62566f9e11fe2409ccc29b3b568330b34519fbbb59",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 7,
+            "w": 8,
+            "h": 4,
+            "standard_alpha_sha256": "3e2afe8a8886e77ef2542d57044266c41e52c581d2d74c20dc52b4ca0a9f2db1",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 8,
+            "w": 4,
+            "h": 2,
+            "standard_alpha_sha256": "e9f6eb6c0fcbc1a54cf29efaf6ac093fc4b9b587bcd3ab5fae0167dc4e022778",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 9,
+            "w": 2,
+            "h": 1,
+            "standard_alpha_sha256": "ecf334b4d976dababd11830d5b26bf030992218531996fb7666dd0d1f38e7a4a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          },
+          {
+            "level": 10,
+            "w": 1,
+            "h": 1,
+            "standard_alpha_sha256": "0a43b22d89fa2499be5c7704c9bf273260b0ca9588e4cd1897cd80f9c96cd97a",
+            "alpha_equals_encoder_intent": true,
+            "color_blocks_unchanged": true,
+            "nonzero_standard_multipliers": true
+          }
+        ],
+        "standard_alpha_mae_before_adapter": 9.466796875,
+        "standard_alpha_mae_after_adapter": 0.1533985137939453
+      }
+    }
+  ],
+  "device_validated": false
+}
