@@ -1,0 +1,585 @@
+{
+  "schema": 1,
+  "base_swf_sha256": "9418137820c007b52a11ad0d7955c102795d8dd903213670577bf3407ed709f7",
+  "donor_swf_sha256": "3b7b3391ae0aee01f15167fe1d5a5b69eddb71a64605c57486f025916611aaa4",
+  "preserved_existing_string_indices": [
+    92787,
+    92871
+  ],
+  "new_helper_tags": [
+    "cn.loading.BattlePackSlicer",
+    "cn.loading.GcGate"
+  ],
+  "updated_helper_tags": [
+    "cn.shop.ShopFirstOpen"
+  ],
+  "preserved_helper_tags": [
+    "cn.mod.InahoAbilityVisuals",
+    "cn/admission/BuildConfig",
+    "cn/admission/ClientAdmission"
+  ],
+  "methods": [
+    {
+      "body": 5759,
+      "method": 5998,
+      "label": "MasterBinaryMap/getIndex",
+      "patches": [
+        74
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "ec54f93d80b11c38480c43bb87966d0cf3ed05bf8bb3da7d47b0d11190517d1c",
+      "donor_sha256": "c0afa6d54379daa2b32406e40218f4f556b7569179fe39db5146f2b710f4cfbe",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 17542,
+      "method": 18211,
+      "label": "GeneralCharacterLogic/get_maxOverLimitStep",
+      "patches": [
+        83
+      ],
+      "action": "overlimit_separate_adaptation",
+      "current_sha256": "3ffa287364fb8098635d7127b0dc3d66234cafbb658b4bed2b33fc355053a6ca",
+      "donor_sha256": "a1b57b4034b60def3d9b1a328b7ceb321157f45e5243c246353d733a7643ebab",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 17568,
+      "method": 18237,
+      "label": "GeneralCharacterLogic/getPedestalImagePath",
+      "patches": [
+        80
+      ],
+      "action": "overlimit_separate_adaptation",
+      "current_sha256": "9713b7437a4eddaf978f704d4b6721ca65a63f6d24138b05817c32b97cbe9ce2",
+      "donor_sha256": "1c5905b65f624a24c01cf58adeeb90c300a9e9ae965577c4b295c093f0be117d",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 17588,
+      "method": 18257,
+      "label": "GeneralCharacterLogic/getHalfPedestalImagePath",
+      "patches": [
+        81
+      ],
+      "action": "overlimit_separate_adaptation",
+      "current_sha256": "3c050c660a915c1f8c18f16f2fad519ffba84f42d6661c86fcaa64f9af9b16bd",
+      "donor_sha256": "0dc8e515702c2c3c77cca60549da8e063eec0785f89a57e503b5ddf41be6a28a",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 17768,
+      "method": 18469,
+      "label": "OwnedCharacterLogic/getPossibleOverLimitCountByItem",
+      "patches": [
+        101
+      ],
+      "action": "overlimit_separate_adaptation",
+      "current_sha256": "2dc44da607ffab595b1c44f2c257587ea699294f1636847cbee7ab33677a7991",
+      "donor_sha256": "7fa65be8a2181e01a0a17b400d74fecbd0565c2600be4e78a7be8d96a94e837e",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 18060,
+      "method": 18785,
+      "label": "OwnedOverLimitLogic/getOwnAwakingCrystalToOverLimit",
+      "patches": [
+        85
+      ],
+      "action": "overlimit_separate_adaptation",
+      "current_sha256": "e492781cdd1f0c121eb996d1c5ff69735f0912b2a2d4bad1f7c038e5cffc245f",
+      "donor_sha256": "2be9af1fa92ed8bb56a5ee90b9eb511f7f94c6941f38a223e406207e17be61b2",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 18061,
+      "method": 18786,
+      "label": "OwnedOverLimitLogic/getOverLimitState",
+      "patches": [
+        84
+      ],
+      "action": "overlimit_separate_adaptation",
+      "current_sha256": "27f4d717747a8c567a3b1e8690c8a499a3811173489d222f8aff2db1a3b7a546",
+      "donor_sha256": "98f9c7121ac212729daaf7a0e9b740e2de275dcc26e2536ad4d8e1d63d023fd0",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 18063,
+      "method": 18788,
+      "label": "OwnedOverLimitLogic/getAwakingCrystalToOverLimit",
+      "patches": [
+        78
+      ],
+      "action": "overlimit_separate_adaptation",
+      "current_sha256": "6ff7cce512d71facbd7acf7aeef5a234bd5c70d8e3531d31369381f1a58b77ad",
+      "donor_sha256": "2e584914a2f67e60a268e62502f8e7af84a6a6e1e38af444b8de79c446470b34",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 19909,
+      "method": 20916,
+      "label": "MiscDataLogic/setAutoSpeedLevel",
+      "patches": [
+        59
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "c3fbb8ac315e0834c53bf623272eb8c7408ac24696ae7be6637d9d3bfd97b339",
+      "donor_sha256": "c21ad66afd1e438cbfefeee33c3a7b1d37f9d66807b70cae51f51d07b8164502",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 21430,
+      "method": 22732,
+      "label": "BattleQuestBaseImpl/resolvePathCollectionForDashPanel",
+      "patches": [
+        92
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "e3ccc6d9ff72f1cd35c336806e50ae75cbf499b607ec66795c86fec03d3747e6",
+      "donor_sha256": "6143a756bc032bd52230fa2d42efa799c0ba7b57796759a0848e7a70befceb98",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 21446,
+      "method": 22748,
+      "label": "BattleQuestBaseImpl/leadingResolvePathCollection",
+      "patches": [
+        93
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "80aee84afab6eae0d28cae754b633535583f369b47631af82601e8e2f1af0444",
+      "donor_sha256": "ae7218d15898f9b2ebe0d995b070d0088be70548bac6b6176588d5d4c7ebe391",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 30917,
+      "method": 33352,
+      "label": "ReproduceFileRecordImpl/saveLog",
+      "patches": [
+        68
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "a3f44be61f720c0c6b8f68062aab504792d28fd89d017e3b9c8ef8cd4a925ea3",
+      "donor_sha256": "0796011b5ae3d02da88f76ddf37f768dd128df02d551834499305c3daf8f71e4",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 30966,
+      "method": 33420,
+      "label": "Restore/saveBattleRestore",
+      "patches": [
+        75
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "58364a5b5296c8229931993183cd8fb405a5d5e3c21fecd396c811a228b64443",
+      "donor_sha256": "3dfc4482e515bf04da80ded65dab05ffda5a5c6e086a908b27b236f557d832fb",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 31072,
+      "method": 33546,
+      "label": "LogicSceneTransition/deactivatePreviousScene",
+      "patches": [
+        72
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "61c657f7c02972473d92fc399594c5ede75271c6bcd138f6be24123bbe4f9fc3",
+      "donor_sha256": "96ee8a34ddee66156b98761c766815eeec8a24f4ca1dc350a4b7f42b924c40bd",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 37884,
+      "method": 41178,
+      "label": "ProductionLoading/resetAssets",
+      "patches": [
+        72
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "70aba8421334000345d89653c5b75f56856cb3f1469b660e9d3152bba1bb1430",
+      "donor_sha256": "88f4837fd4a910380176d6fd9072c5236ea43dce3140a33ea6864346040330ce",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 38042,
+      "method": 41335,
+      "label": "BattleStartProductionViewService/setupTextureAtlas",
+      "patches": [
+        69
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "4f4f555dbf94e21a538cad4a454cf8d692661cae38176f40e97b614cb229e663",
+      "donor_sha256": "7448e38e05aaeb9e4ff5f7b967ba8bd752e4373e819987fac8ba5da2debfe5e9",
+      "exception_or_traits_differ": true
+    },
+    {
+      "body": 38045,
+      "method": 41338,
+      "label": "BattleStartProductionViewService/prepare",
+      "patches": [
+        71
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "3d5055ba1611bff68b1d33e68d299e33bb2036d4288615a5fe3a748857b400b7",
+      "donor_sha256": "8eb9f901d73b20499ad2b97b3d7a72beab1eda5e0a9a98d480f7196320744c59",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 38428,
+      "method": 41733,
+      "label": "LocalLoading/startChild",
+      "patches": [
+        70
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "772081a633396f3b936e30143f78e5842ca8f030a82deff4678be648959ba193",
+      "donor_sha256": "77eb5495b8bd1c332701e4ed63920b5a792385ce776aeeb2145648ef28c6a598",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 53155,
+      "method": 57332,
+      "label": "EnemyImpl/isBattleDebugToughnessPointGaugeVisible",
+      "patches": [
+        57
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "f22ed568b3d132710b3dc1dc3c25a7999f3121227b131093f1afbea63a5800df",
+      "donor_sha256": "f09ff17192f74bd8dc64a8bcac3263e5c5aba324b13b6cb1d4af2263874ddc82",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 53486,
+      "method": 57663,
+      "label": "EnemyImpl/applyAttack",
+      "patches": [
+        55
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "d3bbb8fbe858d51152dd3a6987a9617747ae96cba6d4744c54e27dd3da0d50e4",
+      "donor_sha256": "989cd6d4d05f0e88c4073ad3d6107bff66c2e8438247e14097b6144ed56e957e",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 58371,
+      "method": 62994,
+      "label": "BattleFlipperImpl/update",
+      "patches": [
+        89
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "24a82efac221d89329538f22aef48a3fc108ff14e686d7ebfbc5298c41df9679",
+      "donor_sha256": "850b7356ba86f981b98d73d4d3619484acf2e7b2b0ff9f4ee8814113b7e9b8f0",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 58431,
+      "method": 63062,
+      "label": "BattleFlipperView/draw",
+      "patches": [
+        87
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "f41af0aac1af319b772ce53153f26cd9e1979cbeb4d98276c7b1c5deaccecf11",
+      "donor_sha256": "379ac4029668dbf388a33ee321940f77837f1911d14c3f06f19f66c553377375",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 58762,
+      "method": 63470,
+      "label": "HudMemberStatus/update",
+      "patches": [
+        6,
+        7,
+        15,
+        65,
+        96
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "6e9410cdab300775dd5a584703a539c314237bebe12650a20cb06858d09486e7",
+      "donor_sha256": "7858113b678d100259739c4716f0729c9f3dfc75498fd101efc37f9dbaf9e50c",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 60180,
+      "method": 65236,
+      "label": "MemberImpl/startPowerFlip",
+      "patches": [
+        88
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "675b4a9e5874e5bba8502ea998963a20ab198d3553e0159a5f8422b7c9987f51",
+      "donor_sha256": "0aaa43db85c048dda9784925de22fccc38068f638449fcb59938420f12fc2d6b",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 60192,
+      "method": 65248,
+      "label": "MemberImpl/scheduleDirectAttack",
+      "patches": [
+        54,
+        56
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "fe24bf97e3da05ab82c99b2f99eaa657c56663937ffd6921ca17e66df3be950b",
+      "donor_sha256": "223640cd78b631640313859bb39410d270696644f058435cd1258c88c9f30576",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 60292,
+      "method": 65348,
+      "label": "MemberImpl/getTotalConditions",
+      "patches": [
+        58
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "24ab0f911fad5ee5acfb4d5197a9b48f88526491af8323234dc9aa2b61a45b48",
+      "donor_sha256": "405cc8b1a873c66be00b5dc4b84c7e6b0acfbe84e2f673644fcbf6a9614cb7d5",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 60305,
+      "method": 65361,
+      "label": "MemberImpl/getStatModifierSkillGaugeCharging",
+      "patches": [
+        53
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "dc4a5916bb83df78b8c777cc243671203301cc97fe756e831afecbbb7fea4dd8",
+      "donor_sha256": "37fbc1b1aac0037ec9b75147e2bd7411d301be0a37e526e2a2d2075ad0fcda1f",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 60430,
+      "method": 65486,
+      "label": "MemberImpl/getConditionsIncludingOuterEnvironments",
+      "patches": [
+        58
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "37257280c48253ea48754ae6b58413506b3f5a3633b5dbc5afeca14d38e1ff71",
+      "donor_sha256": "582e23ac1290798c11380451f6c0cdb7a894eb1719e3ef82dd01f3e34787af31",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 61868,
+      "method": 67152,
+      "label": "YakumonoManagerImpl/deactivate",
+      "patches": [
+        90
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "997dbf34a325f5142c5892bd15e458c9ca36f408a75b0bf0a6529f14e06e5309",
+      "donor_sha256": "be565848a5c9bccb1030b57a98799a4fde637418f8601d76009fc45aa3422e9b",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 61871,
+      "method": 67155,
+      "label": "YakumonoManagerImpl/activate",
+      "patches": [
+        91
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "28ed405103c6de85437f46916eb272a4f2731cde68e9a117ac8df5b1abd00ab5",
+      "donor_sha256": "fd64527e90a488f108d36e1efc3b4164cecc10c2b0d575eade511a92d4def037",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 62884,
+      "method": 68297,
+      "label": "BattleDerailleur/getDeferralLevel",
+      "patches": [
+        73
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "e3ce66f068c4fa451c9083326119d3124e76df8065cc2e6ede7821be356f79bd",
+      "donor_sha256": "84e04501423fa23b0caeb53235652347b2d0d780ce526e1d7793a027951cb570",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 63135,
+      "method": 68574,
+      "label": "BattleScenePlayingStateImpl/proceedBattles",
+      "patches": [
+        64
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "4f68cf4574671f0158bda5533df23482ce6f7c5e7fa3329fe93e51f287a7684d",
+      "donor_sha256": "c0dc1c45f6587c6ae0017873763fd4047043537bbca406b92750f30d15860713",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 65499,
+      "method": 71327,
+      "label": "CharacterScene/viewDidChange",
+      "patches": [
+        67
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "334df0a00fe8ab97c2abc5d221954208ce4db1d796b6b22937a93c9d9855bbe1",
+      "donor_sha256": "23cfe3a3d1f7ba64782551339141867b32a06a1ae575db8701a0ab4a5e479e02",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 65790,
+      "method": 71642,
+      "label": "CharacterCellView/drawWithAdvanceFlag",
+      "patches": [
+        45,
+        61
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "0266a4cb63cbdbf9deccdfdcc8e30c7d58bdcc6463ddb2a14e815b1ec8ec4631",
+      "donor_sha256": "beedce9917da57caa8d1d65576cc86ea91a18540a14cca0979e3fcd1cda03fc5",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 66116,
+      "method": 72005,
+      "label": "CharacterTable/updateCells",
+      "patches": [
+        62
+      ],
+      "action": "keep_current",
+      "current_sha256": "ea7b61a9b8d575084b16e146026d7d55e845fe96d99c4a9dd03309137495e134",
+      "donor_sha256": "917156e5da4c81f2d395de7a76739eee259217f906fad883120ed91a8326fb8b",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 66148,
+      "method": 72037,
+      "label": "CharacterTable/applyCharacters",
+      "patches": [
+        63
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "c830d532bd2d768b91752ec4206fb8baaf040366b0889e111d4bcdd77947b482",
+      "donor_sha256": "cc8f9aff1df3b621da06717d1cb401d93942ef2a6607978659544d97bdd85945",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 66173,
+      "method": 72065,
+      "label": "CharacterTableView/present",
+      "patches": [
+        67
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "c89bdddd20bc4bfd05a3c7dfb1cb2cb32d109aa676fab7b67f01b6ebfc934670",
+      "donor_sha256": "4d056fc151a6fe4d85a32ef408dc6ba7e79c9f41d1d8a3b80d12fff393091530",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 66178,
+      "method": 72070,
+      "label": "CharacterTableView/draw",
+      "patches": [
+        60
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "a6e57959c37277e47f6d85ea21e6ede921447ee677e5ffc0a13238a0ed061ce3",
+      "donor_sha256": "e4f6b5269662be8323bb6f91cd00e124eb4e0cc7f33c619284279a603a7fc6fb",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 66180,
+      "method": 72072,
+      "label": "CharacterTableView/applyPatch",
+      "patches": [
+        67
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "e4917e49f3034a996ba13688064aaea995196cf5133de97c6b6440f516b3834b",
+      "donor_sha256": "ef807c15a01668ec1b6ad0f3b64a368a8ce22965b3f614c68a8d7defee8c8591",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 66664,
+      "method": 72597,
+      "label": "PartyCarouselPageView/apply",
+      "patches": [
+        67
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "e62c6980e0429bd737b109b11f49073178bf22e0418d720924937015eaa0e8b7",
+      "donor_sha256": "6a70058f30d894e6ca6f3618609bd6fb3f748f73ab8784d76f7f01e0940b5ae3",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 67041,
+      "method": 73006,
+      "label": "CharacterUseCaseBase/getListCharactersInParties",
+      "patches": [
+        76
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "f604d50a4a392d8689867569b5543224328fd9addb45bd3a80e0095455ef6254",
+      "donor_sha256": "11161e17fbe198e02a7d2757ed4a72ecc37f65355895b5023da8af94c5f924d1",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 74852,
+      "method": 81883,
+      "label": "HomeView/<ctor>",
+      "patches": [
+        66
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "4fcc157b3ee805dcd728d5b583f6f96d6f963855a65eeab4e31f1ab58426215f",
+      "donor_sha256": "2b945c18710679255987f8b4aadb7f7483fdf89fc32d04e6db850baf269ef581",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 81061,
+      "method": 88990,
+      "label": "ShopTopScene/listCellEnabledResolver",
+      "patches": [
+        77
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "dc43147661af98bb9608a43a0e83da92412bd6b8cf6334b7657cba870bcb0363",
+      "donor_sha256": "4c1d46648cfb44800021200cdf2a52e3d477919380f0c475544103f888ee73f1",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 84274,
+      "method": 92510,
+      "label": "CharacterVoiceLogic/createVoicePathMap",
+      "patches": [
+        15,
+        65,
+        94
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "76793ea193c635de4becc8523969103cdde63ae98777db6431d13b8878b6005f",
+      "donor_sha256": "a3f3aa721b20af0547543fb26a0ab4227104248b6aee01289e66fea765dc14d7",
+      "exception_or_traits_differ": false
+    },
+    {
+      "body": 92330,
+      "method": 100802,
+      "label": "BattleCharacterLogic/resolveFollowingPathCollection",
+      "patches": [
+        6,
+        7,
+        15,
+        65,
+        95
+      ],
+      "action": "apply_final_v33_semantic_delta",
+      "current_sha256": "be6b2b0efb10cabf980c3a8ae39b0b80faf23dbc7b77788a248015603e79fee1",
+      "donor_sha256": "d8d6141c41bcb2d9290f8cfcfe71d5618e65127a8bab1129779fe30b6924e8ea",
+      "exception_or_traits_differ": false
+    }
+  ],
+  "excluded_archive_patches": [
+    52,
+    62,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107
+  ]
+}

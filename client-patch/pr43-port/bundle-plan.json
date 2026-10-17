@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "resources": [
+    {
+      "logical": "master/character/level_cap_iosbundled.orderedmap",
+      "member": "production/android_bundle/c7/b8f9c6f9d572bb625885e0d0c9226c01d9a385",
+      "before_sha256": "ef1214e38f5e7514c6f6ee60c79f9126e482e39a9566188698dccbf026102190",
+      "after_sha256": "9b816e7f05479519549357df3fe7a5193f56689e4c419ec554030757fd49d4ba",
+      "before_size": 64,
+      "after_size": 69
+    },
+    {
+      "logical": "master/character/character_level_iosbundled.orderedmap",
+      "member": "production/android_bundle/23/a83b55daad153a95f8d5b66667b32e47f3dca2",
+      "before_sha256": "eb21a7fe67d9f58730235ce276d1421b26a14cb84e7d27fd35cb2e0cae2b3565",
+      "after_sha256": "8ce0cbe4ab540483a535068a6b6005dba3eefabb2cd42938294ca0995ef53828",
+      "before_size": 5485,
+      "after_size": 5932
+    },
+    {
+      "logical": "character_pedestal/sprite_sheet.png",
+      "member": "production/android_bundle/96/b97133a2b5c5bc58a4f234d531960136f0729f",
+      "before_sha256": "9755243e07fc77bdb57f6047263f65cf450a07178083935b08528c8b991e8551",
+      "after_sha256": "c7618668e916b823926795523a1612acf99e0f1d998ecaaa898280469ac3b8d0",
+      "before_size": 46248,
+      "after_size": 54926
+    },
+    {
+      "logical": "character_pedestal/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/android_bundle/ce/d720392bdd8eeb25b339c2e3943f327fea27ba",
+      "before_sha256": "0c97536686a770ea83664846d20e1e5eb1cb2e8843aa3445c43d2fdf056acad1",
+      "after_sha256": "c8b460ff58f075cc6260878decf5c4eb394f2d3f4b03b9463bc45c4a67255964",
+      "before_size": 691,
+      "after_size": 833
+    }
+  ]
+}
