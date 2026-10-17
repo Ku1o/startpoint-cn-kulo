@@ -1,1 +1,0 @@
-package pinball.master.generated {import pinball.master.runtime.MasterMap;public class CharacterQuestTable {public var map:MasterMap;public function CharacterQuestTable(map:MasterMap=null){this.map=map;}public function get_data():MasterMap{return map;}}}

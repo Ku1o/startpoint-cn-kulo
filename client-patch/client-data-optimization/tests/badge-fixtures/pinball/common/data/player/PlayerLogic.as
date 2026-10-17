@@ -1,1 +1,0 @@
-package pinball.common.data.player {public class PlayerLogic {public var cleared:Object={};public var selectable:Boolean=true;public var fail:Boolean=false;}}
