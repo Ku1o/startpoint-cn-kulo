@@ -3,6 +3,7 @@ import unittest
 import zipfile
 
 import publish_sponsor_special_thanks as sponsor
+from artwork_sources import read_artwork
 
 
 class SponsorAssetTests(unittest.TestCase):
@@ -11,7 +12,7 @@ class SponsorAssetTests(unittest.TestCase):
         root = sponsor.ROOT
         with zipfile.ZipFile(root / "assets/asset-patch/active/pinball-1.4.99-1.4.100-2-rank-title-conditions.zip") as z:
             cls.before = z.read(sponsor.p.member(("common", sponsor.p.hrel(sponsor.DEGREE_LOGICAL))))
-        cls.formal = (root / sponsor.ART_REL).read_bytes()
+        cls.formal = read_artwork("sponsor-special-thanks/degree_mod_special_thanks_wide.png")
 
     def test_addition_preserves_every_existing_compressed_row(self):
         before = sponsor.p.rawmap(self.before)

@@ -13,7 +13,7 @@
 
 材料栏直接使用图集原尺寸。结晶、心核各新增独立 **40×40** 小图，使用 nearest 整数二倍放大；道具表仅改 10000145、10000147 的第 4 列，指向 `item_icon/materials/mod/five_boss/deep_crystal_v2`、`five_king_core_v2`。有效 `item_icon` 图集追加两帧，原有 76 帧和旧像素不变。`item` 图集、20px 道具缩略图及商店商品图保持 1.4.110 内容。
 
-原图归档在 `assets/asset-patch/artwork/five-boss/20260910/`，用户原图没有改写。`update_five_boss_item_art.py` 统一调用 `five_boss_art_contract.py`，分别生成 20px 缩略图和 40px 材料小图，检查实际显示大小、纹理框、图集预加载、PNG 签名和版本连续性。对修正后的资源再次生成时无变化，不能恢复旧尺寸。商品生成数据的门票引用仍保持上一版修正。
+原图不再单独归档；`artwork_sources.py` 默认从已追踪的 active ZIP 在内存恢复。门票固定读取 1.4.103 的 `lens0909-consolidated-cn` 包，两种材料与死亡使者固定读取 1.4.104 的 `abyss-lens0910-entry-message-consolidated` 包；索引同时锁定包、成员和完整原 PNG 的 SHA-256，严格恢复存储用的小写 png 文件头。死亡使者沿用此批原图，不随以后同名资源变动。`--images` 仍可指定外部 PNG 目录，缺文件时直接报错；制作器不再将输入原图写回 artwork。`update_five_boss_item_art.py` 统一调用 `five_boss_art_contract.py`，分别生成 20px 缩略图和 40px 材料小图，检查实际显示大小、纹理框、图集预加载、PNG 签名和版本连续性。对修正后的资源再次生成时无变化，不能恢复旧尺寸。商品生成数据的门票引用仍保持上一版修正。
 
 后续重 roll 从本地实际运行链读取资源；源仓库根 manifest 仍是另有用途的暂存链，不能拿它覆盖本地测试链。当前投影见 `assets/asset-patch/audit/five-boss-item-art-1.4.111-test/manifest.json`。更新应追加新版本，不能改写已发布 ZIP。
 

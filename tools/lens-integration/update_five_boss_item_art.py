@@ -19,10 +19,10 @@ from PIL import Image
 import prepare_content as p
 import fix_five_boss_icon_closure as closure
 import five_boss_art_contract as contract
+from artwork_sources import read_artwork
 
 REPO = p.REPO
 RUNTIME = Path('F:/startpoint-cn-main')
-ART = REPO/'assets/asset-patch/artwork/five-boss/20260910'
 EQUIPMENT = 'master/item/equipment.orderedmap'
 ENHANCEMENT = 'master/equipment_enhancement/equipment_enhancement.orderedmap'
 SEED = 'assets/cdndata/boss_coin_shop.json'
@@ -171,7 +171,7 @@ def build(args):
         return before[logical]
     originals={}
     for filename in [*MATERIALS.values(),WEAPON_ART,TICKET_ART]:
-        raw=(args.images/filename).read_bytes()
+        raw=read_artwork(f'five-boss/20260910/{filename}',images_dir=args.images)
         with Image.open(io.BytesIO(raw)) as im:
             im.load(); assert im.size==(20,20) and im.mode=='RGBA'
         assert raw[:8] == p.wf_assets.PNG_REAL
@@ -243,7 +243,6 @@ def build(args):
         plans.append(dict(root=str(root),path=rel,source=str(stage),size=len(raw),sha256=p.sha(raw),
             before_sha256=p.sha(before_raw) if before_raw is not None else None))
     plan(REPO,SEED,update_seed(source_seed,ticket))
-    for filename,raw in originals.items():plan(REPO,(ART/filename).relative_to(REPO).as_posix(),raw)
     plan(RUNTIME,SEED,update_seed(runtime_seed,ticket))
     plan(RUNTIME,'assets/asset-patch/active/'+name,archive)
     for member,raw in members.items():plan(RUNTIME,'assets/asset-patch/'+member,raw)
@@ -319,7 +318,8 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     sub=parser.add_subparsers(dest='command',required=True)
     b=sub.add_parser('build')
-    for arg in ('work','server','pristine','previous-audit','images'):b.add_argument('--'+arg,type=Path,required=True)
+    for arg in ('work','server','pristine','previous-audit'):b.add_argument('--'+arg,type=Path,required=True)
+    b.add_argument('--images',type=Path,help='explicit PNG input directory; defaults to pinned active-archive artwork')
     a=sub.add_parser('apply');a.add_argument('--work',type=Path,required=True)
     args=parser.parse_args()
     if args.command=='build':build(args)

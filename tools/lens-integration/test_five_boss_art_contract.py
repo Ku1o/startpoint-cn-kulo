@@ -38,7 +38,8 @@ class DisplayContracts(unittest.TestCase):
         self.assertLess(proof['rendered_thumbnail_size'][0],proof['native_frame_size'])
 
     def test_publisher_cannot_regress_corrected_icons_on_rebuild(self):
-        originals={p.name:p.read_bytes() for p in publisher.ART.glob('*.png')}
+        originals={name:publisher.read_artwork(f'five-boss/20260910/{name}')
+                   for name in [*publisher.MATERIALS.values(),publisher.WEAPON_ART,publisher.TICKET_ART]}
         result=contract.make_resources(self.final,originals,publisher.replace_frames)
         self.assertEqual(result['resources'],{})
 

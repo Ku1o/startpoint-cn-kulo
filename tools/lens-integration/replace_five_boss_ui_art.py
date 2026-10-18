@@ -16,6 +16,7 @@ import zipfile
 
 from PIL import Image
 import prepare_content as p
+from artwork_sources import read_artwork
 
 STAGE = 'master/quest/boss_battle_stage_node.orderedmap'
 SHOP = 'master/shop/boss_coin_shop_category.orderedmap'
@@ -26,7 +27,6 @@ ART = (
     ('五重决战交换所横幅.png', 'quest/boss_battle/banner/mod_five_boss_exchange.png', (1000, 184)),
     ('五重关卡-讨伐页.png', BACKGROUND + '.png', (1440, 556)),
 )
-ART_DIR = 'assets/asset-patch/artwork/five-boss/ui-20260911'
 
 
 def jsonbytes(value):
@@ -101,7 +101,8 @@ def validate_tables(before, after):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--work', type=Path, required=True)
-    parser.add_argument('--images', type=Path, default=p.REPO / ART_DIR)
+    parser.add_argument('--images', type=Path,
+                        help='explicit PNG input directory; defaults to pinned active-archive artwork')
     parser.add_argument('--base-version', required=True)
     parser.add_argument('--apply-source', action='store_true')
     args = parser.parse_args()
@@ -132,8 +133,7 @@ def main():
     resources = patch_tables(before)
     originals, images = {}, []
     for filename, logical, size in ART:
-        source = args.images / filename
-        raw = source.read_bytes()
+        raw = read_artwork(f'five-boss/ui-20260911/{filename}', images_dir=args.images)
         assert raw[:8] == p.wf_assets.PNG_REAL
         encoded = p.wf_assets.png_encode(raw)
         details = png_check(encoded, raw, size)
@@ -194,7 +194,6 @@ def main():
     for logical, raw in resources.items():
         save(work / 'after' / logical, raw)
     delivery = {f'assets/asset-patch/{member}': raw for member, raw in members.items()}
-    delivery.update({f'{ART_DIR}/{name}': raw for name, raw in originals.items()})
     delivery[f'assets/asset-patch/active/{archive_name}'] = archive
     if args.apply_source:
         assert (p.REPO / 'assets/asset-patch/manifest.json').read_bytes() == chain.manifest_bytes
