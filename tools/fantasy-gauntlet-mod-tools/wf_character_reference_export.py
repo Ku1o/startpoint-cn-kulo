@@ -40,7 +40,7 @@ import wf_mod_tool as core  # noqa: E402
 
 
 PATHLIST = TOOL_ROOT / "WF_PATHLIST_recovered.txt"
-OUTPUT_ROOT = SOURCE_ROOT / "work" / "character-reference"
+OUTPUT_ROOT = SOURCE_ROOT.parent / "work" / "character-reference"
 FRAME_NUMBER = re.compile(r"(\d+)$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
