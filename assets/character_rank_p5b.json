@@ -298,5 +298,11 @@
     "name": "瑞西塔尔",
     "rarity": 5,
     "skill_count": 6
+  },
+  "169977": {
+    "element": 5,
+    "name": "稻穗",
+    "rarity": 5,
+    "skill_count": 6
   }
 }
