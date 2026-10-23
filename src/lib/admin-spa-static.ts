@@ -24,7 +24,7 @@ export function sendAdminSpaFallback(request: FastifyRequest, reply: FastifyRepl
     if (request.method !== "GET" && request.method !== "HEAD") return false
     let pathname: string
     try { pathname = decodeURIComponent(request.url.split("?", 1)[0]) } catch { return false }
-    if (!/^\/admin\/(?:|time|content(?:\/history)?|town-themes|maintenance|accounts|mail|news|seeds|leaderboards|players\/[^/.]+)\/?$/.test(pathname)) return false
+    if (!/^\/admin\/(?:|time|content(?:\/history)?|town-themes|maintenance|accounts|mail|gifts|news|seeds|leaderboards|players\/[^/.]+)\/?$/.test(pathname)) return false
     reply.header("content-type", "text/html; charset=utf-8").header("cache-control", "no-cache")
         .send(readFileSync(path.join(directory, "index.html")))
     return true

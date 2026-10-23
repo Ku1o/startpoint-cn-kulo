@@ -1,0 +1,17 @@
+.gift-basics { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+.gift-code-input { display: flex; gap: 8px; }
+.gift-code-input input { min-width: 0; }
+.gift-rewards-header { display: grid; gap: 6px; margin-bottom: 14px; }
+.gift-reward-card { margin-bottom: 12px; }
+.gift-reward-fields { display: grid; grid-template-columns: 150px minmax(0, 1fr) 140px; gap: 16px; }
+.gift-reward-fields > * { min-width: 0; }
+.gift-reward-fields .ant-form-item { margin-bottom: 0; }
+.gift-no-id { padding-top: 30px; }
+.gift-preview { margin-top: 20px; padding: 16px; border: 1px solid var(--ant-color-border, #7775); border-radius: 8px; }
+.gift-preview ul { margin: 8px 0 12px; padding-left: 20px; overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+    .gift-basics, .gift-reward-fields { grid-template-columns: minmax(0, 1fr); }
+    .gift-no-id { padding-top: 0; }
+    .gift-code-input { flex-wrap: wrap; }
+    .gift-code-input input { flex: 1 1 160px; }
+}

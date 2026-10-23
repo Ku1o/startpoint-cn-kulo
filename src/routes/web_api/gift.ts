@@ -1,13 +1,13 @@
 import type { FastifyInstance } from "fastify"
 import { hasManagementSession } from "../../lib/management-auth"
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
-import { createGiftCodeSync, GiftInputError, listGiftCodesSync, setGiftCodeEnabledSync } from "../../lib/gift-codes"
+import { createGiftCodeSync, GiftInputError, giftRewardIds, listGiftCodesSync, setGiftCodeEnabledSync } from "../../lib/gift-codes"
 
 export default async function routes(fastify: FastifyInstance) {
     fastify.addHook("preHandler", async (request, reply) => {
         if (!hasManagementSession(request)) return reply.code(401).send({ error: "需要管理登录" })
     })
-    fastify.get("/", async () => ({ gifts: listGiftCodesSync() }))
+    fastify.get("/", async () => ({ gifts: listGiftCodesSync(), rewardIds: giftRewardIds() }))
     fastify.post("/", async (request, reply) => {
         try {
             return await runPersistenceTransaction({ domain: "player", operation: "admin_gift_create" }, () => createGiftCodeSync(request.body))

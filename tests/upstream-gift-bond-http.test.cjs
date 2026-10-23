@@ -57,6 +57,16 @@ after(async () => {
 test('gift management requires login, validates content, defaults paused and detects stale toggles', async () => {
     assert.equal(gifts.isGiftEnabledSync(), false)
     for (const method of ['GET', 'POST', 'PATCH']) assert.equal((await admin(method, method === 'PATCH' ? '/1' : '/', method === 'GET' ? undefined : {}, {})).statusCode, 401)
+    const rewardIds = ok(await admin('GET')).rewardIds
+    // A stale lookup name must not offer a reward that the server cannot grant.
+    assert.ok(rewardIds[1].includes(10001))
+    assert.equal(rewardIds[1].includes(40193), false)
+    assert.equal((await admin('POST', '/', { code: 'STALE_LOOKUP', note: '', rewards: [{ type: 1, type_id: 40193, number: 1 }] })).statusCode, 400)
+    assert.ok(rewardIds[5].includes(131001))
+    for (const [type, ids] of Object.entries(rewardIds)) {
+        assert.ok(ids.length > 0)
+        for (const id of ids) assert.doesNotThrow(() => gifts.validateGiftRewards([{ type: Number(type), type_id: id, number: 1 }]))
+    }
     assert.equal((await admin('POST', '/', { code: 'bad', note: '', rewards: [{ type: 5, type_id: 999999999, number: 1 }] })).statusCode, 400)
     for (const code of ['A B', 'A\u00a0B', 'A\u3000B', 'A\u0001B'])
         assert.equal((await admin('POST', '/', { code, note: '', rewards: [{ type: 4, type_id: null, number: 1 }] })).statusCode, 400)

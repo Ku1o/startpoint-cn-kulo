@@ -185,12 +185,12 @@ test('real synthetic HTTP negotiates br/gzip/identity, keeps Vary and immutable,
         assert.match(response.headers['cache-control'], /max-age=31536000, immutable/)
         assert.match(response.headers['content-type'], /javascript/)
     }
-    for (const pathname of ['/admin/', '/admin/accounts?q=one', '/admin/players/123', '/admin/content/history', '/admin/content/history?character=1', '/admin/maintenance', '/admin/time']) {
+    for (const pathname of ['/admin/', '/admin/accounts?q=one', '/admin/players/123', '/admin/content/history', '/admin/content/history?character=1', '/admin/maintenance', '/admin/time', '/admin/gifts', '/admin/gifts/', '/admin/gifts?x=1']) {
         const response = await request(origin + pathname, 'identity')
         assert.equal(response.status, 200); assert.equal(response.bytes.toString(), html)
         assert.equal(response.headers['cache-control'], 'no-cache')
     }
-    for (const pathname of ['/admin/assets/missing-12345678.js', '/admin/img/missing.png', '/admin/assets/missing.js?q=1', '/admin/content/not-a-page', '/admin/maintenance/missing.js']) {
+    for (const pathname of ['/admin/assets/missing-12345678.js', '/admin/img/missing.png', '/admin/assets/missing.js?q=1', '/admin/content/not-a-page', '/admin/maintenance/missing.js', '/admin/gifts/missing.js']) {
         const response = await request(origin + pathname, 'identity')
         assert.equal(response.status, 404); assert.match(response.headers['content-type'], /application\/json/)
     }

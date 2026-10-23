@@ -18,6 +18,10 @@ const MAX = 2147483647
 const types: Record<number, RewardType> = { 1: RewardType.ITEM, 4: RewardType.BEADS,
     5: RewardType.CHARACTER, 6: RewardType.EQUIPMENT, 8: RewardType.MANA, 9: RewardType.EXP }
 export class GiftInputError extends Error {}
+/** The management picker must offer only IDs accepted by reward validation. */
+export function giftRewardIds() {
+    return { 1: serverItemIds, 5: Object.keys(serverCharacters).map(Number), 6: equipmentIds }
+}
 export function validGiftCode(code: unknown): code is string {
     return typeof code === "string" && code.length >= 1 && code.length <= 20
         && code.trim() === code && !/[\s\x00-\x1f\x7f]/.test(code)
