@@ -1,0 +1,78 @@
+.town-theme-page { display: grid; gap: 20px; }
+.town-theme-current, .town-theme-save { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px; border: 1px solid var(--admin-border); border-radius: 14px; background: var(--admin-surface); }
+.town-theme-current > div, .town-theme-save-copy { display: grid; gap: 6px; }
+.town-theme-kicker, .town-theme-current > span, .town-theme-save-copy > span, .town-theme-current-calendar { color: var(--admin-muted); font-size: 13px; line-height: 1.65; }
+.town-theme-current strong { font-size: 21px; }
+.town-theme-options { margin: 0; padding: 0; border: 0; min-width: 0; }
+.town-theme-options legend { margin-bottom: 12px; font-size: 17px; font-weight: 650; }
+.town-theme-auto, .town-theme-card { position: relative; border: 2px solid var(--admin-border); background: var(--admin-surface); border-radius: 14px; transition: border-color .15s, background .15s; }
+.town-theme-auto:hover, .town-theme-card:hover { border-color: var(--admin-border-strong); }
+.town-theme-auto.is-selected, .town-theme-card.is-selected { border-color: var(--admin-primary); background: color-mix(in srgb, var(--admin-primary) 7%, var(--admin-surface)); }
+.town-theme-auto:focus-within, .town-theme-card:focus-within { outline: 3px solid var(--admin-primary); outline-offset: 3px; }
+.town-theme-auto { display: flex; align-items: center; gap: 14px; padding: 20px; margin-bottom: 18px; cursor: pointer; }
+.town-theme-auto-copy { display: grid; gap: 5px; flex: 1; }
+.town-theme-auto-copy > span { color: var(--admin-muted); line-height: 1.65; }
+.town-theme-auto > svg { flex-shrink: 0; color: var(--admin-primary); }
+.town-theme-auto input, .town-theme-card input { accent-color: var(--admin-primary); width: 18px; height: 18px; flex-shrink: 0; }
+.town-theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr)); gap: 18px; }
+.town-theme-card { display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.town-theme-card-choice { display: block; position: relative; cursor: pointer; }
+.town-theme-card-choice > input { position: absolute; top: 12px; right: 12px; z-index: 1; margin: 0; box-shadow: 0 0 0 4px var(--admin-surface); border-radius: 50%; }
+.town-theme-image { position: relative; display: grid; place-items: center; aspect-ratio: 4/3; overflow: hidden; background: var(--admin-bg-deep); }
+.town-theme-image img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.town-theme-image-fallback { display: grid; place-items: center; gap: 10px; color: var(--admin-muted); font-size: 13px; }
+.town-theme-card-copy { display: grid; gap: 9px; padding: 18px; }
+.town-theme-card-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 17px; }
+.town-theme-card-title > svg { color: var(--admin-primary); flex-shrink: 0; }
+.town-theme-card-description { color: var(--admin-muted); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.town-theme-card .ant-tag { width: fit-content; margin: 0; }
+.town-theme-options:disabled label { cursor: wait; opacity: .7; }
+.town-theme-save { border-color: var(--admin-border-strong); }
+.town-theme-confirm { line-height: 1.8; overflow-wrap: anywhere; }
+.town-theme-periods { display: grid; gap: 8px; padding: 14px 18px 18px; margin-top: auto; border-top: 1px solid var(--admin-border); color: var(--admin-muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.town-theme-periods > strong { color: var(--admin-text); font-weight: 600; }
+.town-theme-periods summary { color: var(--admin-primary); cursor: pointer; padding: 3px 0; }
+.town-theme-periods summary:focus-visible { outline: 2px solid var(--admin-primary); outline-offset: 3px; border-radius: 3px; }
+.town-theme-periods ul { padding-left: 18px; margin: 8px 0 0; }
+.town-theme-periods li + li { margin-top: 9px; }
+.town-annual-section { display: grid; gap: 18px; padding-top: 8px; }
+.town-annual-section h2 { font-size: 21px; margin: 0 0 10px; }
+.town-annual-section header p { color: var(--admin-muted); line-height: 1.75; margin: 6px 0; }
+.town-annual-list, .town-annual-warnings { display: grid; gap: 14px; }
+.town-annual-editor { min-width: 0; margin: 0; padding: 20px; border: 1px solid var(--admin-border); border-radius: 14px; background: var(--admin-surface); }
+.town-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.town-annual-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.town-annual-editor-header > div { display: grid; gap: 7px; }
+.town-annual-editor-header > div > strong { font-size: 17px; }
+.town-annual-editor-header > div > span, .town-annual-off { color: var(--admin-muted); font-size: 13px; line-height: 1.75; }
+.town-annual-off { margin: 14px 0 0; }
+.town-annual-switch { display: flex; align-items: center; gap: 10px; flex-shrink: 0; font-size: 13px; }
+.town-annual-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding-top: 20px; }
+.town-annual-endpoint { display: grid; gap: 12px; min-width: 0; }
+.town-annual-endpoint > strong { font-size: 13px; }
+.town-annual-date-inputs { display: flex; align-items: flex-end; gap: 9px; flex-wrap: wrap; }
+.town-annual-date-inputs label { display: grid; gap: 6px; color: var(--admin-muted); font-size: 12px; }
+.town-annual-date-inputs select, .town-annual-date-inputs input { width: 90px; min-height: 38px; border: 1px solid var(--admin-border-strong); border-radius: 7px; background: var(--admin-surface-raised); color: var(--admin-text); padding: 6px 8px; font: inherit; font-size: 14px; }
+.town-annual-date-inputs input { width: 152px; }
+.town-annual-date-inputs select:focus-visible, .town-annual-date-inputs input:focus-visible { outline: 2px solid var(--admin-primary); outline-offset: 2px; }
+.town-annual-window { grid-column: 1/-1; color: var(--admin-primary); font-size: 13px; line-height: 1.7; margin: 0; overflow-wrap: anywhere; }
+.town-annual-unavailable { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px; border: 1px solid var(--admin-warning); border-radius: 12px; }
+.town-annual-unavailable > div { display: grid; gap: 7px; color: var(--admin-muted); line-height: 1.6; font-size: 13px; }
+.town-annual-unavailable strong { color: var(--admin-text); }
+.town-annual-confirm ul { margin: 10px 0; padding-left: 20px; }
+.town-annual-confirm li { margin-bottom: 12px; }
+.town-annual-confirm li > span { display: block; color: var(--admin-muted); }
+@media (max-width: 640px) {
+  .town-theme-current, .town-theme-save { align-items: stretch; flex-direction: column; gap: 14px; padding: 16px; }
+  .town-theme-auto { padding: 16px; flex-wrap: wrap; }
+  .town-theme-auto-copy { min-width: 150px; }
+  .town-theme-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 14px; }
+  .town-theme-save .ant-space { align-self: flex-end; }
+  .town-annual-editor { padding: 16px; }
+  .town-annual-editor-header, .town-annual-unavailable { align-items: stretch; flex-direction: column; gap: 14px; }
+  .town-annual-switch { justify-content: space-between; }
+  .town-annual-fields { grid-template-columns: minmax(0, 1fr); }
+  .town-annual-date-inputs select { width: 74px; }
+  .town-annual-date-inputs input { width: 146px; }
+  .town-annual-unavailable > button { align-self: flex-start; }
+}

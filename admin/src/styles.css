@@ -74,7 +74,53 @@ html[data-admin-theme="dark"] body {
 
 .admin-app {
   min-height: 100vh;
+    min-width: 0;
   background: transparent;
+}
+
+.admin-app > .ant-layout,
+.admin-content,
+.admin-page,
+.admin-page-header > div,
+.admin-card-grid > *,
+.admin-stack > .ant-space-item {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-content .ant-card,
+.admin-content .ant-card-body,
+.admin-content .ant-card-head-wrapper {
+  min-width: 0;
+}
+
+.admin-page-description,
+.admin-content .ant-alert-message,
+.admin-content .ant-alert-description {
+  overflow-wrap: anywhere;
+}
+
+.admin-table-card .ant-card-head-wrapper {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.admin-table-card .ant-card-extra,
+.accounts-toolbar,
+.accounts-toolbar > .ant-space-item {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.account-drawer-title {
+  overflow-wrap: anywhere;
+}
+
+.account-save-name-link {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .admin-sider {
@@ -823,6 +869,29 @@ html[data-admin-theme="dark"] body {
 }
 
 @media (max-width: 767px) {
+  .admin-table-card .ant-card-extra {
+    width: 100%;
+    margin-inline-start: 0;
+  }
+
+  .accounts-toolbar {
+    width: 100%;
+  }
+
+  .accounts-toolbar > .ant-space-item:last-child,
+  .account-search {
+    width: 100% !important;
+  }
+
+  .admin-content .ant-alert {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-content .ant-alert-action {
+    max-width: 100%;
+    margin-inline-start: 0;
+  }
   .admin-topbar {
     min-height: 52px;
     padding-inline: 12px;
@@ -890,4 +959,35 @@ html[data-admin-theme="dark"] body {
   .admin-time-segment-label {
     flex: 0 0 auto;
   }
+}
+
+
+/* Common navigation and compact daily workflows. */
+.admin-menu .ant-menu-item-group-title {
+  color: var(--admin-muted);
+  font-size: 12px;
+  padding-top: 18px;
+  padding-bottom: 6px;
+}
+.admin-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.admin-shortcuts > .ant-btn { width: 100%; }
+.admin-history-pool {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 0;
+}
+.admin-history-pool > div { min-width: 0; overflow-wrap: anywhere; }
+.admin-history-pool > .ant-btn { flex-shrink: 0; }
+.admin-topbar-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 575px) {
+  .admin-history-pool { align-items: flex-start; flex-direction: column; }
+  .admin-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .admin-shortcuts .ant-btn { font-size: 13px; padding-inline: 8px; }
 }

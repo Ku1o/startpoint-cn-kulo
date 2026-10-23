@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react"
 import { Alert, Card, Table, Button, Space, Popconfirm, Input, message, Tag, Typography, Upload, Modal, Drawer, Progress, Descriptions, Collapse, Tooltip } from "antd"
 import { PlusOutlined, CopyOutlined, DeleteOutlined, SwapOutlined, EditOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { useNavigate } from "react-router-dom"
 import { apiGet, apiPost, apiUpload } from "../api/client"
 import { AdminPage } from "../components/AdminPage"
+import "./PlayerComms.css"
+import { requestAdminLeave, useAdminEditGuard, useAdminNavigate } from "../lib/editGuard"
 
 interface AccountRow {
     id: number
@@ -25,6 +26,21 @@ interface AccountRow {
 
 interface DeviceBinding {
     deviceId: number
+}
+
+interface AccountSummary {
+    accountCount: number
+    saveCount: number
+    unnotedAccountCount: number
+    unnotedSaveCount: number
+}
+
+interface AccountPage {
+    rows: AccountRow[]
+    total: number
+    page: number
+    pageSize: number
+    summary: AccountSummary
 }
 
 interface TransferBrief {
@@ -95,63 +111,77 @@ function rememberReportedCleanupJob(jobId: string) {
 
 export default function Accounts() {
     const qc = useQueryClient()
-    const navigate = useNavigate()
+    const navigate = useAdminNavigate()
     const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null)
     const [loginAccountId, setLoginAccountId] = useState<number | null>(null)
     const [renameId, setRenameId] = useState<number | null>(null)
     const [renameName, setRenameName] = useState("")
+    const [renameOriginal, setRenameOriginal] = useState("")
     const [accountQuery, setAccountQuery] = useState("")
+    const [searchQuery, setSearchQuery] = useState("")
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(20)
     const [editNoteAccountId, setEditNoteAccountId] = useState<number | null>(null)
     const [editNote, setEditNote] = useState("")
+    const [noteOriginal, setNoteOriginal] = useState("")
     const reportedCleanupJob = useRef<string | null>(readReportedCleanupJob())
 
-    const { data: accounts = [], isLoading } = useQuery({
-        queryKey: ["accounts"],
-        queryFn: () => apiGet<AccountRow[]>("/api/server/accounts"),
+    useEffect(() => {
+        const timer = window.setTimeout(() => { setSearchQuery(accountQuery.trim()); setPage(1) }, 300)
+        return () => window.clearTimeout(timer)
+    }, [accountQuery])
+
+    const { data: accountPage, isLoading, isError: accountsError, isFetching: accountsFetching, refetch: retryAccounts } = useQuery({
+        queryKey: ["accounts", "page", page, pageSize, searchQuery],
+        queryFn: ({ signal }) => apiGet<AccountPage>(`/api/server/accounts/page?${new URLSearchParams({ page: String(page), pageSize: String(pageSize), q: searchQuery })}`, { signal }),
     })
-    const { data: cleanupJob } = useQuery({
+    const accounts = accountPage?.rows ?? []
+    useEffect(() => { if (accountPage && accountPage.page !== page) setPage(accountPage.page) }, [accountPage, page])
+    const selectedQuery = useQuery({
+        queryKey: ["accounts", "detail", selectedAccountId],
+        queryFn: ({ signal }) => apiGet<AccountRow>(`/api/server/accounts/${selectedAccountId}`, { signal }),
+        enabled: selectedAccountId !== null,
+    })
+    const loginQuery = useQuery({
+        queryKey: ["accounts", "detail", loginAccountId],
+        queryFn: ({ signal }) => apiGet<AccountRow>(`/api/server/accounts/${loginAccountId}`, { signal }),
+        enabled: loginAccountId !== null,
+    })
+    const { data: cleanupJob, isPending: cleanupLoading, isError: cleanupError, refetch: retryCleanup } = useQuery({
         queryKey: ["unnoted-account-cleanup"],
         queryFn: () => apiGet<CleanupJob>("/api/server/deleteUnnotedAccounts/status"),
         refetchInterval: query =>
             (query.state.data as CleanupJob | undefined)?.status === "running" ? 1000 : false,
     })
 
-    const selectedAccount = accounts.find(a => a.id === selectedAccountId)
-    const loginAccount = accounts.find(a => a.id === loginAccountId)
+    const selectedAccount = selectedQuery.data
+    const loginAccount = loginQuery.data
     const savePlayers = selectedAccount?.players ?? []
-    const normalizedQuery = accountQuery.trim().toLowerCase()
-    const filteredAccounts = normalizedQuery
-        ? accounts.filter(account => [
-            account.id,
-            account.viewerId,
-            account.note,
-            account.loginUsername,
-            ...account.bindings.map(binding => binding.deviceId),
-            ...account.players.flatMap(player => [player.id, player.name, player.comment]),
-        ].filter(value => value != null).join(" ").toLowerCase().includes(normalizedQuery))
-        : accounts
-    const unnotedAccounts = accounts.filter(account =>
-        !(typeof account.note === "string" && account.note.trim().length > 0)
-    )
-    const unnotedSaveCount = unnotedAccounts.reduce((count, account) => count + account.saveCount, 0)
+    const unnotedAccountCount = accountPage?.summary.unnotedAccountCount ?? 0
+    const unnotedSaveCount = accountPage?.summary.unnotedSaveCount ?? 0
 
     const refresh = () => {
         qc.invalidateQueries({ queryKey: ["accounts"] })
+        qc.invalidateQueries({ queryKey: ["accountSummary"] })
+        qc.invalidateQueries({ queryKey: ["accountTargets"] })
     }
 
     const activateSave = useMutation({
         mutationFn: (playerId: number) => apiPost("/api/server/activateSave?playerId=" + playerId),
         onSuccess: () => { message.success("已切换生效存档"); refresh() },
+        onError: (error: Error) => { void message.error(`切换存档失败：${error.message}`) },
     })
 
     const newSave = useMutation({
         mutationFn: (accountId: number) => apiPost("/api/server/newSave?accountId=" + accountId),
         onSuccess: () => { message.success("新存档已创建"); refresh() },
+        onError: (error: Error) => { void message.error(`新建存档失败：${error.message}`) },
     })
 
     const deleteSave = useMutation({
         mutationFn: (playerId: number) => apiPost("/api/server/deleteSave?playerId=" + playerId),
         onSuccess: () => { message.success("存档已删除"); refresh() },
+        onError: (error: Error) => { void message.error(`删除存档失败：${error.message}`) },
     })
 
     const deleteAccount = useMutation({
@@ -161,18 +191,24 @@ export default function Accounts() {
             if (selectedAccountId === (deleteAccount.variables as number)) setSelectedAccountId(null)
             refresh()
         },
+        onError: (error: Error) => { void message.error(`删除账号失败：${error.message}`) },
     })
 
     const renameSave = useMutation({
-        mutationFn: ({ playerId, name }: { playerId: number; name: string }) =>
-            apiPost("/api/server/renameSave", { playerId, name }),
+        mutationFn: ({ playerId, name }: { playerId: number; name: string }) => {
+            if (!Number.isSafeInteger(playerId) || playerId < 1) throw new Error("存档编号无效，请重新读取账号。")
+            if (!name.trim()) throw new Error("请输入存档名字，不能只含空格。")
+            return apiPost("/api/server/renameSave", { playerId, name })
+        },
         onSuccess: () => { message.success("已改名"); setRenameId(null); refresh() },
+        onError: (error: Error) => { void message.error(`存档改名失败：${error.message}`) },
     })
 
     const cloneSave = useMutation({
         mutationFn: ({ playerId, accountId }: { playerId: number; accountId: number }) =>
             apiPost(`/api/server/cloneSave?playerId=${playerId}&accountId=${accountId}`),
         onSuccess: () => { message.success("存档已复制"); refresh() },
+        onError: (error: Error) => { void message.error(`复制存档失败：${error.message}`) },
     })
 
     const renameAccount = useMutation({
@@ -183,7 +219,7 @@ export default function Accounts() {
             setEditNoteAccountId(null)
             refresh()
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { void message.error(error.message) },
     })
 
     const issueTakeoverPassword = useMutation({
@@ -203,7 +239,7 @@ export default function Accounts() {
             })
             refresh()
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { void message.error(error.message) },
     })
 
     const issueLoginCode = useMutation({
@@ -230,7 +266,7 @@ export default function Accounts() {
             })
             refresh()
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { void message.error(error.message) },
     })
 
     const importSave = useMutation({
@@ -244,7 +280,7 @@ export default function Accounts() {
             }
             refresh()
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { void message.error(error.message) },
     })
 
     const cleanupUnnotedAccounts = useMutation({
@@ -257,7 +293,7 @@ export default function Accounts() {
                 ? "后台清理已启动；可以继续使用管理面板和游戏服务"
                 : "没有需要清理的未备注账号")
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { void message.error(error.message) },
     })
 
     useEffect(() => {
@@ -276,13 +312,24 @@ export default function Accounts() {
             if (cleanupJob.backupCleanupError) {
                 message.warning(`新备份已保留，但旧备份清理失败：${cleanupJob.backupCleanupError}`, 10)
             }
-            qc.invalidateQueries({ queryKey: ["accounts"] })
+            refresh()
         } else {
             message.error(`后台清理失败：${cleanupJob.error ?? "未知错误"}；已完成的批次不会自动恢复`, 10)
         }
     }, [cleanupJob, qc])
 
     const cleanupRunning = cleanupJob?.status === "running"
+    const accountWritePending = activateSave.isPending || newSave.isPending || deleteSave.isPending
+        || deleteAccount.isPending || renameSave.isPending || cloneSave.isPending || renameAccount.isPending
+        || issueTakeoverPassword.isPending || issueLoginCode.isPending || importSave.isPending || cleanupUnnotedAccounts.isPending
+    const accountWritesDisabled = isLoading || accountsError || accountWritePending || cleanupRunning
+        || (selectedAccountId !== null && (selectedQuery.isPending || selectedQuery.isError))
+        || (loginAccountId !== null && (loginQuery.isPending || loginQuery.isError))
+    useAdminEditGuard({
+        dirty: (renameId !== null && renameName !== renameOriginal) || (editNoteAccountId !== null && editNote !== noteOriginal),
+        pending: accountWritePending,
+        label: "账号与存档编辑",
+    })
     const cleanupPercent = cleanupRunning && cleanupJob.totalAccounts
         ? Math.round(((cleanupJob.processedAccounts ?? 0) / cleanupJob.totalAccounts) * 100)
         : 0
@@ -294,13 +341,15 @@ export default function Accounts() {
         deleting: "正在分批删除",
         finalizing: "正在写入结果并清理旧备份",
     }[cleanupJob?.phase ?? "preparing"]
-    const cleanupScopeText = isLoading
+    const cleanupScopeText = accountsError
+        ? "账号数据加载失败，暂时无法统计或清理；请重试读取。"
+        : isLoading
         ? "正在统计可清理账号…"
-        : `可清理 ${unnotedAccounts.length} 个：所有未备注账号，不论是否绑定登录。`
+        : `可清理 ${unnotedAccountCount} 个：所有未备注账号，不论是否绑定登录；此统计不受搜索或分页影响。`
 
     const confirmCleanupUnnotedAccounts = () => {
         Modal.confirm({
-            title: `删除 ${unnotedAccounts.length} 个未备注账号？`,
+            title: `删除 ${unnotedAccountCount} 个未备注账号？`,
             content: (
                 <Space direction="vertical" size="small">
                     <Typography.Text>
@@ -337,6 +386,7 @@ export default function Accounts() {
             content: (
                 <Space direction="vertical">
                     <Typography.Text>将使用“{file.name}”覆盖“{player.name}”的持久化数据。</Typography.Text>
+                    <Typography.Text strong>目标：账号 {selectedAccount?.viewerId ?? `内部 #${player.accountId}`} · 存档 #{player.id} · {player.name}</Typography.Text>
                     <Typography.Text type="secondary">导入前会把目标玩家当前存档导出为完整 V2 个人回滚备份，不会备份整个数据库。</Typography.Text>
                     <Typography.Text type="secondary">仅接受与当前数据库结构匹配的完整 V2 存档；旧版 V1 文件会被拒绝。</Typography.Text>
                     <Typography.Text type="secondary">账号绑定、设备会话和跨玩家关系保留；未完成的战斗恢复数据会清除。</Typography.Text>
@@ -345,24 +395,26 @@ export default function Accounts() {
             okText: "确认覆盖",
             cancelText: "取消",
             okButtonProps: { danger: true },
-            onOk: async () => {
-                try {
-                    await importSave.mutateAsync({ playerId: player.id, file })
-                } catch {
-                    // 错误信息由 mutation 统一展示。
-                }
-            },
+            onOk: () => importSave.mutateAsync({ playerId: player.id, file }),
         })
     }
 
     const confirmImportSave = (player: PlayerBrief, file: File) => {
+        if (!Number.isSafeInteger(player.id) || player.id < 1 || player.accountId !== selectedAccountId) {
+            message.error("导入目标无效，请重新打开所属账号的存档列表。")
+            return Upload.LIST_IGNORE
+        }
+        if (file.size < 1 || file.size > 64 * 1024 * 1024) {
+            message.error("请选择非空的完整 JSON 存档，文件不能超过 64 MB。")
+            return Upload.LIST_IGNORE
+        }
         openImportSaveConfirmation(player, file)
         return Upload.LIST_IGNORE
     }
 
     const accountColumns = [
         {
-            title: "账号 ID（viewer_id）",
+            title: "玩家 UID",
             width: 190,
             render: (_: unknown, row: AccountRow) => (
                 <div className="account-identity-cell">
@@ -427,6 +479,7 @@ export default function Accounts() {
                         value={editNote}
                         maxLength={100}
                         placeholder="输入账号备注"
+                        disabled={accountWritesDisabled}
                         onChange={event => setEditNote(event.target.value)}
                         onPressEnter={() => renameAccount.mutate({ accountId: row.id, note: editNote })}
                     />
@@ -435,11 +488,12 @@ export default function Accounts() {
                             size="small"
                             type="primary"
                             loading={renameAccount.isPending}
+                            disabled={accountWritesDisabled}
                             onClick={() => renameAccount.mutate({ accountId: row.id, note: editNote })}
                         >
                             保存
                         </Button>
-                        <Button size="small" onClick={() => setEditNoteAccountId(null)}>取消</Button>
+                        <Button size="small" disabled={renameAccount.isPending} onClick={() => setEditNoteAccountId(null)}>取消</Button>
                     </div>
                 </div>
             ) : (
@@ -454,11 +508,13 @@ export default function Accounts() {
                         type="text"
                         size="small"
                         aria-label={`编辑账号 ${row.id} 的备注`}
+                        disabled={accountWritesDisabled}
                         icon={<EditOutlined />}
-                        onClick={() => {
+                        onClick={() => requestAdminLeave(() => {
                             setEditNoteAccountId(row.id)
                             setEditNote(row.note ?? "")
-                        }}
+                            setNoteOriginal(row.note ?? "")
+                        })}
                     />
                 </div>
             ),
@@ -489,7 +545,7 @@ export default function Accounts() {
             },
         },
         {
-            title: "操作", width: 280,
+            title: "操作", width: 250,
             render: (_: unknown, row: AccountRow) => (
                 <div className="account-action-row">
                     <Button size="small" type="primary" onClick={() => setSelectedAccountId(row.id)}>管理存档</Button>
@@ -497,16 +553,21 @@ export default function Accounts() {
                         size="small"
                         icon={<PlusOutlined />}
                         loading={newSave.isPending && newSave.variables === row.id}
+                        disabled={accountWritesDisabled}
                         onClick={() => newSave.mutate(row.id)}
                     >
                         新建存档
                     </Button>
-                    <Popconfirm title={`删除账号 ${row.id} 及所有存档？`} onConfirm={() => deleteAccount.mutate(row.id)} okText="确认" cancelText="取消" okButtonProps={{ danger: true }}>
+                    <Popconfirm title={`删除账号 ${row.viewerId ?? `内部 #${row.id}`} 及所有存档？`}
+                        description={`默认角色：${row.defaultPlayerName ?? "无"}；共 ${row.saveCount} 个存档。账号登录与绑定一并删除，不能在面板内撤销。`}
+                        overlayStyle={{ maxWidth: "min(420px, calc(100vw - 32px))" }}
+                        onConfirm={() => deleteAccount.mutate(row.id)} okText="确认删除" cancelText="取消" okButtonProps={{ danger: true, disabled: accountWritesDisabled }}>
                         <Button
                             size="small"
                             danger
                             icon={<DeleteOutlined />}
                             loading={deleteAccount.isPending && deleteAccount.variables === row.id}
+                            disabled={accountWritesDisabled}
                         >
                             删除
                         </Button>
@@ -519,21 +580,27 @@ export default function Accounts() {
     const saveColumns = [
         { title: "ID", dataIndex: "id", width: 60, responsive: ["sm"] as any },
         {
-            title: "名字", width: 150,
+            title: "存档", width: 190,
             render: (_: unknown, row: PlayerBrief) => renameId === row.id ? (
                 <div className="admin-edit-compact">
-                    <Input size="small" value={renameName} onChange={e => setRenameName(e.target.value)} onPressEnter={() => renameSave.mutate({ playerId: row.id, name: renameName })} style={{ width: 100 }} />
-                    <Button size="small" type="primary" onClick={() => renameSave.mutate({ playerId: row.id, name: renameName })}>确定</Button>
-                    <Button size="small" onClick={() => setRenameId(null)}>取消</Button>
+                    <Input size="small" aria-label={`存档 ${row.id} 的名字`} value={renameName} disabled={accountWritesDisabled} onChange={e => setRenameName(e.target.value)} onPressEnter={() => renameSave.mutate({ playerId: row.id, name: renameName })} style={{ width: 100 }} />
+                    <Button size="small" type="primary" disabled={accountWritesDisabled} loading={renameSave.isPending && renameSave.variables?.playerId === row.id} onClick={() => renameSave.mutate({ playerId: row.id, name: renameName })}>确定</Button>
+                    <Button size="small" disabled={renameSave.isPending} onClick={() => setRenameId(null)}>取消</Button>
                 </div>
             ) : (
-                <Space>
-                    <a onClick={() => navigate(`/players/${row.id}`)}>{row.name}</a>
-                    <Button type="text" size="small" icon={<EditOutlined />} onClick={() => { setRenameId(row.id); setRenameName(row.name) }} />
-                </Space>
+                <div className="account-save-title">
+                    <div className="account-save-name-row">
+                    <a href={`/admin/players/${row.id}`} className="account-save-name-link" aria-label={`查看存档 ${row.id}：${row.name}`}
+                        onClick={event => {
+                            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+                            event.preventDefault(); navigate(`/players/${row.id}`)
+                        }}>{row.name}</a>
+                    <Button type="text" size="small" disabled={accountWritesDisabled} aria-label={`修改存档 ${row.id} 的名字`} icon={<EditOutlined />} onClick={() => requestAdminLeave(() => { setRenameId(row.id); setRenameName(row.name); setRenameOriginal(row.name) })} />
+                    </div>
+                    <Typography.Text type="secondary" className="account-cell-meta">存档 #{row.id}{row.isDefault ? " · 账号默认" : ""}{row.isActive ? " · 当前活动" : ""}</Typography.Text>
+                </div>
             ),
         },
-        { title: "等级", width: 80, responsive: ["md"] as any, render: (_: unknown, row: PlayerBrief) => `Lv.${row.degreeId || 1}` },
         {
             title: "状态", width: 80, responsive: ["sm"] as any,
             render: (_: unknown, row: PlayerBrief) => (
@@ -547,10 +614,10 @@ export default function Accounts() {
             title: "操作", width: 430,
             render: (_: unknown, row: PlayerBrief) => (
                 <div className="admin-action-row">
-                    <Button size="small" icon={<SwapOutlined />} disabled={row.isDefault && row.isActive} onClick={() => activateSave.mutate(row.id)}>
+                    <Button size="small" icon={<SwapOutlined />} disabled={accountWritesDisabled || (row.isDefault && row.isActive)} loading={activateSave.isPending && activateSave.variables === row.id} onClick={() => activateSave.mutate(row.id)}>
                         设为默认并切换
                     </Button>
-                    <Button size="small" icon={<CopyOutlined />} onClick={() => cloneSave.mutate({ playerId: row.id, accountId: selectedAccountId! })}>
+                    <Button size="small" icon={<CopyOutlined />} disabled={accountWritesDisabled} loading={cloneSave.isPending && cloneSave.variables?.playerId === row.id} onClick={() => cloneSave.mutate({ playerId: row.id, accountId: selectedAccountId! })}>
                         复制
                     </Button>
                     <Button size="small" icon={<DownloadOutlined />} href={`/api/player/save?id=${row.id}`} target="_blank">
@@ -560,6 +627,7 @@ export default function Accounts() {
                         accept=".json,application/json"
                         showUploadList={false}
                         maxCount={1}
+                        disabled={accountWritesDisabled}
                         beforeUpload={file => confirmImportSave(row, file)}
                     >
                         <Button
@@ -567,12 +635,16 @@ export default function Accounts() {
                             danger
                             icon={<UploadOutlined />}
                             loading={importSave.isPending && importSave.variables?.playerId === row.id}
+                            disabled={accountWritesDisabled}
                         >
                             导入
                         </Button>
                     </Upload>
-                    <Popconfirm title={`删除存档 ${row.id}？`} onConfirm={() => deleteSave.mutate(row.id)} okText="确认" cancelText="取消" okButtonProps={{ danger: true }}>
-                        <Button size="small" danger icon={<DeleteOutlined />}>删除</Button>
+                    <Popconfirm title={`删除存档 #${row.id}「${row.name}」？`}
+                        description={`所属账号：${selectedAccount?.viewerId ?? `内部 #${row.accountId}`}。此操作不能在面板内撤销。`}
+                        overlayStyle={{ maxWidth: "min(420px, calc(100vw - 32px))" }}
+                        onConfirm={() => deleteSave.mutate(row.id)} okText="确认删除" cancelText="取消" okButtonProps={{ danger: true, disabled: accountWritesDisabled }}>
+                        <Button size="small" danger icon={<DeleteOutlined />} disabled={accountWritesDisabled} loading={deleteSave.isPending && deleteSave.variables === row.id}>删除</Button>
                     </Popconfirm>
                 </div>
             ),
@@ -583,48 +655,40 @@ export default function Accounts() {
         <AdminPage
             eyebrow="SAVES"
             title="账号 / 存档"
-            description="查看账号与默认存档关系。账号默认存档决定该账号登录时选用哪个存档；当前活动存档只是管理端最近切换的全局状态。"
+            description="按登录账号、UID 或存档查找玩家，管理绑定、备注与个人存档。"
         >
         <Space direction="vertical" size="large" className="admin-stack">
-            <Alert
-                type="info"
-                showIcon
-                message="账号登录与旧存档绑定"
-                description="备注是账号级备注，绑定登录和设备更换后仍保留。老玩家无需先注册：核实原 UID 后生成绑定码即可。已绑定账号使用登录密码重置码找回；原设备 ID 仅供历史定位。账号默认存档决定玩家登录时选用的存档，当前活动存档只是管理端最近切换的全局状态。"
-            />
+            <Collapse size="small" items={[{ key: "identity", label: "账号、存档与旧设备有什么区别？", children: (
+                <Typography.Paragraph style={{ marginBottom: 0 }}>
+                    账号默认存档决定登录时使用的存档；“当前活动”仅代表管理端最近切换的全局状态。
+                    备注属于账号。老玩家核实 UID 后可生成绑定码，已绑定账号可生成密码重置码；原设备 ID 仅用于历史定位。
+                </Typography.Paragraph>
+            ) }]} />
             <Card
                 title="账号管理"
                 className="admin-table-card"
                 extra={(
-                    <Space wrap>
-                        <Tooltip title={cleanupRunning ? "清理任务正在进行，请等待完成" : cleanupScopeText}>
-                        <span>
-                        <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            disabled={isLoading || unnotedAccounts.length === 0 || cleanupRunning}
-                            loading={cleanupUnnotedAccounts.isPending}
-                            onClick={confirmCleanupUnnotedAccounts}
-                        >
-                            {cleanupRunning
-                                ? `后台清理中 (${cleanupJob.processedAccounts ?? 0}/${cleanupJob.totalAccounts ?? 0})`
-                                : `删除未备注账号 (${unnotedAccounts.length})`}
-                        </Button>
-                        </span>
-                        </Tooltip>
+                    <Space wrap className="accounts-toolbar">
                         <Input.Search
                             allowClear
                             value={accountQuery}
-                            onChange={event => setAccountQuery(event.target.value)}
+                            onChange={event => {
+                                const value = event.target.value
+                                requestAdminLeave(() => { setEditNoteAccountId(null); setRenameId(null); setAccountQuery(value) })
+                            }}
                             placeholder="搜索登录账号、UID、设备 ID、备注或存档"
-                            style={{ width: 300, maxWidth: "65vw" }}
+                            className="account-search" aria-label="搜索账号与存档"
+                            style={{ width: 320, maxWidth: "100%" }}
                         />
                     </Space>
                 )}
             >
-                <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
-                    {cleanupScopeText}
-                </Typography.Paragraph>
+                {accountsError && <Alert type="error" showIcon role="alert" style={{ marginBottom: 12 }}
+                    message="账号列表加载失败" description="这不代表没有账号。当前未保存内容仍保留，请恢复登录或网络后重试读取。"
+                    action={<Button loading={accountsFetching} onClick={() => void retryAccounts()}>重试账号列表</Button>} />}
+                {cleanupError && <Alert type="warning" showIcon role="alert" style={{ marginBottom: 12 }}
+                    message="无法读取后台清理状态" description="为避免重复启动清理，暂时禁止发起清理任务。"
+                    action={<Button onClick={() => void retryCleanup()}>重试清理状态</Button>} />}
                 {cleanupRunning && (
                     <Alert
                         type="info"
@@ -642,32 +706,64 @@ export default function Accounts() {
                         )}
                     />
                 )}
-                <Table
+                {!accountsError && <Table
                     className="accounts-overview-table"
                     rowKey="id"
                     columns={accountColumns}
-                    dataSource={filteredAccounts}
+                    dataSource={accounts}
                     loading={isLoading}
                     pagination={{
                         defaultPageSize: 20,
+                        current: accountPage?.page ?? page,
+                        pageSize,
+                        total: accountPage?.total ?? 0,
+                        onChange: (nextPage, nextSize) => {
+                            if (!Number.isSafeInteger(nextPage) || nextPage < 1 || ![20, 50, 100].includes(nextSize)) return
+                            requestAdminLeave(() => { setEditNoteAccountId(null); setRenameId(null); setPage(nextSize === pageSize ? nextPage : 1); setPageSize(nextSize) })
+                        },
                         showSizeChanger: true,
                         pageSizeOptions: [20, 50, 100],
                         showTotal: total => `共 ${total} 个账号`,
                     }}
                     size="small"
-                    scroll={{ x: 1320 }}
-                />
+                    scroll={{ x: 1210 }}
+                    locale={{ emptyText: searchQuery ? "没有匹配的账号" : "暂无账号" }}
+                />}
+                <Collapse size="small" className="account-maintenance" items={[{ key: "cleanup", label: "批量维护 · 删除未备注账号", children: (
+                    <Space direction="vertical" style={{ width: "100%" }}>
+                        <Typography.Text type="secondary">{cleanupScopeText}</Typography.Text>
+                        <Tooltip title={cleanupRunning ? "清理任务正在进行，请等待完成" : cleanupScopeText}>
+                        <span>
+                        <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            disabled={accountWritesDisabled || cleanupLoading || cleanupError || unnotedAccountCount === 0}
+                            loading={cleanupUnnotedAccounts.isPending}
+                            onClick={confirmCleanupUnnotedAccounts}
+                        >
+                            {cleanupRunning
+                                ? `后台清理中 (${cleanupJob.processedAccounts ?? 0}/${cleanupJob.totalAccounts ?? 0})`
+                                : accountsError ? "删除未备注账号（数据未就绪）" : `删除未备注账号 (${unnotedAccountCount})`}
+                        </Button>
+                        </span>
+                        </Tooltip>
+                    </Space>
+                ) }]} />
             </Card>
 
             <Modal
                 title="登录与绑定管理"
-                open={Boolean(loginAccount)}
-                onCancel={() => setLoginAccountId(null)}
-                footer={<Button onClick={() => setLoginAccountId(null)}>完成</Button>}
+                open={loginAccountId !== null}
+                onCancel={() => { if (accountWritePending) requestAdminLeave(() => setLoginAccountId(null)); else setLoginAccountId(null) }}
+                footer={<Button onClick={() => { if (accountWritePending) requestAdminLeave(() => setLoginAccountId(null)); else setLoginAccountId(null) }}>完成</Button>}
                 width={560}
                 destroyOnClose
             >
-                {loginAccount && <Space direction="vertical" size="large" className="admin-stack account-login-dialog">
+                {loginQuery.isError ? <Alert type="error" showIcon message="账号详情读取失败"
+                    description="账号可能已删除，或登录/网络暂时不可用。当前未保存内容仍保留。"
+                    action={<Button loading={loginQuery.isFetching} onClick={() => void loginQuery.refetch()}>重试账号详情</Button>} />
+                    : loginQuery.isPending ? <Alert type="info" message="正在读取账号详情…" />
+                    : loginAccount && <Space direction="vertical" size="large" className="admin-stack account-login-dialog">
                     <div className="account-login-summary">
                         <div>
                             <Typography.Text strong>{loginAccount.defaultPlayerName || "未命名角色"}</Typography.Text>
@@ -704,10 +800,10 @@ export default function Accounts() {
                         <Popconfirm
                             title={loginAccount.playerLogin?.bound ? "生成登录密码重置码？" : "生成旧存档绑定码？"}
                             description={`请确认已核实 UID ${loginAccount.viewerId} 的存档归属。新码将替换之前的同用途验证码。`}
-                            okText="生成验证码" cancelText="取消"
+                            okText="生成验证码" cancelText="取消" okButtonProps={{ disabled: accountWritesDisabled }}
                             onConfirm={() => issueLoginCode.mutate(loginAccount)}
                         >
-                            <Button type="primary" disabled={!loginAccount.viewerId}
+                            <Button type="primary" disabled={accountWritesDisabled || !loginAccount.viewerId}
                                 loading={issueLoginCode.isPending && issueLoginCode.variables?.id === loginAccount.id}>
                                 {loginAccount.playerLogin?.bound ? "生成重置码" : "生成绑定码"}
                             </Button>
@@ -731,10 +827,10 @@ export default function Accounts() {
                                     title={loginAccount.takeoverConfigured ? "重置该账号的继承密码？" : "为该账号生成继承密码？"}
                                     description="新密码仅显示一次；已存在的旧继承密码立即失效。"
                                     okText={loginAccount.takeoverConfigured ? "确认重置" : "确认生成"} cancelText="取消"
-                                    okButtonProps={{ danger: loginAccount.takeoverConfigured }}
+                                    okButtonProps={{ danger: loginAccount.takeoverConfigured, disabled: accountWritesDisabled }}
                                     onConfirm={() => issueTakeoverPassword.mutate({ accountId: loginAccount.id, reset: loginAccount.takeoverConfigured })}
                                 >
-                                    <Button size="small" danger={loginAccount.takeoverConfigured}
+                                    <Button size="small" disabled={accountWritesDisabled} danger={loginAccount.takeoverConfigured}
                                         loading={issueTakeoverPassword.isPending && issueTakeoverPassword.variables?.accountId === loginAccount.id}>
                                         {loginAccount.takeoverConfigured ? "重置继承密码" : "生成继承密码"}
                                     </Button>
@@ -751,14 +847,22 @@ export default function Accounts() {
 
             <Drawer
                 open={selectedAccountId !== null}
-                onClose={() => setSelectedAccountId(null)}
+                onClose={() => {
+                    const close = () => { setRenameId(null); setSelectedAccountId(null) }
+                    if (accountWritePending || (renameId !== null && renameName !== renameOriginal)) requestAdminLeave(close)
+                    else close()
+                }}
                 width="min(1180px, 96vw)"
-                title={selectedAccount
+                title={<span className="account-drawer-title">{selectedAccount
                     ? `账号 ${selectedAccount.viewerId ?? `内部 #${selectedAccount.id}`} 的存档`
-                    : "存档管理"}
+                    : "存档管理"}</span>}
                 destroyOnClose
             >
-                {selectedAccount ? (
+                {selectedQuery.isError ? <Alert type="error" showIcon message="存档列表读取失败"
+                    description="账号可能已删除，或登录/网络暂时不可用。"
+                    action={<Button loading={selectedQuery.isFetching} onClick={() => void selectedQuery.refetch()}>重试存档列表</Button>} />
+                : selectedQuery.isPending ? <Alert type="info" message="正在读取存档列表…" />
+                : selectedAccount ? (
                     <Table
                         rowKey="id"
                         columns={saveColumns}

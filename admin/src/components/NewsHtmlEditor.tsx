@@ -8,6 +8,7 @@ import {
     ScissorOutlined,
     UnorderedListOutlined,
 } from "@ant-design/icons"
+import { sanitizeNewsBody, sanitizeNewsDocument } from "../lib/newsHtml"
 
 interface NewsHtmlEditorProps {
     value?: string
@@ -36,46 +37,11 @@ function escapeAttribute(value: string): string {
         .replace(/>/g, "&gt;")
 }
 
-function bodyHtml(value: string): string {
-    const trimmed = value.trim()
-    if (!trimmed) return ""
-    if (!/<!doctype|<html[\s>]/i.test(trimmed)) return trimmed
-    const document = new DOMParser().parseFromString(trimmed, "text/html")
-    return document.body.innerHTML
-}
-
-/**
- * The game parses announcement content as XML, although the editor works on
- * an HTML DOM. HTML serialization omits the closing slash on void elements,
- * so restore XML self-closing syntax before sending the value to the server.
- */
-function xmlSafeFragment(value: string): string {
-    return value.replace(/<(img|br|hr)\b([^>]*)>/gi, (_full, tag: string, attributes: string) => {
-        const trimmed = attributes.trimEnd()
-        return trimmed.endsWith("/")
-            ? `<${tag}${attributes}>`
-            : `<${tag}${attributes} />`
-    })
-}
-
-/**
- * The game parser reads a complete XML-shaped HTML document. Keep the editor
- * pleasant to use by letting the visual canvas work with body fragments, then
- * wrapping every non-empty change before it leaves the component.
- */
-function toNewsDocument(body: string): string {
-    const trimmed = body.trim()
-    if (!trimmed) return ""
-    if (/<!doctype|<html[\s>]/i.test(trimmed)) return trimmed
-    if (/^<body[\s>]/i.test(trimmed)) return `<html lang="zh">${trimmed}</html>`
-    return `<html lang="zh"><body>${trimmed}</body></html>`
-}
-
-function editorHtml(editor: HTMLElement): string {
+function editorHtml(editor: HTMLElement, previous: string): string {
     const text = (editor.textContent ?? "").replace(/\u00a0/g, " ").trim()
     const meaningfulElement = editor.querySelector("img, hr, table, ul, ol")
     if (!text && !meaningfulElement) return ""
-    return toNewsDocument(xmlSafeFragment(editor.innerHTML))
+    return sanitizeNewsDocument(previous, editor.innerHTML)
 }
 
 /**
@@ -94,7 +60,7 @@ export function NewsHtmlEditor({ value = "", onChange }: NewsHtmlEditorProps) {
     }
 
     useEffect(() => {
-        const next = bodyHtml(value)
+        const next = sanitizeNewsBody(value)
         if (sourceMode || !editorRef.current) return
         if (editorRef.current.innerHTML !== next) editorRef.current.innerHTML = next
     }, [sourceMode, value])
@@ -114,14 +80,14 @@ export function NewsHtmlEditor({ value = "", onChange }: NewsHtmlEditorProps) {
         const selection = window.getSelection()
         if (!selection) return
         selection.removeAllRanges()
-        if (selectionRef.current) selection.addRange(selectionRef.current)
+        if (selectionRef.current && editor.contains(selectionRef.current.commonAncestorContainer)) selection.addRange(selectionRef.current)
     }
 
     const runCommand = (command: string, argument?: string) => {
         restoreSelection()
         document.execCommand(command, false, argument)
         const editor = editorRef.current
-        if (editor) update(editorHtml(editor))
+        if (editor) update(editorHtml(editor, value))
         rememberSelection()
     }
 
@@ -146,13 +112,23 @@ export function NewsHtmlEditor({ value = "", onChange }: NewsHtmlEditorProps) {
             `<div class="center"><img src="${escapeAttribute(url)}" width="${escapeAttribute(width)}" height="${height}"${alt ? ` alt="${alt}"` : ""} /></div>`,
         )
         const editor = editorRef.current
-        if (editor) update(editorHtml(editor))
+        if (editor) update(editorHtml(editor, value))
         setImageOpen(false)
     }
 
     const toggleSourceMode = () => {
         if (!sourceMode) rememberSelection()
+        else { update(sanitizeNewsDocument(value)); selectionRef.current = null }
         setSourceMode(current => !current)
+    }
+
+    const insertTransfer = (html: string, text: string) => {
+        const safe = html ? sanitizeNewsBody(html) : text.split(/\r?\n/).map(escapeAttribute).join("<br />")
+        restoreSelection()
+        document.execCommand("insertHTML", false, safe)
+        const editor = editorRef.current
+        if (editor) update(editorHtml(editor, value))
+        rememberSelection()
     }
 
     return (
@@ -207,14 +183,29 @@ export function NewsHtmlEditor({ value = "", onChange }: NewsHtmlEditorProps) {
                     contentEditable
                     suppressContentEditableWarning
                     data-placeholder="在这里输入公告正文；主标题填写在上方，需要游戏内横条时再使用“一级标题”"
-                    onInput={event => update(editorHtml(event.currentTarget))}
+                    onInput={event => update(editorHtml(event.currentTarget, value))}
+                    onPaste={event => {
+                        event.preventDefault()
+                        rememberSelection()
+                        insertTransfer(event.clipboardData.getData("text/html"), event.clipboardData.getData("text/plain"))
+                    }}
+                    onDragOver={event => event.preventDefault()}
+                    onDrop={event => {
+                        event.preventDefault()
+                        rememberSelection()
+                        insertTransfer(event.dataTransfer.getData("text/html"), event.dataTransfer.getData("text/plain"))
+                    }}
+                    onClick={event => {
+                        // Keep native announcement links editable without navigating the admin.
+                        if ((event.target as Element).closest("a")) event.preventDefault()
+                    }}
                     onMouseUp={rememberSelection}
                     onKeyUp={rememberSelection}
                     onBlur={rememberSelection}
                 />
             )}
             <div className="news-rich-editor-help">
-                上方标题是公告主标题；正文里的“一级标题”会在游戏内显示为黑橙横条。保存时会自动补齐客户端需要的 html/body 外壳；图片地址填写 Cloudflare 等图床提供的 HTTPS 地址。
+                上方标题是公告主标题；正文里的“一级标题”会在游戏内显示为黑橙横条。保存时会自动补齐客户端需要的 html/body 外壳；图片地址填写 Cloudflare 等图床提供的 HTTPS 地址。粘贴、返回可视编辑及保存时会移除脚本、事件和不安全样式。
             </div>
             <Modal
                 open={imageOpen}

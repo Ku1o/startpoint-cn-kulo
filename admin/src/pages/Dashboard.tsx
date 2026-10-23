@@ -1,239 +1,85 @@
-import { Alert, Button, Card, Col, Descriptions, Divider, Popconfirm, Row, Space, Statistic, Tag, Typography, Upload, message } from "antd"
-import { DatabaseOutlined, DeleteOutlined, ExperimentOutlined, MailOutlined, ReloadOutlined, TeamOutlined, UploadOutlined } from "@ant-design/icons"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useNavigate } from "react-router-dom"
-import { apiDelete, apiGet, apiPost, apiUpload } from "../api/client"
+import { Alert, Button, Card, Col, Collapse, Descriptions, Divider, Row, Space, Statistic, Tag, Typography } from "antd"
+import { ReloadOutlined } from "@ant-design/icons"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { apiGet } from "../api/client"
+import type { ServerStatus } from "../api/serverStatus"
 import { AdminPage } from "../components/AdminPage"
+import { formatBeijingTime, formatBytes, formatDuration } from "../lib/adminFormat"
+import { useAdminNavigate } from "../lib/editGuard"
 
-interface AccountRow {
-    id: number
-    saveCount: number
-    defaultPlayerId: number | null
-    defaultPlayerName: string | null
-    playerIds: number[]
-}
-
-interface DefaultSaveMeta {
-    exists: boolean
-    playerName?: string | null
-    exportedAt?: string | null
-    sourcePlayerId?: number | null
-    version?: number | null
-    scope?: string | null
-    includedTableCount?: number | null
-    rowCount?: number | null
-}
-
-interface DatabaseBackupResult {
-    ok: boolean
-    backup: string
-    retainedBackups: number
-    removedBackups: number
-    backupCleanupError: string | null
-}
-
-interface ServerStatus {
-    server: {
-        uptimeSeconds: number
-        onlinePlayers: number
-        nodeVersion: string
-        platform: string
-        pid: number
-        memory: { rss: number; heapUsed: number; heapTotal: number }
-        listenHost: string
-        listenPort: string
-    }
-    cdn: {
-        baseUrl: string
-        baseline: {
-            mode: string
-            source: string
-            fullVersion: string
-            cnFinalVersion: string
-            detectedArchiveVersion: string
-            manifestVersion: string
-            pinned: boolean
-            dataScope: string[]
-        }
-        extension: {
-            mode: string
-            status: string
-            runtimeEnabled: boolean
-            effectiveVersionPreview: string
-            enabledPatchCount: number
-            totalPatchCount: number
-            activePatchArchiveCount: number
-            note: string
-        }
-        storage: {
-            configuredDir: string
-            directoryPresent: boolean
-            archiveCount: number
-            archiveBytes: number
-            latestArchiveMtime: string | null
-        }
-        configuredDir: string
-        directoryPresent: boolean
-        archiveCount: number
-        archiveBytes: number
-        latestArchiveMtime: string | null
-        fullVersion: string
-        detectedVersion: string
-        effectiveVersion: string
-        manifestVersion: string
-        enabledPatchCount: number
-        totalPatchCount: number
-        activePatchArchiveCount: number
-    }
-}
-
-function formatDuration(seconds: number): string {
-    const days = Math.floor(seconds / 86400)
-    const hours = Math.floor((seconds % 86400) / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    if (days > 0) return `${days}天${hours}小时`
-    if (hours > 0) return `${hours}小时${minutes}分钟`
-    return `${Math.max(1, minutes)}分钟`
-}
-
-function formatBytes(bytes: number): string {
-    if (!bytes) return "0 B"
-    const units = ["B", "KB", "MB", "GB", "TB"]
-    let value = bytes
-    let unit = 0
-    while (value >= 1024 && unit < units.length - 1) {
-        value /= 1024
-        unit += 1
-    }
-    return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`
-}
-
-const cdnScopeLabels: Record<string, string> = {
-    items: "道具",
-    characters: "角色",
-    events: "活动",
-    quests: "任务",
-    shops: "商店",
-}
+const cdnScopeLabels: Record<string, string> = { items: "道具", characters: "角色", events: "活动", quests: "任务", shops: "商店" }
 
 export default function Dashboard() {
-    const qc = useQueryClient()
-    const navigate = useNavigate()
-
-    const { data: accounts = [], isLoading: accountsLoading, isError: accountsError, isFetching: accountsFetching } = useQuery({
-        queryKey: ["accounts"],
-        queryFn: () => apiGet<AccountRow[]>("/api/server/accounts"),
+    const qc = useQueryClient(), navigate = useAdminNavigate()
+    const { data: accountSummary, isLoading: accountsLoading, isError: accountsError, isFetching: accountsFetching } = useQuery({
+        queryKey: ["accountSummary"], queryFn: ({ signal }) => apiGet<{ accountCount: number; saveCount: number }>("/api/server/accounts/summary", { signal }),
     })
-
-    const { data: status, isError: statusError, isFetching: statusFetching } = useQuery({
-        queryKey: ["serverStatus"],
-        queryFn: () => apiGet<ServerStatus>("/api/server/status"),
-        refetchInterval: 30_000,
+    const { data: status, isPending: statusLoading, isError: statusError, isFetching: statusFetching } = useQuery({
+        queryKey: ["serverStatus"], queryFn: ({ signal }) => apiGet<ServerStatus>("/api/server/status", { signal }), refetchInterval: 30_000,
     })
-
-    const accountCount = accounts.length
-    const saveCount = accounts.reduce((sum, a) => sum + a.saveCount, 0)
-
-    const { data: defSave } = useQuery({
-        queryKey: ["defaultSave"],
-        queryFn: () => apiGet<DefaultSaveMeta>("/api/server/defaultSave"),
+    const { data: serverTime, isPending: timeLoading, isError: timeError } = useQuery({
+        queryKey: ["serverTime"], queryFn: ({ signal }) => apiGet<{ date: string; isCustom: boolean }>("/api/server/currentTime", { signal }), refetchInterval: 30_000,
     })
-
-    const uploadDefault = useMutation({
-        mutationFn: (file: File) => apiUpload("/api/server/defaultSave", file),
-        onSuccess: () => { message.success("默认存档已设置"); qc.invalidateQueries({ queryKey: ["defaultSave"] }) },
-        onError: (e: Error) => message.error(e.message),
-    })
-
-    const clearDefault = useMutation({
-        mutationFn: () => apiDelete("/api/server/defaultSave"),
-        onSuccess: () => { message.success("默认存档已清除"); qc.invalidateQueries({ queryKey: ["defaultSave"] }) },
-        onError: (e: Error) => message.error(e.message),
-    })
-
-    const createDatabaseBackup = useMutation({
-        mutationFn: () => apiPost<DatabaseBackupResult>("/api/server/databaseBackup"),
-        onSuccess: result => {
-            message.success(`完整数据库备份已创建：${result.backup}`, 8)
-            if (result.backupCleanupError) {
-                message.warning(`新备份已保留，但旧备份清理失败：${result.backupCleanupError}`, 10)
-            }
-        },
-        onError: (e: Error) => message.error(`数据库备份失败：${e.message}`, 10),
-    })
-
     const refreshOverview = () => {
-        qc.invalidateQueries({ queryKey: ["accounts"] })
-        qc.invalidateQueries({ queryKey: ["serverStatus"] })
+        void qc.invalidateQueries({ queryKey: ["accountSummary"] })
+        void qc.invalidateQueries({ queryKey: ["serverStatus"] })
+        void qc.invalidateQueries({ queryKey: ["serverTime"] })
     }
+    return <AdminPage eyebrow="OPERATIONS" title="服务器总览" description="查看服务器运行情况，进入常用管理功能。"
+        actions={<Button icon={<ReloadOutlined />} loading={accountsFetching || statusFetching} onClick={refreshOverview}>刷新总览</Button>}>
+        <Space direction="vertical" size="large" className="admin-stack">
+                <Card title="服务端状态" loading={statusLoading} extra={status && <Tag>资源版本 {status.cdn.baseline.cnFinalVersion}</Tag>}>
+                    {statusError || !status ? (
+                        <Alert type="error" showIcon message="服务端状态加载失败" description="接口 /api/server/status 不可用。" />
+                    ) : (
+                        <>
+                            <Row gutter={[16, 16]}>
+                                <Col xs={12} sm={5}>
+                                    <Statistic title="当前在线" value={status.server.onlinePlayers} suffix="人" />
+                                </Col>
+                                <Col xs={12} sm={8}>
+                                    <Statistic
+                                        title="运行时间"
+                                        value={formatDuration(status.server.uptimeSeconds)}
+                                        valueStyle={{ whiteSpace: "nowrap" }}
+                                    />
+                                </Col>
+                                <Col xs={12} sm={6}>
+                                    <Statistic title="RSS 内存" value={formatBytes(status.server.memory.rss)} />
+                                </Col>
+                                <Col xs={12} sm={5}>
+                                    <Statistic title="PID" value={status.server.pid} />
+                                </Col>
+                            </Row>
+                            <Divider style={{ margin: "16px 0" }} />
+                            <Descriptions size="small" column={1}>
+                                    <Descriptions.Item label="服务器时间（北京时间）">{timeError ? "读取失败" : timeLoading ? "读取中" : formatBeijingTime(serverTime?.date)} {serverTime && <Tag color={serverTime.isCustom ? "orange" : "blue"}>{serverTime.isCustom ? "历史兼容时间" : "跟随真实时间"}</Tag>}</Descriptions.Item>
+                                <Descriptions.Item label="Node">{status.server.nodeVersion}</Descriptions.Item>
+                                <Descriptions.Item label="平台">{status.server.platform}</Descriptions.Item>
+                                <Descriptions.Item label="监听">{status.server.listenHost}:{status.server.listenPort}</Descriptions.Item>
+                            </Descriptions>
+                        </>
+                    )}
+                </Card>
 
-    return (
-        <AdminPage
-            eyebrow="OPERATIONS"
-            title="服务器总览"
-            description="查看服务端运行状态、CDN 固定基线和账号存档概况。时间控制已拆分到独立模块，为后续千里眼功能预留空间。"
-            actions={
-                <Space wrap>
-                    <Button
-                        icon={<DatabaseOutlined />}
-                        loading={createDatabaseBackup.isPending}
-                        onClick={() => createDatabaseBackup.mutate()}
-                    >
-                        创建完整备份
-                    </Button>
-                    <Button
-                        icon={<ReloadOutlined />}
-                        loading={accountsFetching || statusFetching}
-                        onClick={refreshOverview}
-                    >
-                        刷新总览
-                    </Button>
-                </Space>
-            }
-        >
-            <Space direction="vertical" size="large" className="admin-stack">
-                <Alert
-                    type="info"
-                    showIcon
-                    message="在线完整数据库备份"
-                    description="“创建完整备份”可在服务器运行时安全备份数据库和当前账号状态；手动备份自动保留最近 5 份。"
-                />
-
-                <div className="admin-card-grid">
-                    <Card title="服务端状态">
-                        {statusError || !status ? (
-                            <Alert type="error" showIcon message="服务端状态加载失败" description="接口 /api/server/status 不可用。" />
-                        ) : (
-                            <>
-                                <Row gutter={[16, 16]}>
-                                    <Col xs={12} sm={5}>
-                                        <Statistic title="当前在线" value={status.server.onlinePlayers} suffix="人" />
-                                    </Col>
-                                    <Col xs={12} sm={8}>
-                                        <Statistic
-                                            title="运行时间"
-                                            value={formatDuration(status.server.uptimeSeconds)}
-                                            valueStyle={{ whiteSpace: "nowrap" }}
-                                        />
-                                    </Col>
-                                    <Col xs={12} sm={6}>
-                                        <Statistic title="RSS 内存" value={formatBytes(status.server.memory.rss)} />
-                                    </Col>
-                                    <Col xs={12} sm={5}>
-                                        <Statistic title="PID" value={status.server.pid} />
-                                    </Col>
-                                </Row>
-                                <Divider style={{ margin: "16px 0" }} />
-                                <Descriptions size="small" column={1}>
-                                    <Descriptions.Item label="Node">{status.server.nodeVersion}</Descriptions.Item>
-                                    <Descriptions.Item label="平台">{status.server.platform}</Descriptions.Item>
-                                    <Descriptions.Item label="监听">{status.server.listenHost}:{status.server.listenPort}</Descriptions.Item>
-                                </Descriptions>
-                            </>
-                        )}
-                    </Card>
-
-                    <Card title="CDN 固定基线 / 扩展层">
+            <Card title="账号与存档" loading={accountsLoading}>
+                {accountsError ? <Alert type="error" showIcon message="账号概况读取失败" action={<Button onClick={refreshOverview}>重试</Button>} /> : <Row gutter={[16,16]}>
+                    <Col xs={12}><Statistic title="账号总数" value={accountSummary?.accountCount ?? "—"} /></Col>
+                    <Col xs={12}><Statistic title="存档总数" value={accountSummary?.saveCount ?? "—"} /></Col>
+                </Row>}
+            </Card>
+            <Card title="常用操作">
+                <div className="admin-shortcuts">
+                    <Button type="primary" size="large" onClick={() => navigate("/content")}>管理活动与卡池</Button>
+                    <Button size="large" onClick={() => navigate("/accounts")}>账号 / 存档</Button>
+                    <Button size="large" onClick={() => navigate("/news")}>管理公告</Button>
+                    <Button size="large" onClick={() => navigate("/mail")}>发送邮件</Button>
+                    <Button size="large" onClick={() => navigate("/leaderboards")}>排行榜</Button>
+                    <Button size="large" onClick={() => navigate("/maintenance")}>存档与备份</Button>
+                </div>
+            </Card>
+            <Collapse items={[{key:"resource-details",label:"资源与技术详情",children:(
+                    <Card title="CDN 固定基线 / 扩展层" loading={statusLoading}>
                         {statusError || !status ? (
                             <Alert type="error" showIcon message="CDN 信息加载失败" />
                         ) : (
@@ -278,7 +124,7 @@ export default function Dashboard() {
                                     <Typography.Text strong>自制角色 / 活动补丁版本层</Typography.Text>
                                     <Space wrap>
                                         <Tag color={status.cdn.extension.runtimeEnabled ? "orange" : "default"}>
-                                            {status.cdn.extension.runtimeEnabled ? "Manifest 已启用" : "预留"}
+                                            {status.cdn.extension.runtimeEnabled ? "资源扩展已启用" : "资源扩展未启用"}
                                         </Tag>
                                         <Tag>补丁 {status.cdn.extension.enabledPatchCount}/{status.cdn.extension.totalPatchCount}</Tag>
                                         <Tag>active {status.cdn.extension.activePatchArchiveCount}</Tag>
@@ -287,92 +133,14 @@ export default function Dashboard() {
                                     <Alert
                                         type="warning"
                                         showIcon
-                                        message="后续接入点"
-                                        description={`该层为未来自制角色和活动补丁按新版本导入预留。功能补全前，它只作为状态模型和页面结构存在，不替代当前 ${status.cdn.baseline.cnFinalVersion} 固定基线。`}
+                                        message="扩展层说明"
+                                        description={status.cdn.extension.note}
                                     />
                                 </Space>
                             </Space>
                         )}
                     </Card>
-                </div>
-
-                <div className="admin-card-grid">
-                    <Card title="账号 / 存档概况">
-                        {accountsError ? (
-                            <Alert
-                                type="error"
-                                showIcon
-                                message="概览数据加载失败"
-                                description="接口 /api/server/accounts 不可用。"
-                            />
-                        ) : (
-                            <Row gutter={[16, 16]}>
-                                <Col xs={24} sm={12}>
-                                    <Statistic title="账号总数" value={accountCount} loading={accountsLoading} />
-                                </Col>
-                                <Col xs={24} sm={12}>
-                                    <Statistic title="存档总数" value={saveCount} loading={accountsLoading} />
-                                </Col>
-                            </Row>
-                        )}
-                        <Divider style={{ margin: "16px 0" }} />
-                        <Space wrap>
-                            <Button icon={<TeamOutlined />} onClick={() => navigate("/accounts")}>账号 / 存档</Button>
-                            <Button icon={<MailOutlined />} onClick={() => navigate("/mail")}>邮件</Button>
-                            <Button icon={<ExperimentOutlined />} onClick={() => navigate("/seeds")}>种子管理</Button>
-                        </Space>
-                    </Card>
-
-                    <Card title="默认存档">
-                        <Space direction="vertical" className="admin-stack">
-                            <Typography.Text type="secondary">
-                                上传玩家详情页「导出完整存档」得到的 JSON。之后任意账户「新建存档」时，将复制其中的持久化玩家数据；邮箱、领取历史、设备会话和跨玩家关系不会复制。
-                            </Typography.Text>
-                            {defSave?.exists ? (
-                                <Space wrap>
-                                    <Tag color="green">已设置</Tag>
-                                    <Tag color={defSave.version === 2 ? "blue" : "orange"}>
-                                        {defSave.version === 2 ? "完整存档 V2" : `旧版 V${defSave.version ?? "?"}（部分数据）`}
-                                    </Tag>
-                                    <Typography.Text>模板玩家：{defSave.playerName || "-"}</Typography.Text>
-                                    {defSave.version === 2 && defSave.rowCount != null && (
-                                        <Typography.Text type="secondary">
-                                            {defSave.includedTableCount ?? "-"} 张表 / {defSave.rowCount} 行
-                                        </Typography.Text>
-                                    )}
-                                    {defSave.exportedAt && (
-                                        <Typography.Text type="secondary">
-                                            导出于 {new Date(defSave.exportedAt).toLocaleString("zh-CN")}
-                                        </Typography.Text>
-                                    )}
-                                </Space>
-                            ) : (
-                                <Tag>未设置（新建存档为空档）</Tag>
-                            )}
-                            <Space wrap>
-                                <Upload
-                                    showUploadList={false}
-                                    accept=".json"
-                                    beforeUpload={(file) => { uploadDefault.mutate(file as File); return false }}
-                                >
-                                    <Button icon={<UploadOutlined />} loading={uploadDefault.isPending}>
-                                        {defSave?.exists ? "替换默认存档" : "上传默认存档"}
-                                    </Button>
-                                </Upload>
-                                {defSave?.exists && (
-                                    <Popconfirm
-                                        title="清除默认存档？之后新建存档将为空档。"
-                                        onConfirm={() => clearDefault.mutate()}
-                                        okText="确认" cancelText="取消" okButtonProps={{ danger: true }}
-                                    >
-                                        <Button danger icon={<DeleteOutlined />} loading={clearDefault.isPending}>清除</Button>
-                                    </Popconfirm>
-                                )}
-                            </Space>
-                        </Space>
-                    </Card>
-                </div>
-            </Space>
-        </AdminPage>
-    )
+            )}]} />
+        </Space>
+    </AdminPage>
 }

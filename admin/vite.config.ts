@@ -1,5 +1,29 @@
 import { defineConfig, loadEnv } from "vite"
+import type { Plugin } from "vite"
 import react from "@vitejs/plugin-react"
+import { brotliCompressSync, gzipSync } from "node:zlib"
+import { readFileSync, writeFileSync } from "node:fs"
+import path from "node:path"
+
+function precompressAdmin(): Plugin {
+    return {
+        name: "admin-precompress",
+        writeBundle(options, bundle) {
+            if (!options.dir) throw new Error("管理面板预压缩需要输出目录")
+            for (const [fileName, entry] of Object.entries(bundle)) {
+                if (!/\.(js|css|html)$/.test(fileName)) continue
+                // Vite replaces preload markers after generateBundle; compress final emitted bytes.
+                if (entry.type !== "chunk" && entry.type !== "asset") continue
+                const output = path.join(options.dir, fileName)
+                const bytes = Uint8Array.from(readFileSync(output))
+                if (bytes.length < 1024 && !fileName.endsWith(".html")) continue
+                for (const [extension, compressed] of [["gz", gzipSync(bytes)], ["br", brotliCompressSync(bytes)]] as const) {
+                    if (compressed.length < bytes.length) writeFileSync(`${output}.${extension}`, Uint8Array.from(compressed))
+                }
+            }
+        },
+    }
+}
 
 function adminSlashRedirect() {
     return {
@@ -36,7 +60,7 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), "")
     const apiTarget = env.VITE_API_TARGET || "http://localhost:8001"
     return {
-        plugins: [adminSlashRedirect(), react()],
+        plugins: [adminSlashRedirect(), react(), precompressAdmin()],
         base: "/admin/",
         server: {
             port: 5173,
@@ -49,7 +73,8 @@ export default defineConfig(({ mode }) => {
         },
         build: {
             outDir: "../web/dist",
-            emptyOutDir: true
+            // Old browser tabs may still reference previous hash chunks.
+            emptyOutDir: false
         }
     }
 })

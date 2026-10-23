@@ -1,9 +1,14 @@
-import { ReactNode, useEffect, useMemo, useState } from "react"
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { Card, Form, Select, InputNumber, Input, Button, message, Alert, Typography, Radio, Modal, Descriptions, Table, Tag, Space, Switch } from "antd"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiGet, apiPatch, apiPost } from "../api/client"
 import { AdminPage } from "../components/AdminPage"
 import { getMailAttachmentRule } from "../lib/mailRules"
+import { useMailPlayerMutation } from "./MailPlayerMutation"
+import { useLookup } from "../api/lookups"
+import { ADMIN_INT_MAX, integerError } from "../lib/adminNumbers"
+import "./PlayerComms.css"
+import { useAdminEditGuard } from "../lib/editGuard"
 
 const { TextArea } = Input
 const { Text } = Typography
@@ -27,6 +32,23 @@ const MAIL_TYPES = [
 
 const TYPE_LABEL: Record<number, string> = Object.fromEntries(MAIL_TYPES.map(t => [t.value, t.label]))
 
+export function mailInputError(values: { type?: number; type_id?: number | null; number?: unknown }): string | null {
+    const meta = MAIL_TYPES.find(type => type.value === values.type)
+    if (!meta) return "请选择有效的附件类型"
+    if (meta.needsId) {
+        const problem = integerError(values.type_id, "附件编号", 1, ADMIN_INT_MAX)
+        if (problem) return problem
+    }
+    const rule = getMailAttachmentRule(values.type, values.type_id)
+    return integerError(values.number, "数量", rule.min, rule.max)
+}
+
+function dailyNumberError(values: DailyVmoneyMailConfig): string | null {
+    return integerError(values.amount, "每日星导石数量", 1, ADMIN_INT_MAX)
+        || integerError(values.sendHour, "发送小时", 0, 23)
+        || integerError(values.sendMinute, "发送分钟", 0, 59)
+}
+
 type TargetMode = "all" | "account" | "player"
 
 interface SendResult { ok: boolean; sent: number }
@@ -42,6 +64,7 @@ interface AccountRow {
     playerIds: number[]
 }
 interface PlayerBrief { id: number; accountId: number; name: string; comment: string; degreeId: number }
+interface AccountTargets { accounts: AccountRow[]; accountCount: number; saveCount: number }
 interface MailRecord { time: string; type: number; typeId: number | null; number: number; subject: string | null; target: string; sent: number }
 interface DailyVmoneyMailConfig {
     enabled: boolean
@@ -209,17 +232,27 @@ export default function Mail() {
     const [targetMode, setTargetMode] = useState<TargetMode>("all")
     const type = Form.useWatch("type", form)
     const typeId = Form.useWatch("type_id", form)
+    const mailDraft = Form.useWatch([], form)
     const meta = MAIL_TYPES.find(t => t.value === type)
     const needsId = !!meta?.needsId
     const attachmentEndpoint = lookupEndpoint(type)
     const quantityRule = getMailAttachmentRule(type, typeId)
     const dailyEnabled = Form.useWatch("enabled", dailyForm)
     const [dailyHasUnsavedChanges, setDailyHasUnsavedChanges] = useState(false)
+    const dailyRevision = useRef(0)
+    const mailTargetBaseline = useRef<{ targetMode: TargetMode; accountId: number | null; playerId: number | null }>({ targetMode: "all", accountId: null, playerId: null })
 
     // 预览确认：暂存待发送的表单值 + 计算好的对象描述/角色数
-    const [confirm, setConfirm] = useState<null | { values: any; count: number; targetText: string; attachmentText: string }>(null)
+    const [confirm, setConfirm] = useState<null | { values: any; count: number; targetText: string; attachmentText: string; targetSignature: string }>(null)
 
-    const { data: accounts = [] } = useQuery({ queryKey: ["accounts"], queryFn: () => apiGet<AccountRow[]>("/api/server/accounts") })
+    const accountsQuery = useQuery({
+        queryKey: ["accountTargets"],
+        queryFn: ({ signal }) => apiGet<AccountTargets>("/api/server/accounts/targets", { signal }),
+    })
+    const accounts = accountsQuery.data?.accounts ?? []
+    const targetsReady = accountsQuery.data !== undefined && !accountsQuery.isError && !accountsQuery.isPending
+    const targetSignature = useMemo(() => JSON.stringify(accounts.map(account => [account.id, account.saveCount,
+        account.players.map(player => player.id).sort((a, b) => a - b)]).sort((a, b) => Number(a[0]) - Number(b[0]))), [accounts])
     const players = useMemo(
         () => accounts.flatMap(account => account.players).sort((a, b) => a.id - b.id),
         [accounts],
@@ -250,17 +283,16 @@ export default function Mail() {
         }),
         [accounts],
     )
-    const { data: history = [] } = useQuery({ queryKey: ["mailHistory"], queryFn: () => apiGet<MailRecord[]>("/api/mail/history") })
-    const { data: dailyOverview, isLoading: dailyLoading } = useQuery({
+    const historyQuery = useQuery({ queryKey: ["mailHistory"], queryFn: ({ signal }) => apiGet<MailRecord[]>("/api/mail/history", { signal }) })
+    const history = historyQuery.data ?? []
+    const { data: dailyOverview, isLoading: dailyLoading, isError: dailyError, refetch: retryDaily } = useQuery({
         queryKey: ["dailyVmoneyMail"],
-        queryFn: () => apiGet<DailyVmoneyMailOverview>("/api/mail/daily"),
+        queryFn: ({ signal }) => apiGet<DailyVmoneyMailOverview>("/api/mail/daily", { signal }),
     })
-    const { data: attachmentLookup, isLoading: attachmentLoading, isError: attachmentError } = useQuery({
-        queryKey: ["mailAttachmentLookup", type],
-        queryFn: () => apiGet<AttachmentLookup>(attachmentEndpoint!),
-        enabled: needsId && !!attachmentEndpoint,
-        staleTime: Infinity,
-    })
+    const attachmentQuery = useLookup(type === 5 ? "characters" : type === 6 ? "equipment" : "items", needsId && !!attachmentEndpoint)
+    const attachmentLookup = attachmentQuery.data
+    const attachmentLoading = !!attachmentEndpoint && attachmentQuery.isLoading
+    const attachmentError = !!attachmentEndpoint && attachmentQuery.isError
     const attachmentOptions = useMemo(
         () => buildAttachmentOptions(type, attachmentLookup),
         [type, attachmentLookup],
@@ -275,26 +307,31 @@ export default function Mail() {
     }, [dailyForm, dailyHasUnsavedChanges, dailyOverview])
 
     const dailyPersistedEnabled = dailyOverview?.config.enabled === true
-    const dailyStatusMessage = !dailyOverview
+    const dailyStatusMessage = dailyError ? "配置读取失败"
+        : !dailyOverview
         ? "正在读取配置"
         : dailyHasUnsavedChanges
             ? (dailyEnabled ? "已启用（尚未保存）" : "已停用（尚未保存）")
             : dailyPersistedEnabled ? "自动发放已启用" : "自动发放当前停用"
     const dailyStatusDescription = dailyHasUnsavedChanges
         ? "表单有未保存更改；请先点击“保存配置”，保存成功后才能立即发放。"
-        : "配置和每日发放记录保存在数据库中。服务重启会补跑当天已到时间但漏掉的一次，不会追补更早日期，也不会重复发放同一周期。"
+        : "每天按北京时间发放一次。重启只补跑当天到点的周期，不追补更早日期；同一周期不会重复发放。"
 
-    const saveDaily = useMutation({
-        mutationFn: (values: DailyVmoneyMailConfig) => apiPatch<DailyVmoneyMailOverview>("/api/mail/daily", values),
-        onSuccess: (overview) => {
+    const saveDaily = useMailPlayerMutation({
+        mutationFn: ({ values }: { values: DailyVmoneyMailConfig; revision: number }) => {
+            const problem = dailyNumberError(values)
+            if (problem) throw new Error(problem)
+            return apiPatch<DailyVmoneyMailOverview>("/api/mail/daily", values)
+        },
+        onSuccess: (overview, { revision }) => {
             message.success(overview.config.enabled ? "每日自动邮件已保存并启用" : "每日自动邮件配置已保存（当前停用）")
-            setDailyHasUnsavedChanges(false)
+            if (dailyRevision.current === revision) setDailyHasUnsavedChanges(false)
             qc.setQueryData(["dailyVmoneyMail"], overview)
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { void message.error(error.message) },
     })
 
-    const runDaily = useMutation({
+    const runDaily = useMailPlayerMutation({
         mutationFn: () => apiPost<DailyVmoneyMailRunResponse>("/api/mail/daily/run"),
         onSuccess: ({ result, overview }) => {
             if (result.status === "sent") {
@@ -304,15 +341,15 @@ export default function Mail() {
             }
             qc.setQueryData(["dailyVmoneyMail"], overview)
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { void message.error(error.message) },
     })
 
     const confirmRunDaily = () => {
-        if (!dailyOverview?.config.enabled) {
+        if (dailyError || !dailyOverview?.config.enabled) {
             message.error("请先保存并启用每日自动邮件")
             return
         }
-        if (dailyHasUnsavedChanges) {
+        if (dailyHasUnsavedChanges || saveDaily.isPending) {
             message.warning("请先保存当前配置")
             return
         }
@@ -326,28 +363,67 @@ export default function Mail() {
         })
     }
 
-    const send = useMutation({
-        mutationFn: (v: any) => apiPost<SendResult>("/api/mail/send", {
-            type: String(v.type),
-            type_id: v.type_id != null ? String(v.type_id) : "",
-            number: String(v.number ?? 1),
-            subject: v.subject ?? "",
-            description: v.description ?? "",
-            accountId: v.targetMode === "account" && v.accountId != null ? String(v.accountId) : "",
-            playerId: v.targetMode === "player" && v.playerId != null ? String(v.playerId) : "",
-        }),
-        onSuccess: (r) => {
-            message.success(`已向 ${r.sent} 个角色发送邮件`)
+    const targetProblem = (values: any): string | null => {
+        if (!targetsReady) return "发送对象尚未读取成功，请刷新对象列表后重试"
+        if (values.targetMode === "player") {
+            return players.some(player => player.id === values.playerId) ? null : "所选存档已不存在，请重新选择"
+        }
+        if (values.targetMode === "account") {
+            const account = accounts.find(account => account.id === values.accountId)
+            return !account ? "所选账号已不存在，请重新选择" : account.saveCount < 1 ? "所选账号没有可接收邮件的存档" : null
+        }
+        return values.targetMode !== "all" ? "请选择有效发送对象" : totalSaves < 1 ? "当前没有可接收邮件的存档" : null
+    }
+
+    const send = useMailPlayerMutation({
+        mutationFn: (confirmed: NonNullable<typeof confirm>) => {
+            const problem = targetProblem(confirmed.values)
+            if (problem) throw new Error(problem)
+            const inputProblem = mailInputError(confirmed.values)
+            if (inputProblem) throw new Error(inputProblem)
+            if (confirmed.targetSignature !== targetSignature) throw new Error("发送对象已变化，请关闭预览后重新确认")
+            const v = confirmed.values
+            return apiPost<SendResult>("/api/mail/send", {
+                type: String(v.type),
+                type_id: v.type_id != null ? String(v.type_id) : "",
+                number: String(v.number ?? 1),
+                subject: v.subject ?? "",
+                description: v.description ?? "",
+                accountId: v.targetMode === "account" && v.accountId != null ? String(v.accountId) : "",
+                playerId: v.targetMode === "player" && v.playerId != null ? String(v.playerId) : "",
+            })
+        },
+        onSuccess: (r, confirmed) => {
+            message.success(`已向 ${r.sent} 个存档发送邮件`)
+            mailTargetBaseline.current = {
+                targetMode: confirmed.values.targetMode,
+                accountId: confirmed.values.accountId ?? null,
+                playerId: confirmed.values.playerId ?? null,
+            }
             setConfirm(null)
             // 保留发送对象设置，仅清空附件与文案，便于连续操作
             form.resetFields(["type", "type_id", "number", "subject", "description"])
             qc.invalidateQueries({ queryKey: ["mailHistory"] })
         },
-        onError: (e: Error) => message.error(e.message),
+        onError: (e: Error) => { void message.error(e.message) },
+    })
+    useAdminEditGuard({
+        dirty: dailyHasUnsavedChanges || !!(mailDraft?.type || mailDraft?.type_id || mailDraft?.subject || mailDraft?.description || confirm)
+            || !!(mailDraft && "number" in mailDraft && !Object.is(mailDraft.number, 1))
+            || (mailDraft?.targetMode ?? "all") !== mailTargetBaseline.current.targetMode
+            || (mailDraft?.accountId ?? null) !== mailTargetBaseline.current.accountId
+            || (mailDraft?.playerId ?? null) !== mailTargetBaseline.current.playerId,
+        pending: send.isPending || saveDaily.isPending || runDaily.isPending,
+        label: "邮件",
     })
 
     // 通过表单校验后，先算好预览再弹确认框
     const openConfirm = (v: any) => {
+        if (send.isPending) { message.info("邮件正在发送，请等待结果"); return }
+        const problem = targetProblem(v)
+        if (problem) { message.error(problem); return }
+        const inputProblem = mailInputError(v)
+        if (inputProblem) { message.error(inputProblem); return }
         let count = 0
         let targetText = ""
         if (v.targetMode === "player") {
@@ -368,25 +444,29 @@ export default function Mail() {
         const attachmentText = attachmentName
             ? `${TYPE_LABEL[v.type] ?? v.type} · ${attachmentName}`
             : `${TYPE_LABEL[v.type] ?? v.type}`
-        setConfirm({ values: v, count, targetText, attachmentText })
+        setConfirm({ values: v, count, targetText, attachmentText, targetSignature })
     }
 
     return (
         <AdminPage
             eyebrow="MAIL"
             title="邮件"
-            description="按全体、账号或单个存档发送附件邮件。高风险发送动作会先展示目标和附件摘要。"
+            description="单次邮件先预览再发送；每日自动奖励单独配置，按周期发放。"
         >
-        <Space direction="vertical" size="large" className="admin-stack">
-            <Card title="发送邮件" className="admin-form-panel">
-                <Alert type={targetMode === "all" ? "warning" : "info"} showIcon style={{ marginBottom: 16 }}
+        <Space direction="vertical" size="large" className="admin-stack mail-manage-stack" style={{ minWidth: 0, maxWidth: "100%" }}>
+            <Card title="单次邮件" className="admin-form-panel">
+                <Alert type={!targetsReady && accountsQuery.isError ? "error" : targetMode === "all" ? "warning" : "info"} showIcon style={{ marginBottom: 16 }}
                     message={
-                        targetMode === "all" ? `将向全体 ${totalSaves} 个存档发送同一封邮件`
+                        !targetsReady ? accountsQuery.isError ? "发送对象读取失败，暂不能发送邮件" : "正在读取发送对象，暂不能发送邮件"
+                            : totalSaves === 0 ? "当前没有可接收邮件的存档"
+                            : targetMode === "all" ? `将向全体 ${totalSaves} 个存档发送同一封邮件`
                             : targetMode === "account" ? "将向所选账号下的所有存档发送邮件"
                                 : "将向所选的单个存档发送邮件"
-                    } />
-                <Form form={form} layout="vertical" onFinish={openConfirm} initialValues={{ number: 1, targetMode: "all" }}>
-                    <Form.Item name="targetMode" label="发送对象">
+                    }
+                    action={<Button size="small" loading={accountsQuery.isFetching} onClick={() => accountsQuery.refetch()}>刷新对象</Button>}
+                />
+                <Form form={form} layout="vertical" onFinish={openConfirm} disabled={send.isPending} initialValues={{ number: 1, targetMode: "all" }}>
+                    <Form.Item name="targetMode" label="1 · 收件范围">
                         <Radio.Group
                             optionType="button"
                             buttonStyle="solid"
@@ -409,7 +489,9 @@ export default function Mail() {
                                 placeholder="按原始账号 ID、内部 ID 或备注搜索"
                                 options={accountOptions}
                                 filterOption={filterTargetOption}
-                                notFoundContent="暂无账号"
+                                loading={accountsQuery.isFetching}
+                                disabled={!targetsReady}
+                                notFoundContent={accountsQuery.isFetching ? "正在读取账号…" : "没有匹配的账号"}
                             />
                         </Form.Item>
                     )}
@@ -422,12 +504,14 @@ export default function Mail() {
                                 placeholder="按存档、账号 ID 或备注搜索"
                                 options={playerOptions}
                                 filterOption={filterTargetOption}
-                                notFoundContent="暂无存档"
+                                loading={accountsQuery.isFetching}
+                                disabled={!targetsReady}
+                                notFoundContent={accountsQuery.isFetching ? "正在读取存档…" : "没有匹配的存档"}
                             />
                         </Form.Item>
                     )}
 
-                    <Form.Item name="type" label="附件类型" rules={[{ required: true, message: "请选择附件类型" }]}>
+                    <Form.Item name="type" label="2 · 附件类型" rules={[{ required: true, message: "请选择附件类型" }]}>
                         <Radio.Group
                             className="admin-mail-type-group"
                             optionType="button"
@@ -457,7 +541,8 @@ export default function Mail() {
                                 {
                                     validator: async (_, value) => {
                                         if (attachmentError) throw new Error("附件索引加载失败，无法发送")
-                                        if (value == null) throw new Error("请选择附件")
+                                        const problem = integerError(value, "附件编号", 1, ADMIN_INT_MAX)
+                                        if (problem) throw new Error(problem)
                                     },
                                 },
                             ]}
@@ -484,10 +569,12 @@ export default function Mail() {
                                     }}
                                 />
                             ) : (
-                                <InputNumber min={1} precision={0} style={{ width: "100%" }} placeholder="称号 ID" />
+                                <InputNumber min={1} max={ADMIN_INT_MAX} style={{ width: "100%" }} placeholder="称号编号" />
                             )}
                         </Form.Item>
                     )}
+                    {attachmentError && <Alert type="error" showIcon message="附件索引读取失败"
+                        action={<Button size="small" onClick={() => attachmentQuery.refetch()}>重试</Button>} style={{ marginBottom: 16 }} />}
 
                     <Form.Item
                         name="number"
@@ -496,24 +583,23 @@ export default function Mail() {
                             { required: true, message: "请输入数量" },
                             {
                                 validator: async (_, value) => {
-                                    if (value == null) throw new Error("请输入数量")
-                                    if (value < quantityRule.min || value > quantityRule.max) {
-                                        throw new Error(`数量需在 ${quantityRule.min}-${quantityRule.max} 之间`)
-                                    }
+                                    const problem = integerError(value, "数量", quantityRule.min, quantityRule.max)
+                                    if (problem) throw new Error(problem)
                                 },
                             },
                         ]}
-                        extra={`${quantityRule.label}：${quantityRule.min}-${quantityRule.max}。${quantityRule.reason}`}
+                        extra={`${quantityRule.label}：${quantityRule.min}-${quantityRule.max}，仅支持整数。${quantityRule.reason}`}
                     >
                         <InputNumber
                             style={{ width: "100%" }}
+                            aria-label="邮件附件数量"
                             min={quantityRule.min}
                             max={quantityRule.max}
                             disabled={quantityRule.max <= 1}
                         />
                     </Form.Item>
 
-                    <Form.Item name="subject" label="标题（可选）">
+                    <Form.Item name="subject" label="3 · 标题（可选）">
                         <Input maxLength={64} showCount placeholder="留空使用游戏默认" />
                     </Form.Item>
 
@@ -523,14 +609,16 @@ export default function Mail() {
 
                     <Form.Item>
                         <Space wrap>
-                            <Button type="primary" htmlType="submit">发送</Button>
+                            <Button type="primary" htmlType="submit" disabled={!targetsReady || totalSaves === 0} loading={send.isPending}>预览并确认</Button>
                             <Text type="secondary">发送后无法撤回，请确认附件 ID</Text>
                         </Space>
                     </Form.Item>
                 </Form>
             </Card>
 
-            <Card title="每日星导石自动邮件" className="admin-form-panel" loading={dailyLoading}>
+            <Card title="每日自动奖励 · 星导石" className="admin-form-panel" loading={dailyLoading}>
+                {dailyError && <Alert type="error" showIcon message="每日邮件配置读取失败，请重试"
+                    action={<Button onClick={() => retryDaily()}>重试</Button>} style={{ marginBottom: 16 }} />}
                 <Alert
                     type={dailyHasUnsavedChanges ? "warning" : dailyPersistedEnabled ? "success" : "info"}
                     showIcon
@@ -542,8 +630,12 @@ export default function Mail() {
                     form={dailyForm}
                     layout="vertical"
                     initialValues={{ enabled: false, amount: 150000, sendHour: 5, sendMinute: 0, subject: "每日千抽", description: "每日星导石奖励，请查收。" }}
-                    onValuesChange={() => setDailyHasUnsavedChanges(true)}
-                    onFinish={(values) => saveDaily.mutate(values as DailyVmoneyMailConfig)}
+                    disabled={!dailyOverview || dailyError}
+                    onValuesChange={() => { dailyRevision.current += 1; setDailyHasUnsavedChanges(true) }}
+                    onFinish={(values) => {
+                        if (!dailyOverview || dailyError) return
+                        saveDaily.mutate({ values: values as DailyVmoneyMailConfig, revision: dailyRevision.current })
+                    }}
                 >
                     <Form.Item name="enabled" label="启用状态" valuePropName="checked">
                         <Switch checkedChildren="已启用" unCheckedChildren="已停用" />
@@ -552,15 +644,15 @@ export default function Mail() {
                         <Form.Item
                             name="amount"
                             label="每日免费星导石"
-                            rules={[{ required: true, message: "请输入数量" }]}
+                            rules={[{ validator: async (_, value) => { const problem = integerError(value, "每日星导石数量", 1, ADMIN_INT_MAX); if (problem) throw new Error(problem) } }]}
                         >
-                            <InputNumber min={1} max={2147483647} precision={0} style={{ width: 220 }} />
+                            <InputNumber min={1} max={ADMIN_INT_MAX} aria-label="每日免费星导石" style={{ width: 220, maxWidth: "100%" }} />
                         </Form.Item>
-                        <Form.Item name="sendHour" label="北京时间（时）" rules={[{ required: true }]}>
-                            <InputNumber min={0} max={23} precision={0} style={{ width: 140 }} />
+                        <Form.Item name="sendHour" label="北京时间（时）" rules={[{ validator: async (_, value) => { const problem = integerError(value, "发送小时", 0, 23); if (problem) throw new Error(problem) } }]}>
+                            <InputNumber min={0} max={23} aria-label="发送小时" style={{ width: 140 }} />
                         </Form.Item>
-                        <Form.Item name="sendMinute" label="北京时间（分）" rules={[{ required: true }]}>
-                            <InputNumber min={0} max={59} precision={0} style={{ width: 140 }} />
+                        <Form.Item name="sendMinute" label="北京时间（分）" rules={[{ validator: async (_, value) => { const problem = integerError(value, "发送分钟", 0, 59); if (problem) throw new Error(problem) } }]}>
+                            <InputNumber min={0} max={59} aria-label="发送分钟" style={{ width: 140 }} />
                         </Form.Item>
                     </Space>
                     <Form.Item name="subject" label="邮件标题" rules={[{ required: true, message: "请输入标题" }]}>
@@ -570,8 +662,8 @@ export default function Mail() {
                         <TextArea rows={3} maxLength={512} showCount />
                     </Form.Item>
                     <Space wrap>
-                        <Button type="primary" htmlType="submit" loading={saveDaily.isPending}>保存配置</Button>
-                        <Button danger disabled={!dailyPersistedEnabled || dailyHasUnsavedChanges} loading={runDaily.isPending} onClick={confirmRunDaily}>立即发放今日周期</Button>
+                        <Button type="primary" htmlType="submit" loading={saveDaily.isPending}>保存每日配置</Button>
+                        <Button danger disabled={dailyError || !dailyPersistedEnabled || dailyHasUnsavedChanges || saveDaily.isPending} loading={runDaily.isPending} onClick={confirmRunDaily}>立即发放今日周期</Button>
                         <Text type="secondary">
                             {dailyHasUnsavedChanges
                                 ? "请先保存配置后再发放。"
@@ -580,6 +672,8 @@ export default function Mail() {
                     </Space>
                 </Form>
 
+                {saveDaily.isError && <Alert type="error" showIcon message={saveDaily.error.message} description="每日配置草稿已保留，可修改后重新保存。" style={{ marginTop: 12 }} />}
+                {runDaily.isError && <Alert type="error" showIcon message={runDaily.error.message} style={{ marginTop: 12 }} />}
                 <Descriptions bordered size="small" column={{ xs: 1, sm: 2, md: 3 }} style={{ marginTop: 20 }}>
                     <Descriptions.Item label="当前周期">{dailyOverview?.currentBucket ?? "—"}</Descriptions.Item>
                     <Descriptions.Item label="下次执行">
@@ -589,15 +683,18 @@ export default function Mail() {
                     <Descriptions.Item label="最近发放">
                         {dailyOverview?.lastRun ? `${dailyOverview.lastRun.bucket} · ${formatChinaTime(dailyOverview.lastRun.executedAtMs)}` : "尚未发放"}
                     </Descriptions.Item>
-                    <Descriptions.Item label="最近数量">{dailyOverview?.lastRun ? `${dailyOverview.lastRun.amount} / 人` : "—"}</Descriptions.Item>
+                    <Descriptions.Item label="最近数量">{dailyOverview?.lastRun ? `${dailyOverview.lastRun.amount} / 存档` : "—"}</Descriptions.Item>
                     <Descriptions.Item label="最近发送数">{dailyOverview?.lastRun?.sentCount ?? "—"}</Descriptions.Item>
                 </Descriptions>
             </Card>
 
             <Card title="最近群发记录" size="small" className="admin-table-card">
+                {historyQuery.isError && <Alert type="error" showIcon message="群发记录读取失败"
+                    action={<Button size="small" onClick={() => historyQuery.refetch()}>重试</Button>} style={{ marginBottom: 12 }} />}
                 <Table<MailRecord & { key: number }>
                     rowKey="key"
                     size="small"
+                    loading={historyQuery.isLoading}
                     pagination={false}
                     dataSource={history.map((h, i) => ({ ...h, key: i }))}
                     locale={{ emptyText: "暂无记录" }}
@@ -617,30 +714,34 @@ export default function Mail() {
 
             <Modal
                 open={!!confirm}
-                title="确认群发"
-                onOk={() => confirm && send.mutate(confirm.values)}
-                onCancel={() => setConfirm(null)}
+                title="发送预览与确认"
+                onOk={() => confirm && send.mutate(confirm)}
+                onCancel={() => { if (!send.isPending) setConfirm(null) }}
                 okText="确认发送"
                 cancelText="取消"
                 confirmLoading={send.isPending}
-                okButtonProps={{ danger: true }}
+                okButtonProps={{ danger: true, disabled: !targetsReady || confirm?.targetSignature !== targetSignature }}
+                cancelButtonProps={{ disabled: send.isPending }}
+                closable={!send.isPending}
+                maskClosable={!send.isPending}
             >
                 {confirm && (
                     <>
+                        {(!targetsReady || confirm.targetSignature !== targetSignature) && <Alert type="warning" showIcon message="发送对象未就绪或已经变化，请关闭后重新确认" style={{ marginBottom: 12 }} />}
+                        {send.isError && <Alert type="error" showIcon message={send.error.message} description="邮件内容已保留，请核对后重试。" style={{ marginBottom: 12 }} />}
                         <Descriptions column={1} size="small" bordered>
                             <Descriptions.Item label="发送对象">{confirm.targetText}</Descriptions.Item>
-                            <Descriptions.Item label="角色数量">{confirm.count} 个</Descriptions.Item>
+                            <Descriptions.Item label="接收存档数">{confirm.count} 个</Descriptions.Item>
                             <Descriptions.Item label="附件">{confirm.attachmentText}</Descriptions.Item>
                             {confirm.values.type_id != null && (
                                 <Descriptions.Item label="附件 ID">{confirm.values.type_id}</Descriptions.Item>
                             )}
                             <Descriptions.Item label="数量">× {confirm.values.number}</Descriptions.Item>
-                            {confirm.values.subject && (
-                                <Descriptions.Item label="标题">{confirm.values.subject}</Descriptions.Item>
-                            )}
+                            <Descriptions.Item label="标题">{confirm.values.subject || "使用游戏默认标题"}</Descriptions.Item>
+                            <Descriptions.Item label="正文"><div className="mail-preview-body">{confirm.values.description || "使用游戏默认正文"}</div></Descriptions.Item>
                         </Descriptions>
                         <Alert style={{ marginTop: 12 }} type="warning" showIcon
-                            message={`将向 ${confirm.count} 个角色发送 ${TYPE_LABEL[confirm.values.type] ?? confirm.values.type} × ${confirm.values.number}，发送后无法撤回`} />
+                            message={`将向 ${confirm.count} 个存档发送 ${TYPE_LABEL[confirm.values.type] ?? confirm.values.type} × ${confirm.values.number}，发送后无法撤回`} />
                     </>
                 )}
             </Modal>

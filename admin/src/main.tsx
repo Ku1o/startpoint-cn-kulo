@@ -5,11 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ConfigProvider, theme as antdTheme } from "antd"
 import zhCN from "antd/locale/zh_CN"
 import App from "./App"
+import { shouldRetryQuery } from "./api/client"
 import "./styles.css"
 
 const queryClient = new QueryClient({
     defaultOptions: {
-        queries: { retry: 1, refetchOnWindowFocus: false }
+        queries: { retry: shouldRetryQuery, refetchOnWindowFocus: false }
     }
 })
 
