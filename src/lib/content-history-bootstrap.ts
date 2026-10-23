@@ -1,10 +1,15 @@
 import { createHash } from "node:crypto"
 import { CONTENT_ACTIONS, ContentOperationError, ContentOperationsStore, type ContentActionOverride } from "./content-operations-store"
 import { assertTimeCutoverOfflineDatabaseSync, type OfflineDatabaseGuard } from "./time-cutover-rehearsal"
+import { assertDeploymentMaintenanceContextSync, type DeploymentMaintenanceContext } from "./deployment-maintenance-guard"
 
 const reviewedBatchConnections = new WeakSet<ContentOperationsStore["db"]>()
-function assertHistoryOfflineDatabaseSync(store: ContentOperationsStore, guard?: OfflineDatabaseGuard): void {
-    if (!reviewedBatchConnections.has(store.db)) assertTimeCutoverOfflineDatabaseSync(store.db, guard)
+function assertHistoryOfflineDatabaseSync(store: ContentOperationsStore, guard?: OfflineDatabaseGuard,
+    maintenanceContext?: DeploymentMaintenanceContext): void {
+    if (maintenanceContext) {
+        if (guard) throw new ContentOperationError("不能混用离线和部署维护许可", 409)
+        assertDeploymentMaintenanceContextSync(store.db, maintenanceContext)
+    } else if (!reviewedBatchConnections.has(store.db)) assertTimeCutoverOfflineDatabaseSync(store.db, guard)
     else if (!store.db.open || store.db.readonly || !store.db.inTransaction)
         throw new ContentOperationError("历史核查批处理连接已失效", 409)
 }
@@ -53,9 +58,9 @@ export interface ExistingHistoryReviewPlan {
 /** Explicit native rule completion after identity rebinding. New participation
  * approvals on a previously closed entry must remain unpublished. */
 export function completeExistingHistoryReviewsOfflineSync(store: ContentOperationsStore, plan: ExistingHistoryReviewPlan, options: {
-    expectedRevision: number; nowMs: number; offlineGuard?: OfflineDatabaseGuard
+    expectedRevision: number; nowMs: number; offlineGuard?: OfflineDatabaseGuard; maintenanceContext?: DeploymentMaintenanceContext
 }): { reviewedKeys: string[]; revision: number } {
-    assertHistoryOfflineDatabaseSync(store, options.offlineGuard)
+    assertHistoryOfflineDatabaseSync(store, options.offlineGuard, options.maintenanceContext)
     if (!plan || plan.schemaVersion !== 1 || plan.catalogDigest !== store.digest || !/^[a-f0-9]{64}$/.test(plan.evidenceDigest)
         || !Array.isArray(plan.upgrades) || new Set(plan.upgrades.map(row => row.key)).size !== plan.upgrades.length
         || !Number.isSafeInteger(options.nowMs) || options.nowMs < 0 || store.revision() !== options.expectedRevision)
@@ -129,9 +134,9 @@ function semanticControl(state: Record<string, unknown>): string {
  * scope, deadline, instance, action evidence or player record. The plan binds the
  * exact previous serialized state and the exact new computed definition identity. */
 export function rebindReviewedContentIdentitiesOfflineSync(store: ContentOperationsStore, plan: ContentIdentityRebindPlan, options: {
-    expectedRevision: number; nowMs: number; offlineGuard?: OfflineDatabaseGuard
+    expectedRevision: number; nowMs: number; offlineGuard?: OfflineDatabaseGuard; maintenanceContext?: DeploymentMaintenanceContext
 }): { reboundKeys: string[]; revision: number } {
-    assertHistoryOfflineDatabaseSync(store, options.offlineGuard)
+    assertHistoryOfflineDatabaseSync(store, options.offlineGuard, options.maintenanceContext)
     if (!plan || plan.schemaVersion !== 1 || plan.catalogDigest !== store.digest
         || !/^[a-f0-9]{64}$/.test(plan.evidenceDigest) || !Array.isArray(plan.bindings)
         || new Set(plan.bindings.map(row => row.key)).size !== plan.bindings.length
@@ -177,8 +182,9 @@ export function prepareReviewedHistoryOfflineSync(store: ContentOperationsStore,
     expectedRevision: number
     nowMs: number
     offlineGuard?: OfflineDatabaseGuard
+    maintenanceContext?: DeploymentMaintenanceContext
 }): { preparedKeys: string[]; preservedKeys: string[]; revision: number; planDigest: string } {
-    assertHistoryOfflineDatabaseSync(store, options.offlineGuard)
+    assertHistoryOfflineDatabaseSync(store, options.offlineGuard, options.maintenanceContext)
     if (!plan || plan.schemaVersion !== 1 || plan.catalogDigest !== store.digest
         || !/^[a-f0-9]{64}$/.test(plan.evidenceDigest) || !Array.isArray(plan.candidates))
         throw new ContentOperationError("历史内容核查计划或目录不匹配", 409)

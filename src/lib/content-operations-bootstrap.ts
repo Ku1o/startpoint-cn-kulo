@@ -2,6 +2,7 @@ import data from "../../assets/content_july_controls.json"
 import { createHash } from "node:crypto"
 import { ContentOperationsStore, ContentOperationError, type ContentActionOverride, type ContentControl } from "./content-operations-store"
 import { assertTimeCutoverOfflineDatabaseSync, type OfflineDatabaseGuard } from "./time-cutover-rehearsal"
+import { assertDeploymentMaintenanceContextSync, type DeploymentMaintenanceContext } from "./deployment-maintenance-guard"
 import { isFixedJulyCandidate } from "./content-july-reference"
 
 export const julyContentPlan = data
@@ -91,9 +92,14 @@ export function applyJulyContentPlanOfflineSync(store: ContentOperationsStore, o
     expectedCatalogDigest: string
     nowMs: number
     offlineGuard?: OfflineDatabaseGuard
+    /** Only valid inside the separately authenticated, exclusive deployment transaction. */
+    maintenanceContext?: DeploymentMaintenanceContext
     plan?: typeof julyContentPlan
 }): { applied: boolean; revision: number; planDigest: string; controls: number } {
-    assertTimeCutoverOfflineDatabaseSync(store.db, options.offlineGuard)
+    if (options.maintenanceContext) {
+        if (options.offlineGuard) throw new ContentOperationError("不能混用离线和部署维护许可", 409)
+        assertDeploymentMaintenanceContextSync(store.db, options.maintenanceContext)
+    } else assertTimeCutoverOfflineDatabaseSync(store.db, options.offlineGuard)
     const plan = options.plan ?? julyContentPlan
     if (plan.schemaVersion !== 1 || plan.referenceDate !== "2025-07-20" || plan.timeZone !== "UTC+08:00"
         || plan.referenceStartMs !== 1752940800000 || plan.referenceEndMsExclusive !== 1753027200000)

@@ -5,7 +5,7 @@
  * Persistence boundary guard (协作确认单 #13 / #15).
  *
  * Ordinary files retain the added-lines rules below. The reviewed operations
- * in nine content/clock files are checked in full, including callback bodies,
+ * in ten content/clock/maintenance files are checked in full, including callback bodies,
  * guards and execution chains; their files are not blanket exceptions.
  *
  *   1. `.transaction(` in any `src/**\/*.ts` file outside the allowlist in

@@ -18,6 +18,7 @@ const readinessValues = ["unverified", "current_baseline", "verified", "blocked"
 const statusValues = ["all", "enabled", "disabled", "pending", "blocked", "unsupported"]
 const isMemberType = isContentManagementMember
 const personalGachaQualificationIds = new Set([700000, 700001, 700002, 700003, 700004, 80000, 80001, 80002, 80003, 80004])
+const comebackExchangeOnlyIds = new Set([700000, 700001, 700002, 700003, 700004])
 const boxAssociationTypes = new Set(["world_story_event", "raid_event", "box_gacha"])
 type ListedRow = ContentCatalogListing["rows"][number]
 type HistoryReader = ReturnType<typeof contentHistoryReadinessReader>
@@ -220,7 +221,9 @@ function publicationPresentation(row: ListedRow, nowMs: number, history = conten
 
 function primaryControl(row: ListedRow, publication: PublicationPresentation, nowMs: number) {
     if (row.publishable) return { ...publication, kind: "publication" as const, enabled: publication.status === "enabled" }
-    if (["special_exchange_campaign", "start_dash_exchange_campaign"].includes(row.type)) {
+    if (["special_exchange_campaign", "start_dash_exchange_campaign"].includes(row.type)
+        || row.type === "gacha" && comebackExchangeOnlyIds.has(row.id) && row.personalWindow
+            && row.capabilities.length === 1 && row.capabilities[0] === "exchange") {
         const state = row.state, review = state ? actionReview(state, "exchange") : undefined
         if (state && state.controlled !== false && !state.integrityError && !row.stale && row.definitionReady && review
             && ["verified", "current_baseline"].includes(review.readiness) && review.enabled

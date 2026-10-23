@@ -58,21 +58,21 @@
           "name": "completeExistingHistoryReviewsOfflineSync",
           "startLine": "export function completeExistingHistoryReviewsOfflineSync(store: ContentOperationsStore, plan: ExistingHistoryReviewPlan, options: {",
           "endLine": "}",
-          "sha256": "887739725eed8876672e05a90de9f852a791dd6f22746a84398ba95d00676d4c",
+          "sha256": "309180b4b6052af9b69385f64a6cc59e009aa57171f83a73a09640c3f4c772b3",
           "transactions": 1
         },
         {
           "name": "rebindReviewedContentIdentitiesOfflineSync",
           "startLine": "export function rebindReviewedContentIdentitiesOfflineSync(store: ContentOperationsStore, plan: ContentIdentityRebindPlan, options: {",
           "endLine": "}",
-          "sha256": "2a49685f5161cf60cea98dc158ed009278aa92d2bc1d0632232b4e54d18e05d6",
+          "sha256": "c6fc369bbf82bffd28d0af5084bb38ead46a745e7319b6061ee74cecf9718123",
           "transactions": 1
         },
         {
           "name": "prepareReviewedHistoryOfflineSync",
           "startLine": "export function prepareReviewedHistoryOfflineSync(store: ContentOperationsStore, plan: ReviewedHistoryPlan, options: {",
           "endLine": "}",
-          "sha256": "34173620f5e5017b50e3580c3674d468e3cffe09aeddf40acd3e8b4db15d43c2",
+          "sha256": "12f9018f6b78c44908878a6182fba82464e34c2b19edbd02bd80897eb01ba90f",
           "transactions": 1
         }
       ]
@@ -92,47 +92,176 @@
           "name": "applyJulyContentPlanOfflineSync",
           "startLine": "export function applyJulyContentPlanOfflineSync(store: ContentOperationsStore, options: {",
           "endLine": "}",
-          "sha256": "fcd95a98b8250ca829e39396b8f3eb52c999104c94841bfe1eaf526df3cc9817",
+          "sha256": "0cd33b7a277d1a63573dcb6a5175bf6e7a1024f1ebae6f4965edbf70f2fe748a",
           "transactions": 1
         }
       ]
     },
     {
       "path": "src/lib/server-clock-state.ts",
-      "reason": "离线时钟激活与回退；显式数据库、offlineGuard 和完整状态检查",
+      "reason": "保留原offline路径保护，新维护context调用同一完整激活/回退引擎；三处事务分别核查",
       "operations": [
         {
           "name": "activateRealServerClockOfflineSync",
           "startLine": "export function activateRealServerClockOfflineSync(db: Database, options: ActivateRealServerClockOptions): PersistedServerClockState {",
           "endLine": "}",
-          "sha256": "fb2a9fef1a8056a8981eb302586837ade7249852f977e1a6c5cf1ede87eb3b49",
+          "sha256": "87b968230a8a2705d2319d0b3eaf036853adffde24bd7cfe3c2742bacae08939",
           "transactions": 1
+        },
+        {
+          "name": "activateRealServerClockInTransactionSync",
+          "startLine": "function activateRealServerClockInTransactionSync(db: Database, options: MaintenanceRealServerClockOptions,",
+          "endLine": "}",
+          "sha256": "fab5185c336e8be7ee0217ff0bacc2091608af8b1069932d2b21fe3f8b2fb598",
+          "transactions": 1
+        },
+        {
+          "name": "rollbackRealServerClockInTransactionSync",
+          "startLine": "function rollbackRealServerClockInTransactionSync(db: Database, options: Omit<RollbackRealServerClockOptions, \"offlineGuard\">): RollbackRealServerClockResult {",
+          "endLine": "}",
+          "sha256": "32eb6130fdc29bc7627dc0c51cfbc13d156b6912badf5b103cafeec5855ebd3a",
+          "transactions": 1
+        }
+      ],
+      "contexts": [
+        {
+          "name": "clockPersistentFingerprint",
+          "startLine": "function clockPersistentFingerprint(db: Database, protection?: TimeCutoverRehearsalPlan): string {",
+          "endLine": "}",
+          "sha256": "f42e91b9f3b48c2cf326b4395cbca96388b4f60a5512fccb829e33d66a854418"
+        },
+        {
+          "name": "getServerClockPersistentFingerprintSync",
+          "startLine": "export function getServerClockPersistentFingerprintSync(db: Database): string {",
+          "endLine": "}",
+          "sha256": "c7e2c0265c21025ca43f5ad2fb15a709d97fe78e354f4d41beb3c5b35246b9eb"
+        },
+        {
+          "name": "assertNoTemporaryStateShadow",
+          "startLine": "function assertNoTemporaryStateShadow(db: Database): void {",
+          "endLine": "}",
+          "sha256": "d4214768c8c2ed53b27f36bad3efd3552345304064866cbe4545ab00fb136c2d"
+        },
+        {
+          "name": "readClockRollbackReceipt",
+          "startLine": "function readClockRollbackReceipt(db: Database): ClockRollbackReceipt | null {",
+          "endLine": "}",
+          "sha256": "c9908f4a433302ce6efa74b82ef4a6613531d5d12976c0b5b450845d8ebd4a59"
+        },
+        {
+          "name": "writeClockRollbackReceipt",
+          "startLine": "function writeClockRollbackReceipt(db: Database, payload: ClockRollbackPayload, status: ClockRollbackReceipt[\"status\"]): void {",
+          "endLine": "}",
+          "sha256": "121a4c101605cdb83b4c3f05b4e76bebcc69ff604bed50f91efe591c2155bb59"
+        },
+        {
+          "name": "assertLazyMigrationTriggers",
+          "startLine": "function assertLazyMigrationTriggers(db: Database): void {",
+          "endLine": "}",
+          "sha256": "29e4e9e4f7d6fad2c89594ca2c6f8c8f87c2124dd55ce5d3cdfdc1583c8486a2"
+        },
+        {
+          "name": "assertLegacyCutoverCoordinate",
+          "startLine": "function assertLegacyCutoverCoordinate(snapshot: ServerClockSnapshot): void {",
+          "endLine": "}",
+          "sha256": "89f0c8763cb7d43a58e1479bd96e9f21dc899af6445657665297026425036853"
+        },
+        {
+          "name": "integer",
+          "startLine": "function integer(value: unknown): number | null {",
+          "endLine": "}",
+          "sha256": "a4248d5aead62ce8e757d246b76471f0235536c9657c1ed44ce42e33adeeaaa3"
+        },
+        {
+          "name": "readServerClockStateSync",
+          "startLine": "export function readServerClockStateSync(db: Database): PersistedServerClockState | null {",
+          "endLine": "}",
+          "sha256": "f645a9b160950cf7dea439f76b6a46530cb0f0bad0d4672da002413728bfdbe5"
+        },
+        {
+          "name": "restoreServerClockStateSync",
+          "startLine": "export function restoreServerClockStateSync(db: Database): PersistedServerClockState | null {",
+          "endLine": "}",
+          "sha256": "c47a00521a95eb0d7fe93a77387c64c898f0f7ce846b4c69b6bc0e9819adb7eb"
+        },
+        {
+          "name": "planRealServerClockMaintenanceSync",
+          "startLine": "export function planRealServerClockMaintenanceSync(db: Database, options: Omit<TimeCutoverRehearsalOptions, \"offlineGuard\">,",
+          "endLine": "}",
+          "sha256": "86f31c0f5f86e29769314a9098672d739db66864a92d6754d1d115a85d7b0495"
+        },
+        {
+          "name": "activateRealServerClockMaintenanceSync",
+          "startLine": "export function activateRealServerClockMaintenanceSync(db: Database, options: MaintenanceRealServerClockOptions,",
+          "endLine": "}",
+          "sha256": "478898d1ad4054f3ac41f53f89abcd4ecdfaba85220bd2a2e1119a571a4344a0"
         },
         {
           "name": "rollbackRealServerClockOfflineSync",
           "startLine": "export function rollbackRealServerClockOfflineSync(db: Database, options: RollbackRealServerClockOptions): RollbackRealServerClockResult {",
           "endLine": "}",
-          "sha256": "32eb7a1cf6d1b0a4f0fbc96e87fec0091f8e5dae63fc5b1954dbaabfb9dce6bf",
-          "transactions": 1
+          "sha256": "8d9230c1f2afe6a327cc07a09b929513b43414af7351d48700b670e7f2da8111"
+        },
+        {
+          "name": "rollbackRealServerClockMaintenanceSync",
+          "startLine": "export function rollbackRealServerClockMaintenanceSync(db: Database, options: Omit<RollbackRealServerClockOptions, \"offlineGuard\">,",
+          "endLine": "}",
+          "sha256": "34db735ea02b574482255479c08a99b8d0a4aea01d6ad20107691987a1fd16eb"
+        },
+        {
+          "name": "epoch",
+          "startLine": "function epoch(value: unknown): number | null {",
+          "endLine": "}",
+          "sha256": "969004c637aa40cae41bc64d5cbb5019c521367e4ea9c06dbfa56386fc21e018"
+        },
+        {
+          "name": "assertServerClockMatchesDatabaseSync",
+          "startLine": "export function assertServerClockMatchesDatabaseSync(db: Database): PersistedServerClockState | null {",
+          "endLine": "}",
+          "sha256": "eb04c9f27133503d93916b013f4547986ba6e09bfa5620986ea2b3249634cd01"
+        },
+        {
+          "name": "ensurePlayerClockStateForLoadSync",
+          "startLine": "export function ensurePlayerClockStateForLoadSync(playerId: number, db: Database): PlayerTimeState | null {",
+          "endLine": "}",
+          "sha256": "6dc1a4899ef934c581e5c73848f9f0885ea8adc5f53d610c0bd928135f5c6ada"
+        },
+        {
+          "name": "imports-receipt-contract-and-digest-globals",
+          "startLine": "import type { Database } from \"better-sqlite3\"",
+          "endLine": "}",
+          "sha256": "4e29d5c4325fa3fa49a9ca0cf5dbb26da6cc7fc0ad0d4077ebd46e44eb9874ca"
+        },
+        {
+          "name": "receipt-fields-and-full-fingerprint",
+          "startLine": "const receiptFields = [\"id\", \"version\", \"plan_digest\", \"receipt_json\", \"receipt_digest\", \"status\"]",
+          "endLine": "}",
+          "sha256": "127f4d2766d82bd0da0534eb3b1d51f7a55bba94d9b88b7eb45b204a9d24e19d"
+        },
+        {
+          "name": "clock-fields-and-approved-player-trigger",
+          "startLine": "const fields = [\"id\", \"version\", \"mode\", \"business_offset_ms\", \"legacy_battle_offset_ms\", \"cutover_real_ms\",",
+          "endLine": "}",
+          "sha256": "72c195c294ba0212e8234d7c91eaf417418646cd4ccd363185244e432f15a0fa"
         }
       ]
     },
     {
       "path": "src/lib/time-cutover-rehearsal.ts",
-      "reason": "受保护的离线一致规划、应用与回退；显式数据库和摘要校验",
+      "reason": "原显式offline保护不变；仅抽出只读事务内planner供维护复用；preview/apply/rollback完整函数绑定",
       "operations": [
         {
           "name": "planTimeCutoverRehearsalSync",
           "startLine": "export function planTimeCutoverRehearsalSync(db: Database, options: TimeCutoverRehearsalOptions): TimeCutoverRehearsalPlan {",
           "endLine": "}",
-          "sha256": "d6c5ae1f009b0491dfcc34c4a5df60d704628c3906a097a556eb008db31a1fee",
+          "sha256": "5e893619cd323eeca179c52112b72351c693ac04f188d7671be1dd970772bdb4",
           "transactions": 1
         },
         {
           "name": "applyTimeCutoverRehearsalSync",
           "startLine": "export function applyTimeCutoverRehearsalSync(db: Database, options: TimeCutoverApplyOptions): { status: \"applied\" | \"already-applied\"; digest: string } {",
           "endLine": "}",
-          "sha256": "b677c67e5d0acd9906dd12bf28e2006ede03ea985f7d4f2b91abc859a8d463e1",
+          "sha256": "a0c3f8460f274950c20caf98f5a1effd667f3d0d4a4b658351e3ec55df8f08c9",
           "transactions": 1
         },
         {
@@ -141,6 +270,110 @@
           "endLine": "}",
           "sha256": "a15aa61a598000806fb3bb94c619ce7e6c998ec91c35b245a87f7dcffd25c46c",
           "transactions": 1
+        }
+      ],
+      "contexts": [
+        {
+          "name": "canonical",
+          "startLine": "function canonical(value: unknown): string {",
+          "endLine": "}",
+          "sha256": "d8e825efa3d2ae5a54a61eb7fb09c43561b8685345c27c88d715e779a77b2565"
+        },
+        {
+          "name": "hasTable",
+          "startLine": "function hasTable(db: Database, name: string): boolean {",
+          "endLine": "}",
+          "sha256": "d27fa279af97df8825ad43ff622519b944d1bd76759f75728fbecbc7a6292003"
+        },
+        {
+          "name": "validEpoch",
+          "startLine": "function validEpoch(value: unknown): value is number {",
+          "endLine": "}",
+          "sha256": "b5d14681722704a33cb2f6176f6fb04688f7c63085d65c73e3a806e67949963b"
+        },
+        {
+          "name": "validateOptions",
+          "startLine": "function validateOptions(options: TimeCutoverRehearsalOptions): void {",
+          "endLine": "}",
+          "sha256": "4419cdb2e7f631a72f5dd0d3eee26904b6291531277eb973bb78e921b6256d0d"
+        },
+        {
+          "name": "within",
+          "startLine": "function within(root: string, candidate: string): boolean {",
+          "endLine": "}",
+          "sha256": "2b90b522799092f7e5847b4e3d73f691aea9db51237de205ef6a8d091e0b32ab"
+        },
+        {
+          "name": "assertTimeCutoverOfflineDatabaseSync",
+          "startLine": "export function assertTimeCutoverOfflineDatabaseSync(db: Database, guard?: OfflineDatabaseGuard): void {",
+          "endLine": "}",
+          "sha256": "a8b26df79bef3ab2570fa0f2f8720e9c5ac106b642a1e36f83b0905a20e91221"
+        },
+        {
+          "name": "databaseDigests",
+          "startLine": "function databaseDigests(db: Database, protection?: { markerTableExisted: boolean; players: PlayerCutoverPatch[] }, ignoreServerClockState = false): { digest: string; preservedDigest: string } {",
+          "endLine": "}",
+          "sha256": "71866baa571e996b57fcdf668b93865e21dab5bc828f739af8a7ca2e7d7a43a4"
+        },
+        {
+          "name": "getTimeCutoverDatabaseDigestSync",
+          "startLine": "export function getTimeCutoverDatabaseDigestSync(db: Database): string {",
+          "endLine": "}",
+          "sha256": "8854e11f09cc818174497a4fff5829d1b511386c7a9de78da4a8ac9798645397"
+        },
+        {
+          "name": "getTimeCutoverProtectedDatabaseDigestSync",
+          "startLine": "export function getTimeCutoverProtectedDatabaseDigestSync(db: Database, plan: TimeCutoverRehearsalPlan, ignoreServerClockState = false): string {",
+          "endLine": "}",
+          "sha256": "632a3352ffd7d586610571c16db0fe1aa73c8af41ff11fdbdd5122705fce9029"
+        },
+        {
+          "name": "checkpoint",
+          "startLine": "function checkpoint(value: unknown): number | null {",
+          "endLine": "}",
+          "sha256": "d0b9fa209c5d68dac627a74def2272d9c13934a21cfa4f5f3ca8a5bc6b0cdcad"
+        },
+        {
+          "name": "storedCheckpoint",
+          "startLine": "function storedCheckpoint(original: unknown, epoch: number): unknown {",
+          "endLine": "}",
+          "sha256": "d8099673be2b5e6c30fe6b8ca3148da7bb866a51cce700456efc64d7a9ff2af6"
+        },
+        {
+          "name": "buildTimeCutoverPlanInTransactionSync",
+          "startLine": "export function buildTimeCutoverPlanInTransactionSync(db: Database, options: TimeCutoverRehearsalOptions): TimeCutoverRehearsalPlan {",
+          "endLine": "}",
+          "sha256": "d6d29a6e7a9a8f56a50b89fa8f1a405e2aa29249e2b40e74599243b8c796cdf6"
+        },
+        {
+          "name": "ledger",
+          "startLine": "function ledger(db: Database, digest: string): Ledger | undefined {",
+          "endLine": "}",
+          "sha256": "ca5c4877954dcc03bc677e99ee93e6a6b7d4deeacce4e0a9b16e50ea5cf0d06e"
+        },
+        {
+          "name": "fault",
+          "startLine": "function fault(actual: string | undefined, at: string): void {",
+          "endLine": "}",
+          "sha256": "c9ad63a8a320a18917575c7e95c644cfc73ea333d24754b9d0b0d06f2c57663e"
+        },
+        {
+          "name": "imports-and-offline-guard-contract",
+          "startLine": "import { createHash } from \"node:crypto\"",
+          "endLine": "}",
+          "sha256": "bfef2cc3b061716d00be9a7513b46d85bc5024d851c8feea7283f727c1d3e860"
+        },
+        {
+          "name": "canonical-quote-helper",
+          "startLine": "const quote = (s: string) => `\"${s.replace(/\"/g, '\"\"')}\"`",
+          "endLine": "}",
+          "sha256": "1161880c6d93b5235a8709eb7ea75c0dedc018a78d44aef41de83826ad9a980e"
+        },
+        {
+          "name": "hash-and-table-presence-helper",
+          "startLine": "const hash = (value: unknown) => createHash(\"sha256\").update(canonical(value)).digest(\"hex\")",
+          "endLine": "}",
+          "sha256": "74d9b02cb647b7372c64ba59a8dcb83c4971eba7ec63515c0a6de958f4a2ebef"
         }
       ]
     },
@@ -263,6 +496,69 @@
           "startLine": "const dependencies: TownThemeRouteDependencies = {",
           "endLine": "}",
           "sha256": "941c9144edfc2b58e131e84416f3aba8b1153551d95bbae2b44cea02fe21d490"
+        }
+      ]
+    },
+    {
+      "path": "src/lib/deployment-maintenance-guard.ts",
+      "reason": "显式停服维护的唯一EXCLUSIVE外层事务；精确路径、独立SQLite备份SHA与全状态指纹、opaque context；不是整文件放行",
+      "operations": [
+        {
+          "name": "withDeploymentMaintenanceTransactionSync",
+          "startLine": "export function withDeploymentMaintenanceTransactionSync<T>(db: Database, guard: DeploymentMaintenanceGuard,",
+          "endLine": "}",
+          "sha256": "de36319b8e362512209b256431ad4d6ae2adb271d0ea0448d6daae0137166b56",
+          "transactions": 1
+        }
+      ],
+      "contexts": [
+        {
+          "name": "getDeploymentDatabaseFingerprintSync",
+          "startLine": "export function getDeploymentDatabaseFingerprintSync(db: Database): string {",
+          "endLine": "}",
+          "sha256": "2843a7c2cce59c6df0e749855c5751f87110dc653fcb680e049351193f7b1038"
+        },
+        {
+          "name": "fileIdentity",
+          "startLine": "function fileIdentity(filename: string): string {",
+          "endLine": "}",
+          "sha256": "6ef2e8591edc213ebef34c35cb1c5592bd9e44c44ba86aaa72c167ea90fb61e2"
+        },
+        {
+          "name": "hashFile",
+          "startLine": "function hashFile(filename: string): string {",
+          "endLine": "}",
+          "sha256": "0f75412e02bfa873ac5c4432a719d2f7e97cbc7bb01d657c0620261989fcbc0a"
+        },
+        {
+          "name": "assertExplicitConnection",
+          "startLine": "function assertExplicitConnection(db: Database): string {",
+          "endLine": "}",
+          "sha256": "2cbba5510b81042dd61bcf313419f01b612fff1ce7ea96bb7a6d56f399a61a52"
+        },
+        {
+          "name": "assertIntegrity",
+          "startLine": "function assertIntegrity(db: Database): void {",
+          "endLine": "}",
+          "sha256": "50c04a0aa7b9eb816a6a17158d415decc823ada9663a05f55cb3addb0e5f1f0b"
+        },
+        {
+          "name": "assertDeploymentMaintenanceContextSync",
+          "startLine": "export function assertDeploymentMaintenanceContextSync(db: Database, context: DeploymentMaintenanceContext): void {",
+          "endLine": "}",
+          "sha256": "24243e391e25d09fe5b4733555bf1b8dff330346ad2ca0da3c986681e7091ae3"
+        },
+        {
+          "name": "imports-and-approved-guard-contract",
+          "startLine": "import DatabaseConstructor, { Database } from \"better-sqlite3\"",
+          "endLine": "}",
+          "sha256": "913dbde7be1fded35715f3b360982dd0d7772eb833fe4bdeaee0bbf3e970d9fe"
+        },
+        {
+          "name": "opaque-context-and-fingerprint-globals",
+          "startLine": "export interface DeploymentMaintenanceContext { readonly kind: \"deployment-maintenance-transaction\" }",
+          "endLine": "}",
+          "sha256": "d20a4012dafa0a297e4be8faf3fb8cc9824cd48108848a2cfa8ae387b65688b9"
         }
       ]
     }

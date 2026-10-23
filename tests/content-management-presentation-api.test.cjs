@@ -25,7 +25,7 @@ const parentRows = [
     row('gacha', 2, 'fixture original title deliberately differs'),
     row('gacha', 100, '合成乐享扭蛋'),
     row('gacha', 80000, '合成个人星辰扭蛋'),
-    row('gacha', 700000, '合成个人回归扭蛋'),
+    row('gacha', 700000, '合成个人回归扭蛋', { personalWindow: true }),
     row('advent_event', 900100, '合成历史活动'),
     row('advent_event', 900101, '合成尚未支持活动'),
     row('tower_dungeon_event', 1, 'fixture old tower label'),
@@ -44,6 +44,7 @@ const catalog = { schemaVersion: 1, source: { assetVersion: 'presentation-fixtur
     rows: [...parentRows, ...memberRows] }
 const capabilities = value => value.key === 'advent_event:900101' ? []
     : value.key === 'gacha:100' ? ['visible', 'enter', 'claim', 'exchange']
+    : value.key === 'gacha:700000' ? ['exchange']
     : ['special_exchange_campaign', 'start_dash_exchange_campaign'].includes(value.type) ? ['exchange']
         : ['visible', 'enter', 'exchange']
 const store = new ContentOperationsStore(db, catalog, capabilities)
@@ -556,4 +557,28 @@ test('explicit dates keep equal and missing dates stable across states, search, 
         for (const index of [1, 5]) historyRows.delete(key(index))
         isolatedDb.close()
     }
+})
+
+test('reviewed ComeBack exchange-only control toggles existing qualification without opening the draw', async () => {
+    const key = 'gacha:700000'
+    const beforeProgress = db.prepare('SELECT * FROM retained_progress').all()
+    store.update(key, body({ actionOverrides: { exchange: action(true) } }), Date.now())
+    const read = async () => (await get(`/api/content/?search=${encodeURIComponent(key)}`)).json().rows.find(row => row.key === key)
+    const open = await read()
+    assert.equal(open.primaryControl.kind, 'exchange')
+    assert.equal(open.primaryControl.status, 'enabled')
+    assert.equal(open.primaryControl.canToggle, true)
+    assert.match(open.primaryControl.reason, /已有资格兑换.*不会发放新资格/)
+    assert.notEqual(store.allowed(key, 'enter', Date.now()), true)
+    const original = store.state(key).actionOverrides.exchange
+    const review = enabled => ({ enabled, readiness: original.readiness, evidence: original.evidence, endsAtMs: original.endsAtMs })
+    const closed = await patch(key, body({ actionOverrides: { exchange: review(false) } }))
+    assert.equal(closed.statusCode, 200, closed.body)
+    assert.equal((await read()).primaryControl.status, 'disabled')
+    assert.notEqual(store.allowed(key, 'enter', Date.now()), true)
+    assert.deepEqual(db.prepare('SELECT * FROM retained_progress').all(), beforeProgress)
+    const reopened = await patch(key, body({ actionOverrides: { exchange: review(true) } }))
+    assert.equal(reopened.statusCode, 200, reopened.body)
+    assert.equal((await read()).primaryControl.status, 'enabled')
+    assert.notEqual(store.allowed(key, 'enter', Date.now()), true)
 })

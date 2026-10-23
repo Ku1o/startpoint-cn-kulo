@@ -95,10 +95,10 @@ test('glob matching distinguishes * and **', () => {
     assert.ok(globToRegExp('src/workers/**').test('src/workers/a/b.ts'))
 })
 
-test('current policy retains ten infrastructure entries and approves exactly 23 operations in nine files', () => {
+test('current policy retains ten infrastructure entries and approves exactly 25 operations in ten files', () => {
     assert.equal(rawAllowlist.transaction.length, 10)
-    assert.equal(allowlist.reviewedOperations.length, 9)
-    assert.equal(allowlist.reviewedOperations.reduce((count, entry) => count + entry.operations.length, 0), 23)
+    assert.equal(allowlist.reviewedOperations.length, 10)
+    assert.equal(allowlist.reviewedOperations.reduce((count, entry) => count + entry.operations.length, 0), 25)
     for (const entry of allowlist.reviewedOperations) {
         assert.ok(!allowlist.transaction.some(pattern => pattern.test(entry.path)), entry.path)
         assert.ok(entry.operations.every(operation => operation.transactions === 1), entry.path)

@@ -153,7 +153,11 @@ function checkpoint(value: unknown): number | null {
 function storedCheckpoint(original: unknown, epoch: number): unknown {
     return typeof original === "number" ? epoch : new Date(epoch).toISOString()
 }
-function buildPlan(db: Database, options: TimeCutoverRehearsalOptions): TimeCutoverRehearsalPlan {
+/** Read-only planner shared by guarded offline and maintenance entry points.
+ * A caller must already own a transaction; this never grants mutation authority.
+ */
+export function buildTimeCutoverPlanInTransactionSync(db: Database, options: TimeCutoverRehearsalOptions): TimeCutoverRehearsalPlan {
+    if (!db.open || !db.inTransaction) throw new Error("Time cutover planning requires an explicit transaction")
     validateOptions(options)
     const columns = db.prepare("PRAGMA table_info(players)").all() as Array<{ name: string }>
     for (const name of ["id", "exp_pooled_time", "exp_pool", "time_offset"]) {
@@ -202,7 +206,7 @@ function buildPlan(db: Database, options: TimeCutoverRehearsalOptions): TimeCuto
 }
 export function planTimeCutoverRehearsalSync(db: Database, options: TimeCutoverRehearsalOptions): TimeCutoverRehearsalPlan {
     assertTimeCutoverOfflineDatabaseSync(db, options.offlineGuard)
-    return db.transaction(() => buildPlan(db, options))()
+    return db.transaction(() => buildTimeCutoverPlanInTransactionSync(db, options))()
 }
 function ledger(db: Database, digest: string): Ledger | undefined {
     return hasTable(db, TIME_CUTOVER_REHEARSAL_LEDGER) ? db.prepare(`SELECT * FROM ${TIME_CUTOVER_REHEARSAL_LEDGER} WHERE plan_digest=?`).get(digest) as Ledger | undefined : undefined
@@ -224,7 +228,7 @@ export function applyTimeCutoverRehearsalSync(db: Database, options: TimeCutover
             return { status: "already-applied" as const, digest: options.expectedPlanDigest }
         }
         if (hasTable(db, TIME_CUTOVER_REHEARSAL_LEDGER) && db.prepare(`SELECT 1 FROM ${TIME_CUTOVER_REHEARSAL_LEDGER} WHERE status='applied'`).get()) throw new Error("Another rehearsal plan is already applied")
-        const plan = buildPlan(db, options)
+        const plan = buildTimeCutoverPlanInTransactionSync(db, options)
         if (plan.digest !== options.expectedPlanDigest) throw new Error("Plan digest mismatch: state or options changed after preview")
         db.exec(`CREATE TABLE IF NOT EXISTS player_time_state (
             player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE, version INTEGER NOT NULL,

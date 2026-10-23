@@ -2,8 +2,9 @@ import type { Database } from "better-sqlite3"
 import { createHash } from "node:crypto"
 import { getServerClockSnapshot, installServerClockSnapshot, ServerClockSnapshot, validateServerClockSnapshot } from "../utils"
 import { assertTimeCutoverOfflineDatabaseSync, getTimeCutoverDatabaseDigestSync, getTimeCutoverProtectedDatabaseDigestSync,
-    OfflineDatabaseGuard, planTimeCutoverRehearsalSync, TimeCutoverRehearsalPlan } from "./time-cutover-rehearsal"
+    OfflineDatabaseGuard, buildTimeCutoverPlanInTransactionSync, TimeCutoverRehearsalOptions, TimeCutoverRehearsalPlan } from "./time-cutover-rehearsal"
 import { getExistingPlayerTimeStateSync, PlayerTimeState } from "./player-time-compat"
+import { assertDeploymentMaintenanceContextSync, DeploymentMaintenanceContext } from "./deployment-maintenance-guard"
 
 export const SERVER_CLOCK_STATE_TABLE = "server_clock_state"
 export const SERVER_CLOCK_ROLLBACK_RECEIPT_TABLE = "server_clock_rollback_receipt"
@@ -128,10 +129,10 @@ function writeClockRollbackReceipt(db: Database, payload: ClockRollbackPayload, 
         ON CONFLICT(id) DO UPDATE SET plan_digest=excluded.plan_digest,receipt_json=excluded.receipt_json,
         receipt_digest=excluded.receipt_digest,status=excluded.status`).run(payload.plan.digest, receiptJson, digest, status)
 }
-/** Scenario evidence is deliberately distinct from production cutover readiness. */
+/** Maintenance approval is issued only through the explicit backed-up transaction. */
 export interface PersistedServerClockState {
     readonly snapshot: Readonly<ServerClockSnapshot>
-    readonly readiness: "scenario-only"
+    readonly readiness: "scenario-only" | "maintenance-approved"
     readonly planDigest: string
 }
 type Row = Record<string, unknown>
@@ -196,9 +197,9 @@ export function readServerClockStateSync(db: Database): PersistedServerClockStat
     }
     validateServerClockSnapshot(snapshot)
     assertLegacyCutoverCoordinate(snapshot)
-    if (snapshot.mode !== "real" || row.readiness !== "scenario-only" || typeof row.plan_digest !== "string"
+    if (snapshot.mode !== "real" || !["scenario-only", "maintenance-approved"].includes(String(row.readiness)) || typeof row.plan_digest !== "string"
         || !/^[a-f0-9]{64}$/.test(row.plan_digest)) throw new Error("Unsupported persisted clock state")
-    return Object.freeze({ snapshot: Object.freeze(snapshot), readiness: "scenario-only", planDigest: row.plan_digest })
+    return Object.freeze({ snapshot: Object.freeze(snapshot), readiness: row.readiness as PersistedServerClockState["readiness"], planDigest: row.plan_digest })
 }
 
 /** Restore only an already committed state; absence leaves the legacy caller in control. */
@@ -220,8 +221,25 @@ export interface ActivateRealServerClockOptions {
 /** Offline only. Commit every player migration and the global coordinate in one transaction; never install the process clock. */
 export function activateRealServerClockOfflineSync(db: Database, options: ActivateRealServerClockOptions): PersistedServerClockState {
     assertTimeCutoverOfflineDatabaseSync(db, options.offlineGuard)
-    assertNoTemporaryStateShadow(db)
     if (options.readiness !== "scenario-only") throw new Error("Production real-time cutover is no_go")
+    return db.transaction(() => activateRealServerClockInTransactionSync(db, options, "scenario-only")).immediate()
+}
+
+export type MaintenanceRealServerClockOptions = Omit<ActivateRealServerClockOptions, "readiness" | "offlineGuard">
+/** Call after content initialization in the same outer maintenance transaction. */
+export function planRealServerClockMaintenanceSync(db: Database, options: Omit<TimeCutoverRehearsalOptions, "offlineGuard">,
+    context: DeploymentMaintenanceContext): TimeCutoverRehearsalPlan {
+    assertDeploymentMaintenanceContextSync(db, context)
+    return buildTimeCutoverPlanInTransactionSync(db, options)
+}
+export function activateRealServerClockMaintenanceSync(db: Database, options: MaintenanceRealServerClockOptions,
+    context: DeploymentMaintenanceContext): PersistedServerClockState {
+    assertDeploymentMaintenanceContextSync(db, context)
+    return activateRealServerClockInTransactionSync(db, options, "maintenance-approved")
+}
+function activateRealServerClockInTransactionSync(db: Database, options: MaintenanceRealServerClockOptions,
+    readiness: PersistedServerClockState["readiness"]): PersistedServerClockState {
+    assertNoTemporaryStateShadow(db)
     if (!/^[a-f0-9]{64}$/.test(options.expectedPlanDigest)) throw new Error("Invalid clock migration plan digest")
     const revision = getServerClockSnapshot().revision + 1
     const snapshot: ServerClockSnapshot = { version: 1, mode: "real", businessOffsetMs: 0,
@@ -233,14 +251,14 @@ export function activateRealServerClockOfflineSync(db: Database, options: Activa
     const oldReceipt = readClockRollbackReceipt(db)
     if (existing) {
         if (!oldReceipt || oldReceipt.status !== "applied") throw new Error("Committed clock has no valid rollback receipt; activation refused")
-        if (existing.planDigest !== options.expectedPlanDigest || existing.snapshot.cutoverRealMs !== options.cutoverRealMs
+        if (existing.readiness !== readiness || existing.planDigest !== options.expectedPlanDigest || existing.snapshot.cutoverRealMs !== options.cutoverRealMs
             || existing.snapshot.legacyBattleOffsetMs !== options.legacyOffsetMs
             || oldReceipt.payload.plan.digest !== existing.planDigest
             || JSON.stringify(oldReceipt.payload.snapshot) !== JSON.stringify(existing.snapshot)) throw new Error("Persisted clock activation conflict")
         return existing
     }
     if (oldReceipt?.status === "applied") throw new Error("Applied clock rollback receipt has no committed global state")
-    const plan = planTimeCutoverRehearsalSync(db, options)
+    const plan = buildTimeCutoverPlanInTransactionSync(db, options)
     if (plan.digest !== options.expectedPlanDigest) throw new Error("Clock plan digest mismatch")
     return db.transaction(() => {
         if (getTimeCutoverDatabaseDigestSync(db) !== plan.beforeDigest) throw new Error("Clock plan changed before activation")
@@ -272,9 +290,9 @@ export function activateRealServerClockOfflineSync(db: Database, options: Activa
             id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL CHECK(version=1), mode TEXT NOT NULL CHECK(mode='real'),
             business_offset_ms INTEGER NOT NULL CHECK(business_offset_ms=0), legacy_battle_offset_ms INTEGER,
             cutover_real_ms INTEGER NOT NULL, day_anchor_ms INTEGER NOT NULL, week_anchor_ms INTEGER NOT NULL,
-            revision INTEGER NOT NULL, readiness TEXT NOT NULL CHECK(readiness='scenario-only'), plan_digest TEXT NOT NULL)`)
-        db.prepare(`INSERT INTO ${SERVER_CLOCK_STATE_TABLE} VALUES (1,1,'real',0,?,?,?,?,?,'scenario-only',?)`)
-            .run(snapshot.legacyBattleOffsetMs, snapshot.cutoverRealMs, snapshot.dayAnchorMs, snapshot.weekAnchorMs, snapshot.revision, plan.digest)
+            revision INTEGER NOT NULL, readiness TEXT NOT NULL CHECK(readiness IN ('scenario-only','maintenance-approved')), plan_digest TEXT NOT NULL)`)
+        db.prepare(`INSERT INTO ${SERVER_CLOCK_STATE_TABLE} VALUES (1,1,'real',0,?,?,?,?,?,?,?)`)
+            .run(snapshot.legacyBattleOffsetMs, snapshot.cutoverRealMs, snapshot.dayAnchorMs, snapshot.weekAnchorMs, snapshot.revision, readiness, plan.digest)
         const committed = readServerClockStateSync(db)
         if (!committed || JSON.stringify(committed.snapshot) !== JSON.stringify(snapshot)) throw new Error("Clock singleton did not match planned snapshot")
         if (getTimeCutoverProtectedDatabaseDigestSync(db, plan, true) !== plan.preservedDigest) throw new Error("Clock activation changed unrelated persistent state")
@@ -308,6 +326,14 @@ export interface RollbackRealServerClockResult {
  */
 export function rollbackRealServerClockOfflineSync(db: Database, options: RollbackRealServerClockOptions): RollbackRealServerClockResult {
     assertTimeCutoverOfflineDatabaseSync(db, options.offlineGuard)
+    return rollbackRealServerClockInTransactionSync(db, options)
+}
+export function rollbackRealServerClockMaintenanceSync(db: Database, options: Omit<RollbackRealServerClockOptions, "offlineGuard">,
+    context: DeploymentMaintenanceContext): RollbackRealServerClockResult {
+    assertDeploymentMaintenanceContextSync(db, context)
+    return rollbackRealServerClockInTransactionSync(db, options)
+}
+function rollbackRealServerClockInTransactionSync(db: Database, options: Omit<RollbackRealServerClockOptions, "offlineGuard">): RollbackRealServerClockResult {
     assertNoTemporaryStateShadow(db)
     if (!validDigest(options.expectedPlanDigest)) throw new Error("Invalid clock rollback plan digest")
     return db.transaction(() => {

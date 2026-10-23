@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 if (Test-Path -LiteralPath (Join-Path $projectRoot ".storage-maintenance\active.lock")) {
-    throw "Storage maintenance is still active. Use maintain-cn-recover.bat."
+    throw "Storage maintenance is still active. Inspect .storage-maintenance/active.lock. For time-content-deployment use scripts/migrate-time-content.ps1 -Mode Recover; other storage maintenance uses maintain-cn-recover.bat."
 }
 $tempDirectory = & (Join-Path $PSScriptRoot "set-cn-temp.ps1") -ProjectRoot $projectRoot
 $logDirectory = Join-Path $projectRoot ".logs"
@@ -22,6 +22,15 @@ $listener = Get-NetTCPConnection -LocalPort $configuredPort -State Listen -Error
 if ($listener) {
     throw "Port $configuredPort is already in use by PID $($listener.OwningProcess)."
 }
+
+# A program-file overlay is not a database migration. Refuse a partial deployment.
+Push-Location -LiteralPath $projectRoot
+try {
+    & $nodeExecutable "--env-file=$envFilePath" "scripts/time-content-deployment.cjs" verify --project $projectRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw "Time/content deployment is incomplete. Run scripts/migrate-time-content.ps1 -Mode Preview, then -Mode Apply."
+    }
+} finally { Pop-Location }
 
 $process = Start-Process `
     -FilePath $nodeExecutable `
