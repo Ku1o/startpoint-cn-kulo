@@ -113,20 +113,23 @@ const routes = async (fastify: FastifyInstance) => {
             for (const equipmentId of equipmentIds) {
                 const equipment = getPlayerEquipmentSync(playerId, equipmentId)
                 if (!equipment) return { ok: false as const }
-                if (equipment.stack <= 0) continue
+                if (equipment.protection) return { ok: false as const, message: "Protected equipment cannot be sold." }
+                if (equipment.stack <= 0) return { ok: false as const, message: "Not enough equipment stack." }
 
-                // 1 unit, not × stack (client Expected sell_equipment gives 1 ability soul per unit)
+                // Native sell_equipment has no quantity and rewards one unit.
+                // This server retains the base equipment: consume one duplicate only.
                 addDissolveRewards(totals, equipmentId, 1)
                 soldIds.push(equipmentId)
             }
 
             for (const equipmentId of soldIds) {
-                updatePlayerEquipmentSync(playerId, equipmentId, { stack: 0 })
+                const equipment = getPlayerEquipmentSync(playerId, equipmentId)!
+                updatePlayerEquipmentSync(playerId, equipmentId, { stack: equipment.stack - 1 })
             }
             return { ok: true as const, totals, soldIds, itemList: grantDissolveRewardsSync(playerId, totals) }
         })
         if (!outcome.ok) {
-            return reply.status(400).send({ "error": "Bad Request", "message": "Player does not own equipment." })
+            return reply.status(400).send({ "error": "Bad Request", "message": outcome.message ?? "Player does not own equipment." })
         }
 
         const returnEquipmentList = buildFullEquipmentList(playerId)
@@ -180,6 +183,7 @@ const routes = async (fastify: FastifyInstance) => {
             for (const { equipmentId, sellCount } of requestedSales) {
                 const equipment = getPlayerEquipmentSync(playerId, equipmentId)
                 if (!equipment) return { ok: false as const, message: "Player does not own equipment." }
+                if (equipment.protection) return { ok: false as const, message: "Protected equipment cannot be sold." }
 
                 const currentStack = projectedStacks.get(equipmentId) ?? equipment.stack
                 const newStack = currentStack - sellCount
@@ -243,6 +247,7 @@ const routes = async (fastify: FastifyInstance) => {
             for (const equipmentId of equipmentIds) {
                 const equipment = getPlayerEquipmentSync(playerId, equipmentId)
                 if (!equipment) continue
+                if (equipment.protection) throw Object.assign(new Error("Protected equipment cannot be sold."), { statusCode: 400 })
 
                 const stack = equipment.stack
                 if (stack <= 0) continue
