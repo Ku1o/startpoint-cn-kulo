@@ -101,9 +101,11 @@ function pad(value: number): string {
     return String(value).padStart(2, "0")
 }
 
-/** Convert a real database timestamp to the virtual server's JST display time. */
-export function formatPlayerHistoryJstDate(date: Date, offsetMs: number): string {
+/** Format a known database timestamp; invalid/missing evidence stays unknown. */
+export function formatPlayerHistoryJstDate(date: Date, offsetMs: number): string | null {
+    if (!(date instanceof Date) || !Number.isFinite(date.getTime()) || !Number.isFinite(offsetMs)) return null
     const jst = new Date(date.getTime() + offsetMs + 9 * 60 * 60 * 1000)
+    if (!Number.isFinite(jst.getTime())) return null
     return `${jst.getUTCFullYear()}-${pad(jst.getUTCMonth() + 1)}-${pad(jst.getUTCDate())}`
         + ` ${pad(jst.getUTCHours())}:${pad(jst.getUTCMinutes())}:${pad(jst.getUTCSeconds())}`
 }
@@ -149,12 +151,9 @@ function scoreAttackBorderCounts(rows: QuestProgressRow[]): [number, number] {
     return [best, total]
 }
 
-function formatAchievementDate(acquiredAt: number, fallbackDate: string, offsetMs: number): string {
-    if (!Number.isFinite(acquiredAt) || acquiredAt <= 0) return fallbackDate
-    const date = new Date(acquiredAt)
-    return Number.isFinite(date.getTime())
-        ? formatPlayerHistoryJstDate(date, offsetMs)
-        : fallbackDate
+function formatAchievementDate(acquiredAt: number, offsetMs: number): string | null {
+    if (!Number.isFinite(acquiredAt) || acquiredAt <= 0) return null
+    return formatPlayerHistoryJstDate(new Date(acquiredAt), offsetMs)
 }
 
 /**
@@ -165,8 +164,7 @@ function formatAchievementDate(acquiredAt: number, fallbackDate: string, offsetM
 export function buildPlayerHistoryTopicAggregatesSync(
     playerId: number,
     player: Player,
-    startGameDate: string,
-    fallbackAchievementDate: string,
+    startGameDate: string | null,
     offsetMs: number,
 ): PlayerHistoryTopicAggregates {
     const db = getDb()
@@ -185,11 +183,15 @@ export function buildPlayerHistoryTopicAggregatesSync(
     }
 
     const finishedMainQuests = finishedBySection.get(1) ?? new Set<number>()
-    const chapterDates = MAIN_QUEST_IDS_BY_CHAPTER.map(questIds => (
+    const chapterCompleted = MAIN_QUEST_IDS_BY_CHAPTER.map(questIds => (
         questIds.size > 0 && [...questIds].every(questId => finishedMainQuests.has(questId))
-            ? fallbackAchievementDate
-            : null
+            ? 1
+            : 0
     ))
+    // Completion is authoritative, but quest progress has no completion date.
+    // Parallel int flags let compatible clients keep the completed branch while
+    // rendering a null date as unknown instead of inventing a timestamp.
+    const chapterDates = chapterCompleted.map(() => null)
 
     const characters = getPlayerCharactersSync(playerId)
     const completedSecondBoards = Object.entries(characters)
@@ -198,10 +200,6 @@ export function buildPlayerHistoryTopicAggregatesSync(
         )))
         .sort(([, left], [, right]) => left.updateTime.getTime() - right.updateTime.getTime())
     const firstSecondBoard = completedSecondBoards[0]
-    const firstSecondBoardDate = firstSecondBoard
-        && Number.isFinite(firstSecondBoard[1].updateTime.getTime())
-        ? formatPlayerHistoryJstDate(firstSecondBoard[1].updateTime, offsetMs)
-        : null
 
     const equipment = getPlayerEquipmentListSync(playerId)
     const equipmentEntries = Object.entries(equipment)
@@ -289,18 +287,19 @@ export function buildPlayerHistoryTopicAggregatesSync(
         : null
 
     return {
-        0: { date_values: [startGameDate] },
+        0: { date_values: [startGameDate], int_values: [startGameDate === null ? null : 1] },
         1: { int_values: [Math.max(0, player.totalLoginDays)] },
-        2: { date_values: chapterDates.slice(0, 6) },
-        3: { date_values: chapterDates.slice(6, 12) },
+        2: { date_values: chapterDates.slice(0, 6), int_values: chapterCompleted.slice(0, 6) },
+        3: { date_values: chapterDates.slice(6, 12), int_values: chapterCompleted.slice(6, 12) },
         4: {
-            date_values: [firstSecondBoardDate],
+            date_values: [null],
+            int_values: [firstSecondBoard ? 1 : 0],
             character_id_values: [firstSecondBoard ? Number(firstSecondBoard[0]) : null],
         },
         5: { int_values: [exactLevel100CharacterCount(characters)] },
         6: { int_values: [Math.max(0, player.bondToken)] },
-        7: { date_values: [Object.keys(characters).length >= 100 ? fallbackAchievementDate : null] },
-        8: { date_values: [getRankDegree(player.rankPoint) >= 100 ? fallbackAchievementDate : null] },
+        7: { date_values: [null], int_values: [Object.keys(characters).length >= 100 ? 1 : 0] },
+        8: { date_values: [null], int_values: [getRankDegree(player.rankPoint) >= 100 ? 1 : 0] },
         9: { int_values: [regularMissionCount] },
         10: { int_values: [eventMissionCount] },
         11: { int_values: [mvpCount] },
@@ -334,8 +333,9 @@ export function buildPlayerHistoryTopicAggregatesSync(
         25: { int_values: [readEncyclopediaCount] },
         26: {
             date_values: [expertBossDegree
-                ? formatAchievementDate(expertBossDegree.acquired_at, fallbackAchievementDate, offsetMs)
+                ? formatAchievementDate(expertBossDegree.acquired_at, offsetMs)
                 : null],
+            int_values: [expertBossId === null ? 0 : 1],
             boss_id_values: [expertBossId],
         },
     }

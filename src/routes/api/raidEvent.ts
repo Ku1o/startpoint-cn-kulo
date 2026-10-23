@@ -28,6 +28,8 @@ import { getQuestFromCategorySync } from "../../lib/assets";
 import { QuestCategory } from "../../lib/types";
 import { grantEligibleRaidEventDegreesSync } from "../../lib/activity-degree-rewards";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { getPlayerActiveQuestSync } from "../../data/domains/quest_active";
+import { contentDecision, isContentQuestOpenAt } from "../../lib/content-operations";
 
 interface EventIdBody {
     event_id: number,
@@ -416,6 +418,16 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request", "message": "Quest doesn't exist."
         })
 
+        const isRegisteredPlay = () => {
+            const active = getPlayerActiveQuestSync(playerId)
+            return active?.playId === body.play_id && active.category === QuestCategory.RAID_EVENT
+                && active.questId === body.quest_id && active.eventId === questEventId && !active.isMulti
+        }
+        const unavailable = () => reply.type("application/x-msgpack").send({
+            data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {},
+        })
+        if (!isRegisteredPlay() && !isContentQuestOpenAt(QuestCategory.RAID_EVENT, body.quest_id)) return unavailable()
+
         const restricted = getMode15ExclusivePartyItemsSync(
             playerId, PartyCategory.RAID, body.party_group_id,
         )
@@ -429,19 +441,27 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         // Register active quest for /single_battle_quest/finish
-        await runPersistenceTransaction({
+        const started = await runPersistenceTransaction({
             domain: "single-quest", playerId, operation: "raid_start",
-        }, () => insertActiveQuest(playerId, {
-            questId: body.quest_id,
-            category: QuestCategory.RAID_EVENT,
-            useBossBoostPoint: false,
-            useBoostPoint: false,
-            isAutoStartMode: body.is_auto_start_mode,
-            isMulti: false,
-            eventId: questEventId,
-            playId: body.play_id,
-            continueCount: 0
-        }))
+        }, () => {
+            // Exact committed starts remain replayable after closure. Do not
+            // replace their captured start time or affect finish/recovery.
+            if (isRegisteredPlay()) return true
+            if (!isContentQuestOpenAt(QuestCategory.RAID_EVENT, body.quest_id)) return false
+            insertActiveQuest(playerId, {
+                questId: body.quest_id,
+                category: QuestCategory.RAID_EVENT,
+                useBossBoostPoint: false,
+                useBoostPoint: false,
+                isAutoStartMode: body.is_auto_start_mode,
+                isMulti: false,
+                eventId: questEventId,
+                playId: body.play_id,
+                continueCount: 0
+            })
+            return true
+        })
+        if (!started) return unavailable()
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -469,11 +489,20 @@ const routes = async (fastify: FastifyInstance) => {
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No player bound to account."
         })
-        await runPersistenceTransaction({
+        const unavailable = () => reply.type("application/x-msgpack").send({
+            data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {},
+        })
+        if (contentDecision("raid_event", body.event_id, "enter", Date.now()) === false) return unavailable()
+        const selected = await runPersistenceTransaction({
             domain: "event", playerId, operation: "raid_select_folder",
-        }, () => updatePlayerRushEventSync(playerId, {
-            eventId: body.event_id, activeRushBattleFolderId: body.folder_id,
-        }))
+        }, () => {
+            if (contentDecision("raid_event", body.event_id, "enter", Date.now()) === false) return false
+            updatePlayerRushEventSync(playerId, {
+                eventId: body.event_id, activeRushBattleFolderId: body.folder_id,
+            })
+            return true
+        })
+        if (!selected) return unavailable()
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({ "data_headers": generateDataHeaders({ viewer_id: viewerId }), "data": {} });
     });
@@ -502,9 +531,14 @@ const routes = async (fastify: FastifyInstance) => {
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No player bound to account."
         })
-        await runPersistenceTransaction({
+        const unavailable = () => reply.type("application/x-msgpack").send({
+            data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {},
+        })
+        if (contentDecision("raid_event", eventId, "enter", Date.now()) === false) return unavailable()
+        const reset = await runPersistenceTransaction({
             domain: "event", playerId, operation: "raid_reset",
         }, () => {
+            if (contentDecision("raid_event", eventId, "enter", Date.now()) === false) return false
             if (questType === ResetQuestType.FOLDER) {
                 if (resetTargetId !== undefined) {
                     deletePlayerRushEventPlayedPartiesUntilSync(playerId, eventId, RushEventBattleType.FOLDER, resetTargetId)
@@ -519,7 +553,9 @@ const routes = async (fastify: FastifyInstance) => {
                     deletePlayerRushEventPlayedPartySync(playerId, eventId, resetTargetId, RushEventBattleType.ENDLESS)
                 }
             }
+            return true
         })
+        if (!reset) return unavailable()
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({ "data_headers": generateDataHeaders({ viewer_id: viewerId }), "data": {} });
     });

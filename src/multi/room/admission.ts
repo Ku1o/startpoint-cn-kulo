@@ -5,11 +5,12 @@ interface PendingRoomAdmission {
     state: "reserved" | "claimed"
     source: "direct" | "rescue"
     connectionId?: string
+    attemptId?: string
 }
 
 export type RoomAdmissionClaimResult =
     | { readonly ok: true, readonly kind: "claimed" | "reclaimed" | "idempotent" }
-    | { readonly ok: false, readonly reason: "missing" | "expired" | "generation_mismatch" }
+    | { readonly ok: false, readonly reason: "missing" | "expired" | "generation_mismatch" | "pending" }
 
 // Room selection precedes the client's boost prompt and resource loading.
 // Keep a finite seat reservation long enough for that normal join flow.
@@ -126,14 +127,25 @@ export class RoomAdmissionRegistry {
         capacity: number,
         now: number = Date.now(),
         source: "direct" | "rescue" = "direct",
+        attemptId?: string,
+        attemptExpiresAt?: number,
     ): boolean {
         let roomAdmissions = this.prune(roomNumber, generation, now)
         const existing = roomAdmissions?.get(viewerId)
         if (existing) {
             existing.expiresAt = now + this.ttlMs
             if (existing.state === "reserved") {
+                // A previous committed/legacy selection owns this normal TCP
+                // window. A newer provisional request must not relabel it and
+                // later cancel another successful attempt's reservation.
+                if (attemptId && !existing.attemptId) {
+                    recordAdmissionEvent("refresh")
+                    return true
+                }
                 existing.selectedAt = now
                 existing.source = source
+                existing.attemptId = attemptId
+                existing.expiresAt = attemptExpiresAt ?? now + this.ttlMs
             }
             recordAdmissionEvent("refresh")
             return true
@@ -158,8 +170,30 @@ export class RoomAdmissionRegistry {
             expiresAt: now + this.ttlMs,
             state: "reserved",
             source,
+            ...(attemptId ? { attemptId } : {}),
         })
+        if (attemptExpiresAt !== undefined) roomAdmissions.get(viewerId)!.expiresAt = attemptExpiresAt
         recordAdmissionEvent("reserve")
+        return true
+    }
+
+    hasReservedAttempt(roomNumber: string, generation: number, viewerId: number, attemptId: string, now = Date.now()): boolean {
+        const admission = this.prune(roomNumber, generation, now)?.get(viewerId)
+        return admission?.state === "reserved" && admission.attemptId === attemptId
+    }
+
+    confirmAttempt(roomNumber: string, generation: number, viewerId: number, attemptId: string, now = Date.now()): boolean {
+        if (!this.hasReservedAttempt(roomNumber, generation, viewerId, attemptId, now)) return false
+        const admission = this.admissions.get(roomNumber)!.get(viewerId)!
+        delete admission.attemptId
+        admission.expiresAt = now + this.ttlMs
+        return true
+    }
+
+    cancelAttempt(roomNumber: string, generation: number, viewerId: number, attemptId: string): boolean {
+        const admission = this.admissions.get(roomNumber)?.get(viewerId)
+        if (!admission || admission.generation !== generation || admission.state !== "reserved" || admission.attemptId !== attemptId) return false
+        this.release(roomNumber, viewerId)
         return true
     }
 
@@ -196,6 +230,13 @@ export class RoomAdmissionRegistry {
             if (roomAdmissions!.size === 0) this.admissions.delete(roomNumber)
             recordRoomAdmissionDenial("expired")
             return { ok: false, reason: "expired" }
+        }
+        // Prepare reserves capacity, not TCP admission. Only the exact HTTP
+        // permission-confirmed commit clears this marker. A guessed room number
+        // cannot turn an unapproved reservation into a protected claimed seat.
+        if (admission.state === "reserved" && admission.attemptId) {
+            recordRoomAdmissionDenial("pending")
+            return { ok: false, reason: "pending" }
         }
 
         recordAdmissionLatency(Math.max(0, now - admission.selectedAt))

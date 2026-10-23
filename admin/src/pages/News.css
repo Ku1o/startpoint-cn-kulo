@@ -1,0 +1,16 @@
+.news-manage-stack > .ant-space-item { min-width: 0; }
+.news-manage-stack .ant-card-head-wrapper { flex-wrap: wrap; gap: 8px; }
+.news-manage-stack .ant-card-extra { max-width: 100%; }
+.news-source-path { overflow-wrap: anywhere; }
+.news-editor-modal .ant-modal-body, .news-preview-modal .ant-modal-body { min-width: 0; overflow-x: hidden; }
+.news-editor-modal .ant-form-item-control-input-content { min-width: 0; }
+.news-preview-modal .news-preview-frame { max-width: 100%; }
+@media (max-width: 575px) {
+    .news-manage-stack .ant-card-extra { margin-inline-start: 0; }
+    .news-editor-modal .ant-modal-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .news-editor-modal .ant-modal-footer > .ant-btn { margin-inline-start: 0; }
+    .news-preview-modal .ant-descriptions-item-label { white-space: normal; }
+}
+
+.news-manage-stack .ant-statistic-content { overflow-wrap: anywhere; }
+.news-manage-stack .ant-table-cell { overflow-wrap: anywhere; }

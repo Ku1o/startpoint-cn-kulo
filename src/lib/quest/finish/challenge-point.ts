@@ -3,6 +3,8 @@ import { QuestCategory } from "../../types"
 export function handleDailyChallengePoint(params: {
     questCategory: QuestCategory
     eventId: number | undefined
+    nativeChallengePointId?: number | null
+    questAccomplished?: boolean
     playerId: number
     challengePointMap: Record<string, number>
     getEntries: (playerId: number) => Array<{ id: number; point: number; campaignList: Array<{ campaignId: number; additionalPoint: number }> }>
@@ -10,10 +12,14 @@ export function handleDailyChallengePoint(params: {
 }): Object[] | null {
     const { questCategory, eventId, playerId, challengePointMap, getEntries, updatePoint } = params
 
-    if (questCategory !== QuestCategory.EXPERT_SINGLE_EVENT || !eventId) return null
-
-    const cpKey = `expert_${eventId}`
-    const challengePointId = challengePointMap[cpKey]
+    const isExpert = questCategory === QuestCategory.EXPERT_SINGLE_EVENT
+    // Expert retains its existing completed-attempt semantics, including losses.
+    // Historical native quotas consume on victory; failed attempts can retry.
+    // Recovery and maximum-count policies remain with the existing player data.
+    if (!isExpert && params.questAccomplished !== true) return null
+    const challengePointId = isExpert
+        ? (eventId ? challengePointMap[`expert_${eventId}`] : undefined)
+        : params.nativeChallengePointId
     if (!challengePointId) return null
 
     const entries = getEntries(playerId)

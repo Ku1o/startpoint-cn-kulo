@@ -13,6 +13,7 @@ import dailyChallengePointLookup from "../../../assets/daily_challenge_point_loo
 import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceSqlCommand, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { getExistingPlayerTimeStateSync, getPlayerBusinessDateSync, getPlayerBusinessOffsetSync } from "../../lib/player-time-compat";
+import { contentMissionDecision } from "../../lib/content-operations";
 
 type DailyChallengePointLookup = Record<string, { maxPoint: number, isRecovery: boolean, name: string }>
 
@@ -80,7 +81,13 @@ import { insertPlayerGachaInfoListSync, insertPlayerGachaCampaignListSync , getP
 import { insertPlayerBoxGachasSync } from "./boxGacha";
 import { getBoxGachaSync } from "../../lib/assets";
 import { insertPlayerRushEventListSync, insertPlayerRushEventClearedFolderListSync, insertPlayerRushEventPlayedPartyListSync } from "./rushEvent";
-import { deletePlayerCategoryMissionsSync, insertPlayerCategoryMissionListSync, insertPlayerClearedRegularMissionListSync, insertPlayerActiveMissionsSync } from "./mission";
+import { deletePlayerCategoryMissionsSync, getPlayerCategoryMissionListSync, getPlayerCategoryMissionsSync, insertPlayerCategoryMissionListSync, insertPlayerClearedRegularMissionListSync, insertPlayerActiveMissionsSync } from "./mission";
+
+function resetParticipatingCategoryMissions(playerId: number, category: number): void {
+    const retained = Object.keys(getPlayerCategoryMissionsSync(playerId, category)).map(Number)
+        .filter(id => contentMissionDecision(category, id, "enter") === false)
+    deletePlayerCategoryMissionsSync(playerId, category, retained)
+}
 import { insertPlayerPeriodicRewardPointsListSync, insertPlayerStartDashExchangeCampaignsSync, insertPlayerMultiSpecialExchangeCampaignsSync } from "./campaign";
 
 /**
@@ -506,6 +513,7 @@ export function insertMergedPlayerDataSync(
     accountId: number,
     toInsert: MergedPlayerData
 ) {
+    validateCategoryMissionList(toInsert.categoryMissionList)
     const player = toInsert.player
     const playerId = player.id
     validatePortableDegreeList(toInsert.degreeList)
@@ -541,6 +549,7 @@ export function insertMergedPlayerDataSync(
     insertPlayerDrawnQuestsSync(playerId, toInsert.drawnQuestList)
     insertPlayerPeriodicRewardPointsListSync(playerId, toInsert.periodicRewardPointList)
     insertPlayerActiveMissionsSync(playerId, toInsert.allActiveMissionList)
+    insertPlayerCategoryMissionListSync(playerId, toInsert.categoryMissionList ?? {})
     insertPlayerBoxGachasSync(playerId, toInsert.boxGachaList)
     insertPlayerStartDashExchangeCampaignsSync(playerId, toInsert.startDashExchangeCampaignList)
     insertPlayerMultiSpecialExchangeCampaignsSync(playerId, toInsert.multiSpecialExchangeCampaignList)
@@ -1209,6 +1218,34 @@ export function adjustPlayerExpPoolSync(
 
 const LEGACY_REPLACE_PRESERVED_RELATIONS = [
     {
+        table: "players_shop_quotas",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "players_exchange_campaign_receipts",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    // V1 cannot express special exchange qualifications. Retain destination receipts.
+    {
+        table: "players_special_exchange_campaigns",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    // The V1 merged/client payload has no pass-card state or reward receipts.
+    // Retain destination rights rather than interpreting absence as a reset.
+    {
+        table: "players_pass_cards",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "players_pass_card_rewards",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
         table: "player_time_state",
         where: "player_id = ?",
         parameters: (playerId: number) => [playerId],
@@ -1315,6 +1352,30 @@ function quotePlayerDataIdentifier(value: string): string {
     return `"${value.replace(/"/g, '""')}"`
 }
 
+function validateCategoryMissionList(value: MergedPlayerData["categoryMissionList"]): void {
+    if (value === undefined) return
+    const record = (entry: unknown): entry is Record<string, unknown> =>
+        typeof entry === "object" && entry !== null && !Array.isArray(entry)
+    const positiveId = (key: string): boolean => /^[1-9]\d*$/.test(key)
+        && Number.isSafeInteger(Number(key)) && Number(key) > 0
+    if (!record(value)) throw new Error("Invalid categoryMissionList.")
+    for (const [category, missions] of Object.entries(value)) {
+        if (!positiveId(category) || !record(missions)) throw new Error("Invalid categoryMissionList category.")
+        for (const [missionId, mission] of Object.entries(missions)) {
+            if (!positiveId(missionId) || !record(mission)
+                || typeof mission.progress !== "number" || !Number.isFinite(mission.progress) || mission.progress < 0) {
+                throw new Error("Invalid categoryMissionList mission progress.")
+            }
+            if (mission.stages === undefined) continue
+            if (Array.isArray(mission.stages) && mission.stages.length === 0) continue
+            if (!record(mission.stages) || Object.entries(mission.stages).some(([stage, received]) =>
+                !positiveId(stage) || typeof received !== "boolean")) {
+                throw new Error("Invalid categoryMissionList mission stages.")
+            }
+        }
+    }
+}
+
 /**
  * Replaces a player's data with the provided MergedPlayerData object.
  * 
@@ -1336,6 +1397,10 @@ export function replacePlayerDataSync(
         replaceWith.degreeList = getPlayerPortableDegreesSync(playerId)
     }
     validatePortableDegreeList(replaceWith.degreeList)
+    if (replaceWith.categoryMissionList === undefined) {
+        replaceWith.categoryMissionList = getPlayerCategoryMissionListSync(playerId)
+    }
+    validateCategoryMissionList(replaceWith.categoryMissionList)
 
     // Import preserves the explicit EXP balance and starts regeneration in
     // the destination's existing clock mode. Source offsets and elapsed time
@@ -1498,8 +1563,8 @@ export function dailyResetPlayerDataSync(
     loginDate: Date = getServerDate()
 ): boolean {
     const playerId = player.id
-    // Content remains on the legacy server calendar for every player. Only
-    // durable reset anchors/checkpoints retain a marked player's real basis.
+    // Content uses the configured global server calendar. Durable reset
+    // anchors/checkpoints retain each marked player's real basis.
     const contentDate = loginDate
     loginDate = getPlayerBusinessDateSync(playerId, loginDate, getDb())
     const timeState = getExistingPlayerTimeStateSync(playerId, getDb())
@@ -1576,8 +1641,8 @@ export function dailyResetPlayerDataSync(
             const periodicBaseline = buildPeriodicSnapshotData(playerId, player, totalClears)
             if (crossedDay) {
                 takeSnapshot(playerId, 'daily', periodicBaseline)
-                deletePlayerCategoryMissionsSync(playerId, 2)
-                deletePlayerCategoryMissionsSync(playerId, 6)
+                resetParticipatingCategoryMissions(playerId, 2)
+                resetParticipatingCategoryMissions(playerId, 6)
             }
 
             const activePassWeekEventId = getMissionMasterDefinitions(7).find(definition =>
@@ -1594,13 +1659,12 @@ export function dailyResetPlayerDataSync(
             // weekly reset
             if (crossedWeek) {
                 takeSnapshot(playerId, 'weekly', periodicBaseline)
-                deletePlayerCategoryMissionsSync(playerId, 7)
+                resetParticipatingCategoryMissions(playerId, 7)
                 deletePlayerCategoryMissionsSync(playerId, 10)
             }
             updatePlayerSync({ id: playerId, lastLoginTime: loginDate })
             if (timeState) {
-                // Advance only a marker that already exists. Ordinary login
-                // never opts another player into the unfinished cutover.
+                // Advance the existing marker; global activation/load owns creation.
                 getDb().prepare("UPDATE player_time_state SET day_anchor_ms=?,week_anchor_ms=? WHERE player_id=?")
                     .run(crossedDay ? Math.max(timeState.dayAnchorMs, loginDate.getTime()) : timeState.dayAnchorMs,
                         crossedWeek ? Math.max(timeState.weekAnchorMs, loginDate.getTime()) : timeState.weekAnchorMs, playerId)

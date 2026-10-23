@@ -67,6 +67,20 @@ export function disconnectLoungePlayerLogin(viewerId: number): void {
         room.pendingSockets.get(viewerId)?.destroy()
     }
 }
+/** Snapshot only connected lounge viewers; retain the existing close/leave path. */
+export function loungeContentReloadViewerIds(): number[] {
+    const viewers = new Set<number>()
+    for (const room of rooms.values()) {
+        for (const [viewerId, member] of room.members) if (!member.socket.destroyed) viewers.add(viewerId)
+        for (const [viewerId, socket] of room.pendingSockets) if (!socket.destroyed) viewers.add(viewerId)
+    }
+    return [...viewers]
+}
+export function disconnectAllLoungeForContentReload(staleViewers: ReadonlySet<number>): number[] {
+    const viewers = loungeContentReloadViewerIds().filter(viewerId => staleViewers.has(viewerId))
+    for (const viewerId of viewers) disconnectLoungePlayerLogin(viewerId)
+    return viewers
+}
 const roomIdsByNumber = new Map<string, number>()
 const socketContexts = new WeakMap<net.Socket, LoungeSocketContext>()
 const pendingEnterTimers = new Map<net.Socket, NodeJS.Timeout>()

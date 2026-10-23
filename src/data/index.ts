@@ -13,6 +13,7 @@ import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
 import { observeSqliteDatabase } from "../lib/sqlite-diagnostics";
 import { applySqliteSettings } from "../lib/sqlite-settings";
+import { initializeContentOperationsSchema } from "../lib/content-operations-store";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
@@ -126,6 +127,7 @@ export default function getDatabase(
             initializeAbyssTowerProgress(db)
             initializeAbyssRecords(db)
             initializeFiveBossGauntlet(db)
+            initializeContentOperationsSchema(db)
             console.log("[DB] init done")
 
             // try to update after initialization

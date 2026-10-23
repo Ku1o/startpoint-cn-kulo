@@ -63,6 +63,9 @@ import { createRoomCommandId } from "../coordinator/command-protocol";
 import { isValidNormalPartySlotSync } from "../../data/domains/party";
 import { usesNormalCurrentPartySlot } from "../../lib/party-current-slot";
 
+import { isContentQuestOpenAt } from "../../lib/content-operations";
+import { registerAcceptedRescueBattleSync } from "../../lib/mission/rescue-battle-facts";
+
 async function buildFinishFollowInfo(
     requesterPlayerId: number,
     viewerId: number,
@@ -260,6 +263,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             && durableSnapshot.viewerId === viewer_id && durableSnapshot.roomNumber === room_number
             ? { roomInstanceId: durableSnapshot.roomInstanceId, battleSessionId: durableSnapshot.battleInstanceId,
                 playId: play_id, playerId: ctx.playerId, viewerId: viewer_id } : undefined;
+        if (!durableStart && !isContentQuestOpenAt(category, quest_id)) return sendMultiStartUnavailable(reply, viewer_id, "content_operations_closed");
         let roomStart: StartPrepareResult;
         try {
             roomStart = await getRoomCommandGateway().execute("battle.start.prepare", {
@@ -360,11 +364,22 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                         throw new Error("Battle start does not match the pending play.");
                     }
                     Object.assign(activeQuest, activeQuestFromPersistent(pending));
+                    registerAcceptedRescueBattleSync({ playerId: ctx.playerId, viewerId: viewer_id,
+                        playId: play_id, category, questId: quest_id, roomNumber: room_number,
+                        roomInstanceId: roomStart.roomInstanceId, battleSessionId: roomStart.battleSessionId,
+                        isHost: roomStart.isHost, isRescueGuest: roomStart.isRescueGuest,
+                        isRescueFragmentEligible: roomStart.isRescueFragmentEligible });
                     repeatedPendingStart = true;
                     return;
                 }
+                if (!durableStart && !isContentQuestOpenAt(category, quest_id)) throw new Error("QUEST_OPERATIONS_CLOSED");
                 insertActiveQuest(ctx.playerId, activeQuest);
                 insertedActiveQuest = activeQuests[ctx.playerId];
+                registerAcceptedRescueBattleSync({ playerId: ctx.playerId, viewerId: viewer_id,
+                    playId: play_id, category, questId: quest_id, roomNumber: room_number,
+                    roomInstanceId: roomStart.roomInstanceId, battleSessionId: roomStart.battleSessionId,
+                    isHost: roomStart.isHost, isRescueGuest: roomStart.isRescueGuest,
+                    isRescueFragmentEligible: roomStart.isRescueFragmentEligible });
                 if (questData.fixedParty === undefined
                     && usesNormalCurrentPartySlot(category)
                     && isValidNormalPartySlotSync(ctx.playerId, party_id)) {
@@ -386,6 +401,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             } catch (cancelError) {
                 console.error(`[MULTI] failed start claim cancellation: play=${play_id}`, cancelError);
             }
+            if (error instanceof Error && error.message === "QUEST_OPERATIONS_CLOSED") return sendMultiStartUnavailable(reply, viewer_id, "content_operations_closed");
             const code = (error as { code?: string })?.code;
             if (code === "BATTLE_ALREADY_SETTLED" || code === "BATTLE_CLOCK_ABORTED"
                 || (error as Error).message === "Battle start does not match the pending play.") {

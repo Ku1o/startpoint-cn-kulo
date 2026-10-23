@@ -4,6 +4,7 @@ import { runPersistenceTransactionSync } from "./persistence-coordinator"
 import { cachedStatement } from "./cached-statement"
 import { givePlayerRewardsSync } from "./quest"
 import { Reward, RewardType } from "./types"
+import nativeOverallRewards from "../../assets/raid_event_overall_reward.json"
 import {
     getRaidEventIdForQuest,
     getRaidEventProgressRule,
@@ -129,6 +130,60 @@ function getBattleBanquetRewardsBetween(
     }
 
     return rewards
+}
+
+/** The original master stores Option.None as a literal string, never zero. */
+function originalInteger(value: unknown): number | null {
+    if (value === "(None)" || value === "") return null
+    if (typeof value !== "string" || !/^\d+$/.test(value)) throw new Error("Invalid original Raid reward integer.")
+    const parsed = Number(value)
+    if (!Number.isSafeInteger(parsed)) throw new Error("Invalid original Raid reward integer.")
+    return parsed
+}
+
+export function getRaidEventOverallRewardsBetween(eventId: number, previous: number, current: number): RaidEventRewardEntry[] {
+    if (!Number.isSafeInteger(previous) || previous < 0 || !Number.isSafeInteger(current) || current < previous) {
+        throw new Error("Invalid Raid reward count.")
+    }
+    // Preserve the adopted event 7 payouts and its already received cursor.
+    if (eventId === 7) return getBattleBanquetRewardsBetween(previous, current)
+    const rows = Object.values(nativeOverallRewards.rows as Record<string, string[][]>)
+        .map(value => value[0]).filter(row => row?.[0] === String(eventId))
+    if (!isSupportedRaidEventId(eventId) || rows.length === 0) throw new Error("Missing original Raid overall rewards.")
+    const result: RaidEventRewardEntry[] = []
+    for (const row of rows) {
+        const target = originalInteger(row[3]), interval = originalInteger(row[4])
+        let times: number
+        if (row[2] === "0") {
+            if (target === null || target <= 0) throw new Error("Invalid original Raid total-kill requirement.")
+            times = previous < target && target <= current ? 1 : 0
+        } else if (row[2] === "1") {
+            if (interval === null || interval <= 0 || (target !== null && target <= 0)) throw new Error("Invalid original Raid each-kill requirement.")
+            // None is the per-kill reward description, not a cumulative target.
+            // Count actual communal boss kills, just as event 7 does; quest
+            // weights affect boss progress and never multiply this payment.
+            const count = (value: number) => target === null ? Math.floor(value / interval)
+                : value < target ? 0 : Math.floor((value - target) / interval) + 1
+            times = count(current) - count(previous)
+        } else throw new Error("Unsupported original Raid reward requirement.")
+        if (times === 0) continue
+        for (let index = 7; index + 2 < row.length; index += 3) {
+            const kind = originalInteger(row[index]), number = originalInteger(row[index + 2])
+            if (kind === null || number === null) continue
+            const amount = number * times
+            if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Invalid original Raid reward amount.")
+            const id = originalInteger(row[index + 1])
+            switch (kind) {
+                case 0:
+                    if (id === null || id <= 0) throw new Error("Invalid original Raid item reward.")
+                    result.push({ kind: RaidEventResponseRewardKind.ITEM, kind_id: id, number: amount }); break
+                case 2: result.push({ kind: RaidEventResponseRewardKind.FREE_STONE, kind_id: null, number: amount }); break
+                case 3: result.push({ kind: RaidEventResponseRewardKind.MANA, kind_id: null, number: amount }); break
+                default: throw new Error("Unsupported original Raid overall reward kind.")
+            }
+        }
+    }
+    return result
 }
 
 function aggregateRewards(rewards: RaidEventRewardEntry[]): RaidEventRewardEntry[] {
@@ -423,7 +478,7 @@ export function claimRaidEventOverallRewardsSync(
         `).get(playerId, eventId) as { received_up_to: number } | undefined
         const previousCount = receipt?.received_up_to ?? 0
 
-        if (eventId !== 7 || totalKillCount <= previousCount) {
+        if (!isSupportedRaidEventId(eventId) || totalKillCount <= previousCount) {
             return {
                 receivedUpTo: previousCount,
                 rewardList: [],
@@ -432,7 +487,7 @@ export function claimRaidEventOverallRewardsSync(
         }
 
         const rewardList = aggregateRewards(
-            getBattleBanquetRewardsBetween(previousCount, totalKillCount),
+            getRaidEventOverallRewardsBetween(eventId, previousCount, totalKillCount),
         )
         const rewardResult = applyRewardEntriesSync(playerId, rewardList)
         cachedStatement(getDb(), `

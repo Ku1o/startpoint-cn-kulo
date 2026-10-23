@@ -1,4 +1,5 @@
 import adventEventQuests from "../../assets/advent_event_quest.json";
+import { applyContentNativeShopRules } from "./content-shop-rules";
 import { ABYSS_EX_EVENT_ID, ABYSS_NORMAL_EVENT_ID, isAbyssExEndlessQuest, isAbyssEvent } from "./abyss-modes";
 import boxGacha from "../../assets/box_gacha.json";
 import boxReward from "../../assets/box_reward.json";
@@ -58,6 +59,7 @@ import {
 } from "./content-master"
 import { shouldRollRogueFolderRandomReward } from "./quest/finish/rogue-drop-schedule"
 import { serverBossBattleQuests } from "./boss/boss-tables"
+import { applyContentQuestRules } from "./content-quest-rules"
 import cnmodRareScoreRewards from "../../assets/rare_score_reward_cnmod.json"
 import cnmodScoreRewards from "../../assets/score_reward_cnmod.json"
 
@@ -179,12 +181,14 @@ export function getScoreRewardGroup(
  */
 function getQuestSync(
     quests: RawQuests,
-    questId: string | number
+    questId: string | number,
+    category: QuestCategory,
 ): BattleQuest | null {
-    const quest = quests[String(questId)]
+    const rawQuest = quests[String(questId)]
 
     // return null if the quest doesn't exist
-    if (!quest) return null;
+    if (!rawQuest) return null;
+    const quest = applyContentQuestRules(category, questId, rawQuest)
 
     // always return BattleQuest; missing fields default to 0
     return {
@@ -254,7 +258,7 @@ export function getRushEventFolderMaxRoundSync(
 export function getMainQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((mainQuests as RawQuests), questId)
+    return getQuestSync((mainQuests as RawQuests), questId, QuestCategory.MAIN)
 }
 
 /**
@@ -266,7 +270,7 @@ export function getMainQuestSync(
 export function getExQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((exQuests as RawQuests), questId) as BattleQuest | null
+    return getQuestSync((exQuests as RawQuests), questId, QuestCategory.EX) as BattleQuest | null
 }
 
 /**
@@ -278,7 +282,7 @@ export function getExQuestSync(
 export function getPracticeQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((practiceQuests as RawQuests), questId) as BattleQuest | null
+    return getQuestSync((practiceQuests as RawQuests), questId, QuestCategory.PRACTICE) as BattleQuest | null
 }
 
 /**
@@ -290,7 +294,7 @@ export function getPracticeQuestSync(
 export function getBossBattleQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync(serverBossBattleQuests, questId) as BattleQuest | null
+    return getQuestSync(serverBossBattleQuests, questId, QuestCategory.BOSS_BATTLE) as BattleQuest | null
 }
 
 /**
@@ -302,7 +306,7 @@ export function getBossBattleQuestSync(
 export function getCharacterQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((characterQuests as any as RawQuests), questId)
+    return getQuestSync((characterQuests as any as RawQuests), questId, QuestCategory.CHARACTER)
 }
 
 /**
@@ -314,7 +318,7 @@ export function getCharacterQuestSync(
 export function getWorldStoryEventQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((worldStoryEventQuests as RawQuests), questId)
+    return getQuestSync((worldStoryEventQuests as RawQuests), questId, QuestCategory.WORLD_STORY_EVENT)
 }
 
 /**
@@ -326,7 +330,7 @@ export function getWorldStoryEventQuestSync(
 export function getWorldStoryEventBossBattleQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((worldStoryEventBossBattleQuests as RawQuests), questId)
+    return getQuestSync((worldStoryEventBossBattleQuests as RawQuests), questId, QuestCategory.WORLD_STORY_EVENT_BOSS_BATTLE)
 }
 
 /**
@@ -336,9 +340,10 @@ export function getWorldStoryEventBossBattleQuestSync(
  * @returns The found StoryQuest or null
  */
 export function getAdventEventQuest(
-    questId: string | number
+    questId: string | number,
+    category: QuestCategory.ADVENT_EVENT_SINGLE | QuestCategory.ADVENT_EVENT_MULTI = QuestCategory.ADVENT_EVENT_SINGLE,
 ): BattleQuest | null {
-    return getQuestSync((adventEventQuests as RawQuests), questId)
+    return getQuestSync((adventEventQuests as RawQuests), questId, category)
 }
 
 /**
@@ -350,7 +355,7 @@ export function getAdventEventQuest(
 export function getHardMultiEventQuest(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((hardMultiEventQuests as RawQuests), questId) as BattleQuest | null
+    return getQuestSync((hardMultiEventQuests as RawQuests), questId, QuestCategory.HARD_MULTI_EVENT) as BattleQuest | null
 }
 
 /**
@@ -379,24 +384,24 @@ export function getQuestFromCategorySync(
             return getWorldStoryEventBossBattleQuestSync(questId)
         case QuestCategory.ADVENT_EVENT_SINGLE:
         case QuestCategory.ADVENT_EVENT_MULTI:
-            return getAdventEventQuest(questId)
+            return getAdventEventQuest(questId, category)
         case QuestCategory.STORY_EVENT_SINGLE:
-            return getQuestSync((storyEventSingleQuests as RawQuests), questId)
+            return getQuestSync((storyEventSingleQuests as RawQuests), questId, category)
         case QuestCategory.RANKING_EVENT_SINGLE:
-            return getQuestSync((rankingEventSingleQuests as RawQuests), questId)
+            return getQuestSync((rankingEventSingleQuests as RawQuests), questId, category)
         case QuestCategory.CHALLENGE_DUNGEON_EVENT:
-            return getQuestSync((challengeDungeonEventQuests as RawQuests), questId)
+            return getQuestSync((challengeDungeonEventQuests as RawQuests), questId, category)
         case QuestCategory.DAILY_EXP_MANA_EVENT:
-            return getQuestSync((dailyExpManaEventQuests as RawQuests), questId)
+            return getQuestSync((dailyExpManaEventQuests as RawQuests), questId, category)
         case QuestCategory.PRACTICE:
             return getPracticeQuestSync(questId)
         case QuestCategory.DAILY_WEEK_EVENT:
-            return getQuestSync((dailyWeekEventQuests as RawQuests), questId)
+            return getQuestSync((dailyWeekEventQuests as RawQuests), questId, category)
         case QuestCategory.TOWER_DUNGEON_EVENT:
-            return getQuestSync((towerDungeonEventQuests as RawQuests), questId)
+            return getQuestSync((towerDungeonEventQuests as RawQuests), questId, category)
         case QuestCategory.EXPERT_SINGLE_EVENT:
             {
-                const quest = getQuestSync((expertSingleEventQuests as RawQuests), questId)
+                const quest = getQuestSync((expertSingleEventQuests as RawQuests), questId, category)
                 if (quest?.sPlusReward !== undefined) {
                     // CN Recollection Trial SS rewards are always three Starry
                     // Memory Crystals. The extracted clear_reward mapping points
@@ -407,11 +412,11 @@ export function getQuestFromCategorySync(
                 return quest
             }
         case QuestCategory.CARNIVAL_EVENT:
-            return getQuestSync((carnivalEventQuests as RawQuests), questId)
+            return getQuestSync((carnivalEventQuests as RawQuests), questId, category)
         case QuestCategory.RAID_EVENT:
-            return getQuestSync((raidEventQuests as RawQuests), questId)
+            return getQuestSync((raidEventQuests as RawQuests), questId, category)
         case QuestCategory.RUSH_EVENT: {
-            const quest = getQuestSync((rushEventQuests as RawQuests), questId)
+            const quest = getQuestSync((rushEventQuests as RawQuests), questId, category)
             if (quest !== null && isAbyssExEndlessQuest(category, questId)) {
                 return { ...quest, rankPointReward: 0, characterExpReward: 0, manaReward: 0,
                     poolExpReward: 0, clearReward: undefined, sPlusReward: undefined,
@@ -420,9 +425,9 @@ export function getQuestFromCategorySync(
             return quest
         }
         case QuestCategory.SOLO_TIME_ATTACK_EVENT:
-            return getQuestSync((soloTimeAttackEventQuests as RawQuests), questId)
+            return getQuestSync((soloTimeAttackEventQuests as RawQuests), questId, category)
         case QuestCategory.SCORE_ATTACK_EVENT:
-            return getQuestSync((scoreAttackEventQuests as RawQuests), questId)
+            return getQuestSync((scoreAttackEventQuests as RawQuests), questId, category)
         case QuestCategory.HARD_MULTI_EVENT:
             return getHardMultiEventQuest(questId)
         default:
@@ -797,6 +802,10 @@ export function getShopItemSync(
     shopType: ShopType,
     itemId: number | string
 ): ShopItem | null {
+    const item = getUnprojectedShopItemSync(shopType, itemId)
+    return item === null ? null : applyContentNativeShopRules(shopType, itemId, item)
+}
+function getUnprojectedShopItemSync(shopType: ShopType, itemId: number | string): ShopItem | null {
     switch(shopType) {
         case ShopType.TREASURE:
             return (treasureShopItems as ShopItems)[String(itemId)] ?? null

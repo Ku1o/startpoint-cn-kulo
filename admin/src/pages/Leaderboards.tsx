@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
     Alert,
     Button,
     Card,
     Col,
+    Collapse,
     Descriptions,
     Input,
     InputNumber,
     Popconfirm,
+    Modal,
     Row,
     Space,
     Spin,
@@ -24,6 +26,8 @@ import dayjs from "dayjs"
 import { formatLeaderboardDeadlineInput, parseLeaderboardDeadlineInput } from "../../../src/lib/leaderboard/schedule-time"
 import { apiGet, apiPatch, apiPost } from "../api/client"
 import { AdminPage, StateCard } from "../components/AdminPage"
+import { LeaderboardRewardEditor, rewardDraftError } from "../components/LeaderboardRewardEditor"
+import { useAdminEditGuard } from "../lib/editGuard"
 
 const { Text, Paragraph } = Typography
 
@@ -166,11 +170,40 @@ export default function Leaderboards() {
     const queryClient = useQueryClient()
     const [selectedKey, setSelectedKey] = useState<string | null>(null)
     const [page, setPage] = useState(0)
-    const [draft, setDraft] = useState<ConfigDraft | null>(null)
+    const [draft, replaceDraft] = useState<ConfigDraft | null>(null)
+    const [dirty, setDirty] = useState(false)
+    const draftOwner = useRef<string | null>(null)
+    const editRevision = useRef(0)
+    const draftDirty = useRef(false)
+    const activeKey = useRef(selectedKey)
+    activeKey.current = selectedKey
+    const setDraft = (value: ConfigDraft) => {
+        editRevision.current += 1
+        draftDirty.current = true
+        setDirty(true)
+        replaceDraft(value)
+    }
+    const chooseCompetition = (key: string) => {
+        if (key === selectedKey) return
+        const apply = () => {
+            draftOwner.current = null
+            draftDirty.current = false
+            editRevision.current += 1
+            setDirty(false)
+            replaceDraft(null)
+            setSelectedKey(key)
+            setPage(0)
+        }
+        if (draftDirty.current) Modal.confirm({
+            title: "放弃尚未保存的结算设置？",
+            content: "切换排行榜会放弃当前草稿。", okText: "放弃并切换", cancelText: "继续编辑", onOk: apply,
+        })
+        else apply()
+    }
 
     const listQuery = useQuery({
         queryKey: ["leaderboards"],
-        queryFn: () => apiGet<CompetitionSummary[]>("/api/leaderboards/"),
+        queryFn: ({ signal }) => apiGet<CompetitionSummary[]>("/api/leaderboards/?summary=1", { signal }),
         refetchInterval: 30_000,
     })
 
@@ -182,31 +215,36 @@ export default function Leaderboards() {
 
     const detailQuery = useQuery({
         queryKey: ["leaderboard", selectedKey, page],
-        queryFn: () => apiGet<LeaderboardDetail>(
-            `/api/leaderboards/${encodeURIComponent(selectedKey!)}` + `?page=${page}`,
+        queryFn: ({ signal }) => apiGet<LeaderboardDetail>(
+            `/api/leaderboards/${encodeURIComponent(selectedKey!)}` + `?page=${page}`, { signal },
         ),
         enabled: selectedKey !== null,
         refetchInterval: 30_000,
     })
 
     useEffect(() => {
-        if (detailQuery.data) setDraft(configToDraft(detailQuery.data.overview.config))
-    }, [detailQuery.data?.overview.config.updatedAtMs, selectedKey])
+        const data = detailQuery.data
+        if (!data || data.competition.key !== selectedKey) return
+        if (draftOwner.current !== selectedKey || !draftDirty.current) {
+            draftOwner.current = selectedKey
+            replaceDraft(configToDraft(data.overview.config))
+        }
+    }, [detailQuery.data, selectedKey])
 
-    const invalidate = async () => {
+    const invalidate = async (key = selectedKey) => {
         await queryClient.invalidateQueries({ queryKey: ["leaderboards"] })
-        await queryClient.invalidateQueries({ queryKey: ["leaderboard", selectedKey] })
+        await queryClient.invalidateQueries({ queryKey: ["leaderboard", key] })
     }
 
     const saveConfig = useMutation({
-        mutationFn: async () => {
-            if (selectedKey === null || draft === null) throw new Error("尚未选择排行榜。")
-            let rewardTiers: RewardTier[]
-            try {
-                rewardTiers = JSON.parse(draft.rewardTiersText) as RewardTier[]
-            } catch {
-                throw new Error("奖励档位不是有效的 JSON。")
-            }
+        mutationFn: async ({ key, submitted }: { key: string; submitted: ConfigDraft; revision: number }) => {
+            const draft = submitted
+            const selectedKey = key
+            const rewardError = rewardDraftError(draft.rewardTiersText)
+            if (rewardError) throw new Error(rewardError)
+            const rewardTiers = JSON.parse(draft.rewardTiersText) as RewardTier[]
+            if (draft.repeatHours !== null && (!Number.isFinite(draft.repeatHours) || draft.repeatHours <= 0
+                || !Number.isSafeInteger(Math.round(draft.repeatHours * 3_600_000)))) throw new Error("重复间隔须为有效的正数。")
             const settleAtMs = parseLeaderboardDeadlineInput(draft.settleAtText)
             if ((draft.freezeEnabled || draft.autoEnabled) && settleAtMs === null) {
                 throw new Error("请设置截止时间（北京时间）。")
@@ -224,11 +262,15 @@ export default function Leaderboards() {
                 rewardTiers,
             })
         },
-        onSuccess: async () => {
+        onSuccess: async (_data, { key, revision }) => {
+            if (activeKey.current === key && editRevision.current === revision) {
+                draftDirty.current = false
+                setDirty(false)
+            }
             message.success("排行榜结算配置已保存")
-            await invalidate()
+            await invalidate(key)
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { message.error(error.message) },
     })
 
     const settle = useMutation({
@@ -239,7 +281,7 @@ export default function Leaderboards() {
             message.success("本赛季已完成结算")
             await invalidate()
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { message.error(error.message) },
     })
 
     const rollover = useMutation({
@@ -251,7 +293,7 @@ export default function Leaderboards() {
             setPage(0)
             await invalidate()
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { message.error(error.message) },
     })
 
     const setAvailability = useMutation({
@@ -263,22 +305,16 @@ export default function Leaderboards() {
             message.success(enabled ? "排行榜已开启" : "排行榜已关闭")
             await invalidate()
         },
-        onError: (error: Error) => message.error(error.message),
+        onError: (error: Error) => { message.error(error.message) },
     })
 
-    const rewardRows = useMemo(() => {
-        if (!draft) return []
-        try {
-            const parsed = JSON.parse(draft.rewardTiersText)
-            return Array.isArray(parsed) ? parsed as RewardTier[] : []
-        } catch {
-            return []
-        }
-    }, [draft?.rewardTiersText])
+    const workPending = saveConfig.isPending || settle.isPending || rollover.isPending || setAvailability.isPending
+    const rewardError = draft ? rewardDraftError(draft.rewardTiersText) : null
+    useAdminEditGuard({ dirty, pending: workPending, label: "排行榜设置" })
 
     if (listQuery.isLoading) return <StateCard><Spin size="large" /></StateCard>
     if (listQuery.isError || !listQuery.data) {
-        return <Alert type="error" showIcon message="排行榜管理接口不可用" />
+        return <Alert type="error" showIcon message="排行榜列表读取失败" description="请稍后重试，当前未执行任何操作。" action={<Button onClick={() => listQuery.refetch()}>重试</Button>} />
     }
     if (listQuery.data.length === 0) {
         return <AdminPage eyebrow="LEADERBOARD" title="排行榜"><Card>当前没有已注册的竞赛。</Card></AdminPage>
@@ -292,7 +328,7 @@ export default function Leaderboards() {
         <AdminPage
             eyebrow="LEADERBOARD"
             title="排行榜"
-            description="查看当前赛季名次，配置排名报酬，并执行幂等结算或赛季切换。"
+            description="查看当前赛季名次，设置排名奖励，结算发奖或进入下一赛季。"
             actions={(
                 <Button
                     icon={<ReloadOutlined />}
@@ -302,24 +338,30 @@ export default function Leaderboards() {
             )}
         >
             <Space direction="vertical" size="large" className="admin-stack">
-                <Card>
-                    <Space wrap>
+                <Card title="选择排行榜" size="small">
+                    <Space wrap aria-label="排行榜选择">
                         {listQuery.data.map(entry => (
                             <Button
                                 key={entry.competition.key}
                                 type={selectedKey === entry.competition.key ? "primary" : "default"}
-                                onClick={() => { setSelectedKey(entry.competition.key); setPage(0) }}
+                                disabled={saveConfig.isPending || settle.isPending || rollover.isPending || setAvailability.isPending}
+                                onClick={() => chooseCompetition(entry.competition.key)}
                             >
-                                {entry.competition.displayName} #{entry.competition.eventId}
+                                {entry.competition.displayName}
                             </Button>
                         ))}
                     </Space>
                 </Card>
 
-                {detailQuery.isLoading || !detail || !competition || !overview || !draft ? (
+                {detailQuery.isError ? (
+                    <Alert type="error" showIcon message="排行榜详情读取失败" description="可以重试或选择其他排行榜；尚未保存的设置仍保留。" action={<Button loading={detailQuery.isFetching} onClick={() => detailQuery.refetch()}>重试详情</Button>} />
+                ) : detailQuery.isLoading || !detail || !competition || !overview || !draft ? (
                     <StateCard><Spin size="large" /></StateCard>
                 ) : (
                     <>
+                        <Alert type={detail.availability.enabled ? "success" : "warning"} showIcon
+                            message={`${competition.displayName} · 第 ${overview.season} 赛季 · ${detail.availability.enabled ? "开放中" : "已冻结"}`}
+                            description="先查看名次和已保存奖励，再调整结算设置。手动结算与换季在下方单独操作。" />
                         <Row gutter={[16, 16]}>
                             <Col xs={12} lg={6}><Card><Statistic title="当前赛季" value={overview.season} /></Card></Col>
                             <Col xs={12} lg={6}><Card><Statistic title="有效排名" value={detail.total} suffix="人" /></Card></Col>
@@ -328,10 +370,12 @@ export default function Leaderboards() {
                         </Row>
 
                         <Card title="当前赛季名次">
+                            <Paragraph type="secondary">等级经验显示保存的经验值，并非玩家等级。通关用时来自客户端记录。</Paragraph>
                             <Table<RankRow>
                                 rowKey="id"
                                 size="small"
                                 dataSource={detail.rows}
+                                scroll={{ x: 980 }}
                                 pagination={{
                                     current: page + 1,
                                     pageSize: competition.pageSize,
@@ -344,14 +388,14 @@ export default function Leaderboards() {
                                     {
                                         title: "玩家",
                                         render: (_, row) => (
-                                            <Space>
-                                                <span>{row.displayName}</span>
+                                            <Space wrap>
+                                                <span style={{ overflowWrap: "anywhere" }}>{row.displayName}</span>
                                                 <Text type="secondary">#{row.playerId}</Text>
                                                 {!row.playerExists && <Tag color="red">已删除</Tag>}
                                             </Space>
                                         ),
                                     },
-                                    { title: "Rank", dataIndex: "rankPoint", width: 90 },
+                                    { title: "等级经验", dataIndex: "rankPoint", width: 90 },
                                     {
                                         title: "通关次数",
                                         dataIndex: "clearCount",
@@ -359,7 +403,7 @@ export default function Leaderboards() {
                                         render: value => value === null ? "未记录" : `${value}次`,
                                     },
                                     {
-                                        title: "client_battle_ms",
+                                        title: "通关用时",
                                         dataIndex: "clientBattleMs",
                                         width: 180,
                                         render: value => <code>{formatBattleTime(value)}</code>,
@@ -372,10 +416,29 @@ export default function Leaderboards() {
                                     },
                                 ]}
                             />
+                            <Collapse ghost items={[{ key: "competition", label: "查看此竞赛参数", children: <Descriptions size="small" column={{ xs: 1, md: 3 }}>
+                                <Descriptions.Item label="竞赛标识">{competition.key}</Descriptions.Item>
+                                <Descriptions.Item label="玩法分类 ID">{competition.category}</Descriptions.Item>
+                                <Descriptions.Item label="活动 ID">{competition.eventId}</Descriptions.Item>
+                                <Descriptions.Item label="文件夹 ID">{competition.folderId}</Descriptions.Item>
+                                <Descriptions.Item label="服务端记录用时">{detail.rows.filter(row => row.serverDurationMs !== null).length} / 本页 {detail.rows.length} 条有记录</Descriptions.Item>
+                            </Descriptions> }]} />
                         </Card>
 
-                        <Card title="排行榜操作">
+                        <Card title="已保存奖励预览" extra={<Tag>当前有效人数 {overview.total}</Tag>}>
+                            <Paragraph type="secondary">按已保存配置和当前有效人数展开；编辑中的草稿不会改变此预览。结算后保留本期最终结果。</Paragraph>
+                            <Table<RewardTier> size="small" pagination={false} rowKey={(_row, index) => String(index)}
+                                dataSource={overview.resolvedRewardTiers} scroll={{ x: 540 }} locale={{ emptyText: "暂无可展示的奖励档位" }}
+                                columns={[
+                                    { title: "获奖名次", render: (_, row) => rewardRange(row), width: 180 },
+                                    { title: "道具奖励", render: (_, row) => row.itemId === null ? "无" : `${row.itemName || `道具 #${row.itemId}`} × ${row.itemCount}` },
+                                    { title: "称号奖励", render: (_, row) => row.degreeId === null ? "无" : row.degreeName || `称号 #${row.degreeId}` },
+                                ]} />
+                        </Card>
+
+                        <Card title="立即操作：开放、结算与换季">
                             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+                                {dirty && <Alert type="warning" showIcon message="有尚未保存的设置；请先保存或放弃修改，再执行排行榜操作。" />}
                                 <Alert
                                     type={detail.availability.enabled ? "success" : "warning"}
                                     showIcon
@@ -394,32 +457,32 @@ export default function Leaderboards() {
                                             description="将立即停止记录新成绩，并终止当前尚未完成的排行榜挑战；玩家仍可查看已完成名次。"
                                             okText="确认关闭"
                                             okButtonProps={{ danger: true }}
-                                            onConfirm={() => setAvailability.mutate(false)}
+                                            onConfirm={() => { if (!draftDirty.current) setAvailability.mutate(false); else message.warning("请先保存或放弃设置修改") }}
                                         >
-                                            <Button danger loading={setAvailability.isPending}>关闭排行榜</Button>
+                                            <Button danger loading={setAvailability.isPending} disabled={dirty || workPending && !setAvailability.isPending}>关闭排行榜</Button>
                                         </Popconfirm>
                                     ) : (
                                         <Button
                                             type="primary"
-                                            loading={setAvailability.isPending}
-                                            onClick={() => setAvailability.mutate(true)}
+                                            loading={setAvailability.isPending} disabled={dirty || workPending && !setAvailability.isPending}
+                                            onClick={() => { if (!draftDirty.current) setAvailability.mutate(true) }}
                                         >开启排行榜</Button>
                                     )}
                                     <Popconfirm
                                         title="结算当前赛季？"
                                         description="将冻结当前赛季并按最终名次发放邮件奖励；重复执行不会重复发奖，不会自动换季。"
-                                        onConfirm={() => settle.mutate()}
+                                        onConfirm={() => { if (!draftDirty.current) settle.mutate(); else message.warning("请先保存或放弃设置修改") }}
                                     >
-                                        <Button loading={settle.isPending}>结算</Button>
+                                        <Button loading={settle.isPending} disabled={dirty || workPending && !settle.isPending}>结算并发奖</Button>
                                     </Popconfirm>
                                     <Popconfirm
                                         title="进入下一赛季？"
                                         description="只切换到空的新赛季，不会发奖；当前赛季必须已经结算。"
                                         okText="确认换季"
                                         okButtonProps={{ danger: true }}
-                                        onConfirm={() => rollover.mutate()}
+                                        onConfirm={() => { if (!draftDirty.current) rollover.mutate(); else message.warning("请先保存或放弃设置修改") }}
                                     >
-                                        <Button danger loading={rollover.isPending}>换季</Button>
+                                        <Button danger loading={rollover.isPending} disabled={dirty || workPending && !rollover.isPending}>进入下一赛季</Button>
                                     </Popconfirm>
                                     <Text type="secondary">
                                         状态更新时间：{dayjs(detail.availability.updatedAtMs).format("YYYY-MM-DD HH:mm:ss")}
@@ -428,7 +491,7 @@ export default function Leaderboards() {
                             </Space>
                         </Card>
 
-                        <Card title="结算设置">
+                        <Card title="定时、邮件与奖励设置" extra={dirty ? <Tag color="orange">有未保存的修改</Tag> : <Tag>与已保存配置一致</Tag>}>
                             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
                                 <Alert
                                     type="info"
@@ -438,6 +501,7 @@ export default function Leaderboards() {
                                 <Descriptions bordered size="small" column={{ xs: 1, md: 2 }}>
                                     <Descriptions.Item label="到时冻结">
                                         <Switch
+                                            aria-label="到时冻结"
                                             checked={draft.freezeEnabled || draft.autoEnabled}
                                             disabled={draft.autoEnabled}
                                             onChange={value => setDraft({ ...draft, freezeEnabled: value })}
@@ -445,19 +509,22 @@ export default function Leaderboards() {
                                     </Descriptions.Item>
                                     <Descriptions.Item label="自动发奖">
                                         <Switch
+                                            aria-label="自动发奖"
                                             checked={draft.autoEnabled}
                                             onChange={value => setDraft({ ...draft, autoEnabled: value,
                                                 freezeEnabled: value || draft.freezeEnabled })}
                                         />
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="排除 rushbot 参榜及发奖">
+                                    <Descriptions.Item label="排除机器人账号参榜及发奖">
                                         <Switch
+                                            aria-label="排除机器人账号参榜及发奖"
                                             checked={draft.excludeBots}
                                             onChange={value => setDraft({ ...draft, excludeBots: value })}
                                         />
                                     </Descriptions.Item>
                                     <Descriptions.Item label="截止时间（北京时间）">
                                         <Input
+                                            aria-label="截止时间（北京时间）"
                                             type="datetime-local"
                                             value={draft.settleAtText}
                                             onChange={event => setDraft({ ...draft, settleAtText: event.target.value })}
@@ -465,6 +532,7 @@ export default function Leaderboards() {
                                     </Descriptions.Item>
                                     <Descriptions.Item label="自动发奖重复间隔（小时，留空为一次性）">
                                         <InputNumber
+                                            aria-label="自动发奖重复间隔（小时）"
                                             disabled={!draft.autoEnabled}
                                             min={0.01}
                                             precision={2}
@@ -475,12 +543,14 @@ export default function Leaderboards() {
                                     </Descriptions.Item>
                                     <Descriptions.Item label="邮件标题">
                                         <Input
+                                            aria-label="结算邮件标题"
                                             value={draft.mailSubject}
                                             onChange={event => setDraft({ ...draft, mailSubject: event.target.value })}
                                         />
                                     </Descriptions.Item>
                                     <Descriptions.Item label="邮件正文">
                                         <Input.TextArea
+                                            aria-label="结算邮件正文"
                                             rows={2}
                                             value={draft.mailBody}
                                             onChange={event => setDraft({ ...draft, mailBody: event.target.value })}
@@ -493,44 +563,26 @@ export default function Leaderboards() {
                                     时间调整或关闭定时开关不会自动重新开放已经冻结的排行榜。
                                 </Paragraph>
 
-                                <Table<RewardTier>
-                                    rowKey={rewardRange}
-                                    size="small"
-                                    pagination={false}
-                                    dataSource={rewardRows}
-                                    columns={[
-                                        { title: "档位范围", render: (_, row) => rewardRange(row) },
-                                        { title: "道具", render: (_, row) => row.itemId === null ? "-" : `${row.itemName ?? "道具"} #${row.itemId} ×${row.itemCount}` },
-                                        { title: "称号", render: (_, row) => row.degreeId === null ? "-" : `${row.degreeName ?? "称号"} #${row.degreeId}` },
-                                    ]}
-                                />
+                                <LeaderboardRewardEditor value={draft.rewardTiersText} onChange={value => setDraft({ ...draft, rewardTiersText: value })} />
                                 <Paragraph type="secondary">
-                                    当前有效人数：{overview.total}；对应名次：
-                                    {overview.resolvedRewardTiers.map(rewardRange).join("、") || "暂无有效成绩"}。
-                                    名次范围按已保存配置计算；结算后保留本期最终结果。
+                                    奖励档位、邮件和定时开关都在点击“保存设置”后生效。已保存的实际名次范围见上方奖励预览。
                                 </Paragraph>
-                                <div>
-                                    <Text strong>奖励档位 JSON</Text>
-                                    <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                                        百分比档使用 fromPercent/toPercent，从 0 连续覆盖到 100，填写整数百分数。
-                                        累计截止名次向上取整，空档不发奖；剩余玩家只领取最后一档。
-                                        固定名次配置仍支持 fromRank/toRank，从第 1 名起连续排列，toRank 为 null 表示末位；两种格式不能混用。
-                                    </Paragraph>
-                                    <Input.TextArea
-                                        rows={12}
-                                        value={draft.rewardTiersText}
-                                        onChange={event => setDraft({ ...draft, rewardTiersText: event.target.value })}
-                                        style={{ fontFamily: "ui-monospace, SFMono-Regular, Consolas, monospace" }}
-                                    />
-                                </div>
-
                                 <Space wrap>
                                     <Button
                                         type="primary"
                                         icon={<SaveOutlined />}
                                         loading={saveConfig.isPending}
-                                        onClick={() => saveConfig.mutate()}
+                                        disabled={!!rewardError || workPending && !saveConfig.isPending}
+                                        onClick={() => {
+                                            if (selectedKey && draft && !saveConfig.isPending) saveConfig.mutate({
+                                                key: selectedKey, submitted: { ...draft }, revision: editRevision.current,
+                                            })
+                                        }}
                                     >保存设置</Button>
+                                    {dirty && <Popconfirm title="放弃未保存的设置？" onConfirm={() => {
+                                        editRevision.current++; draftDirty.current = false; setDirty(false)
+                                        replaceDraft(configToDraft(overview.config))
+                                    }}><Button disabled={workPending}>放弃修改</Button></Popconfirm>}
                                 </Space>
                             </Space>
                         </Card>
@@ -541,12 +593,13 @@ export default function Leaderboards() {
                                 size="small"
                                 pagination={false}
                                 dataSource={overview.history}
+                                scroll={{ x: 780 }}
                                 columns={[
                                     { title: "赛季", dataIndex: "season" },
-                                    { title: "来源", dataIndex: "source" },
+                                    { title: "发起方式", dataIndex: "source", render: value => ({ manual: "手动结算", scheduler: "定时结算" }[value as string] ?? "其他方式") },
                                     { title: "上榜人数", dataIndex: "ranked_players" },
                                     { title: "发奖人数", dataIndex: "rewarded_players" },
-                                    { title: "状态", dataIndex: "status", render: value => <Tag color={value === "completed" ? "green" : "orange"}>{value}</Tag> },
+                                    { title: "状态", dataIndex: "status", render: value => <Tag color={value === "completed" ? "green" : "orange"}>{value === "completed" ? "已完成" : value === "running" ? "进行中" : "待处理"}</Tag> },
                                     { title: "结算时间", dataIndex: "settled_at_ms", render: value => dayjs(value).format("YYYY-MM-DD HH:mm:ss") },
                                 ]}
                             />

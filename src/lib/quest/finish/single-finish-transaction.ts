@@ -62,6 +62,7 @@ import { handleRaidEventFinish } from "./raid-handler"
 import { handleCarnivalEventFinish } from "./carnival-handler"
 import { grantCarnivalTotalScoreRewardsSync } from "./carnival-reward-handler"
 import { handleDailyChallengePoint } from "./challenge-point"
+import { getContentNativeDailyChallengePointId } from "../../content-quest-rules"
 import {
     collectScoreAttackMainCharacterIds,
     resolveNewScoreAttackBorderRewards,
@@ -187,6 +188,8 @@ export function settleSingleQuestFinishInTransaction(
     const playerData: Player | null = getPlayerSync(playerId)
     if (playerData === null) throw new Error(`Single finish player no longer exists: ${playerId}`)
     const questProgress: PlayerQuestProgress | null = getPlayerSingleQuestProgressSync(playerId, questCategory, questId)
+    const nativeChallengePointId = getContentNativeDailyChallengePointId(questCategory, questId)
+    const canGrantCompletionRewards = nativeChallengePointId === null || questAccomplished
     const beforeRankPoint = playerData.rankPoint
     const newRankPoint = beforeRankPoint + questData.rankPointReward
     const newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana
@@ -273,14 +276,14 @@ export function settleSingleQuestFinishInTransaction(
         if (adjustPlayerExpPoolSync(playerId, questData.poolExpReward, 'single_battle_base_reward') === null) {
             throw new Error(`Failed to grant single battle EXP to player ${playerId}`)
         }
-        clearReward = !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward != null
+        clearReward = canGrantCompletionRewards && !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward != null
             ? givePlayerRewardSync(playerId, questData.clearReward)
             : null
         const isExpertSingleEvent = questCategory === QuestCategory.EXPERT_SINGLE_EVENT
         const shouldGrantSPlusReward = isExpertSingleEvent
             ? questProgress?.sPlusRewardReceived !== true
             : questProgress?.clearRank !== 5
-        sPlusClearReward = !isScoreAttackEvent && (clearRank === 5)
+        sPlusClearReward = canGrantCompletionRewards && !isScoreAttackEvent && (clearRank === 5)
             && shouldGrantSPlusReward && (questData.sPlusReward !== undefined)
             ? givePlayerRewardSync(playerId, questData.sPlusReward)
             : null
@@ -301,6 +304,8 @@ export function settleSingleQuestFinishInTransaction(
         const dailyChallengePointList = handleDailyChallengePoint({
             questCategory,
             eventId: questData.eventId,
+            nativeChallengePointId,
+            questAccomplished,
             playerId,
             challengePointMap: eventChallengePointMap as Record<string, number>,
             getEntries: (pid) => getPlayerDailyChallengePointListSync(pid),

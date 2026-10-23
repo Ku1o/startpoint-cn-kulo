@@ -1,0 +1,1213 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "assetVersion": "1.4.258",
+    "manifestSha256": "fc28f55235f5a626fa169434a6e354972543b476b81855ea4631ca4804866188",
+    "resources": {
+      "master/quest/event/raid_event_ranking_reward.orderedmap": {
+        "archive": ".cdn/cn/archive-common-diff/pinball-1.4.39-1.4.40-1-7b1f45be.zip",
+        "sha256": "4ab9a528f2feed510a386128c77c26f8e56047373aa05b63b3ca058c2848c229",
+        "member": "production/upload/83/6aa8f36e5bd5cf3f8b59b352cf08f8704489b3"
+      }
+    }
+  },
+  "events": {
+    "1": [
+      {
+        "questId": 1004,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63003,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1004,
+        "minCount": 100,
+        "maxCount": 299,
+        "reasonId": 13003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1004,
+        "minCount": 300,
+        "maxCount": 699,
+        "reasonId": 13002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63001,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1004,
+        "minCount": 700,
+        "maxCount": 9999999,
+        "reasonId": 13001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63000,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1003,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63007,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1003,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63006,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1003,
+        "minCount": 100,
+        "maxCount": 199,
+        "reasonId": 13006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63005,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1003,
+        "minCount": 200,
+        "maxCount": 9999999,
+        "reasonId": 13005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63004,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1002,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13011,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63010,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1002,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13010,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63009,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1002,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63008,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1001,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13013,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63012,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 1001,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13012,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63011,
+            "number": 1
+          }
+        ]
+      }
+    ],
+    "2": [
+      {
+        "questId": 2004,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63016,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2004,
+        "minCount": 100,
+        "maxCount": 299,
+        "reasonId": 13003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63015,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2004,
+        "minCount": 300,
+        "maxCount": 699,
+        "reasonId": 13002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63014,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2004,
+        "minCount": 700,
+        "maxCount": 9999999,
+        "reasonId": 13001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63013,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2003,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63020,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2003,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63019,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2003,
+        "minCount": 100,
+        "maxCount": 199,
+        "reasonId": 13006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63018,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2003,
+        "minCount": 200,
+        "maxCount": 9999999,
+        "reasonId": 13005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63017,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2002,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13011,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63023,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2002,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13010,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63022,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2002,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63021,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2001,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13013,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63025,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 2001,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13012,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63024,
+            "number": 1
+          }
+        ]
+      }
+    ],
+    "3": [
+      {
+        "questId": 3004,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63029,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3004,
+        "minCount": 100,
+        "maxCount": 299,
+        "reasonId": 13003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63028,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3004,
+        "minCount": 300,
+        "maxCount": 699,
+        "reasonId": 13002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63027,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3004,
+        "minCount": 700,
+        "maxCount": 9999999,
+        "reasonId": 13001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63026,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3003,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63033,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3003,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63032,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3003,
+        "minCount": 100,
+        "maxCount": 199,
+        "reasonId": 13006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63031,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3003,
+        "minCount": 200,
+        "maxCount": 9999999,
+        "reasonId": 13005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63030,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3002,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13011,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63036,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3002,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13010,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63035,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3002,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63034,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3001,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13013,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63038,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 3001,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13012,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63037,
+            "number": 1
+          }
+        ]
+      }
+    ],
+    "4": [
+      {
+        "questId": 4004,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63042,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4004,
+        "minCount": 100,
+        "maxCount": 299,
+        "reasonId": 13003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63041,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4004,
+        "minCount": 300,
+        "maxCount": 699,
+        "reasonId": 13002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63040,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4004,
+        "minCount": 700,
+        "maxCount": 9999999,
+        "reasonId": 13001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63039,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4003,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63046,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4003,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63045,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4003,
+        "minCount": 100,
+        "maxCount": 199,
+        "reasonId": 13006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63044,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4003,
+        "minCount": 200,
+        "maxCount": 9999999,
+        "reasonId": 13005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63043,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4002,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13011,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63049,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4002,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13010,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63048,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4002,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63047,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4001,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13013,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63051,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 4001,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13012,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63050,
+            "number": 1
+          }
+        ]
+      }
+    ],
+    "5": [
+      {
+        "questId": 5004,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63055,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5004,
+        "minCount": 100,
+        "maxCount": 299,
+        "reasonId": 13003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63054,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5004,
+        "minCount": 300,
+        "maxCount": 699,
+        "reasonId": 13002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63053,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5004,
+        "minCount": 700,
+        "maxCount": 9999999,
+        "reasonId": 13001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63052,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5003,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63059,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5003,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63058,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5003,
+        "minCount": 100,
+        "maxCount": 199,
+        "reasonId": 13006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63057,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5003,
+        "minCount": 200,
+        "maxCount": 9999999,
+        "reasonId": 13005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63056,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5002,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13011,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63062,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5002,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13010,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63061,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5002,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63060,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5001,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13013,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63064,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 5001,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13012,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63063,
+            "number": 1
+          }
+        ]
+      }
+    ],
+    "6": [
+      {
+        "questId": 6004,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63068,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6004,
+        "minCount": 100,
+        "maxCount": 299,
+        "reasonId": 13003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63067,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6004,
+        "minCount": 300,
+        "maxCount": 699,
+        "reasonId": 13002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63066,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6004,
+        "minCount": 700,
+        "maxCount": 9999999,
+        "reasonId": 13001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63065,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6003,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63072,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6003,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63071,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6003,
+        "minCount": 100,
+        "maxCount": 199,
+        "reasonId": 13006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63070,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6003,
+        "minCount": 200,
+        "maxCount": 9999999,
+        "reasonId": 13005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63069,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6002,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13011,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63075,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6002,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13010,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63074,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6002,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63073,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6001,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13013,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63077,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 6001,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13012,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63076,
+            "number": 1
+          }
+        ]
+      }
+    ],
+    "7": [
+      {
+        "questId": 7004,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63081,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7004,
+        "minCount": 100,
+        "maxCount": 299,
+        "reasonId": 13003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63080,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7004,
+        "minCount": 300,
+        "maxCount": 699,
+        "reasonId": 13002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63079,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7004,
+        "minCount": 700,
+        "maxCount": 9999999,
+        "reasonId": 13001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63078,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7003,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63085,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7003,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63084,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7003,
+        "minCount": 100,
+        "maxCount": 199,
+        "reasonId": 13006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63083,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7003,
+        "minCount": 200,
+        "maxCount": 9999999,
+        "reasonId": 13005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63082,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7002,
+        "minCount": 10,
+        "maxCount": 49,
+        "reasonId": 13011,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63088,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7002,
+        "minCount": 50,
+        "maxCount": 99,
+        "reasonId": 13010,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63087,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7002,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63086,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7001,
+        "minCount": 10,
+        "maxCount": 99,
+        "reasonId": 13013,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63090,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "questId": 7001,
+        "minCount": 100,
+        "maxCount": 9999999,
+        "reasonId": 13012,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 63089,
+            "number": 1
+          }
+        ]
+      }
+    ]
+  }
+}

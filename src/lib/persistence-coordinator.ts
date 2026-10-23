@@ -1,7 +1,8 @@
 import { performance } from "node:perf_hooks"
 import { AsyncLocalStorage } from "node:async_hooks"
-import { getLegacyTimeOffset, withServerClock } from "../utils"
+import { getConfiguredBusinessTimeOffset, withServerClock } from "../utils"
 import { getDb } from "../data/db"
+import { assertServerClockMatchesDatabaseSync, ensurePlayerClockStateForLoadSync } from "./server-clock-state"
 import { registerMemoryCounters } from "./memory-diagnostics"
 import { createWriterCommandContext, getWriterCommand } from "./persistence/command-registry"
 import {
@@ -161,9 +162,11 @@ function withPersistenceContext<T>(context: PersistenceContext, operation: () =>
     const previous = activePersistenceContext
     activePersistenceContext = context
     try {
+        if (context.playerId !== undefined) ensurePlayerClockStateForLoadSync(context.playerId, getDb())
+        else assertServerClockMatchesDatabaseSync(getDb())
         // Capture the content clock after BEGIN/queueing. Existing player
         // markers affect EXP/day/week storage only, never content visibility.
-        const offset = getLegacyTimeOffset() ?? 0
+        const offset = getConfiguredBusinessTimeOffset() ?? 0
         return withServerClock(Date.now() + offset, operation, offset)
     }
     finally { activePersistenceContext = previous }
@@ -262,6 +265,9 @@ export function runPersistenceSqlCommand(
         recordServerWork("persistence.queue", queueMs)
         const startedAt = performance.now()
         try {
+            // The optional raw SQL executor may own another connection. Reject
+            // a stale real process before dispatch, including global commands.
+            assertServerClockMatchesDatabaseSync(getDb())
             await persistenceSqlExecutor!(context, statements)
             stats.committed++
         } catch (error) {
@@ -479,7 +485,8 @@ export function runBackgroundPersistenceTask<T, Prepared = void>(
             beforePrepare?.()
             // Wait for prior native writers before even the small preparation
             // transaction, otherwise BEGIN here could still stall the main loop.
-            const prepared = prepare ? db.transaction(() => withPersistenceContext(context, prepare)).immediate() : undefined
+            const prepared = db.transaction(() => withPersistenceContext(context,
+                () => prepare ? prepare() : undefined)).immediate()
             const result = await operation(prepared as Prepared)
             stats.committed++
             return result

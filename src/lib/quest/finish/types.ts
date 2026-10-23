@@ -43,4 +43,5 @@ export interface FinishContext {
     partySlot?: number
     isMulti?: boolean
     isMultiHost?: boolean
+    isRegisteredRescue?: boolean
 }

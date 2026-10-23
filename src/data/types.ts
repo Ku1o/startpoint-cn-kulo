@@ -270,6 +270,7 @@ export interface PlayerGachaInfo {
     isDailyFirst: boolean
     isAccountFirst: boolean
     gachaExchangePoint?: number
+    crazyDrawCount?: number
 }
 
 export interface RawPlayerGachaCampaign {
@@ -670,6 +671,7 @@ export interface UserGachaInfo {
     is_daily_first: boolean
     is_account_first: boolean
     gacha_exchange_point?: number
+    crazy_draw_count?: number
 }
 
 export interface UserDrawnQuest {
@@ -729,6 +731,8 @@ export interface ClientPlayerData {
     quest_progress: Record<string, UserQuestProgress[]>
     last_main_quest_id: number | null
     gacha_info_list: UserGachaInfo[]
+    crazy_gacha_result_list?: Record<string, number[]>
+    last_crazy_gacha_draw_result?: Array<{ character_id: number; movie_id: string; seed: number; entry_count: number; ex_boost_item: null }>
     available_asset_version: string
     should_prompt_takeover_registration: boolean
     has_unread_news_item: boolean
@@ -767,6 +771,7 @@ export interface MergedPlayerData {
     equipmentList: Record<string, PlayerEquipment>,
     questProgress: Record<string, PlayerQuestProgress[]>,
     gachaInfoList: PlayerGachaInfo[],
+    crazyGachaRecovery?: { crazy_gacha_result_list: Record<string, number[]>; last_crazy_gacha_draw_result: Array<{ character_id: number; movie_id: string; seed: number; entry_count: number; ex_boost_item: null }> },
     gachaCampaignList: PlayerGachaCampaign[],
     drawnQuestList: PlayerDrawnQuest[],
     periodicRewardPointList: PlayerPeriodicRewardPoint[],

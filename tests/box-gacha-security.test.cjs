@@ -15,7 +15,13 @@ const coordinator = load('lib/persistence-coordinator')
 const { persistenceAdmission } = load('lib/persistence-admission')
 const { persistenceWriteGate } = load('lib/persistence-write-gate')
 const snapshots = load('data/snapshots/player-snapshot')
+const operations = load('lib/content-operations'), controls = load('lib/content-operations-store')
+const boxPolicy = load('lib/box-gacha-policy'), defaults = load('lib/content-operations-defaults')
 const GACHA = 990001, CURRENCY = 30101, REWARD = 10000145, REWARD_KEY = 100
+// Pin the real catalog/store before temporarily exposing a synthetic row to the policy reader.
+const productionStore = operations.contentOperations()
+assert.equal(productionStore.rows.has(`box_gacha:${GACHA}`), false)
+assert.equal(operations.contentDecision('box_gacha', GACHA, 'enter', Date.now()), false)
 let sequence = 0
 
 after(async () => {
@@ -41,9 +47,44 @@ function master(stock = 3, featured = false) {
         boxes: { 1: { [REWARD_KEY]: { type: featured ? 2 : 0, id: REWARD, count: 1,
             available: stock, tier: featured ? 2 : 0 } } }, availableCounts: { 1: stock } }
 }
-async function appFor(t, content = master()) {
+async function appFor(t, content = master(), { closeOnly = false, enabled = true } = {}) {
     const originalGet = assets.getBoxGachaSync
     t.mock.method(assets, 'getBoxGachaSync', id => Number(id) === GACHA ? content : originalGet(id))
+    // The old synthetic ID is deliberately absent from the real catalog and now defaults closed.
+    // Give only that fixture an explicit policy and a real store; all real/unknown IDs keep production decisions.
+    const rules = Object.fromEntries(Object.keys(content.boxes).map(id => [id, {
+        requiredBoxId: null, resetKind: closeOnly ? 0 : 2, resetLimit: null,
+        availableFrom: '2000-01-01 00:00:00', availableUntil: null, closeKind: closeOnly ? 1 : 0,
+    }]))
+    const hash = value => require('node:crypto').createHash('sha256').update(JSON.stringify(value)).digest('hex')
+    const definitionDigest = hash({ content, rules })
+    const fixtureRow = { key: `box_gacha:${GACHA}`, type: 'box_gacha', id: GACHA, name: 'Synthetic box security fixture',
+        source: 'synthetic fixture only', definitionDigest, boxRules: rules,
+        originalStartMs: 0, originalEndMs: null, originalExchangeEndMs: null, windowCandidate: false, browseCandidate: false }
+    assert.equal(operations.contentCatalog.rows.some(row => row.key === fixtureRow.key), false)
+    operations.contentCatalog.rows.push(fixtureRow)
+    t.after(() => {
+        const index = operations.contentCatalog.rows.indexOf(fixtureRow)
+        assert.ok(index >= 0, 'remove only the synthetic policy row')
+        assert.equal(operations.contentCatalog.rows.splice(index, 1)[0], fixtureRow)
+    })
+    const fixtureCatalog = { ...operations.contentCatalog, rows: [fixtureRow], questMap: {}, missionMap: {} }
+    const Database = require('better-sqlite3'), controlDb = new Database(':memory:')
+    controls.initializeContentOperationsSchema(controlDb)
+    const store = new controls.ContentOperationsStore(controlDb, fixtureCatalog, operations.contentCapabilities,
+        row => ({ digest: definitionDigest, matchesCatalog: row.key === fixtureRow.key && row.definitionDigest === hash({ content, rules })
+            && boxPolicy.getBoxOperationRules(row, content.boxes) !== null }),
+        undefined, undefined, undefined, defaults.defaultContentDecision)
+    assert.equal(store.allowed(fixtureRow.key, 'enter', Date.now()), false, 'unconfigured synthetic content stays closed')
+    const review = { enabled: true, endsAtMs: null, readiness: 'verified', evidence: 'Explicit synthetic policy and inventory for transaction fault testing' }
+    if (enabled) store.update(fixtureRow.key, { expectedRevision: store.revision(), catalogDigest: store.digest,
+        reason: 'Open this exact synthetic box fixture through the real store', actionOverrides: {
+            visible: review, enter: review, ...(closeOnly ? { claim: review } : {}),
+        } }, Date.now())
+    const originalDecision = operations.contentDecision
+    t.mock.method(operations, 'contentDecision', (type, id, action, now) => type === 'box_gacha' && id === GACHA
+        ? store.allowed(fixtureRow.key, action, now) : originalDecision(type, id, action, now))
+    t.after(() => controlDb.close())
     const app = require('fastify')({ logger: false })
     app.addHook('onSend', (_request, reply, payload, done) => done(null,
         String(reply.getHeader('content-type') || '').startsWith('application/x-msgpack') && typeof payload === 'object'
@@ -111,6 +152,16 @@ async function until(condition) {
     const end = performance.now() + 5000
     while (!condition()) { assert.ok(performance.now() < end, 'fixture queue timed out'); await nextTurn() }
 }
+
+test('an unreviewed synthetic box remains closed through the real store without consuming inventory', async t => {
+    const p = await subject(), app = await appFor(t, master(3), { enabled: false })
+    seedBox(p)
+    const response = await rejectedUnchanged(app, p, 'exec')
+    assert.match(response.body, /operation is closed/)
+    assert.equal(amount(p, CURRENCY), 10000)
+    assert.equal(amount(p, REWARD), 0)
+    assert.deepEqual(facts(p), [])
+})
 
 test('exec rejects nonpositive or unsafe integer identifiers/counts and nonboolean stop without writes', async t => {
     const p = await subject(), app = await appFor(t)
@@ -239,8 +290,8 @@ test('a reward using the draw currency is added after the charge and returned wi
     assert.deepEqual(facts(p), [{ id: REWARD_KEY, number: 1 }])
 })
 
-test('partial close is permitted and repeated close returns terminal success without enabling reset', async t => {
-    const p = await subject(), app = await appFor(t, master(3))
+test('partial close is permitted by a close-only policy and repeated close cannot enable reset', async t => {
+    const p = await subject(), app = await appFor(t, master(3), { closeOnly: true })
     seedBox(p, { remaining: 999, drawn: 1 })
     const first = data(await post(app, p, 'close'))
     assert.equal(first.all_box_info.find(box => box.box_id === 1).is_closed, true)
@@ -284,7 +335,7 @@ test('actually empty boxes reset atomically even with stale positive cached stoc
 })
 
 test('expanded empty boxes reopen only the new stock and historical partial closes stay closed', async t => {
-    const p = await subject(), content = master(1), app = await appFor(t, content)
+    const p = await subject(), content = master(1), app = await appFor(t, content, { closeOnly: true })
     seedBox(p, { remaining: 1 })
     data(await post(app, p, 'exec'))
     content.boxes[1][REWARD_KEY].available = 3

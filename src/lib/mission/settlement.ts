@@ -10,12 +10,12 @@ import { getComputer } from "./registry"
 import { getCategoryMissionRewardStageDefinition } from "./rewards"
 import { getCompletedStageNumbers, getMissionFinalTargetProgress, getMissionIdsByCategory, isMissionProgressComplete } from "./stages"
 import { getMissionPattern, isMissionEnabledAt } from "./patterns"
-import { isClientProgressMissionPattern } from "./client-progress"
 import { MissionRewardGranter } from "./grants"
 import { getMissionMasterDefinition } from "./master-data"
 import { runPersistenceTransaction, runPersistenceTransactionSync, runWriterCommand } from "../persistence-coordinator"
 import { MISSION_SETTLE_CATEGORIES, type MissionSettleCategoriesArgs } from "../persistence/command-names"
 import { MissionEvaluationReadContext } from "./evaluation-context"
+import { contentMissionDecision } from "../content-operations"
 
 export interface MissionSettlementInfo {
     mission_category_id: number
@@ -57,6 +57,7 @@ interface EvaluatedMission {
     progress: number
     receivedStages: Record<string, boolean> | unknown[]
     dbProgress: number
+    progressEnabled: boolean
 }
 
 interface PendingMissionReward {
@@ -71,26 +72,26 @@ interface PreparedMissionPersistence {
     readonly missingLegacyDegreeIds: number[]
 }
 
-function isDailyCoreMission(pattern: string): boolean {
-    return /^single_battle_play(?:_[23])?$/.test(pattern)
-        || /^multi_battle_play(?:_[23])?$/.test(pattern)
-        || /^use_dash(?:_[23])?$/.test(pattern)
-        || pattern === "daily_quest_stamina_use_2024_02"
-}
-
 function applyDailyCompletionProgress(missions: EvaluatedMission[]): void {
     const dailyMissions = missions.filter(mission => mission.category === 2)
     if (dailyMissions.length === 0) return
-
-    const completedCoreCount = dailyMissions.filter(mission => {
-        const pattern = getMissionPattern(2, mission.missionId)
-        return isDailyCoreMission(pattern)
-            && isMissionProgressComplete(2, mission.missionId, mission.progress)
-    }).length
+    const byId = new Map(dailyMissions.map(mission => [mission.missionId, mission]))
 
     for (const mission of dailyMissions) {
+        if (!mission.progressEnabled) continue
         if (!getMissionPattern(2, mission.missionId).startsWith("daily_quest_all_clear")) continue
-        mission.progress = Math.max(mission.dbProgress, completedCoreCount)
+        // Each generation declares its own prerequisite IDs. Historical
+        // claim-only counters must not stand in for today's required tasks.
+        const rawDependencies = getMissionMasterDefinition(2, mission.missionId)?.row[17]
+        if (typeof rawDependencies !== "string" || !/^[1-9]\d*(?:,[1-9]\d*)*$/.test(rawDependencies)) continue
+        const dependencies = [...new Set(rawDependencies.split(",").map(Number))]
+        if (dependencies.some(id => !Number.isSafeInteger(id))) continue
+        const completedCount = dependencies.filter(id => {
+            const dependency = byId.get(id)
+            return dependency?.progressEnabled
+                && isMissionProgressComplete(2, id, dependency.progress)
+        }).length
+        mission.progress = Math.max(mission.dbProgress, completedCount)
     }
 }
 
@@ -125,11 +126,12 @@ function evaluateMissionCategories(
         // Title progress is monotonic and capped at its final target. Completed
         // titles need no fact scan, but still enter persistence preparation so
         // unreceived stages and missing legacy degree ownership can be repaired.
-        const factMissionIds = category === 5 ? candidateMissionIds.filter(missionId => {
+        const progressMissionIds = candidateMissionIds.filter(missionId => isMissionEnabledAt(category, missionId, evaluationTime, eventId))
+        const factMissionIds = category === 5 ? progressMissionIds.filter(missionId => {
             if (!isMissionEnabledAt(category, missionId, evaluationTime, eventId)) return false
             const target = getMissionFinalTargetProgress(category, missionId)
             return target === undefined || (persisted[String(missionId)]?.progress ?? 0) < target
-        }) : candidateMissionIds
+        }) : progressMissionIds
         const factMissionIdSet = new Set(factMissionIds)
         const context = factMissionIds.length > 0 ? computer.buildContext(
             playerId,
@@ -139,7 +141,10 @@ function evaluateMissionCategories(
             readContext,
         ) : undefined
         for (const missionId of candidateMissionIds) {
-            if (!isMissionEnabledAt(category, missionId, evaluationTime, eventId)) continue
+            const progressEnabled = isMissionEnabledAt(category, missionId, evaluationTime, eventId)
+            const claimOnly = contentMissionDecision(category, missionId, "claim") === true
+                && isMissionEnabledAt(category, missionId, evaluationTime, eventId, "claim")
+            if (!progressEnabled && !claimOnly) continue
             const missionKey = `${category}:${missionId}`
             if (evaluatedMissionKeys.has(missionKey)) continue
             evaluatedMissionKeys.add(missionKey)
@@ -152,13 +157,14 @@ function evaluateMissionCategories(
             evaluatedMissions.push({
                 category,
                 missionId,
-                progress: finalTarget === undefined
+                progress: !progressEnabled ? dbProgress : finalTarget === undefined
                     ? monotonicProgress
-                    : category === 2 || isClientProgressMissionPattern(getMissionPattern(category, missionId))
-                        ? Math.max(dbProgress, Math.min(monotonicProgress, finalTarget))
-                        : Math.min(monotonicProgress, finalTarget),
+                    // A target limits new progress; it must never lower a saved
+                    // counter from an older content definition or active period.
+                    : Math.max(dbProgress, Math.min(monotonicProgress, finalTarget)),
                 receivedStages: current?.stages ?? [],
                 dbProgress,
+                progressEnabled,
             })
         }
     }
@@ -199,7 +205,7 @@ function prepareMissionPersistence(
                 }
                 continue
             }
-            pendingRewards.push({ mission, stage, definition })
+            if (contentMissionDecision(mission.category, mission.missionId, "claim") !== false) pendingRewards.push({ mission, stage, definition })
         }
     }
     const ownedDegrees = legacyDegreeIds.size > 0
@@ -276,23 +282,16 @@ export function settleMissionCategoriesWithProgress(
     categories: readonly (number | MissionSettlementScope)[],
     evaluationTime: Date,
 ): MissionSettlementWithProgressResult {
-    const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
-    const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
-    const settlement = prepared.progressUpdates.length === 0
-        && prepared.pendingRewards.length === 0
-        && prepared.missingLegacyDegreeIds.length === 0
-        ? emptyMissionSettlementResult()
-        : runPersistenceTransactionSync({
+    // Evaluate and authorize inside the same final transaction as grants and stages.
+    return runPersistenceTransactionSync({
             domain: "mission", playerId, operation: "settle_categories_sync",
-        }, () => persistMissionEvaluation(
-            playerId,
-            evaluation.player,
-            prepared,
-        ))
-    return {
-        settlement,
-        evaluatedProgress: evaluatedProgressOf(evaluation.evaluatedMissions),
-    }
+        }, () => {
+            const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
+            const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
+            const settlement = prepared.progressUpdates.length === 0 && prepared.pendingRewards.length === 0 && prepared.missingLegacyDegreeIds.length === 0
+                ? emptyMissionSettlementResult() : persistMissionEvaluation(playerId, evaluation.player, prepared)
+            return { settlement, evaluatedProgress: evaluatedProgressOf(evaluation.evaluatedMissions) }
+        })
 }
 
 export function settleMissionCategories(

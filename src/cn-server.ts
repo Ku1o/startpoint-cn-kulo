@@ -5,7 +5,8 @@ import { unpack } from "msgpackr";
 import { installCnResponseEncoding } from "./lib/cn-response-hook";
 import fastifyStatic from "@fastify/static";
 import path from "path";
-import { mkdirSync, readFileSync, rmSync } from "fs";
+import { mkdirSync, rmSync } from "fs";
+import { installAdminSpaStatic, sendAdminSpaFallback } from "./lib/admin-spa-static";
 import { writeJsonAtomicSync } from "./lib/atomic-json-file";
 import { getStorageLayoutVersion } from "./lib/storage-layout";
 import { getServerTime, getServerTimeForPlayer } from "./utils";
@@ -17,6 +18,9 @@ import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 import { initializePlayerLogin } from "./lib/player-login";
 import playerLoginRoutes, { installPlayerLoginGuard } from "./routes/cn/playerLogin";
+import { installContentClientReloadGuard } from "./lib/content-client-reload";
+import { contentHistoryReadinessReader } from "./lib/content-history-readiness";
+import { contentDiscoveryReader } from "./lib/content-discovery";
 import { installClientAdmission } from "./lib/client-admission";
 import {
     getRoomCommandGateway,
@@ -90,6 +94,8 @@ import questUnlockApiPlugin from "./routes/api/questUnlock";
 import itemApiPlugin from "./routes/api/item";
 import loungeApiPlugin from "./routes/api/lounge";
 import multiSpecialExchangeApiPlugin from "./routes/api/multiSpecialExchange";
+import specialExchangeApiPlugin from "./routes/api/specialExchange";
+import startDashExchangeApiPlugin from "./routes/api/startDashExchange";
 import {
     startQuestNpcPartyPoolWorker,
     stopQuestNpcPartyPoolWorker,
@@ -130,7 +136,7 @@ import { cancelActiveLeaderboardSettlements, terminateActiveLeaderboardSettlemen
 import { drainPlayerSaveExports, stopPlayerSaveExports } from "./lib/player-save-export";
 
 process.env.MULTI_REALTIME_PROCESS ??= "1";
-const fastify = Fastify({
+export const fastify = Fastify({
     logger: {
         // Production-safe default avoids per-request access-log formatting.
         // Debug launchers explicitly opt back into info.
@@ -142,6 +148,12 @@ const fastify = Fastify({
 });
 
 fastify.addHook("onRequest", async () => { assertServerAcceptingWork(); });
+// Verify the small static administration indexes before accepting requests.
+// This runs in the server process, not in the persistence/maintenance workers.
+fastify.addHook("onReady", async () => {
+    contentHistoryReadinessReader();
+    contentDiscoveryReader();
+});
 
 installLocalClientCompat(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || (
     getPatchManifest().patches.some(p => p.enabled && p.local_test_only
@@ -245,6 +257,7 @@ initializePlayerLogin(viewerId => {
 installClientAdmission(fastify);
 installPlayerLoginGuard(fastify);
 installTakeoverUdidGuard(fastify);
+installContentClientReloadGuard(fastify);
 fastify.register(playerLoginRoutes);
 fastify.register(abyssRecordsRoutes);
 
@@ -444,6 +457,8 @@ fastify.register(questUnlockApiPlugin, { prefix: `${apiPrefix}/quest` });
 fastify.register(itemApiPlugin, { prefix: `${apiPrefix}/item` });
 fastify.register(loungeApiPlugin, { prefix: `${apiPrefix}/lounge` });
 fastify.register(multiSpecialExchangeApiPlugin, { prefix: `${apiPrefix}/multi_special_exchange` });
+fastify.register(specialExchangeApiPlugin, { prefix: `${apiPrefix}/special_exchange` });
+fastify.register(startDashExchangeApiPlugin, { prefix: `${apiPrefix}/start_dash_exchange` });
 fastify.register(howToGetApiPlugin, { prefix: `${apiPrefix}/how_to_get` });
 
 // Web management panel
@@ -490,33 +505,22 @@ fastify.register(fastifyStatic, {
 // New admin SPA (React, built from admin/ into web/dist) — served at /admin.
 // Old pages at / stay untouched until the SPA fully replaces them (see docs/admin-refactor-plan.md).
 const adminDistDir = path.join(__dirname, "..", "web", "dist");
-const adminSpaAvailable = existsSync(path.join(adminDistDir, "index.html"));
-if (adminSpaAvailable) {
-    fastify.register(fastifyStatic, {
-        root: adminDistDir,
-        prefix: "/admin/",
-        decorateReply: false
-    });
-    fastify.get("/admin", (_request, reply) => reply.redirect("/admin/"));
-} else {
+const adminSpaAvailable = installAdminSpaStatic(fastify, adminDistDir);
+if (!adminSpaAvailable) {
     console.log("[admin] web/dist not found — admin SPA disabled (run: npm run build:admin)");
 }
 
 // Catch-all to log unknown endpoints
 fastify.setNotFoundHandler((request, reply) => {
     // SPA fallback: client-side routes like /admin/accounts resolve to index.html
-    if (adminSpaAvailable && request.method === "GET" && request.url.startsWith("/admin/")) {
-        reply.header("content-type", "text/html; charset=utf-8");
-        reply.send(readFileSync(path.join(adminDistDir, "index.html")));
-        return;
-    }
+    if (adminSpaAvailable && sendAdminSpaFallback(request, reply, adminDistDir)) return;
     gameVerboseLog(() => `[UNKNOWN] ${request.method} ${request.url}`);
     reply.status(404).send({ error: "Not Found" });
 });
 
 const host = process.env.CN_LISTEN_HOST ?? "127.0.0.1";
 const port = parseInt(process.env.CN_LISTEN_PORT ?? "8001");
-const logDirectory = path.resolve(__dirname,"../.logs");
+const logDirectory = process.env.CN_LOG_DIR ? path.resolve(process.env.CN_LOG_DIR) : path.resolve(__dirname,"../.logs");
 const readyFilePath = path.join(logDirectory,"cn-server-ready.json");
 mkdirSync(logDirectory,{recursive:true});
 rmSync(readyFilePath,{force:true});
@@ -617,6 +621,10 @@ installProcessGuards({
         requestGracefulShutdown("uncaughtException", true);
     },
 });
+// Explicit import mode exposes the identical route graph and startup restoration
+// to isolated harnesses without binding transports or starting background jobs.
+// Normal launches retain the existing startup and graceful shutdown lifecycle.
+if (process.env.CN_RUNTIME_IMPORT_ONLY !== "1") {
 startQuestNpcPartyPoolWorker();
 const persistenceWorkerStarted = startSqlitePersistenceWorker(getDb().name);
 if (persistenceWorkerStarted && isSqlitePersistenceWorkerStarted()) {
@@ -684,3 +692,4 @@ fastify.listen({ port, host }, (err, address) => {
         }
     })();
 });
+}

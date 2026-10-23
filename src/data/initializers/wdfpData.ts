@@ -878,6 +878,16 @@ export default function init(
     ensureSchemaColumn(database, "players_quest_progress.s_plus_reward_received")
 
 
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_crazy_gacha (
+        player_id INTEGER NOT NULL,
+        gacha_id INTEGER NOT NULL,
+        session_number INTEGER NOT NULL,
+        state_json TEXT NOT NULL,
+        PRIMARY KEY (player_id, gacha_id, session_number),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
+        CHECK (gacha_id = 100 AND session_number > 0)
+    )`).run();
+
     database.prepare(`CREATE TABLE IF NOT EXISTS players_gacha_info (
         gacha_id INTEGER NOT NULL,
         is_daily_first INTEGER NOT NULL,
@@ -1081,6 +1091,34 @@ export default function init(
         player_id INTEGER NOT NULL,
         PRIMARY KEY (id, box_id, gacha_id, player_id),
         FOREIGN KEY (gacha_id, box_id, player_id) REFERENCES players_box_gacha (id, box_id, player_id) ON DELETE CASCADE,
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_shop_quotas (
+        player_id INTEGER NOT NULL,
+        purchase_key INTEGER NOT NULL,
+        period_kind TEXT NOT NULL CHECK(period_kind IN ('day','month','legacy')),
+        period_key TEXT NOT NULL,
+        count INTEGER NOT NULL CHECK(count >= 0),
+        PRIMARY KEY (player_id, purchase_key, period_kind, period_key),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_exchange_campaign_receipts (
+        campaign_type TEXT NOT NULL CHECK(campaign_type IN ('special','start_dash')),
+        campaign_id INTEGER NOT NULL,
+        reward_type INTEGER NOT NULL CHECK(reward_type IN (0,1)),
+        reward_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        PRIMARY KEY (campaign_type, campaign_id, player_id),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_special_exchange_campaigns (
+        campaign_id INTEGER NOT NULL,
+        status INTEGER NOT NULL CHECK(status IN (1,2,3)),
+        player_id INTEGER NOT NULL,
+        PRIMARY KEY (campaign_id, player_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 

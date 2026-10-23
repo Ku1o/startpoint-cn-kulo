@@ -11,10 +11,9 @@ interface AdminPageProps {
 
 export function AdminPage({ eyebrow, title, description, actions, children }: AdminPageProps) {
     return (
-        <section className="admin-page">
+        <section className="admin-page" data-section={eyebrow}>
             <header className="admin-page-header">
                 <div>
-                    <span className="admin-page-eyebrow">{eyebrow}</span>
                     <Typography.Title level={1} className="admin-page-title">
                         {title}
                     </Typography.Title>

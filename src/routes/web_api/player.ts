@@ -80,11 +80,45 @@ const routes = async (fastify: FastifyInstance) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
 
+        const requestedSection = (request.query as { section?: unknown }).section
+        const sections = ["player", "characters", "items", "equipment", "questProgress", "drawnQuests"]
+        if (requestedSection !== undefined && (typeof requestedSection !== "string" || !sections.includes(requestedSection))) {
+            return reply.status(400).send({ error: "Invalid detail section" })
+        }
+        // No query retains the complete legacy response and its quest maintenance.
+        const includes = (section: string) => requestedSection === undefined || requestedSection === section
+
         const player = getPlayerSync(playerId)
         if (!player) return reply.status(404).send({ error: "Player not found" })
 
-        const characters = getPlayerCharactersSync(playerId)
-        const charList = Object.entries(characters)
+        const result: Record<string, unknown> = {}
+        if (includes("player")) result.player = {
+            id: player.id,
+            accountId: (getDb().prepare(`SELECT account_id FROM players WHERE id = ?`).get(player.id) as { account_id: number } | undefined)?.account_id ?? 0,
+            name: player.name,
+            comment: player.comment,
+            stamina: player.stamina,
+            boostPoint: player.boostPoint,
+            bossBoostPoint: player.bossBoostPoint,
+            vmoney: player.vmoney,
+            freeVmoney: player.freeVmoney,
+            freeMana: player.freeMana,
+            paidMana: player.paidMana,
+            rankPoint: player.rankPoint,
+            starCrumb: player.starCrumb,
+            bondToken: player.bondToken,
+            expPool: player.expPool,
+            degreeId: player.degreeId,
+            leaderCharacterId: player.leaderCharacterId,
+            birth: player.birth,
+            enableAuto3x: player.enableAuto3x,
+            tutorialStep: player.tutorialStep,
+            lastLoginTime: player.lastLoginTime.toISOString(),
+            staminaHealTime: player.staminaHealTime.toISOString(),
+            expPooledTime: player.expPooledTime.toISOString(),
+            timeOffset: player.timeOffset ?? null,
+        }
+        if (includes("characters")) result.characters = Object.entries(getPlayerCharactersSync(playerId))
             .map(([code, char]) => ({
                 code: Number(code),
                 joinTime: char.joinTime.toISOString(),
@@ -97,21 +131,21 @@ const routes = async (fastify: FastifyInstance) => {
             }))
             .sort((a, b) => new Date(b.joinTime).getTime() - new Date(a.joinTime).getTime())
 
-        const items = getPlayerItemsSync(playerId)
-        const itemList = Object.entries(items).map(([id, count]) => ({ id: Number(id), count }))
+        if (includes("items")) result.items = Object.entries(getPlayerItemsSync(playerId)).map(([id, count]) => ({ id: Number(id), count }))
 
-        const equipment = getPlayerEquipmentListSync(playerId)
-        const equipList = Object.entries(equipment).map(([id, eq]) => ({
+        if (includes("equipment")) result.equipment = Object.entries(getPlayerEquipmentListSync(playerId)).map(([id, eq]) => ({
             id: Number(id),
             level: eq.level,
             enhancementLevel: eq.enhancementLevel,
         }))
 
-        const questProgress = getPlayerQuestProgressSync(playerId)
-        const questList: { section: number; questId: number; finished: boolean; highScore: number | null; clearRank: number | null; bestElapsedTimeMs: number | null }[] = []
-        for (const [section, quests] of Object.entries(questProgress)) {
-            for (const qp of quests) {
-                questList.push({
+        if (includes("questProgress")) {
+            // This getter refreshes stale finite-tower best times. Never call it
+            // for unrelated tabs or for the player's basic information.
+            const questProgress = getPlayerQuestProgressSync(playerId)
+            const questList: { section: number; questId: number; finished: boolean; highScore: number | null; clearRank: number | null; bestElapsedTimeMs: number | null }[] = []
+            for (const [section, quests] of Object.entries(questProgress)) {
+                for (const qp of quests) questList.push({
                     section: Number(section),
                     questId: qp.questId,
                     finished: qp.finished,
@@ -120,47 +154,15 @@ const routes = async (fastify: FastifyInstance) => {
                     bestElapsedTimeMs: qp.bestElapsedTimeMs ?? null,
                 })
             }
+            result.questProgress = questList
         }
 
-        const drawnQuests = getPlayerDrawnQuestsSync(playerId)
-
-        return reply.send({
-            player: {
-                id: player.id,
-                accountId: (getDb().prepare(`SELECT account_id FROM players WHERE id = ?`).get(player.id) as { account_id: number } | undefined)?.account_id ?? 0,
-                name: player.name,
-                comment: player.comment,
-                stamina: player.stamina,
-                boostPoint: player.boostPoint,
-                bossBoostPoint: player.bossBoostPoint,
-                vmoney: player.vmoney,
-                freeVmoney: player.freeVmoney,
-                freeMana: player.freeMana,
-                paidMana: player.paidMana,
-                rankPoint: player.rankPoint,
-                starCrumb: player.starCrumb,
-                bondToken: player.bondToken,
-                expPool: player.expPool,
-                degreeId: player.degreeId,
-                leaderCharacterId: player.leaderCharacterId,
-                birth: player.birth,
-                enableAuto3x: player.enableAuto3x,
-                tutorialStep: player.tutorialStep,
-                lastLoginTime: player.lastLoginTime.toISOString(),
-                staminaHealTime: player.staminaHealTime.toISOString(),
-                expPooledTime: player.expPooledTime.toISOString(),
-                timeOffset: player.timeOffset ?? null,
-            },
-            characters: charList,
-            items: itemList,
-            equipment: equipList,
-            questProgress: questList,
-            drawnQuests: drawnQuests.map(dq => ({
-                categoryId: dq.categoryId,
-                questId: dq.questId,
-                oddsId: dq.oddsId,
-            })),
-        })
+        if (includes("drawnQuests")) result.drawnQuests = getPlayerDrawnQuestsSync(playerId).map(dq => ({
+            categoryId: dq.categoryId,
+            questId: dq.questId,
+            oddsId: dq.oddsId,
+        }))
+        return reply.send(result)
     })
 
     fastify.get("/save", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -468,9 +470,10 @@ const routes = async (fastify: FastifyInstance) => {
 
         const body = request.body as Record<string, any> || {}
         const itemId = Number(body.id || body.itemId)
-        const count = Number(body.count || 1)
+        const count = Number(body.count ?? 1)
         if (isNaN(itemId) || isNaN(count)) return reply.status(400).send({ error: "Missing id or count" })
         if (!VALID_ITEM_IDS.has(itemId)) return reply.status(400).send({ error: `道具 ID ${itemId} 不存在于资源表中` })
+        if (!Number.isSafeInteger(count)) return reply.status(400).send({ error: "count 必须是整数" })
         if (count < 0 || count > MAX_INT) return reply.status(400).send({ error: `count 超出范围（需 0 ~ ${MAX_INT}）` })
 
         try {

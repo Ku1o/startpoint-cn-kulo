@@ -1773,8 +1773,44 @@ test('solo five-boss charges one ticket per run and keeps the ticket gate', asyn
     } finally { await app.close() }
 })
 
-test('live shop and equipment routes enforce ticket cost, five weapon bodies and duplicate-only awakening', async () => {
+test('unreviewed five-boss ticket product rejects review and purchase without consuming existing tickets or costs', async () => {
+    const p = player(3), id = 990099002, key = `boss_coin_shop:${id}`
+    const operations = load('lib/content-operations'), store = operations.contentOperations()
+    const state = store.state(key), revision = store.revision()
+    items.setPlayerItemSync(p.id, 10000145, 120)
+    const snapshot = () => load('data/snapshots/player-snapshot').createPlayerSaveSnapshotV2Sync(p.id).data.tables
+    const before = snapshot()
+    assert.equal(store.runtimeDefinitions.get(key)?.matchesCatalog, false)
+    const action = { enabled: true, endsAtMs: null, readiness: 'verified', evidence: 'Unreviewed product must not acquire approval from this fixture' }
+    assert.throws(() => store.update(key, { expectedRevision: revision, catalogDigest: store.digest,
+        reason: 'Verify the existing unreviewed ticket-product boundary',
+        actionOverrides: { visible: action, exchange: action } }, Date.now()), /定义|过时/)
+    assert.equal(store.revision(), revision)
+    assert.deepEqual(store.state(key), state)
+    const app = await httpApp(p, async app => app.register(load('routes/api/shop').default, { prefix: '/shop' }))
+    try {
+        const denied = await app.inject({ method: 'POST', url: '/shop/buy', payload: {
+            viewer_id: p.viewerId, api_count: 1, shop_type: 7, shop_item_id: id, number: 1 } })
+        assert.equal(denied.statusCode, 400, denied.body)
+        assert.match(denied.json().message, /not currently available/)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 3)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), 120)
+        assert.deepEqual(snapshot(), before, 'failed review and purchase preserve the complete existing player save')
+    } finally { await app.close() }
+})
+
+test('reviewed five-boss weapon purchases enforce both materials, five bodies and duplicate-only awakening', async () => {
     const p = player(0)
+    const store = load('lib/content-operations').contentOperations()
+    const action = { enabled: true, endsAtMs: null, readiness: 'verified', evidence: 'Isolated existing five-boss shop cost, stock and equipment fixture' }
+    for (const id of [990099001]) {
+        const key = `boss_coin_shop:${id}`
+        assert.equal(store.runtimeDefinitions.get(key)?.matchesCatalog, true, `${key} requires a matching actual runtime definition`)
+        store.update(key, { expectedRevision: store.revision(), catalogDigest: store.digest,
+            reason: 'Explicit reviewed existing five-boss shop fixture',
+            actionOverrides: { visible: action, exchange: action } }, Date.now())
+        assert.equal(load('lib/content-economy-operations').shopContentDecision(7, id, 'exchange'), true)
+    }
     const app = await httpApp(p, async app => {
         await app.register(load('routes/api/shop').default, { prefix: '/shop' })
         await app.register(load('routes/api/equipment').default, { prefix: '/equipment' })
@@ -1783,24 +1819,31 @@ test('live shop and equipment routes enforce ticket cost, five weapon bodies and
         viewer_id: p.viewerId, api_count: 1, shop_type: 7, shop_item_id: id, number } })
     const equipment = load('data/domains/equipment')
     try {
-        items.setPlayerItemSync(p.id, 10000145, 9)
-        assert.equal((await buy(990099002)).statusCode, 400)
-        assert.equal(items.getPlayerItemSync(p.id, 10000145), 9)
-        items.setPlayerItemSync(p.id, 10000145, 120)
-        const ticket = await buy(990099002)
-        assert.equal(ticket.statusCode, 200, ticket.body)
-        assert.equal(items.getPlayerItemSync(p.id, 10000143), 1)
-        assert.equal(items.getPlayerItemSync(p.id, 10000145), 110)
+        const snapshot = () => load('data/snapshots/player-snapshot').createPlayerSaveSnapshotV2Sync(p.id).data.tables
+        items.setPlayerItemSync(p.id, 10000144, 7)
+        items.setPlayerItemSync(p.id, 10000145, 110)
+        let before = snapshot()
+        assert.equal((await buy(990099001)).statusCode, 400)
+        assert.deepEqual(snapshot(), before, 'insufficient first material cannot consume the second material')
         items.setPlayerItemSync(p.id, 10000144, 48)
-        const weapons = await buy(990099001, 5)
-        assert.equal(weapons.statusCode, 200, weapons.body)
-        assert.equal(items.getPlayerItemSync(p.id, 10000144), 8)
-        assert.equal(items.getPlayerItemSync(p.id, 10000145), 10)
-        assert.equal(equipment.getPlayerEquipmentSync(p.id, 5900101).stack, 4)
+        items.setPlayerItemSync(p.id, 10000145, 19)
+        before = snapshot()
+        assert.equal((await buy(990099001)).statusCode, 400)
+        assert.deepEqual(snapshot(), before, 'insufficient second material cannot consume the first material')
+        items.setPlayerItemSync(p.id, 10000145, 110)
+        for (let count = 1; count <= 5; count++) {
+            const weapon = await buy(990099001)
+            assert.equal(weapon.statusCode, 200, weapon.body)
+            assert.equal(items.getPlayerItemSync(p.id, 10000144), 48 - 8 * count)
+            assert.equal(items.getPlayerItemSync(p.id, 10000145), 110 - 20 * count)
+            assert.equal(equipment.getPlayerEquipmentSync(p.id, 5900101).stack, count - 1)
+        }
+        before = snapshot()
         const extra = await buy(990099001)
         assert.equal(extra.statusCode, 400)
         assert.match(extra.body, /purchase limit/)
         assert.equal(items.getPlayerItemSync(p.id, 10000144), 8)
+        assert.deepEqual(snapshot(), before, 'sixth purchase cannot change the complete player save')
         const sales = await app.inject({ method: 'POST', url: '/shop/get_sales_list', payload: {
             viewer_id: p.viewerId, shop_types: [], boss_coin_shop_category_ids: [99],
             equipment_enhancement_shop_category_ids: [], browse_treasure_flag: false, event_list: [] } })
@@ -2051,6 +2094,14 @@ test('Fantasy real multiplayer finish grants one ticket for full host clear; not
 
 test('Fantasy multiplayer abort preserves its boundary stage without granting rewards', async () => {
     const p = player(0)
+    const operations = load('lib/content-operations'), store = operations.contentOperations()
+    const member = '7:300098002', key = operations.contentCatalog.questMap[member]
+    assert.equal(key, 'advent_event:300098')
+    const action = { enabled: true, endsAtMs: null, readiness: 'verified', evidence: 'Isolated native Fantasy stage-10 abort fixture' }
+    store.update(key, { expectedRevision: store.revision(), catalogDigest: store.digest,
+        reason: 'Explicit reviewed native Fantasy owner and exact abort stage',
+        actionOverrides: { visible: action, enter: { ...action, questKeys: [member] } } }, Date.now())
+    assert.equal(operations.contentQuestDecision(7, 300098002), true)
     const rush = load('data/domains/rushEvent')
     const mode15 = load('lib/mode15')
     const playedParty = {

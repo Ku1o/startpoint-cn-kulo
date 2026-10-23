@@ -159,6 +159,9 @@ export function buildGachaExecPlan(input: BuildGachaExecPlanInput): GachaExecPla
     if (plan.pullCount === 0) {
         return badRequest("Invalid payment type.")
     }
+    if (gacha.pageKind === GACHA_PAGE_KINDS.TEN_TIMES_PER_ACCOUNT && plan.pullCount !== 10) {
+        return badRequest("Account-limited summon must contain exactly ten draws.")
+    }
 
     return ensureNonNegativeFunds(plan)
 }

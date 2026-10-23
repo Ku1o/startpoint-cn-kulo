@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 import { getPlayerBusinessDateSync } from "../../lib/player-time-compat"
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { SessionType } from "../../data/types";
@@ -20,6 +21,11 @@ import { generateDataHeaders, getServerDate, getRealServerDate, getTimeOffset, w
 import { ensureDailyVmoneyMailForPlayerSync } from "../../lib/daily-vmoney-mail";
 import { runPermanentValidators } from "../../lib/validate";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { ensurePlayerClockStateForLoadSync } from "../../lib/server-clock-state";
+import { getDb } from "../../data/db";
+
+import { contentOperations } from "../../lib/content-operations";
+import { contentClientReload } from "../../lib/content-client-reload";
 
 interface LoadBody {
     app_secret: string,
@@ -58,6 +64,9 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         const accountId = session.accountId
+        if (viewerSession.accountId !== accountId) return reply.status(400).send({
+            error: "Bad Request", message: "Viewer ID does not belong to the authenticated account.",
+        })
 
         const playerId = resolvePlayerIdSync(accountId)!
         if (playerId === null) return reply.status(500).send({
@@ -71,9 +80,11 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player data."
         })
 
+        const loadedReloadEpoch = contentClientReload().state().epoch
         const clock = await runPersistenceTransaction({
             domain: "player", playerId, operation: "legacy_load_snapshot",
         }, () => {
+            ensurePlayerClockStateForLoadSync(playerId, getDb())
             const now = getServerDate()
             const current = getPlayerSync(playerId)
             if (!current) throw new Error("Player disappeared during load maintenance.")
@@ -81,6 +92,7 @@ const routes = async (fastify: FastifyInstance) => {
             dailyResetPlayerDataSync(current, now)
             collectPlayerDataPooledExpSync(current, now)
             updatePlayerSync({ id: playerId, lastLoginTime: getPlayerBusinessDateSync(playerId, now) })
+            recordContentActionFactsSync(playerId, { kind: "login", nowMs: getRealServerDate().getTime() })
             runPermanentValidators(playerId)
             return { now, offset: getTimeOffset() ?? 0 }
         })
@@ -90,14 +102,19 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player data."
         })
 
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send({
+        const response = {
             "data_headers": generateDataHeaders({
                 asset_update: true,
                 viewer_id: viewerId
             }),
-            "data": clientData
+            "data": { ...clientData, content_operations: contentOperations().snapshot(Date.now()) }
+        }
+        await runPersistenceTransaction({ domain: "account", operation: "acknowledge_legacy_client_load" }, () => {
+            contentClientReload().acknowledge(viewerId, loadedReloadEpoch)
+            contentClientReload().pruneFinishedPlays(playerId)
         })
+        reply.header("content-type", "application/x-msgpack")
+        return reply.status(200).send(response)
     })
 }
 

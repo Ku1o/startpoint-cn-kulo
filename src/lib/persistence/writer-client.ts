@@ -4,7 +4,7 @@ import { existsSync } from "../file-exists"
 import { observeWorkerMemory, registerMemoryCounters } from "../memory-diagnostics"
 import type { WriterCommandMeta } from "./command-registry"
 import { WRITER_PROTOCOL_VERSION, writerThreadConfig, type WriterThreadConfig } from "./writer-config"
-import { getLegacyTimeOffset, onServerTimeOffsetChanged } from "../../utils"
+import { getServerClockSnapshot, onServerClockSnapshotChanged } from "../../utils"
 
 export interface SqliteWriterCommand {
     name: string
@@ -210,6 +210,7 @@ function startWorker(targetDatabasePath: string): void {
             groupCommitWindowMs: config.groupCommitWindowMs,
             groupCommitMax: config.groupCommitMax,
             protocolVersion: WRITER_PROTOCOL_VERSION,
+            clockSnapshot: getServerClockSnapshot(),
         },
     })
     worker = current
@@ -221,10 +222,13 @@ function startWorker(targetDatabasePath: string): void {
         if (worker !== current) return
         switch (message?.type) {
             case "ready":
+                if (message.protocolVersion !== WRITER_PROTOCOL_VERSION) {
+                    forceRestart("clock protocol mismatch")
+                    return
+                }
                 state.ready = true
-                // Commands executed here must read the same virtual clock as
-                // the main thread; push before any queued command is sent.
-                pushTimeOffset()
+                // Synchronize both clock coordinates before queued commands.
+                pushClockSnapshot()
                 pump()
                 return
             case "result":
@@ -305,33 +309,33 @@ export function isSqliteWriterReady(): boolean {
     return worker !== null && state.ready
 }
 
-/** Forward the main thread's global virtual-clock offset to the writer thread. */
-function pushTimeOffset(): void {
+/** Forward the complete business and preserved-battle coordinate together. */
+function pushClockSnapshot(): void {
     const current = worker
     if (current === null) return
     try {
-        current.postMessage({ type: "set_time_offset", offset: getLegacyTimeOffset() })
+        current.postMessage({ type: "set_clock_snapshot", snapshot: getServerClockSnapshot() })
     } catch (error) {
         console.error(
-            `[WRITER] failed to push the time offset: ${error instanceof Error ? error.message : String(error)}`,
+            `[WRITER] failed to push the clock snapshot: ${error instanceof Error ? error.message : String(error)}`,
         )
     }
 }
 
-let timeOffsetListenerRegistered = false
+let clockSnapshotListenerRegistered = false
 
 /** Keep later management-panel time changes in sync with the writer thread. */
-function registerTimeOffsetListener(): void {
-    if (timeOffsetListenerRegistered) return
-    timeOffsetListenerRegistered = true
-    onServerTimeOffsetChanged(() => pushTimeOffset())
+function registerClockSnapshotListener(): void {
+    if (clockSnapshotListenerRegistered) return
+    clockSnapshotListenerRegistered = true
+    onServerClockSnapshotChanged(() => pushClockSnapshot())
 }
 
 export function startSqliteWriter(targetDatabasePath: string, environment: NodeJS.ProcessEnv = process.env): boolean {
     config = writerThreadConfig(environment)
     state.enabled = config.enabled
     if (!config.enabled) return false
-    registerTimeOffsetListener()
+    registerClockSnapshotListener()
     if (worker !== null) return true
     // A previous stop() leaves the client closing; an explicit restart must
     // clear that so commands are accepted again.

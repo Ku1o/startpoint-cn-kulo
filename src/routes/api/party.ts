@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
@@ -839,6 +840,7 @@ const routes = async (fastify: FastifyInstance) => {
                 }
             }
             if (abilitySoulEquipCount > 0) {
+                recordContentActionFactsSync(playerId, { kind: "ability_soul_equip", amount: abilitySoulEquipCount })
                 addMissionCounterSync(playerId, {
                     dimension: "party.ability_soul_equip",
                     scopeType: "lifetime",

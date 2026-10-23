@@ -28,7 +28,7 @@ const { getConfigSync, getEquipmentCraftSync } = require("../out/lib/assets")
 const { getDb } = require("../out/data/db")
 
 const TREASURE_SHOP = 2
-const TREASURE_ITEM = 200031 // 200 mana, stock-limited
+const TREASURE_ITEM = 200070 // Current real July product: 100 mana, daily quota 30
 const STAMINA_ITEM = 101
 const EQUIPMENT = 5010004 // max awakening level 5
 const SELLABLE_ITEM = 2
@@ -90,8 +90,9 @@ test("economy routes stay consistent under duplicates and concurrency", async t 
     })
 
     await t.test("concurrent purchases cannot spend the same mana twice", async () => {
-        const { playerId, viewerId } = await createPlayer({ freeMana: 1000, paidMana: 0 })
-        const results = await parallel(10, () => post("/shop/buy", {
+        const { playerId, viewerId } = await createPlayer({ freeMana: 500, paidMana: 0 })
+        // Stay within the production per-player admission limit (8); five requests can be funded.
+        const results = await parallel(8, () => post("/shop/buy", {
             viewer_id: viewerId, api_count: 1, shop_type: TREASURE_SHOP, shop_item_id: TREASURE_ITEM, number: 1,
         }))
         const ok = results.filter(r => r.statusCode === 200)
@@ -123,7 +124,7 @@ test("economy routes stay consistent under duplicates and concurrency", async t 
         assert.equal(res.statusCode, 200, res.payload)
         const count = getPlayerShopPurchaseCountSync(playerId, getShopPurchaseKey(TREASURE_SHOP, TREASURE_ITEM))
         assert.equal(count, 30)
-        assert.equal(getPlayerSync(playerId).freeMana, 100_000 - 30 * 200)
+        assert.equal(getPlayerSync(playerId).freeMana, 100_000 - 30 * 100)
     })
 
     await t.test("concurrent bulk purchases respect stock limits", async () => {
@@ -135,7 +136,7 @@ test("economy routes stay consistent under duplicates and concurrency", async t 
         assert.ok(results.every(r => r.statusCode === 200))
         const count = getPlayerShopPurchaseCountSync(playerId, getShopPurchaseKey(TREASURE_SHOP, TREASURE_ITEM))
         assert.equal(count, 30)
-        assert.equal(getPlayerSync(playerId).freeMana, 100_000 - 30 * 200)
+        assert.equal(getPlayerSync(playerId).freeMana, 100_000 - 30 * 100)
     })
 
     await t.test("repeated item entries are checked against the combined amount", async () => {

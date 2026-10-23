@@ -1,5 +1,11 @@
 import { Gacha, GachaPoolItem, GachaType } from "./types";
 
+/** Original comeback/stars periods are not currently persisted; operations cannot grant them. */
+export function isDeferredPersonalPeriodGacha(gachaId: number): boolean {
+    return Number.isSafeInteger(gachaId) && ((gachaId >= 700000 && gachaId <= 700004)
+        || (gachaId >= 80000 && gachaId <= 80004))
+}
+
 export const GACHA_PAYMENT_TYPES = {
     FREE_VMONEY: 1,
     VMONEY: 2,
@@ -71,6 +77,7 @@ function ticketAllowedByPageKind(pageKind: number | undefined, drawKind: TicketD
             return drawKind === "single";
         case GACHA_PAGE_KINDS.TEN_TIMES_TICKET_ONLY:
         case GACHA_PAGE_KINDS.CRAZY_TEN_TIMES_TICKET_ONLY:
+        case GACHA_PAGE_KINDS.TEN_TIMES_PER_ACCOUNT:
             return drawKind === "multi";
         default:
             return true;
@@ -80,6 +87,16 @@ function ticketAllowedByPageKind(pageKind: number | undefined, drawKind: TicketD
 export function isGachaExecAllowed(gacha: Gacha, paymentType: number, execType: number): boolean {
     const pageKind = gacha.pageKind ?? GACHA_PAGE_KINDS.NORMAL;
     const ticketDrawKind = getTicketDrawKind(execType);
+
+    // Payment and execution are independent request fields. A page's allowed
+    // draw size must never turn a paid daily single into an account-only ten.
+    if (paymentType === GACHA_PAYMENT_TYPES.FREE_VMONEY) {
+        if (execType !== GACHA_EXEC_TYPES.VMONEY_SINGLE && execType !== GACHA_EXEC_TYPES.VMONEY_MULTI) return false;
+    } else if (paymentType === GACHA_PAYMENT_TYPES.VMONEY) {
+        if (execType !== GACHA_EXEC_TYPES.DAILY_SINGLE) return false;
+    } else if (paymentType === GACHA_PAYMENT_TYPES.CAMPAIGN) {
+        if (execType !== GACHA_EXEC_TYPES.CAMPAIGN_SINGLE && execType !== GACHA_EXEC_TYPES.CAMPAIGN_MULTI) return false;
+    } else if (paymentType !== GACHA_PAYMENT_TYPES.TICKET) return false;
 
     if (paymentType === GACHA_PAYMENT_TYPES.TICKET) {
         return ticketDrawKind !== null &&

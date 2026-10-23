@@ -8,6 +8,7 @@ import { resolvePlayerIdSync, saveAccountDefaultPlayer } from "../data/activeAcc
 import { getRankDegree } from "./stamina"
 import { generateViewerId } from "../utils"
 import { runPersistenceTransaction, runPersistenceTransactionSync } from "./persistence-coordinator"
+import { gameplayLoginTokenHash, initializeGameplayRequestIdentitySchemaSync } from "./gameplay-request-identity"
 
 const DAY = 86400000
 // Leave room for the existing client's 15-second network timeout.
@@ -34,6 +35,7 @@ interface Identity { id: number; status: string; username: string | null; takeov
 interface ClaimCode { code: string; account_id: number; purpose: string; expires_at: number; consumed_at: number | null }
 
 export function initializePlayerLogin(disconnect?: (viewerId: number) => void): void {
+    initializeGameplayRequestIdentitySchemaSync(getDb())
     getDb().exec(`
         CREATE TABLE IF NOT EXISTS player_login_credentials (
             account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
@@ -155,7 +157,9 @@ export function playerAccountByViewer(viewer: unknown): number | null {
 export function readPlayerLoginSession(value: unknown): PlayerLoginSession | null {
     if (!initialized || typeof value !== "string" || !/^[a-f0-9]{64}$/.test(value)) return null
     return (sql(`SELECT s.* FROM player_login_sessions s JOIN accounts a ON a.id=s.account_id
-        WHERE s.token=? AND s.expires_at>? AND a.status='normal'`).get(value, Date.now()) as PlayerLoginSession | undefined) ?? null
+        WHERE s.token=COALESCE((SELECT n.parent_token FROM gameplay_login_sessions n
+            WHERE n.token_hash=? AND n.expires_at>?),?)
+        AND s.expires_at>? AND a.status='normal'`).get(gameplayLoginTokenHash(value), Date.now(), value, Date.now()) as PlayerLoginSession | undefined) ?? null
 }
 /** One indexed query on the authenticated game hot path; no cross-request authorization cache. */
 export function readPlayerLoginAccess(value: unknown, viewer: unknown): (PlayerLoginSession & { request_account_id: number | null }) | null {
@@ -164,7 +168,9 @@ export function readPlayerLoginAccess(value: unknown, viewer: unknown): (PlayerL
     return (sql(`SELECT s.*,v.account_id AS request_account_id
         FROM player_login_sessions s JOIN accounts a ON a.id=s.account_id
         LEFT JOIN sessions v ON v.token=? AND v.type=2
-        WHERE s.token=? AND s.expires_at>? AND a.status='normal'`).get(viewerKey, value, Date.now()) as (PlayerLoginSession & { request_account_id: number | null }) | undefined) ?? null
+        WHERE s.token=COALESCE((SELECT n.parent_token FROM gameplay_login_sessions n
+            WHERE n.token_hash=? AND n.expires_at>? AND n.is_current=1),?)
+        AND s.expires_at>? AND a.status='normal'`).get(viewerKey, gameplayLoginTokenHash(value), Date.now(), value, Date.now()) as (PlayerLoginSession & { request_account_id: number | null }) | undefined) ?? null
 }
 export function playerSocketAllowed(viewer: unknown, value: unknown): boolean {
     const access = readPlayerLoginViewerAccess(viewer)

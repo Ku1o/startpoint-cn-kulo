@@ -14,6 +14,7 @@ import { MissionRewardGranter } from "../../lib/mission/grants";
 import { getContentSnapshot } from "../../content/runtime/content-snapshot";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { ContentOperationError } from "../../lib/content-operations-store";
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/receive", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -59,7 +60,7 @@ const routes = async (fastify: FastifyInstance) => {
             "message": validation.message
         })
 
-        const granter = new MissionRewardGranter(playerId, player)
+        let granter: MissionRewardGranter
         const resultByMission = new Map<number, {
             mission_id: number,
             progress_value: number,
@@ -69,7 +70,16 @@ const routes = async (fastify: FastifyInstance) => {
         const characterList = await runPersistenceTransaction({
             domain: "mission", playerId, operation: "claim_active_missions",
         }, () => {
-            for (const claim of validation.claims) {
+            const currentPlayer = getPlayerSync(playerId)
+            if (!currentPlayer) throw new ContentOperationError("Player not found.", 500)
+            const currentValidation = validateMissionRewardClaims(getPlayerActiveMissionsSync(playerId), requestList, {
+                repository: getContentSnapshot().repository,
+                now: getServerTime() * 1000,
+                questProgress: getPlayerQuestProgressSync(playerId),
+            })
+            if (!currentValidation.ok) throw new ContentOperationError(currentValidation.message)
+            granter = new MissionRewardGranter(playerId, currentPlayer)
+            for (const claim of currentValidation.claims) {
                 updatePlayerActiveMissionStageSync(playerId, claim.stage, claim.missionId, true)
                 let result = resultByMission.get(claim.missionId)
                 if (!result) {
@@ -81,13 +91,14 @@ const routes = async (fastify: FastifyInstance) => {
             }
             granter.persistPlayer()
             const existingCharacterList = granter.characterList as unknown as Record<string, unknown>[]
-            return validation.claims.length > 0
+            return currentValidation.claims.length > 0
                 ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
                 : existingCharacterList
         })
 
         const resultList = [...resultByMission.values()]
-        gameVerboseLog(() => `[ACTIVE_MISSION] receive viewer=${viewerId} missions=${requestList.length} items=${Object.keys(granter.itemList).length}`)
+        const savedGranter = granter!
+        gameVerboseLog(() => `[ACTIVE_MISSION] receive viewer=${viewerId} missions=${requestList.length} items=${Object.keys(savedGranter.itemList).length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -95,13 +106,13 @@ const routes = async (fastify: FastifyInstance) => {
             "data": {
                 "active_mission_list": resultList,
                 "user_info": {
-                    ...granter.getUserInfo(),
-                    "exp_pooled_time": getPlayerClientExpTime(player)
+                    ...savedGranter.getUserInfo(),
+                    "exp_pooled_time": getPlayerClientExpTime(getPlayerSync(playerId)!)
                 },
                 "character_list": characterList,
-                "equipment_list": granter.equipmentList,
-                "item_list": granter.itemList,
-                "degree_list": granter.degreeList.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
+                "equipment_list": savedGranter.equipmentList,
+                "item_list": savedGranter.itemList,
+                "degree_list": savedGranter.degreeList.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
                 "mail_arrived": getPlayerMailCountSync(playerId, true) > 0
             }
         })

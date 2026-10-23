@@ -7,3 +7,17 @@
 assets/asset-patch/active/pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip filter=lfs diff=lfs merge=lfs -text
 assets/asset-patch/active/pinball-1.4.115-1.4.116-2-author-characters-1033.zip filter=lfs diff=lfs merge=lfs -text
 assets/asset-patch/active/pinball-1.4.116-1.4.117-1-author-inaho-fluffy-consolidated.zip filter=lfs diff=lfs merge=lfs -text
+
+# These authority inputs have byte-level SHA contracts; preserve their original line endings.
+assets/content_box_associations.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/content_catalog.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/content_july_controls.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/content_presentation.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/raid_event_overall_reward.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/raid_event_ranking_reward.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/raid_event_rules.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/ranking_event_ranking_reward.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+src/lib/content-operations.ts -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+src/lib/exchange-campaign-definitions.ts -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+src/routes/api/shop.ts -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+tools/build-content-discovery-gacha.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

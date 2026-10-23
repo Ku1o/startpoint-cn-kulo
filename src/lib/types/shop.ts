@@ -60,6 +60,9 @@ export interface ShopItem {
     maxFrequency?: number
     dailyStock?: number
     monthlyStock?: number
+    /** Native activity products keep per-request and lifetime limits separate. */
+    nativeStockLimits?: { perRequest: number | null; lifetime: number | null }
+    kind1EquipmentOnlyPossessionOne?: boolean
     compatibilityPeriods?: ShopItemAvailabilityPeriod[]
 }
 

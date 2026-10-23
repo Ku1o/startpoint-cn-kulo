@@ -16,7 +16,19 @@ const { insertSessionWithToken } = require("../out/data/domains/session")
 const { saveAccountDefaultPlayer } = require("../out/data/activeAccount")
 const { setServerTime } = require("../out/utils")
 
-test("活动商品的单买和批量购买都执行兑换期校验", async t => {
+test("原商品日期和重跑兼容期保持原业务规则", () => {
+    const { getShopItemSync, getEventShopItemsSync } = require("../out/lib/assets")
+    const { isShopItemAvailable } = require("../out/lib/shop-sales")
+    const item = getShopItemSync(4, 700000)
+    assert.equal(isShopItemAvailable(item, new Date("2024-01-01T00:00:00Z")), false)
+    assert.equal(isShopItemAvailable(item, new Date("2023-11-24T00:00:00Z")), true)
+    assert.equal(isShopItemAvailable(item, new Date("2025-07-26T00:00:00Z")), true)
+    assert.equal(isShopItemAvailable(item, new Date("2025-08-15T00:00:00Z")), false)
+    const items = getEventShopItemsSync(11, 700011)
+    assert.equal(Object.values(items).filter(row => isShopItemAvailable(row, new Date("2025-07-26T00:00:00Z"))).length, 33)
+})
+
+test("季节商品默认关闭，明确开放后单买重跑可兑换，独立关闭拒绝批购且保留余额和次数", async t => {
     const account = insertAccountSync({
         appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal",
     })
@@ -40,6 +52,7 @@ test("活动商品的单买和批量购买都执行兑换期校验", async t => 
             : payload)
     })
     await app.register(shopRoutes, { prefix: "/shop" })
+    await app.register(require("../out/routes/api/howToGet").default, { prefix: "/how" })
     await app.ready()
     t.after(async () => {
         setServerTime(null)
@@ -70,7 +83,22 @@ test("活动商品的单买和批量购买都执行兑换期校验", async t => 
         shop_item_id: 700000,
         number: 1,
     })
-    assert.equal(activeSingle.statusCode, 200, activeSingle.payload)
+    assert.equal(activeSingle.statusCode, 400, "old calendar dates do not authorize new seasonal purchases")
+    assert.equal(getPlayerItemSync(player.id, 2370001), 600)
+    assert.equal(getPlayerItemSync(player.id, 49100), null)
+    assert.equal(getPlayerShopPurchaseCountSync(player.id, 700000), 0)
+    const operations = require("../out/lib/content-operations").contentOperations()
+    const setActions = (actions, key = "event_item_shop:700000") => operations.update(key, {
+        expectedRevision: operations.revision(), catalogDigest: operations.digest,
+        reason: "Actual event product explicit operations regression",
+        actionOverrides: Object.fromEntries(Object.entries(actions).map(([action, enabled]) => [action, {
+            enabled, endsAtMs: null, readiness: "verified", evidence: "Matched actual master and winning server definition",
+        }])),
+    }, Date.now())
+    setActions({ visible: true }, "rush_event:700001")
+    setActions({ visible: true, exchange: true })
+    const explicitlyActive = await post("buy", { shop_type: 4, shop_item_id: 700000, number: 1 })
+    assert.equal(explicitlyActive.statusCode, 200, explicitlyActive.payload)
     assert.equal(getPlayerItemSync(player.id, 2370001), 400)
     assert.equal(getPlayerItemSync(player.id, 49100), 1)
     assert.equal(getPlayerShopPurchaseCountSync(player.id, 700000), 1)
@@ -83,7 +111,7 @@ test("活动商品的单买和批量购买都执行兑换期校验", async t => 
     })
     assert.equal(rerunSales.statusCode, 200, rerunSales.payload)
     const rerunSalesList = JSON.parse(rerunSales.payload).data.sales_list
-    assert.equal(rerunSalesList.length, 33)
+    assert.equal(rerunSalesList.length, 1, "only the explicitly approved product is exposed")
     assert.ok(rerunSalesList.some(item => item.shop_type === 4 && item.shop_item_id === 700000))
 
     const rerunSingle = await post("buy", {
@@ -97,6 +125,11 @@ test("活动商品的单买和批量购买都执行兑换期校验", async t => 
     assert.equal(getPlayerShopPurchaseCountSync(player.id, 700000), 2)
 
     setServerTime(new Date("2025-08-15T00:00:00.000Z"))
+    const acquisition = await app.inject({ method: "POST", url: "/how/get_list", payload: { viewer_id: viewerId, item_id: 49100 } })
+    assert.ok(JSON.parse(acquisition.payload).data.shop_sales_list.some(item => item.shop_item_id === 700000), "explicit permanent visibility survives the old end date")
+    setActions({ visible: false, exchange: false })
+    const closedSource = await app.inject({ method: "POST", url: "/how/get_list", payload: { viewer_id: viewerId, item_id: 49100 } })
+    assert.ok(!JSON.parse(closedSource.payload).data.shop_sales_list.some(item => item.shop_item_id === 700000))
     const expiredBulk = await post("bulk_buy", {
         shop_type: 4,
         buy_item_list: { "700000": 1 },

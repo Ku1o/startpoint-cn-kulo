@@ -6,6 +6,8 @@ import { getQuestFromCategorySync } from "../../lib/assets"
 import { givePlayerEquipmentSync as givePlayerEquipmentSyncDefault } from "../../lib/equipment"
 import type { RewardPlayerCharacterExpResult } from "../../lib/types/character"
 import { getDb } from "../../data/db"
+import { isRegisteredRescueBattleSync } from "../../lib/mission/rescue-battle-facts"
+import { recordPassCompletedRescueBattleFact } from "../../lib/mission/pass-battle-facts"
 import { givePlayerItemSync as givePlayerItemSyncDefault } from "../../data/domains/item"
 import {
     getPlayerSingleQuestProgressSync,
@@ -514,6 +516,12 @@ export function createFiveBossBattleRuntime(
                 ? givePlayerCharactersExpSync(input.playerId, ids, quest?.characterExpReward ?? 0, false)
                 : null
             updateSuccessfulQuestProgress(input.playerId, { ...input, leaderCharacterId: ids[0] ?? null }, previous)
+            recordPassCompletedRescueBattleFact({ playerId: input.playerId, questAccomplished: true, isMulti: true,
+                isMultiHost: input.playerId === context.run.hostPlayerId,
+                isRegisteredRescue: input.playerId !== context.run.hostPlayerId && isRegisteredRescueBattleSync({
+                    playerId: input.playerId, playId: input.clientPlayId, category: FIVE_BOSS_GAUNTLET.category,
+                    questId: FIVE_BOSS_GAUNTLET.visibleQuestId, roomNumber: context.run.roomNumber,
+                }) }, new Date())
             deletePlayerActiveQuestSync(input.playerId)
             return {
                 firstClear,

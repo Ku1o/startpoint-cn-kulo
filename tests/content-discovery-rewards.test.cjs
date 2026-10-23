@@ -1,0 +1,70 @@
+'use strict'
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto')
+const {assertOutput,pureLoader,reader}=require('../tools/build-content-discovery-rewards.cjs')
+const repo=path.resolve(__dirname,'..')
+test('output guard rejects protected source, lexical CDN and normalized parent traversal',()=>{
+  assert.throws(()=>assertOutput(path.join(repo,'assets','x.json'),repo,repo),/protected/)
+  assert.throws(()=>assertOutput(path.join(path.dirname(repo),'.cdn','x.json'),repo,repo),/cdn/i)
+  assert.throws(()=>assertOutput(path.join(repo,'work','..','x.json'),repo,repo),/protected/)
+  const safe=path.join(path.dirname(repo),'discovery-test-output','x.json')
+  assert.equal(assertOutput(safe,repo,repo),safe)
+})
+test('pure accessor loader refuses database and gameplay modules before evaluation',()=>{
+  const loader=pureLoader(repo,reader(repo))
+  assert.throws(()=>loader.load('src/data/db.ts'),/non-pure/)
+  assert.throws(()=>loader.load('src/server.ts'),/non-pure/)
+  assert.throws(()=>loader.load('src/lib/quest.ts'),/non-pure/)
+  assert.throws(()=>reader(repo).read('../outside.json'),/outside checkout/)
+})
+test('actual source accessors preserve reward replacements and native None',()=>{
+  const io=reader(repo),loader=pureLoader(repo,io),assets=loader.load('src/lib/assets.ts')
+  const rules=io.json('assets/content_history_quest_rules.json')
+  const expert=io.json('assets/expert_single_event_quest.json')
+  const ssQuest=Object.keys(expert).map(id=>assets.getQuestFromCategorySync(21,Number(id))).find(q=>q?.sPlusReward)
+  assert.ok(ssQuest);assert.equal(ssQuest.sPlusReward.id,14040);assert.equal(ssQuest.sPlusReward.type,0)
+  const endless=assets.getQuestFromCategorySync(24,700100099)
+  assert.ok(endless);assert.equal(endless.clearReward,undefined);assert.equal(endless.scoreRewardGroupId,undefined)
+  const rule=Object.entries(rules.quests).find(([,v])=>v.fields.clearRewardId===null&&!v.currentOverlayPriorityFields.includes('clearRewardId'))
+  assert.ok(rule)
+  const projection=loader.load('src/lib/content-quest-rules.ts').applyContentQuestRules(...rule[0].split(':').map(Number),{clearRewardId:123})
+  assert.equal(projection.clearRewardId,undefined)
+})
+test('full generated receipt covers every presentation parent and all 19 passes', {skip:!process.env.CONTENT_DISCOVERY_REWARDS},()=>{
+  const result=JSON.parse(fs.readFileSync(process.env.CONTENT_DISCOVERY_REWARDS,'utf8')),presentation=require('../assets/content_presentation.json')
+  const expected=Object.entries(presentation.rows).filter(([,v])=>v.type!=='gacha').map(([key])=>key).sort()
+  assert.deepEqual(Object.keys(result.rows).sort(),expected)
+  assert.equal(result.stats.passParents,19)
+  for(const [file,expectedSha]of Object.entries(result.sourceInputs)) {
+    const actual=crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,file))).digest('hex')
+    assert.equal(actual,expectedSha,'stale source: '+file)
+  }
+  for(const [key,row]of Object.entries(result.rows)) {
+    assert.ok(['verified','unavailable','not_applicable'].includes(row.status));assert.ok(Array.isArray(row.publicNotes));assert.ok(row.notes.length)
+    for(const entry of [...row.characters,...row.rewards])assert.ok(row.evidence.some(e=>e.entity?.id===entry.id),'missing evidence: '+key)
+  }
+  const raid=result.rows['raid_event:7']
+  assert.ok(raid.rewards.some(r=>r.id===999014&&r.relation==='overall'))
+  assert.ok(raid.rewards.some(r=>r.relation==='box'),'native event→box FK must be included')
+  const ss=Object.entries(result.rows).filter(([key])=>key.startsWith('expert_single_event:'))
+  assert.ok(ss.every(([,row])=>row.rewards.some(r=>r.id===14040&&r.relation==='firstClear')))
+  assert.ok(Object.entries(result.rows).filter(([key])=>key.startsWith('pass_card_event:')).every(([,row])=>row.editionLabel.startsWith('活动期 ')))
+  assert.ok(result.rows['rush_event:700098'].rewards.some(r=>r.id===1&&r.relation==='drop'))
+  assert.ok(result.rows['advent_event:300098'].rewards.some(r=>r.id===10000143&&r.relation==='drop'))
+  assert.ok(result.rows['world_story_event:200101'].status==='verified','explicit box FK closes the prior missing reward relation')
+  assert.ok(result.rows['box_gacha:1'].rewards.some(r=>r.id===5100001&&r.kind==='equipment'),'box type 1 is equipment, not mission item numbering')
+  assert.ok(result.rows['box_gacha:1'].characters.length,'box type 6 is a character, not generic element numbering')
+  assert.ok(result.rows['advent_event:3'].rewards.some(r=>r.relation==='mission'),'exact pattern→quest mission links must be retained')
+  const experience=result.rows['daily_exp_mana_event:1']
+  assert.equal(experience.status,'verified')
+  assert.ok(experience.rewards.some(r=>r.kind==='currency'&&r.id===4&&r.name==='玛纳'))
+  assert.ok(experience.rewards.some(r=>r.kind==='currency'&&r.id===3&&r.name==='星导石'))
+  assert.ok(experience.rewards.some(r=>r.kind==='experience'&&r.id===5))
+  assert.ok(result.focusedReview.every(row=>row.questIdsMatch),'focused native/runtime quest sets must match')
+  for(const id of [5,80003]) {
+    const review=result.focusedReview.find(row=>row.key==='collect_item_event:'+id)
+    assert.equal(review.nativeMissionCount,0);assert.equal(review.runtimeMissionCount,0)
+    assert.equal(review.nativeShopProductCount,0);assert.equal(review.runtimeShopProductCount,0)
+    assert.equal(result.rows[review.key].status,'not_applicable')
+  }
+  assert.deepEqual(experience.publicNotes,[],'routine cards must not repeat generic caveats')
+})

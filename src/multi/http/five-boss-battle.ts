@@ -43,6 +43,8 @@ import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 import { assertBattleCanStartSync, getBattleReplaySync } from "../../data/domains/battle-settlement-ledger"
+import { registerAcceptedRescueBattleSync } from "../../lib/mission/rescue-battle-facts"
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts"
 
 /** Small structured evidence, without logging tokens, party data or the full request. */
 export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort", body: MultiStartBody | MultiFinishBody | MultiAbortBody,
@@ -458,6 +460,7 @@ export async function handleFiveBossStart(
             abandonStaleFiveBossRun(body, playerId, claim.oldPlayRecovery)
             memoryAfterCleanup = activeQuests[playerId]
             cleanupChanged = memoryBeforeCleanup !== memoryAfterCleanup
+            const previousHostStaminaUsed = getPlayerSync(room.host_player_id)?.totalStaminaUsed ?? 0
             const result = startFiveBossBattle({
                 playerId,
                 clientPlayId: body.play_id,
@@ -471,6 +474,15 @@ export async function handleFiveBossStart(
                 matePlayerIds: body.mate_player_ids,
                 mateComIds: room.mates.map(mate => mate.com_id),
             })
+            const staminaDelta = (getPlayerSync(room.host_player_id)?.totalStaminaUsed ?? previousHostStaminaUsed) - previousHostStaminaUsed
+            if (staminaDelta > 0) recordContentActionFactsSync(room.host_player_id, {
+                kind: "stamina_spend", amount: staminaDelta, dedupeKey: `five_boss_start:${result.runId}`,
+            })
+            registerAcceptedRescueBattleSync({ playerId, viewerId: body.viewer_id, playId: body.play_id,
+                category: FIVE_BOSS_GAUNTLET.category, questId: FIVE_BOSS_GAUNTLET.visibleQuestId,
+                roomNumber: room.room_number, roomInstanceId: claim.roomInstanceId, battleSessionId: claim.battleSessionId,
+                isHost: playerId === room.host_player_id, isRescueGuest: claim.isRescueGuest === true,
+                isRescueFragmentEligible: claim.isRescueFragmentEligible === true })
             // Keep the selected party update inside the same persistence owner as
             // the run ledger and active quest writes.
             if (isValidNormalPartySlotSync(playerId, body.party_id)) {

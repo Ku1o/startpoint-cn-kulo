@@ -1,0 +1,9 @@
+.seeds-page .ant-card-head-wrapper { flex-wrap: wrap; gap: 8px; }
+.seeds-page .ant-card-extra { max-width: 100%; }
+.seeds-page .admin-seed-line { flex-wrap: wrap; }
+.seeds-page .admin-chip-button:disabled { cursor: wait; opacity: .55; }
+.seeds-page .seed-section-note { margin: 0 0 14px; color: var(--admin-text-secondary, #64748b); line-height: 1.7; }
+@media (max-width: 767px) {
+    .seeds-page .admin-seed-grid { grid-template-columns: minmax(0, 1fr); }
+    .seeds-page .ant-card-extra { margin-inline-start: 0; }
+}

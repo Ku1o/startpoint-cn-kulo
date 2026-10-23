@@ -62,6 +62,20 @@ import {
 import { isLeaderboardEnabledSync } from "../../lib/leaderboard/availability";
 import { partyCategoryForRushEvent } from "../../lib/rush-party-categories";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { contentDecision, isContentQuestOpenAt } from "../../lib/content-operations";
+import { ContentOperationError } from "../../lib/content-operations-store";
+import { hasPlayerDegreeSync } from "../../data/domains/degree";
+
+function requireRushParticipation(eventId: number): void {
+    if (contentDecision("rush_event", eventId, "enter", Date.now()) === false) throw new ContentOperationError("Rush participation is closed.")
+}
+function requireRushClaim(playerId: number, eventId: number, maxRound: number | null): void {
+    if (contentDecision("rush_event", eventId, "claim", Date.now()) !== false) return
+    const earned = getEligibleRushDegreeIds(eventId, maxRound)
+    // A previously committed reward can be replayed without a new grant.
+    if (earned.length && earned.every(id => hasPlayerDegreeSync(playerId, id))) return
+    throw new ContentOperationError("Rush reward claim is closed.")
+}
 
 interface SummaryBody {
     event_id: number,
@@ -228,6 +242,7 @@ const routes = async (fastify: FastifyInstance) => {
             domain: "event", playerId, operation: "rush_summary_maintenance",
         }, () => {
             let current = getPlayerRushEventSync(playerId, eventId)
+            if (contentDecision("rush_event", eventId, "enter", Date.now()) === false) return current ?? getDefaultPlayerRushEventSync(eventId)
             if (current === null) {
                 current = getDefaultPlayerRushEventSync(eventId)
                 insertPlayerRushEventSync(playerId, current)
@@ -311,6 +326,7 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
+        requireRushParticipation(eventId)
         // get existing rush event data
         const rushEventData = getPlayerRushEventSync(playerId, eventId)
         if (rushEventData === null) {
@@ -333,7 +349,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (deepAbyssSelection === "endless_compat") {
             await runPersistenceTransaction({
                 domain: "event", playerId, operation: "rush_select_folder_maintenance",
-            }, () => { repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData) })
+            }, () => { requireRushParticipation(eventId); repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData) })
             setRequestOutcome(request, "rush_endless_compat")
             // The current client enters endless battle directly and never
             // calls /select_folder. Treat calls from older clients as a
@@ -359,6 +375,7 @@ const routes = async (fastify: FastifyInstance) => {
         const selection = await runPersistenceTransaction({
             domain: "event", playerId, operation: "rush_select_folder",
         }, () => {
+            requireRushParticipation(eventId)
             const current = repairDeepAbyssEndlessFolderLockSync(
                 playerId,
                 getPlayerRushEventSync(playerId, eventId) ?? rushEventData,
@@ -736,6 +753,10 @@ const routes = async (fastify: FastifyInstance) => {
         // room creation, rescue discovery and rescue participation remain
         // untouched so lower-rank players can join an eligible host.
         const player = getPlayerSync(playerId)
+        if (!isContentQuestOpenAt(QuestCategory.RUSH_EVENT, questId)) {
+            reply.type("application/x-msgpack")
+            return reply.send({ data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {} })
+        }
         const playerRank = player === null ? 0 : getRankDegree(player.rankPoint)
         if (!canStartRankGatedGauntletRush(questData.rushEventId, playerRank)
             || !canStartAbyssQuestSync(playerId, QuestCategory.RUSH_EVENT, questId)) {
@@ -791,9 +812,10 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
-        await runPersistenceTransaction({
+        try { await runPersistenceTransaction({
             domain: "single-quest", playerId, operation: "rush_start",
         }, () => {
+            if (!isContentQuestOpenAt(QuestCategory.RUSH_EVENT, questId)) throw new Error("QUEST_OPERATIONS_CLOSED")
             startLeaderboardQuestSync(playerId, {
                 category: QuestCategory.RUSH_EVENT,
                 eventId: questData.rushEventId,
@@ -819,7 +841,11 @@ const routes = async (fastify: FastifyInstance) => {
                 playId: body.play_id,
                 continueCount: 0
             })
-        })
+        }) } catch (error) {
+            if (!(error instanceof Error) || error.message !== "QUEST_OPERATIONS_CLOSED") throw error
+            reply.type("application/x-msgpack")
+            return reply.send({ data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {} })
+        }
 
         const headers = generateDataHeaders({
             viewer_id: viewerId
@@ -869,9 +895,11 @@ const routes = async (fastify: FastifyInstance) => {
         const rushEventData = getPlayerRushEventSync(playerId, eventId)
 
         if (isMode15RuntimeLoaded() && eventId === MODE15_RUSH_EVENT_ID) {
+            requireRushParticipation(eventId)
             await runPersistenceTransaction({
                 domain: "event", playerId, operation: "rush_reset_mode15",
             }, () => {
+                requireRushParticipation(eventId)
                 if (rushEventData !== null) repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData)
                 resetMode15RunSync(playerId)
             })
@@ -882,9 +910,11 @@ const routes = async (fastify: FastifyInstance) => {
             });
         }
 
+        requireRushParticipation(eventId)
         await runPersistenceTransaction({
             domain: "event", playerId, operation: "rush_reset",
         }, () => {
+            requireRushParticipation(eventId)
             if (rushEventData !== null) repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData)
             if (questType === ResetQuestType.FOLDER) {
                 if (classifyDeepAbyssFolderReset(eventId) === "restart_from_first") {
@@ -980,9 +1010,14 @@ const routes = async (fastify: FastifyInstance) => {
                 }
             }
         }
+        requireRushClaim(playerId, eventId, maxRound)
         const degreeIds = await runPersistenceTransaction({
             domain: "event", playerId, operation: "rush_reward",
-        }, () => grantEligibleRushEventDegreesSync(playerId, eventId, maxRound))
+        }, () => {
+            const currentRound = getPlayerRushEventSync(playerId, eventId)?.endlessBattleMaxRound ?? null
+            requireRushClaim(playerId, eventId, currentRound)
+            return grantEligibleRushEventDegreesSync(playerId, eventId, currentRound)
+        })
 
         routineGameLog("rush", () => `[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`)
 

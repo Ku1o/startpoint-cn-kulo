@@ -1,0 +1,17 @@
+.account-save-name-row { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.account-save-name-row .account-save-name-link { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-save-name-row .ant-btn { flex-shrink: 0; }
+.account-maintenance { margin-top: 16px; }
+.player-edit-hint { display: block; margin-bottom: 12px; }
+.player-detail-stack > .ant-space-item, .mail-manage-stack > .ant-space-item { min-width: 0; }
+.player-maintenance .ant-collapse-content-box { min-width: 0; }
+.mail-preview-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 575px) {
+    .account-action-row { gap: 4px; }
+    .account-maintenance .ant-btn { white-space: normal; height: auto; min-height: 32px; }
+    .mail-manage-stack .ant-radio-group:not(.admin-mail-type-group) { display: flex; flex-wrap: wrap; gap: 6px; }
+    .mail-manage-stack .admin-mail-type-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mail-manage-stack .ant-radio-button-wrapper { border: 1px solid var(--ant-color-border, #d9d9d9); border-radius: 6px; }
+    .mail-manage-stack .ant-radio-button-wrapper::before { display: none; }
+    .player-detail-stack .ant-descriptions-item-content, .mail-manage-stack .ant-descriptions-item-content { overflow-wrap: anywhere; }
+}

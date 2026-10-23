@@ -6,6 +6,7 @@ import {
     isMissionDefinitionEnabledAt,
     MISSION_CATEGORIES,
 } from "./master-data"
+import type { ContentAction } from "../content-operations-store"
 
 export interface PatternMatch {
     missionId: number
@@ -44,11 +45,12 @@ export function isMissionEnabledAt(
     category: number,
     missionId: number,
     at: Date,
-    eventId?: number
+    eventId?: number,
+    action: ContentAction = "enter",
 ): boolean {
     const definition = getMissionMasterDefinition(category, missionId)
     if (!definition) return false
-    return isMissionDefinitionEnabledAt(definition, at, eventId)
+    return isMissionDefinitionEnabledAt(definition, at, eventId, action)
 }
 
 export function isComputablePattern(pattern: string): boolean {

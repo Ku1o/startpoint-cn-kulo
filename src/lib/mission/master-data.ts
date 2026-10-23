@@ -8,6 +8,8 @@ import passDailyDefinitions from "../../../assets/mission_pass_daily.json"
 import passWeekDefinitions from "../../../assets/mission_pass_week.json"
 import passEventDefinitions from "../../../assets/mission_pass_event.json"
 import { characterAwakeDefinitions } from "./awake-master-assets"
+import { contentMissionDecision } from "../content-operations"
+import type { ContentAction } from "../content-operations-store"
 
 interface CategoryLayout {
     pattern: number
@@ -131,8 +133,12 @@ export function isMissionDefinitionEnabledAt(
     definition: MissionMasterDefinition,
     at: Date,
     eventId?: number,
+    action: ContentAction = "enter",
 ): boolean {
     if (definition.requiresEventScope && definition.eventId !== eventId) return false
+    if (!Number.isFinite(at.getTime())) return false
+    const controlled = contentMissionDecision(definition.category, definition.missionId, action)
+    if (controlled !== null) return controlled && (definition.eventId === undefined || eventId === undefined || definition.eventId === eventId)
 
     const now = at.getTime()
     // Only repository-owned immutable definitions are cached. Callers can also

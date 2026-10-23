@@ -37,10 +37,33 @@ export interface DefaultSaveMeta {
     rowCount?: number | null;
 }
 
+let cachedMeta: { identity: string; value: DefaultSaveMeta } | null = null;
+
+function templateIdentity(): string {
+    const stat = fs.statSync(FILE);
+    return [stat.dev, stat.ino, stat.size, stat.mtimeMs, stat.ctimeMs].join(":");
+}
+
+function snapshotMeta(t: DefaultSaveSnapshot | null): DefaultSaveMeta {
+    if (!t || t.schema !== "starpoint-cn-save" || t.version !== 2 || t.scope !== "player-archive") return { exists: false };
+    return {
+        exists: true,
+        playerName: t.summary?.playerName ?? t.data?.player?.name ?? null,
+        exportedAt: t.exportedAt ?? null,
+        sourcePlayerId: t.playerId ?? null,
+        version: t.version ?? null,
+        scope: t.scope ?? null,
+        includedTableCount: t.summary?.includedTableCount ?? null,
+        rowCount: t.summary?.rowCount ?? null,
+    };
+}
+
 export function saveDefaultSaveTemplate(snapshot: DefaultSaveSnapshot): void {
     const dir = path.dirname(FILE);
     if (!existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(FILE, JSON.stringify(snapshot), "utf-8");
+    cachedMeta = null;
+    try { cachedMeta = { identity: templateIdentity(), value: snapshotMeta(snapshot) }; } catch { /* Next read retries. */ }
 }
 
 export function loadDefaultSaveTemplate(): DefaultSaveSnapshot | null {
@@ -59,6 +82,7 @@ export function loadDefaultSaveTemplate(): DefaultSaveSnapshot | null {
 }
 
 export function clearDefaultSaveTemplate(): boolean {
+    cachedMeta = null;
     try {
         if (existsSync(FILE)) { fs.unlinkSync(FILE); return true; }
     } catch { /* ignore */ }
@@ -66,16 +90,14 @@ export function clearDefaultSaveTemplate(): boolean {
 }
 
 export function getDefaultSaveMeta(): DefaultSaveMeta {
-    const t = loadDefaultSaveTemplate();
-    if (!t) return { exists: false };
-    return {
-        exists: true,
-        playerName: t.summary?.playerName ?? t.data?.player?.name ?? null,
-        exportedAt: t.exportedAt ?? null,
-        sourcePlayerId: t.playerId ?? null,
-        version: t.version ?? null,
-        scope: t.scope ?? null,
-        includedTableCount: t.summary?.includedTableCount ?? null,
-        rowCount: t.summary?.rowCount ?? null,
-    };
+    try {
+        const identity = templateIdentity();
+        if (cachedMeta?.identity === identity) return { ...cachedMeta.value };
+        const value = snapshotMeta(loadDefaultSaveTemplate());
+        cachedMeta = { identity, value };
+        return { ...value };
+    } catch {
+        cachedMeta = null;
+        return { exists: false };
+    }
 }

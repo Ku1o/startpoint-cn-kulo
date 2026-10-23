@@ -454,10 +454,20 @@ if (replay) {
             })
 
             await t.test('receipt failure rolls back the entire reward chain and permits the same play retry', async () => {
+                const operations = compiled('lib/content-operations'), store = operations.contentOperations()
+                const member = `${EXPERT.category}:${EXPERT.questId}`
+                const key = operations.contentCatalog.questMap[member]
+                assert.equal(key, 'expert_single_event:1')
+                const action = { enabled: true, endsAtMs: null, readiness: 'verified', evidence: 'Isolated native Expert entry and daily-point rollback fixture' }
+                store.update(key, { expectedRevision: store.revision(), catalogDigest: store.digest,
+                    reason: 'Explicit reviewed Expert fixture; retain original point and finish rules',
+                    actionOverrides: { visible: action, enter: { ...action, questKeys: [member] } } }, Date.now())
+                assert.equal(operations.contentQuestDecision(EXPERT.category, EXPERT.questId), true)
                 const p = makePlayer()
-                assert.equal((await start(p, 'rollback', EXPERT)).statusCode, 200)
+                assert.equal(decode(await start(p, 'rollback', EXPERT)).data_headers.result_code, 1)
                 const before = snapshot(p.id)
                 const registered = structuredClone(single.activeQuests[p.id])
+                assert.equal(registered.playId, 'rollback', 'successful start must register the actual Expert play')
                 const pointBefore = db.prepare('SELECT point FROM daily_challenge_point_list_entries WHERE player_id = ? AND id = 1').get(p.id).point
                 assert.ok(pointBefore > 0, 'fixture must exercise daily point consumption')
                 // A durable trigger is seen by the writer's separate connection.

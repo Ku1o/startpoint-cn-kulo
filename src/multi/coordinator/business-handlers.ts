@@ -6,6 +6,10 @@ const parentEpoch = randomUUID()
 let revisionCounter = 0
 function positive(value: unknown): number { const n = Number(value); if (!Number.isSafeInteger(n) || n <= 0) throw new Error("INVALID_BUSINESS_ID"); return n }
 function json<T>(value: T): T { return JSON.parse(JSON.stringify(value)) }
+function contentReloadAllowed(viewerId: unknown): boolean {
+    // Called only in the business parent; the realtime owner remains DB-free.
+    return !require("../../lib/content-client-reload").contentClientReload().required(viewerId)
+}
 
 function readFacts(playerId: number, scope: PlayerFactsScope, viewerId = 0): PlayerBusinessFacts {
     const player = require("../../data/domains/player").getPlayerSync(playerId)
@@ -43,12 +47,22 @@ export async function handleRealtimeBusiness(kind: string, input: unknown): Prom
     if (isRealtimeOwnerChild()) throw new Error("REALTIME_BUSINESS_PARENT_ONLY")
     const payload = input as any
     switch (kind) {
+        case "contentReload.staleViewers": {
+            if (!Array.isArray(payload.viewerIds) || payload.viewerIds.length > 10_000) throw new Error("INVALID_RELOAD_VIEWERS")
+            if (!Array.isArray(payload.plays) || payload.plays.length > 10_000) throw new Error("INVALID_RELOAD_PLAYS")
+            return require("../../lib/persistence-coordinator").runPersistenceTransaction({ domain: "admin", operation: "protect_reload_tcp_plays" }, () => {
+                const store = require("../../lib/content-client-reload").contentClientReload()
+                store.protectActivePlays(payload.plays)
+                return [...new Set<number>(payload.viewerIds.map(positive))].filter(viewerId => store.required(viewerId))
+            })
+        }
         case "player.authorize": return require("../../lib/player-login").playerSocketAllowed(payload.viewerId, payload.session ?? undefined)
+            && contentReloadAllowed(payload.viewerId)
         case "player.handshake": {
             const viewerId = positive(payload.viewerId)
-            if (!require("../../lib/player-login").playerSocketAllowed(viewerId, payload.session ?? undefined)) return null
+            if (!require("../../lib/player-login").playerSocketAllowed(viewerId, payload.session ?? undefined) || !contentReloadAllowed(viewerId)) return null
             const context = await require("../player-context").resolveMultiPlayerContext(viewerId)
-            if (!require("../../lib/player-login").playerSocketAllowed(viewerId, payload.session ?? undefined)) return null
+            if (!require("../../lib/player-login").playerSocketAllowed(viewerId, payload.session ?? undefined) || !contentReloadAllowed(viewerId)) return null
             return context ? readFacts(context.playerId, payload, viewerId) : null
         }
         case "player.facts": return readFacts(positive(payload.playerId), payload)
@@ -70,9 +84,9 @@ export async function handleRealtimeBusiness(kind: string, input: unknown): Prom
             return json([mate1, mate2].filter(Boolean))
         }
         case "lounge.handshake": {
-            if (!require("../../lib/player-login").playerSocketAllowed(payload.viewerId, payload.session ?? undefined)) return null
+            if (!require("../../lib/player-login").playerSocketAllowed(payload.viewerId, payload.session ?? undefined) || !contentReloadAllowed(payload.viewerId)) return null
             const session = await require("../../data/domains/session").getSession(String(payload.viewerId))
-            if (!require("../../lib/player-login").playerSocketAllowed(payload.viewerId, payload.session ?? undefined)) return null
+            if (!require("../../lib/player-login").playerSocketAllowed(payload.viewerId, payload.session ?? undefined) || !contentReloadAllowed(payload.viewerId)) return null
             const playerId = session ? require("../../data/activeAccount").resolvePlayerIdSync(session.accountId) : null
             return playerId && require("../../lounge/eligibility").canParticipateInLounge(playerId, payload.campaignId) ? { playerId } : null
         }

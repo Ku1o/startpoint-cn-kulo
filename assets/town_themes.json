@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 1,
+  "themes": [
+    {
+      "id": "normal",
+      "name": "日常",
+      "description": "星见镇原本的日常景色，使用日常主题音乐。",
+      "nativeTownContentId": 1,
+      "nativeRow": [
+        "normal",
+        "0",
+        "",
+        "",
+        "",
+        "",
+        "town/background/normal/normal_background",
+        "town/background/normal/normal_background_blur",
+        "(None)",
+        "(None)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "bgm/common/worldflipper_town_quest"
+      ],
+      "resourceVersion": "1.4.258",
+      "originalPeriods": [],
+      "thumbnail": {
+        "file": "a2640e02c184d97607b7af7fd39b432b13bfab8a1a0b46a2d1fc34033aa07415.webp",
+        "sha256": "a2640e02c184d97607b7af7fd39b432b13bfab8a1a0b46a2d1fc34033aa07415",
+        "width": 420,
+        "height": 540
+      },
+      "resourceEvidence": {
+        "schemaVersion": 1,
+        "receiptFile": "town_theme_resource_receipt.json",
+        "receiptSha256": "9467cbdfdf5346e43f241cfd22f639ade8442e43b2625a02dff0573ebdc28a65"
+      }
+    },
+    {
+      "id": "christmas",
+      "name": "圣诞",
+      "description": "雪景与圣诞装饰，配有飘雪和圣诞主题音乐。",
+      "nativeTownContentId": 2,
+      "nativeRow": [
+        "xmas_snow",
+        "1",
+        "2019-12-16 12:00:00",
+        "2019-12-31 23:59:59",
+        "",
+        "",
+        "town/background/xmas/xmas_background",
+        "town/background/xmas/xmas_background_blur",
+        "town/background/xmas/xmas_mask",
+        "town/particle/snowfall",
+        "80",
+        "0",
+        "20",
+        "4",
+        "1",
+        "1",
+        "0",
+        "10",
+        "10",
+        "bgm/common/worldflipper_town_quest_christmas"
+      ],
+      "resourceVersion": "1.4.258",
+      "originalPeriods": [
+        {
+          "nativeTownContentId": 2,
+          "kind": "event",
+          "start": "2019-12-16 12:00:00",
+          "end": "2019-12-31 23:59:59"
+        },
+        {
+          "nativeTownContentId": 6,
+          "kind": "event",
+          "start": "2020-12-14 12:00:00",
+          "end": "2020-12-31 11:59:59"
+        },
+        {
+          "nativeTownContentId": 10,
+          "kind": "event",
+          "start": "2023-09-21 12:00:00",
+          "end": "2023-10-05 04:59:59"
+        },
+        {
+          "nativeTownContentId": 14,
+          "kind": "event",
+          "start": "2024-07-25 12:00:00",
+          "end": "2024-08-08 11:59:59"
+        },
+        {
+          "nativeTownContentId": 101,
+          "kind": "event",
+          "start": "2022-11-03 12:00:00",
+          "end": "2022-11-17 11:59:59"
+        }
+      ],
+      "thumbnail": {
+        "file": "af0bc8be1a8e126d3f8c5cd1e52bb2ba57f3c347da6e6f754551a2774f33fbdc.webp",
+        "sha256": "af0bc8be1a8e126d3f8c5cd1e52bb2ba57f3c347da6e6f754551a2774f33fbdc",
+        "width": 420,
+        "height": 540
+      },
+      "resourceEvidence": {
+        "schemaVersion": 1,
+        "receiptFile": "town_theme_resource_receipt.json",
+        "receiptSha256": "9467cbdfdf5346e43f241cfd22f639ade8442e43b2625a02dff0573ebdc28a65"
+      }
+    },
+    {
+      "id": "new_year",
+      "name": "新年",
+      "description": "新年装饰的星见镇，使用新年主题音乐。",
+      "nativeTownContentId": 3,
+      "nativeRow": [
+        "ny2020",
+        "1",
+        "2020-01-01 00:00:00",
+        "2020-01-15 12:00:00",
+        "",
+        "",
+        "town/background/ny2020/town_newyear2020_background",
+        "town/background/ny2020/town_newyear2020_background_blur",
+        "(None)",
+        "(None)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "bgm/common/worldflipper_town_quest_new_year"
+      ],
+      "resourceVersion": "1.4.258",
+      "originalPeriods": [
+        {
+          "nativeTownContentId": 3,
+          "kind": "event",
+          "start": "2020-01-01 00:00:00",
+          "end": "2020-01-15 12:00:00"
+        },
+        {
+          "nativeTownContentId": 7,
+          "kind": "event",
+          "start": "2021-01-01 00:00:00",
+          "end": "2021-01-08 12:00:00"
+        },
+        {
+          "nativeTownContentId": 11,
+          "kind": "event",
+          "start": "2023-10-05 12:00:00",
+          "end": "2023-10-19 04:59:59"
+        },
+        {
+          "nativeTownContentId": 15,
+          "kind": "event",
+          "start": "2024-08-15 12:00:00",
+          "end": "2024-08-29 11:59:59"
+        },
+        {
+          "nativeTownContentId": 102,
+          "kind": "event",
+          "start": "2098-11-17 12:00:00",
+          "end": "2098-12-01 11:59:59"
+        }
+      ],
+      "thumbnail": {
+        "file": "064ba1263404396a13272f4764d7000065e179992b6f69e4bfeebcda93dec626.webp",
+        "sha256": "064ba1263404396a13272f4764d7000065e179992b6f69e4bfeebcda93dec626",
+        "width": 420,
+        "height": 540
+      },
+      "resourceEvidence": {
+        "schemaVersion": 1,
+        "receiptFile": "town_theme_resource_receipt.json",
+        "receiptSha256": "9467cbdfdf5346e43f241cfd22f639ade8442e43b2625a02dff0573ebdc28a65"
+      }
+    },
+    {
+      "id": "spring",
+      "name": "春樱",
+      "description": "春日樱花布景，配有飘落的花瓣和春季主题音乐。",
+      "nativeTownContentId": 4,
+      "nativeRow": [
+        "sp2020",
+        "1",
+        "2020-03-31 12:00:00",
+        "2020-04-06 11:59:59",
+        "",
+        "",
+        "town/background/sp2020/background",
+        "town/background/sp2020/background_blur",
+        "town/background/sp2020/background_mask",
+        "town/particle/cherry_blossom_petals",
+        "68",
+        "0",
+        "20",
+        "4",
+        "1",
+        "1",
+        "0",
+        "10",
+        "10",
+        "bgm/common/worldflipper_town_quest_spring"
+      ],
+      "resourceVersion": "1.4.258",
+      "originalPeriods": [
+        {
+          "nativeTownContentId": 4,
+          "kind": "event",
+          "start": "2020-03-31 12:00:00",
+          "end": "2020-04-06 11:59:59"
+        },
+        {
+          "nativeTownContentId": 8,
+          "kind": "event",
+          "start": "2021-03-23 12:00:00",
+          "end": "2021-04-06 11:59:59"
+        },
+        {
+          "nativeTownContentId": 12,
+          "kind": "event",
+          "start": "2099-03-31 12:00:00",
+          "end": "2099-04-15 04:59:59"
+        }
+      ],
+      "thumbnail": {
+        "file": "029e8755a9851d416660ecdb9a04819f5fb959c2ece8a81823d4e846e876b139.webp",
+        "sha256": "029e8755a9851d416660ecdb9a04819f5fb959c2ece8a81823d4e846e876b139",
+        "width": 420,
+        "height": 540
+      },
+      "resourceEvidence": {
+        "schemaVersion": 1,
+        "receiptFile": "town_theme_resource_receipt.json",
+        "receiptSha256": "9467cbdfdf5346e43f241cfd22f639ade8442e43b2625a02dff0573ebdc28a65"
+      }
+    },
+    {
+      "id": "anniversary",
+      "name": "周年",
+      "description": "庆典夜景，配有烟花和周年主题音乐。",
+      "nativeTownContentId": 5,
+      "nativeRow": [
+        "anv1",
+        "1",
+        "2020-10-31 12:00:00",
+        "2020-12-10 11:59:59",
+        "",
+        "",
+        "town/background/anv1/background",
+        "town/background/anv1/background_blur",
+        "town/background/anv1/background_mask",
+        "town/particle/firework",
+        "1",
+        "0",
+        "0",
+        "1",
+        "0.5",
+        "1",
+        "1",
+        "120",
+        "120",
+        "bgm/common/worldflipper_town_quest_anniversary_melody"
+      ],
+      "resourceVersion": "1.4.258",
+      "originalPeriods": [
+        {
+          "nativeTownContentId": 5,
+          "kind": "event",
+          "start": "2020-10-31 12:00:00",
+          "end": "2020-12-10 11:59:59"
+        },
+        {
+          "nativeTownContentId": 9,
+          "kind": "event",
+          "start": "2023-08-31 12:00:00",
+          "end": "2023-09-21 04:59:59"
+        },
+        {
+          "nativeTownContentId": 13,
+          "kind": "event",
+          "start": "2024-07-11 12:00:00",
+          "end": "2024-07-25 11:59:59"
+        },
+        {
+          "nativeTownContentId": 100,
+          "kind": "event",
+          "start": "2022-10-13 12:00:00",
+          "end": "2022-11-03 11:59:59"
+        }
+      ],
+      "thumbnail": {
+        "file": "86c5bce91d2a8c3896afc43e66e827b555993bf001b693c34c386820d15bfca5.webp",
+        "sha256": "86c5bce91d2a8c3896afc43e66e827b555993bf001b693c34c386820d15bfca5",
+        "width": 420,
+        "height": 540
+      },
+      "resourceEvidence": {
+        "schemaVersion": 1,
+        "receiptFile": "town_theme_resource_receipt.json",
+        "receiptSha256": "9467cbdfdf5346e43f241cfd22f639ade8442e43b2625a02dff0573ebdc28a65"
+      }
+    }
+  ]
+}

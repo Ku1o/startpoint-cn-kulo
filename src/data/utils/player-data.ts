@@ -10,6 +10,7 @@ import { getPlayerDailyChallengePointListSync, getPlayerSync, updatePlayerSync }
 import { getPlayerDrawnQuestsSync, getPlayerQuestProgressSync } from "../domains/quest"
 import { getPlayerEquipmentListSync } from "../domains/equipment"
 import { getPlayerGachaCampaignListSync, getPlayerGachaInfoListSync } from "../domains/gacha"
+import { getCrazyGachaRecoverySync } from "../domains/crazy_gacha"
 import { getPlayerItemsSync } from "../domains/item"
 import { getPlayerMailCountSync } from "../domains/mail"
 import { getPlayerMultiSpecialExchangeCampaignsSync, getPlayerPeriodicRewardPointsSync, getPlayerStartDashExchangeCampaignsSync } from "../domains/campaign"
@@ -219,6 +220,7 @@ export function prepareClientSerializedData(
         equipmentList: preloadedEquipmentList ?? getPlayerEquipmentListSync(playerId),
         questProgress: playerQuestProgress,
         gachaInfoList: getPlayerGachaInfoListSync(playerId),
+        crazyGachaRecovery: getCrazyGachaRecoverySync(playerId),
         gachaCampaignList: getPlayerGachaCampaignListSync(playerId),
         drawnQuestList: getPlayerDrawnQuestsSync(playerId),
         periodicRewardPointList: getPlayerPeriodicRewardPointsSync(playerId),
@@ -265,6 +267,7 @@ export function getMergedPlayerDataSync(
         equipmentList: getPlayerEquipmentListSync(playerId),
         questProgress: getPlayerQuestProgressSync(playerId),
         gachaInfoList: getPlayerGachaInfoListSync(playerId),
+        crazyGachaRecovery: getCrazyGachaRecoverySync(playerId),
         gachaCampaignList: getPlayerGachaCampaignListSync(playerId),
         drawnQuestList: getPlayerDrawnQuestsSync(playerId),
         periodicRewardPointList: getPlayerPeriodicRewardPointsSync(playerId),

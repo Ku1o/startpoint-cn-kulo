@@ -49,16 +49,15 @@ const CATALOG: PlayerHistoryCatalog = Object.freeze({
     topics: Object.freeze(AGGREGATION_TARGETS.map((aggregationTarget, offset) => Object.freeze({
         index: offset + 1,
         aggregationTarget,
-        // The client's own dummy implementation initially displays the six
-        // basic history rows and keeps optional/event rows hidden.
-        toggleDefault: offset < 6,
+        // Match the native topic master. Persisted per-topic choices still win.
+        toggleDefault: true,
     }))),
 })
 
-export function getPlayerHistoryCatalog(nowMs: number): PlayerHistoryCatalog | null {
+export function getPlayerHistoryCatalog(nowMs: number, playerHistoryId: unknown = 1): PlayerHistoryCatalog | null {
     if (!Number.isFinite(nowMs)
         || nowMs < PLAYER_HISTORY_START_MS
-        || nowMs > PLAYER_HISTORY_END_MS) return null
+        || playerHistoryId !== CATALOG.playerHistoryId) return null
     return CATALOG
 }
 

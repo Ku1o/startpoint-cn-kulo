@@ -5,6 +5,7 @@ import {
     getActiveMissionMasterDefinitions,
 } from "./active-master-data"
 import { getMissionRewardStageDefinition } from "./rewards"
+import { contentMissionDecision } from "../content-operations"
 
 // CN keeps the upstream JST symbol name but initializes its offset to UTC+8.
 const CN_MASTER_OFFSET_MILLISECONDS = 8 * 60 * 60 * 1000
@@ -402,6 +403,8 @@ function isActiveMissionUsable(
         const event = getParsedActiveMissionEventDefinition(mission.eventId, context.repository)
         if (!event) return false
         const now = context.now instanceof Date ? context.now.getTime() : context.now
+        const controlled = contentMissionDecision(0, missionId, period === "enable" ? "enter" : "claim")
+        if (controlled === false) return false
         const missionStartTime = period === "enable"
             ? mission.enableStartTime
             : mission.showStartTime
@@ -409,11 +412,11 @@ function isActiveMissionUsable(
             ? mission.enableEndTime
             : mission.showEndTime
         if (!Number.isFinite(now)
-            || now < event.startTime
-            || (event.endTime !== undefined && now > event.endTime)
+            || (controlled !== true && now < event.startTime)
+            || (controlled !== true && event.endTime !== undefined && now > event.endTime)
             || !isQuestFinished(context.questProgress, event.needQuestMultipliedId)
-            || (missionStartTime !== undefined && now < missionStartTime)
-            || (missionEndTime !== undefined && now > missionEndTime)
+            || (controlled !== true && missionStartTime !== undefined && now < missionStartTime)
+            || (controlled !== true && missionEndTime !== undefined && now > missionEndTime)
             || (mission.phase !== undefined && mission.phase > getActiveMissionEventReleasePhase(
                 mission.eventId,
                 context.activeMissions,

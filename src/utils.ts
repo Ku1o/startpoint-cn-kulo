@@ -3,7 +3,58 @@ import { FastifyRequest } from "fastify"
 import { AsyncLocalStorage } from "node:async_hooks"
 
 // The server's current time offset (real time + offset = simulated time)
-let timeOffset: number | null = null;  // milliseconds, null = use system time
+let timeOffset: number | null = null;  // business clock; milliseconds, null = use system time
+export interface ServerClockSnapshot {
+    readonly version: 1
+    readonly mode: "legacy" | "real"
+    readonly businessOffsetMs: number | null
+    readonly legacyBattleOffsetMs: number | null
+    readonly cutoverRealMs: number | null
+    readonly dayAnchorMs: number | null
+    readonly weekAnchorMs: number | null
+    readonly revision: number
+}
+let clockSnapshot: Readonly<ServerClockSnapshot> = Object.freeze({ version: 1, mode: "legacy",
+    businessOffsetMs: null, legacyBattleOffsetMs: null, cutoverRealMs: null, dayAnchorMs: null, weekAnchorMs: null, revision: 0 })
+const clockSnapshotListeners = new Set<(snapshot: Readonly<ServerClockSnapshot>) => void>()
+
+/** Strictly validate the complete coordinate before changing any process state. */
+export function validateServerClockSnapshot(value: unknown): asserts value is ServerClockSnapshot {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid server clock snapshot")
+    const clock = value as ServerClockSnapshot
+    const keys = ["version", "mode", "businessOffsetMs", "legacyBattleOffsetMs", "cutoverRealMs", "dayAnchorMs", "weekAnchorMs", "revision"]
+    if (Object.keys(value).length !== keys.length || keys.some(key => !Object.prototype.hasOwnProperty.call(value, key))) throw new Error("Invalid server clock snapshot schema")
+    if (clock.version !== 1 || !["legacy", "real"].includes(clock.mode) || !Number.isSafeInteger(clock.revision) || clock.revision < 0) throw new Error("Unsupported server clock snapshot")
+    for (const offset of [clock.businessOffsetMs, clock.legacyBattleOffsetMs]) {
+        if (offset !== null && !Number.isSafeInteger(offset)) throw new Error("Invalid server clock offset")
+    }
+    const anchors = [clock.cutoverRealMs, clock.dayAnchorMs, clock.weekAnchorMs]
+    if (clock.mode === "legacy") {
+        if (clock.businessOffsetMs !== clock.legacyBattleOffsetMs || anchors.some(anchor => anchor !== null)) throw new Error("Invalid legacy server clock")
+    } else {
+        if (clock.businessOffsetMs !== 0 || clock.revision < 1 || anchors.some(anchor => typeof anchor !== "number"
+            || !Number.isSafeInteger(anchor) || anchor < 0 || !Number.isFinite(new Date(anchor).getTime()))) throw new Error("Invalid real server clock")
+        if (clock.dayAnchorMs! < clock.cutoverRealMs! || clock.weekAnchorMs! < clock.cutoverRealMs!) throw new Error("Invalid server clock anchors")
+    }
+}
+export function getServerClockSnapshot(): Readonly<ServerClockSnapshot> { return clockSnapshot }
+export function getConfiguredBusinessTimeOffset(): number | null { return timeOffset }
+export function onServerClockSnapshotChanged(listener: (snapshot: Readonly<ServerClockSnapshot>) => void): () => void {
+    clockSnapshotListeners.add(listener)
+    return () => { clockSnapshotListeners.delete(listener) }
+}
+/** Startup/worker synchronization only; database activation commits before calling this. */
+export function installServerClockSnapshot(snapshot: ServerClockSnapshot): void {
+    validateServerClockSnapshot(snapshot)
+    const equal = (Object.keys(clockSnapshot) as Array<keyof ServerClockSnapshot>).every(key => clockSnapshot[key] === snapshot[key])
+    if (clockSnapshot.mode === "real" && !equal) throw new Error("Persisted real clock is immutable")
+    // Persisted real and transient legacy revisions are different epochs.
+    if (snapshot.mode === clockSnapshot.mode && snapshot.revision < clockSnapshot.revision) throw new Error("Stale server clock revision")
+    if (snapshot.mode === clockSnapshot.mode && snapshot.revision === clockSnapshot.revision && !equal) throw new Error("Server clock revision conflict")
+    clockSnapshot = Object.freeze({ ...snapshot })
+    timeOffset = snapshot.businessOffsetMs
+    publishTimeOffset()
+}
 console.log(`[TIME] startup offset=${timeOffset ?? 'null(system)'}`);
 
 /**
@@ -32,7 +83,7 @@ export function withCurrentServerClock<T>(callback: () => T): T {
 }
 
 /** The configured legacy offset, unaffected by an individual player's context. */
-export function getLegacyTimeOffset(): number | null { return timeOffset }
+export function getLegacyTimeOffset(): number | null { return clockSnapshot.legacyBattleOffsetMs }
 
 /** Real time captured at the same execution boundary as the business clock. */
 export function getRealServerDate(): Date {
@@ -52,6 +103,11 @@ function publishTimeOffset(): void {
             listener(timeOffset)
         } catch (error) {
             console.error("[TIME] offset listener failed", error instanceof Error ? error.message : String(error))
+        }
+    }
+    for (const listener of clockSnapshotListeners) {
+        try { listener(clockSnapshot) } catch (error) {
+            console.error("[TIME] snapshot listener failed", error instanceof Error ? error.message : String(error))
         }
     }
 }
@@ -93,18 +149,18 @@ export function realToVirtual(date: Date): number {
  * Set to null to reset to system time.
  */
 export function setServerTime(date: Date | null) {
-    timeOffset = date ? date.getTime() - Date.now() : null;
+    setServerTimeOffset(date ? date.getTime() - Date.now() : null);
     console.log(`[TIME] setServerTime → ${date?.toISOString() || 'null(system)'} offset=${timeOffset}`);
-    publishTimeOffset();
 }
 
 /**
  * Sets the time offset directly (used on startup restore).
  */
 export function setServerTimeOffset(offset: number | null) {
-    timeOffset = offset;
+    if (clockSnapshot.mode === "real") throw new Error("Persisted real clock rejects virtual-time reset")
+    installServerClockSnapshot({ version: 1, mode: "legacy", businessOffsetMs: offset, legacyBattleOffsetMs: offset,
+        cutoverRealMs: null, dayAnchorMs: null, weekAnchorMs: null, revision: clockSnapshot.revision + 1 })
     console.log(`[TIME] startup restore offset=${offset ?? 'null(system)'}`);
-    publishTimeOffset();
 }
 
 /**
