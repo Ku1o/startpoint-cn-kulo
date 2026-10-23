@@ -17,6 +17,8 @@ import starCrumbExchangeCost from "../../../assets/star_crumb_exchange_cost.json
 import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { isStarCrumbExchangeAvailable } from "../../lib/star-crumb-exchange-rules";
+import { exchangeBondTokenWithinTransactionSync, listBondTokenExchangesSync } from "../../lib/bond-token-exchange";
+import { SessionType } from "../../data/types";
 
 interface ExchangeBody {
     viewer_id: number;
@@ -25,6 +27,26 @@ interface ExchangeBody {
 }
 
 const routes = async (fastify: FastifyInstance) => {
+    for (const url of ["/get_bond_token_exchange_list", "/bond_token"]) {
+        fastify.post(url, async (request, reply) => {
+            const body = request.body as { viewer_id?: number; equipment_id?: number } | null;
+            if (!body || !Number.isSafeInteger(body.viewer_id) || Number(body.viewer_id) < 1
+                || (url === "/bond_token" && (!Number.isSafeInteger(body.equipment_id) || Number(body.equipment_id) < 1)))
+                return reply.code(400).send({ error: "Invalid bond-token exchange request." });
+            const session = await getSession(String(body.viewer_id));
+            if (!session || session.type !== SessionType.VIEWER) return reply.code(400).send({ error: "Invalid viewer id." });
+            const playerId = resolvePlayerIdSync(session.accountId);
+            if (playerId === null || !getPlayerSync(playerId)) return reply.code(400).send({ error: "No active player." });
+            const result = url === "/get_bond_token_exchange_list"
+                ? { data: listBondTokenExchangesSync(playerId) }
+                : await runPersistenceTransaction({ domain: "player", playerId, operation: "bond_token_exchange" },
+                    () => exchangeBondTokenWithinTransactionSync(playerId, body.equipment_id!));
+            if ("error" in result) return reply.code(400).send({ error: result.error });
+            return reply.header("content-type", "application/x-msgpack").send({
+                data_headers: generateDataHeaders({ viewer_id: body.viewer_id }), data: result.data,
+            });
+        });
+    }
     fastify.post("/star_crumb", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as ExchangeBody;
 

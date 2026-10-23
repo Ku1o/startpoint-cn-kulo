@@ -7,8 +7,10 @@ import { getPlayerDegreeIdsSync } from "../../data/domains/degree";
 import { getShopItemSync } from "../../lib/assets";
 import { ShopItemRewardType, DegreeShopItemReward } from "../../lib/types";
 import { getHowToGetSources } from "../../lib/how-to-get-sources";
-import { isShopItemAvailable } from "../../lib/shop-sales";
+import { getShopPurchaseKey, isShopItemAvailable } from "../../lib/shop-sales";
 import { buildPlayerShopSalesEntrySync } from "../../lib/shop-quota";
+import { isShopItemInSelectedLineupSync } from "../../lib/shop-campaign-lineup";
+import { bondTokenEquipmentForShopItem, getBondTokenExchangeCountSync } from "../../lib/bond-token-exchange";
 import { shopContentDecision } from "../../lib/content-economy-operations";
 
 interface GetListBody {
@@ -55,6 +57,12 @@ const routes = async (fastify: FastifyInstance) => {
             const item = getShopItemSync(source.shopType, source.shopItemId);
             if (!item || !(shopContentDecision(source.shopType, source.shopItemId, "visible", Date.now())
                 ?? isShopItemAvailable(item, now))) continue;
+            if (!isShopItemInSelectedLineupSync(playerId, source.shopType, source.shopItemId)) continue;
+            const bondEquipment = bondTokenEquipmentForShopItem(source.shopType, source.shopItemId);
+            if (bondEquipment !== null) {
+                const key = getShopPurchaseKey(source.shopType, source.shopItemId);
+                purchases[key] = Math.max(purchases[key] ?? 0, getBondTokenExchangeCountSync(playerId, bondEquipment));
+            }
             const degreeIds = item.rewards.filter(r => r.type === ShopItemRewardType.DEGREE)
                 .map(r => (r as DegreeShopItemReward).id);
             if (degreeIds.length && !ownedDegrees) ownedDegrees = new Set(getPlayerDegreeIdsSync(playerId));
