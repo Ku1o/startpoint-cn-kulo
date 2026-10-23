@@ -27,7 +27,14 @@ function response(result) { assert.equal(result.statusCode, 200, result.body); r
 function control(key, enabled, questKey) {
     const store = operations.contentOperations(), review = { readiness: 'verified', evidence: 'Original native definition and synthetic HTTP player', endsAtMs: null }
     store.update(key, { expectedRevision: store.revision(), catalogDigest: store.digest, reason: 'Synthetic original historical lifecycle',
-        actionOverrides: { visible: { ...review, enabled: true }, enter: { ...review, enabled, questKeys: [questKey] } } }, Date.now())
+        actionOverrides: { visible: { ...review, enabled: true }, enter: { ...review, enabled, questKeys: [questKey] },
+            ...(key === 'raid_event:1' ? { exchange: { ...review, enabled } } : {}) } }, Date.now())
+    // Raid1 entrance is jointly gated by its box. Publish the actual paired
+    // lifecycle in this synthetic fixture, rather than weakening production.
+    if (key === 'raid_event:1' && enabled) store.update('box_gacha:16', {
+        expectedRevision: store.revision(), catalogDigest: store.digest, reason: 'Synthetic Raid1 paired box lifecycle',
+        actionOverrides: { visible: { ...review, enabled: true }, enter: { ...review, enabled: true } },
+    }, Date.now())
 }
 function state(player) {
     return { portable: load('data/snapshots/player-snapshot').createPlayerSaveSnapshotV2Sync(player.id, db).data.tables,
