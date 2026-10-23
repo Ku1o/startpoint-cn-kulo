@@ -1,15 +1,20 @@
 // Keep log I/O outside the game process. Buckets use real time, not the game clock.
 const fs = require('node:fs')
 const path = require('node:path')
+const net = require('node:net')
+const os = require('node:os')
 const { spawn } = require('node:child_process')
 const { Writable } = require('node:stream')
 const { pipeline, finished } = require('node:stream/promises')
 const { StringDecoder } = require('node:string_decoder')
+const { randomUUID } = require('node:crypto')
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
 const LOG_SYNC_INTERVAL_MS = 100
 const PARTIAL_LINE_FLUSH_MS = 100
 const MAX_LINE_CHARS = 64 * 1024
+const STOP_REQUEST_MAX_AGE_MS = 30_000
+const GRACEFUL_STOP_WAIT_MS = 180_000
 
 function logBucket(timeMs, debug = false) {
     const start = Math.floor(timeMs / FOUR_HOURS_MS) * FOUR_HOURS_MS
@@ -289,20 +294,119 @@ function saveReceipt(file, receipt, onlyIfOwned = false) {
     }
 }
 
+function validStopRequest(request, receipt, now = Date.now()) {
+    const requestedAt = typeof request?.requestedAt === 'string' ? Date.parse(request.requestedAt) : NaN
+    return request?.version === 1 && request.pid === receipt.pid && request.loggerPid === receipt.loggerPid
+        && request.startedAt === receipt.startedAt && request.stopToken === receipt.stopToken
+        && Number.isFinite(requestedAt) && requestedAt >= Date.parse(receipt.startedAt)
+        && requestedAt <= now + 5_000 && now - requestedAt <= STOP_REQUEST_MAX_AGE_MS
+}
+
+async function listenForStopRequests(receiptPath, receipt, getChild, waitMs = GRACEFUL_STOP_WAIT_MS) {
+    let consumed = false, deadline, closed = false
+    const sockets = new Set(), pending = new Set()
+    const update = state => {
+        receipt.gracefulStop = { ...receipt.gracefulStop, ...state }
+        saveReceipt(receiptPath, receipt, true)
+    }
+    async function consume(request) {
+        let sending = false
+        try {
+            const child = getChild()
+            const current = JSON.parse(fs.readFileSync(receiptPath, 'utf8'))
+            if (consumed || !validStopRequest(request, receipt)
+                || current.pid !== receipt.pid || current.loggerPid !== receipt.loggerPid || current.startedAt !== receipt.startedAt
+                || current.stopToken !== receipt.stopToken || current.stopPipe !== receipt.stopPipe)
+                throw new Error('Foreign, expired or already consumed stop request')
+            if (!child?.connected || child.exitCode !== null || child.signalCode !== null) throw new Error('Server IPC is unavailable')
+            consumed = true
+            sending = true
+            update({ state: 'ipc-sent', requestedAt: request.requestedAt, acceptedAt: new Date().toISOString() })
+            await new Promise((resolve, reject) => child.send({ type: 'starpoint:shutdown' }, error => error ? reject(error) : resolve()))
+            deadline = setTimeout(() => {
+                if (child.exitCode === null && child.signalCode === null) {
+                    try { update({ state: 'timed-out', timedOutAt: new Date().toISOString() }) }
+                    catch (error) { console.error('[LOG-CAPTURE] stop receipt:', error.message) }
+                    console.error('[LOG-CAPTURE] Graceful stop timed out; server was not force-killed.')
+                }
+            }, waitMs)
+            deadline.unref()
+            return { accepted: true }
+        } catch (error) {
+            if (sending) update({ state: 'ipc-failed', ipcError: error.message })
+            receipt.stopRequestRejection = { at: new Date().toISOString(), reason: error.message }
+            saveReceipt(receiptPath, receipt, true)
+            console.error('[LOG-CAPTURE] Stop request rejected:', error.message)
+            return { accepted: false, error: error.message }
+        }
+    }
+    // Local IPC wakes only when a client connects; no periodic file checks.
+    const server = net.createServer(socket => {
+        sockets.add(socket)
+        socket.on('close', () => sockets.delete(socket))
+        socket.on('error', () => socket.destroy())
+        socket.setTimeout(5_000, () => socket.destroy())
+        let data = '', bytes = 0, handled = false
+        socket.setEncoding('utf8')
+        socket.on('data', chunk => {
+            if (handled) return
+            bytes += Buffer.byteLength(chunk)
+            if (bytes > 16_384) { handled = true; socket.destroy(); return }
+            data += chunk
+            const newline = data.indexOf('\n')
+            if (newline < 0) return
+            handled = true
+            const task = (async () => {
+                let response
+                try { response = await consume(JSON.parse(data.slice(0, newline))) }
+                catch { response = { accepted: false, error: 'Invalid stop request' } }
+                if (!socket.destroyed) await new Promise(resolve => socket.end(JSON.stringify(response) + '\n', resolve))
+            })()
+            pending.add(task)
+            task.finally(() => pending.delete(task))
+        })
+    })
+    await new Promise((resolve, reject) => {
+        server.once('error', reject)
+        server.listen(receipt.stopPipe, () => { server.removeListener('error', reject); resolve() })
+    })
+    server.on('error', error => console.error('[LOG-CAPTURE] stop pipe:', error.message))
+    return async () => {
+        if (closed) return
+        closed = true
+        await Promise.all(pending)
+        clearTimeout(deadline)
+        for (const socket of sockets) socket.destroy()
+        await new Promise(resolve => server.close(resolve))
+    }
+}
+
 async function runLoggedServer({
     root = path.resolve(__dirname, '..'),
     directory = path.join(root, '.logs'),
-    args = ['out/cn-server.js'],
+    args = [path.join(root, 'out/cn-server.js')],
     retentionDays = 30,
     debug = false,
     consoleOutput = false,
+    gracefulStopWaitMs = GRACEFUL_STOP_WAIT_MS,
 } = {}) {
+    root = fs.realpathSync(root)
     directory = path.resolve(directory)
     const receiptPath = path.join(directory, `cn-server-${debug ? 'debug-' : ''}current.json`)
     const receipt = {
         pid: null,
         loggerPid: process.pid,
         startedAt: null,
+        loggerStartedAt: new Date(Date.now() - process.uptime() * 1000).toISOString(),
+        projectRoot: root,
+        executable: process.execPath,
+        loggerEntry: __filename,
+        serverEntry: args[0]?.startsWith('-') ? null : path.resolve(root, args[0]),
+        httpPort: Number(process.env.CN_LISTEN_PORT || 8001),
+        stopToken: randomUUID(),
+        stopPipe: process.platform === 'win32'
+            ? `\\\\.\\pipe\\starpoint-cn-stop-${process.pid}-${randomUUID()}`
+            : path.join(os.tmpdir(), `sp-cn-${process.pid}-${randomUUID()}.sock`),
         timezone: 'UTC+08:00',
         intervalHours: 4,
         retentionDays,
@@ -323,6 +427,7 @@ async function runLoggedServer({
         },
     })
     let child
+    let stopWatching = async () => {}
     let forcedStop
     let failure
     function stop(signal = 'SIGTERM') {
@@ -345,11 +450,13 @@ async function runLoggedServer({
     process.on('SIGTERM', terminate)
     try {
         await writer.rotate(Date.now())
+        // Fail before starting the game if its local stop channel cannot be opened.
+        stopWatching = await listenForStopRequests(receiptPath, receipt, () => child, gracefulStopWaitMs)
         receipt.startedAt = new Date().toISOString()
         child = spawn(process.execPath, args, {
             cwd: root,
             windowsHide: true,
-            stdio: ['ignore', 'pipe', 'pipe'],
+            stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
         })
         const closed = new Promise(resolve => {
             child.on('error', fail)
@@ -366,6 +473,7 @@ async function runLoggedServer({
         const stdout = capture(child.stdout, 'stdout', consoleOutput ? process.stdout : null)
         const stderr = capture(child.stderr, 'stderr', consoleOutput ? process.stderr : null)
         const result = await closed
+        await stopWatching()
         await Promise.all([stdout, stderr])
         if (!writer.destroyed) {
             await new Promise((resolve, reject) =>
@@ -375,12 +483,15 @@ async function runLoggedServer({
             exitedAt: new Date().toISOString(),
             exitCode: failure ? 1 : result.code,
             signal: result.signal,
+            ...(receipt.gracefulStop ? { gracefulStop: { ...receipt.gracefulStop, state: 'exited',
+                completedAt: new Date().toISOString(), clean: !failure && !receipt.gracefulStop.ipcError && result.code === 0 && result.signal === null } } : {}),
             ...(failure ? { error: failure.message } : {}),
         })
         saveReceipt(receiptPath, receipt, true)
         if (failure) throw failure
         return result.code ?? (result.signal === 'SIGINT' ? 130 : 143)
     } finally {
+        await stopWatching()
         if (forcedStop) clearTimeout(forcedStop)
         process.removeListener('SIGINT', interrupt)
         process.removeListener('SIGTERM', terminate)
@@ -396,6 +507,7 @@ if (require.main === module) {
         for (let i = 0; i < argv.length; i++) {
             if (argv[i] === '--') { options.args = argv.slice(i + 1); break }
             if (argv[i] === '--retention-days') options.retentionDays = Number(argv[++i])
+            else if (argv[i] === '--root') options.root = path.resolve(argv[++i])
             else if (argv[i] === '--debug') options.debug = true
             else if (argv[i] === '--console') options.consoleOutput = true
             else throw new Error(`Unknown argument: ${argv[i]}`)
@@ -413,4 +525,5 @@ if (require.main === module) {
 module.exports = {
     FOUR_HOURS_MS, LOG_SYNC_INTERVAL_MS, PARTIAL_LINE_FLUSH_MS,
     logBucket, RotatingLogWriter, logChannel, runLoggedServer,
+    validStopRequest, STOP_REQUEST_MAX_AGE_MS, GRACEFUL_STOP_WAIT_MS,
 }
