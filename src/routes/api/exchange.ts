@@ -16,6 +16,7 @@ import starCrumbExchange from "../../../assets/star_crumb_exchange.json";
 import starCrumbExchangeCost from "../../../assets/star_crumb_exchange_cost.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { isStarCrumbExchangeAvailable } from "../../lib/star-crumb-exchange-rules";
 
 interface ExchangeBody {
     viewer_id: number;
@@ -81,6 +82,9 @@ const routes = async (fastify: FastifyInstance) => {
         }, () => {
             const current = getPlayerSync(playerId);
             if (!current) throw new Error("Player not found.");
+            if (!isStarCrumbExchangeAvailable(exchangeId, Date.now())) {
+                return { error: "Exchange item is not currently available." };
+            }
             if (current.starCrumb < cost) return { error: "Not enough star_crumb." };
             if (kind === 0 && playerOwnsCharacterSync(playerId, targetId)) {
                 return { error: "Character already owned." };

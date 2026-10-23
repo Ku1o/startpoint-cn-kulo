@@ -17,12 +17,16 @@ import { join } from "path";
 import { readJsonWithBackupSync, writeJsonAtomicSync } from "./atomic-json-file";
 import { SeedPersistence } from "./seed-persistence";
 import { SeedFeedbackGuard, SeedFeedbackGuardOptions, PublicSeedFeedback } from "./seed-feedback-guard";
+import type { SeedCatalog } from "./seed-file-count-cache";
 
 const ASSETS_DIR = join(__dirname, "..", "..", "assets");
 const GACHA_VERBOSE_LOGS = /^(1|true|yes)$/i.test(process.env.GACHA_VERBOSE_LOGS ?? "");
 
 export type PoolMode = 'natural' | 'play' | 'test';
 export type SeedTag = '未测试' | '热血躲避球' | '普通躲避球' | '冷血躲避球';
+export type SeedAdminListKind = "play" | "verified";
+export type SeedAdminColumn = "r3" | "r4" | "r4b" | "r5" | "r5b";
+export interface SeedAdminRow { seed: number; rarity: number; tag?: SeedTag; movie: string; isGuarantee: boolean; play?: boolean }
 
 interface PlayEntry { r: number; tag: SeedTag; play?: boolean }
 
@@ -601,6 +605,56 @@ export class SeedValidator {
         return Array.from(this.pool(movieId).playPool.entries())
             .filter(([, e]) => e.r === ri && e.tag !== '冷血躲避球')
             .map(([s]) => s);
+    }
+
+    /** Management-only reads. Do not call pool(): inspecting an absent group
+     * must not create pools or change selection/persistence/gameplay state.
+     */
+    getAdminGroupSummary(movieIds: readonly string[], catalogs?: ReadonlyMap<string, SeedCatalog>) {
+        const testSeedTags: (SeedTag | null)[] = [null, null, null];
+        const movies = movieIds.map(movieId => {
+            const pool = this.pools.get(movieId), guarantee = movieId.endsWith("_guarantee");
+            const columns = { play: { r3: 0, r4: 0, r4b: 0, r5: 0, r5b: 0 }, verified: { r3: 0, r4: 0, r4b: 0, r5: 0, r5b: 0 } };
+            const countColumn = (kind: SeedAdminListKind, rarityIndex: number) => {
+                const key: SeedAdminColumn | undefined = rarityIndex === 0 ? "r3" : rarityIndex === 1 ? guarantee ? "r4b" : "r4" : rarityIndex === 2 ? guarantee ? "r5b" : "r5" : undefined;
+                if (key) columns[kind][key]++;
+            };
+            const catalog = catalogs?.get(movieId);
+            let learned = 0, catalogKnown = 0;
+            const known = (seed: number) => { learned++; if (catalog?.valid && catalog.has(seed)) catalogKnown++; };
+            if (pool) {
+                for (const seed of pool.confirmPool.keys()) known(seed);
+                for (const [seed, entry] of pool.playPool) { if (!pool.confirmPool.has(seed)) known(seed); countColumn("play", entry.r); }
+                for (const [seed, rarity] of pool.verifiedPool) { if (!pool.confirmPool.has(seed) && !pool.playPool.has(seed)) known(seed); countColumn("verified", rarity); }
+                this.testSeeds.forEach((seed, index) => { if (seed !== null && pool.playPool.has(seed)) testSeedTags[index] = pool.playPool.get(seed)!.tag; });
+            }
+            return { movieId, confirm: pool?.confirmPool.size ?? 0, pending: pool?.pendingPool.size ?? 0,
+                play: pool?.playPool.size ?? 0, verified: pool?.verifiedPool.size ?? 0, learned, catalogKnown, columns };
+        });
+        return { mode: this.mode, testSeeds: [...this.testSeeds], testSeedTags, movies };
+    }
+
+    getAdminSeedPage(movieIds: readonly string[], kind: SeedAdminListKind, requestedPage: number, pageSize: number) {
+        const total = movieIds.reduce((sum, movieId) => sum + (kind === "play"
+            ? this.pools.get(movieId)?.playPool.size ?? 0 : this.pools.get(movieId)?.verifiedPool.size ?? 0), 0);
+        const page = Math.min(requestedPage, Math.max(1, Math.ceil(total / pageSize)));
+        let skip = (page - 1) * pageSize;
+        const rows: SeedAdminRow[] = [];
+        for (const movie of movieIds) {
+            const pool = this.pools.get(movie), isGuarantee = movie.endsWith("_guarantee");
+            if (!pool) continue;
+            const size = kind === "play" ? pool.playPool.size : pool.verifiedPool.size;
+            if (skip >= size) { skip -= size; continue; }
+            const entries = kind === "play" ? pool.playPool.entries() : pool.verifiedPool.entries();
+            for (const [seed, entry] of entries) {
+                if (skip > 0) { skip--; continue; }
+                if (rows.length >= pageSize) break;
+                rows.push(typeof entry === "number" ? { seed, rarity: entry + 3, movie, isGuarantee }
+                    : { seed, rarity: entry.r + 3, tag: entry.tag, play: entry.play, movie, isGuarantee });
+            }
+            if (rows.length >= pageSize) break;
+        }
+        return { page, pageSize, total, rows };
     }
 
     stats(movieId?: string) {

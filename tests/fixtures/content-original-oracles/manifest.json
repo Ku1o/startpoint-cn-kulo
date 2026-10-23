@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "exact_server_source_preimages",
+  "files": {
+    "discovery/src/lib/content-discovery.ts": {
+      "sha256": "0027ab6c6510575986af207c3a1440543d174fa18b6a3cee3f97e2d105eac526",
+      "bytes": 19027
+    },
+    "management-page/src/lib/content-operations-store.ts": {
+      "sha256": "07760d317208fcc13bc080135388b35bc60484b3fe9a90ed674c681a588dcee5",
+      "bytes": 53426
+    },
+    "management-page/src/routes/web_api/content.ts": {
+      "sha256": "f3c59a4b08b13c538cfbe0bdd5674997e2787897f6d56cf0054cc46b511305e9",
+      "bytes": 42292
+    },
+    "management-full/src/lib/content-operations-store.ts": {
+      "sha256": "2e80920b7d5c8bf498e132591ef44e5f251a5cabfa72186c1460ecbe38f3da3a",
+      "bytes": 47342
+    },
+    "management-full/src/routes/web_api/content.ts": {
+      "sha256": "ec952c72571306508b33ec1698dd453fec0b4f0fef9aefc3f10d13de16639ea1",
+      "bytes": 34921
+    }
+  }
+}

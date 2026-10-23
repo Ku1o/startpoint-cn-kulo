@@ -102,12 +102,14 @@ const routes = async (fastify: FastifyInstance) => {
             const category = requestEntry.category
             const computer = getComputer(category)
             const allIds = getMissionIdsByCategory(category).filter(missionId =>
-                isMissionEnabledAt(category, missionId, evaluationTime, requestEntry.event_id)
+                isMissionEnabledAt(category, missionId, evaluationTime, requestEntry.event_id, "visible")
             )
             const charId = requestEntry.character_id === undefined ? undefined : String(requestEntry.character_id)
             const requestedIds = charId && category === 9
                 ? allIds.filter(missionId => getCharacterIdFromMission(missionId) === charId)
                 : allIds
+            const progressIds = requestedIds.filter(missionId =>
+                isMissionEnabledAt(category, missionId, evaluationTime, requestEntry.event_id))
             let ctx: CategoryContext | undefined
             let categoryMissions = category === 9 ? undefined : categoryMissionCache.get(category)
 
@@ -125,17 +127,20 @@ const routes = async (fastify: FastifyInstance) => {
                 }
                 if (!categoryMissions) {
                     if (category === 9) {
-                        ctx ??= getCtx(category, requestedIds)
-                        categoryMissions = ctx.persistedMissions ?? getPlayerCategoryMissionsSync(playerId, category, requestedIds)
+                        if (progressIds.length > 0) ctx ??= getCtx(category, progressIds)
+                        categoryMissions = ctx?.persistedMissions ?? getPlayerCategoryMissionsSync(playerId, category, requestedIds)
                         if (charId !== undefined) awakeSnapshots.set(charId, categoryMissions)
                     } else {
                         categoryMissions = getPlayerCategoryMissionsSync(playerId, category)
                         categoryMissionCache.set(category, categoryMissions)
                     }
                 }
-                ctx ??= getCtx(category, requestedIds)
                 const dbProgress = categoryMissions[String(missionId)]?.progress ?? 0
-                const computed = computer.compute(missionId, ctx, dbProgress)
+                let computed = dbProgress
+                if (isMissionEnabledAt(category, missionId, evaluationTime, requestEntry.event_id)) {
+                    ctx ??= getCtx(category, progressIds)
+                    computed = computer.compute(missionId, ctx, dbProgress)
+                }
                 const finalTarget = getMissionFinalTargetProgress(category, missionId)
                 const monotonicProgress = Math.max(
                     0,
@@ -144,7 +149,7 @@ const routes = async (fastify: FastifyInstance) => {
                 )
                 const progress = finalTarget === undefined
                     ? monotonicProgress
-                    : Math.min(monotonicProgress, finalTarget)
+                    : Math.max(dbProgress, Math.min(monotonicProgress, finalTarget))
                 const stage = getCurrentStage(category, missionId, progress)
 
                 missionProgressList.push({

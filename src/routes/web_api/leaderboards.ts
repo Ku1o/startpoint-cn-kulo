@@ -43,30 +43,35 @@ const routes = async (fastify: FastifyInstance) => {
         if (!(error instanceof LeaderboardWorkBusyError)) return reply.send(error)
         return reply.header("retry-after", "2").status(429).send({ error: error.message, code: error.code })
     })
-    fastify.get("/", async (_request, reply) => reply.send(
-        getLeaderboardCompetitions().map(competition => ({
-            competition,
-            availability: getLeaderboardAvailabilitySync(competition.key),
-            overview: getLeaderboardSettlementOverviewSync(competition.key),
-        })),
-    ))
+    fastify.get("/", async (request, reply) => {
+        const summary = (request.query as { summary?: string }).summary
+        if (summary !== undefined && summary !== "1") return reply.status(400).send({ error: "无效的排行榜摘要参数。" })
+        return reply.send(getLeaderboardCompetitions().map(competition => {
+            const availability = getLeaderboardAvailabilitySync(competition.key)
+            return { competition, availability, ...(summary === "1" ? {} : {
+                overview: getLeaderboardSettlementOverviewSync(competition.key),
+            }) }
+        }))
+    })
 
     fastify.get("/:key", async (request, reply) => {
         const key = resolveKey(request, reply)
         if (key === null) return reply
         const competition = getLeaderboardCompetition(key)!
+        const availability = getLeaderboardAvailabilitySync(key)
         const season = getLeaderboardCompetitionSeasonSync(key)
         const query = request.query as { page?: string }
         const requestedPage = Number(query.page ?? 0)
         if (!Number.isSafeInteger(requestedPage) || requestedPage < 0) {
             return reply.status(400).send({ error: "page must be a non-negative safe integer." })
         }
-        const { total, filter } = getLeaderboardSeasonRewardViewSync(key, season)
+        const view = getLeaderboardSeasonRewardViewSync(key, season)
+        const { total, filter } = view
         const page = Math.min(requestedPage, Math.max(0, Math.ceil(total / competition.pageSize) - 1))
         return reply.send({
             competition,
-            availability: getLeaderboardAvailabilitySync(key),
-            overview: getLeaderboardSettlementOverviewSync(key),
+            availability,
+            overview: getLeaderboardSettlementOverviewSync(key, { season, view }),
             page,
             rows: getLeaderboardRankPageSync({
                 competitionKey: key,

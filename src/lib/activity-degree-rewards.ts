@@ -1,4 +1,5 @@
 import rushEventRankingRewards from "../../assets/rush_event_ranking_reward.json"
+import nativeRaidRankingRewards from "../../assets/raid_event_ranking_reward.json"
 import { getDb } from "../data/db"
 import { grantPlayerDegreeSync } from "../data/domains/degree"
 import { cachedStatement } from "./cached-statement"
@@ -157,6 +158,18 @@ export function getEligibleRaidDegreeIdsSync(playerId: number, eventId: number):
         WHERE player_id = ? AND event_id = ?
         GROUP BY quest_id
     `).all(playerId, eventId) as { quest_id: number; clear_count: number }[]
+    if (eventId !== 7) {
+        const counts = new Map(rows.map(row => [row.quest_id, row.clear_count]))
+        const rules = (nativeRaidRankingRewards.events as Record<string, {
+            questId: number; minCount: number; maxCount: number;
+            rewards: { kind: number; id: number | null; number: number }[];
+        }[]>)[String(eventId)] ?? []
+        return [...new Set(rules.filter(rule => Number.isSafeInteger(rule.minCount) && rule.minCount > 0
+            && Number.isSafeInteger(rule.maxCount) && rule.maxCount >= rule.minCount
+            && (counts.get(rule.questId) ?? 0) >= rule.minCount && (counts.get(rule.questId) ?? 0) <= rule.maxCount)
+            .flatMap(rule => rule.rewards.filter(reward => reward.kind === 7 && reward.number > 0
+                && Number.isSafeInteger(reward.id) && reward.id! > 0).map(reward => reward.id!)))]
+    }
     const counts: Record<RaidDifficulty, number> = {
         beginner: 0,
         advanced: 0,

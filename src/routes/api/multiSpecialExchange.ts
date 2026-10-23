@@ -10,6 +10,8 @@ import { getPlayerItemSync, givePlayerItemSync, setPlayerItemSync } from "../../
 import { getPlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission"
+import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconciliation"
+import { getContentSnapshot } from "../../content/runtime/content-snapshot"
 import { givePlayerCharacterSync } from "../../lib/character"
 import {
     getMultiSpecialExchangeCampaignDefinition,
@@ -18,6 +20,7 @@ import {
 } from "../../lib/multi-special-exchange"
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 import { generateDataHeaders, getServerTime } from "../../utils"
+import { contentDecision } from "../../lib/content-operations"
 
 interface CampaignBody {
     viewer_id?: number
@@ -56,9 +59,18 @@ function sendResultCode(reply: FastifyReply, viewerId: number, resultCode: numbe
     })
 }
 
+function reconcileFinalizedActiveMission(playerId: number, campaignId: number) {
+    return campaignId === 2 ? reconcileActiveMissionFacts({
+        playerId, repository: getContentSnapshot().repository, now: getServerTime() * 1000, patterns: [69],
+    }) : []
+}
+
 async function drawTicket(playerId: number, campaignId: number): Promise<{ ticketItemId: number; itemAmount: number } | null> {
     const definition = getMultiSpecialExchangeCampaignDefinition(campaignId)
     if (!definition) return null
+    const previous = getPlayerMultiSpecialExchangeCampaignsSync(playerId).find(value => value.campaignId === campaignId)
+    const previousResolved = previous && resolveMultiSpecialExchangeCampaign(previous, id => getPlayerItemSync(playerId, id) ?? 0)
+    if (previousResolved?.status !== 3 && contentDecision("multi_special_exchange_campaign", campaignId, "enter", Date.now()) === false) return null
     return runPersistenceTransaction({
         domain: "event", playerId, operation: "draw_multi_special_ticket",
     }, () => {
@@ -73,6 +85,7 @@ async function drawTicket(playerId: number, campaignId: number): Promise<{ ticke
             const ticketItemId = resolved.ticketItemId!
             return { ticketItemId, itemAmount: getPlayerItemSync(playerId, ticketItemId) ?? 0 }
         }
+        if (contentDecision("multi_special_exchange_campaign", campaignId, "enter", Date.now()) === false) return null
         const undecidedLegacy = campaign.status === 2 && campaign.ticketItemId == null
             && definition.ticketItemIds.every(id => (getPlayerItemSync(playerId, id) ?? 0) === 0)
         if (campaign.status !== 1 && resolved?.status !== 2 && !undecidedLegacy) return null
@@ -137,6 +150,11 @@ const routes = async (fastify: FastifyInstance) => {
             return sendResultCode(reply, context.viewerId, 4902)
         }
 
+        const previous = getPlayerMultiSpecialExchangeCampaignsSync(context.playerId).find(value => value.campaignId === campaignId)
+        if (previous?.status !== 4 && contentDecision("multi_special_exchange_campaign", campaignId, "exchange", Date.now()) === false) {
+            return sendResultCode(reply, context.viewerId, 4902)
+        }
+
         const exchangeResult = await runPersistenceTransaction({
             domain: "event", playerId: context.playerId, operation: "exchange_character",
         }, () => {
@@ -146,8 +164,10 @@ const routes = async (fastify: FastifyInstance) => {
             if (campaign?.status === 4) {
                 // The archive contains completion, but no choice receipt.
                 // Replay completion only, never invent or issue another reward.
-                return { reward: null, newTicketAmount: ticketAmount }
+                return { reward: null, newTicketAmount: ticketAmount,
+                    activeMissions: reconcileFinalizedActiveMission(context.playerId, campaignId) }
             }
+            if (contentDecision("multi_special_exchange_campaign", campaignId, "exchange", Date.now()) === false) return null
             const resolved = campaign && resolveMultiSpecialExchangeCampaign(campaign,
                 id => getPlayerItemSync(context.playerId, id) ?? 0)
             if (!resolved || resolved.status !== 3 || resolved.ticketItemId !== ticketItemId || ticketAmount <= 0) {
@@ -162,7 +182,8 @@ const routes = async (fastify: FastifyInstance) => {
                 status: 4,
                 ticketItemId: null,
             })
-            return { reward, newTicketAmount }
+            return { reward, newTicketAmount,
+                activeMissions: reconcileFinalizedActiveMission(context.playerId, campaignId) }
         })
         if (!exchangeResult) return sendResultCode(reply, context.viewerId, 4902)
 
@@ -185,6 +206,7 @@ const routes = async (fastify: FastifyInstance) => {
             data: {
                 multi_special_exchange_campaign_list: [{ campaign_id: campaignId, status: 4 }],
                 character_list: characterList,
+                active_mission_list: exchangeResult.activeMissions,
                 item_list: itemList,
                 user_info: player ? {
                     free_mana: player.freeMana,

@@ -1,4 +1,5 @@
 import { createHash } from "crypto"
+import { parseCrazyGachaState } from "../domains/crazy_gacha"
 import type { Database as BetterSqlite3Database } from "better-sqlite3"
 import { COMPACT_COUNTER_VALUES, getStorageSnapshotTableInfo, isCompactStorage, RETIRED_COUNTER_SNAPSHOTS } from "../../lib/storage-layout"
 import { getExistingPlayerTimeStateSync, getPlayerBusinessDateSync, getPlayerBusinessOffsetSync, PlayerArchiveTimeBasis, validatePlayerArchiveTimeBasis } from "../../lib/player-time-compat"
@@ -94,6 +95,7 @@ export const PLAYER_SNAPSHOT_V2_TABLES = Object.freeze([
     "players_periodic_snapshots",
     "players_mission_battle_counters",
     "players_gacha_info",
+    "players_crazy_gacha",
     "players_gacha_campaigns",
     "players_drawn_quests",
     "players_periodic_reward_points",
@@ -110,6 +112,9 @@ export const PLAYER_SNAPSHOT_V2_TABLES = Object.freeze([
     "players_pass_card_rewards",
     "players_box_gacha",
     "players_box_gacha_drawn_rewards",
+    "players_shop_quotas",
+    "players_exchange_campaign_receipts",
+    "players_special_exchange_campaigns",
     "players_start_dash_exchange_campaigns",
     "players_multi_special_exchange_campaigns",
     "players_rush_events",
@@ -218,11 +223,30 @@ function getPrimaryKeyColumns(db: BetterSqlite3Database, table: string): string[
         .map(column => column.name)
 }
 
-function getSchemaFingerprint(db: BetterSqlite3Database, beforeAbyssTowerRevision = false): string {
-    const schema = PLAYER_SNAPSHOT_V2_TABLES.map(table => ({
+function matchArchiveColumnOrder(columns: TableInfoRow[], order: unknown): TableInfoRow[] | undefined {
+    if (!Array.isArray(order) || order.length !== columns.length || new Set(order).size !== columns.length) return undefined
+    const byName = new Map(columns.map(column => [column.name, column]))
+    if (!order.every(name => typeof name === "string" && byName.has(name))) return undefined
+    return order.map(name => byName.get(name)!)
+}
+
+function getSchemaFingerprint(
+    db: BetterSqlite3Database,
+    beforeAbyssTowerRevision = false,
+    beforeEconomyExtensions = false,
+    archiveTables?: PlayerSaveSnapshotV2["data"]["tables"],
+    beforeCrazyGacha = false,
+): string {
+    const schema = PLAYER_SNAPSHOT_V2_TABLES.filter(table => !(beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)))
+        .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha")).map(table => ({
         table,
-        columns: getTableInfo(db, table)
-            .filter(column => !(beforeAbyssTowerRevision && table === "players_rush_events" && column.name === "tower_revision"))
+        columns: (() => {
+            const columns = getTableInfo(db, table)
+                .filter(column => !(beforeAbyssTowerRevision && table === "players_rush_events" && column.name === "tower_revision"))
+            // Keep every SQL attribute in the fingerprint. Only reconstruct
+            // the archive's physical column order when its complete name set matches.
+            return matchArchiveColumnOrder(columns, archiveTables?.[table]?.columns) ?? columns
+        })()
             .map(column => ({
             name: column.name,
             type: column.type,
@@ -403,19 +427,29 @@ export function validatePlayerSaveSnapshotV2Sync(
     if (snapshot.timeBasis !== undefined) validatePlayerArchiveTimeBasis(snapshot.timeBasis)
 
     assertPlayerSnapshotCoverageSync(db)
-    const expectedFingerprint = getSchemaFingerprint(db)
-    // Precisely recognize the previous portable schema. Old archives keep their
-    // original fingerprint and columns; SQL supplies NULL for the added marker.
-    const beforeAbyssTowerRevision = snapshot.schemaFingerprint !== expectedFingerprint
-        && snapshot.schemaFingerprint === getSchemaFingerprint(db, true)
-    if (snapshot.schemaFingerprint !== expectedFingerprint && !beforeAbyssTowerRevision) {
+    // Recognize only the existing portable schemas, with their exact SQL
+    // attributes, in the archive's column order. Fresh and migrated databases
+    // can contain identical named columns in different physical positions.
+    const schema = [
+        { beforeAbyssTowerRevision: false, beforeEconomyExtensions: false },
+        { beforeAbyssTowerRevision: true, beforeEconomyExtensions: false },
+        { beforeAbyssTowerRevision: false, beforeEconomyExtensions: true },
+        { beforeAbyssTowerRevision: true, beforeEconomyExtensions: true },
+    ].flatMap(profile => [{ ...profile, beforeCrazyGacha: false }, { ...profile, beforeCrazyGacha: true }])
+        .find(profile => snapshot.schemaFingerprint === getSchemaFingerprint(
+        db, profile.beforeAbyssTowerRevision, profile.beforeEconomyExtensions, snapshot.data?.tables,
+        profile.beforeCrazyGacha,
+    ))
+    if (!schema) {
         throw new Error("存档数据库结构与当前服务器不一致，拒绝执行覆盖；请先使用匹配版本迁移")
     }
+    const { beforeAbyssTowerRevision, beforeEconomyExtensions, beforeCrazyGacha } = schema
     if (!snapshot.data || typeof snapshot.data !== "object" || !snapshot.data.tables || typeof snapshot.data.tables !== "object") {
         throw new Error("存档缺少 data.tables")
     }
 
-    const expectedTables = new Set<string>(PLAYER_SNAPSHOT_V2_TABLES)
+    const expectedTables = new Set<string>(PLAYER_SNAPSHOT_V2_TABLES.filter(table => !(beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)))
+        .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha")))
     const actualTables = Object.keys(snapshot.data.tables)
     const missing = [...expectedTables].filter(table => !Object.prototype.hasOwnProperty.call(snapshot.data.tables, table))
     const extra = actualTables.filter(table => !expectedTables.has(table))
@@ -425,14 +459,17 @@ export function validatePlayerSaveSnapshotV2Sync(
 
     let totalRows = 0
     for (const table of PLAYER_SNAPSHOT_V2_TABLES) {
+        if (beforeCrazyGacha && table === "players_crazy_gacha") continue
+        if (beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)) continue
         const tableData = snapshot.data.tables[table]
         if (!tableData || typeof tableData !== "object") throw new Error(`${table}: 表数据无效`)
-        const tableInfo = getTableInfo(db, table).filter(column =>
+        const targetColumns = getTableInfo(db, table).filter(column =>
             !(beforeAbyssTowerRevision && table === "players_rush_events" && column.name === "tower_revision"))
-        const expectedColumns = tableInfo.map(column => column.name)
-        if (!Array.isArray(tableData.columns) || JSON.stringify(tableData.columns) !== JSON.stringify(expectedColumns)) {
+        const tableInfo = matchArchiveColumnOrder(targetColumns, tableData.columns)
+        if (!tableInfo) {
             throw new Error(`${table}: 列定义与当前服务器不一致`)
         }
+        const expectedColumns = tableInfo.map(column => column.name)
         if (!Array.isArray(tableData.rows)) throw new Error(`${table}: rows 不是数组`)
         totalRows += tableData.rows.length
         if (totalRows > MAX_TOTAL_ROWS) throw new Error(`存档行数超过安全上限 ${MAX_TOTAL_ROWS}`)
@@ -455,6 +492,12 @@ export function validatePlayerSaveSnapshotV2Sync(
             if (row[playerIdIndex] !== snapshot.playerId) {
                 throw new Error(`${table}[${rowIndex}]: 混入了其他玩家的数据`)
             }
+            if (table === "players_crazy_gacha") {
+                const gachaId = row[expectedColumns.indexOf("gacha_id")]
+                const sessionNumber = row[expectedColumns.indexOf("session_number")]
+                if (gachaId !== 100 || !Number.isSafeInteger(sessionNumber) || Number(sessionNumber) < 1) throw new Error("Invalid crazy gacha archive identity")
+                parseCrazyGachaState(row[expectedColumns.indexOf("state_json")] as string)
+            }
         }
     }
     if (snapshot.data.tables.players.rows.length !== 1) throw new Error("存档必须且只能包含一条 players 主记录")
@@ -462,7 +505,7 @@ export function validatePlayerSaveSnapshotV2Sync(
     const playerName = playerTable.rows[0][playerTable.columns.indexOf("name")]
     if (!snapshot.summary || typeof snapshot.summary !== "object") throw new Error("存档缺少 summary")
     if (snapshot.summary.playerName !== playerName) throw new Error("存档摘要中的玩家名称不一致")
-    if (snapshot.summary.includedTableCount !== PLAYER_SNAPSHOT_V2_TABLES.length) {
+    if (snapshot.summary.includedTableCount !== expectedTables.size) {
         throw new Error("存档摘要中的表数量不一致")
     }
     if (snapshot.summary.rowCount !== totalRows) throw new Error("存档摘要中的行数量不一致")
@@ -492,13 +535,12 @@ function canonicalRows(
     targetPlayerId: number,
 ): string[] {
     const omitted = REMAPPED_AUTOINCREMENT_IDS.get(table) ?? new Set<string>()
-    const playerIdIndex = columns.indexOf("player_id")
+    const orderedColumns = columns.filter(column => !omitted.has(column)).sort()
+        .map(column => ({ column, index: columns.indexOf(column) }))
     return rows.map(row => {
         const canonical: Record<string, SnapshotScalar> = {}
-        for (let index = 0; index < columns.length; index++) {
-            const column = columns[index]
-            if (omitted.has(column)) continue
-            canonical[column] = index === playerIdIndex ? targetPlayerId : row[index]
+        for (const { column, index } of orderedColumns) {
+            canonical[column] = column === "player_id" ? targetPlayerId : row[index]
         }
         return JSON.stringify(canonical)
     }).sort()
@@ -537,6 +579,8 @@ export function restorePlayerSaveSnapshotV2Sync(
     if (isCompactStorage(db)) skippedTables.push(RETIRED_COUNTER_SNAPSHOTS)
     const restoredTables = PLAYER_SNAPSHOT_V2_TABLES
         .filter(table => table !== "players")
+        // Precisely recognized old V2 archives lack this table and preserve target rights.
+        .filter(table => !!snapshot.data.tables[table])
         .filter(table => includeArchiveHistory || !ARCHIVE_HISTORY_TABLES.has(table))
         .filter(table => !skippedTables.includes(table))
     const resetTables = EXCLUDED_PLAYER_STATE
@@ -631,7 +675,7 @@ export function restorePlayerSaveSnapshotV2Sync(
                         : column === "time_offset"
                             ? currentOffset
                             : sourcePlayer[index]
-            if (restoredPlayerRow[index] !== expected) {
+            if (restoredPlayerRow[restoredPlayer.columns.indexOf(column)] !== expected) {
                 throw new Error(`players.${column}: 写入后校验不一致`)
             }
         }

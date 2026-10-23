@@ -45,11 +45,26 @@ test('入手方式沿用真实商店期限和库存，静态索引不缓存玩�
     }
     const how = (payload, viewer) => post('/how_to_get/get_list', payload, viewer)
     const sale = (id, list) => list.find(r => r.shop_item_id === id)
+    const operations = require('../out/lib/content-operations').contentOperations()
+    function visibility(key, enabled) {
+        return operations.update(key, { expectedRevision: operations.revision(), catalogDigest: operations.digest,
+            reason: 'Actual acquisition navigation explicit source fixture',
+            actionOverrides: { visible: { enabled, endsAtMs: null, readiness: 'verified', evidence: 'Matched native source and exact server/accessor receipt' } },
+        }, Date.now())
+    }
+    function openShop(type, id) {
+        const key = `${type}:${id}`, row = operations.rows.get(key)
+        assert.ok(row, key)
+        if (row.parentKey) visibility(row.parentKey, true)
+        visibility(key, true)
+    }
 
-    await t.test('过期来源隐藏，原期和复刻期间恢复；索引初始化后时间变化仍生效', async () => {
+    await t.test('日历不自动开放来源，明确常驻跨原期和复刻期，关闭后消失', async () => {
         setServerTime(new Date('2024-01-01T00:00:00Z'))
         assert.equal(sale(700000, (await how({ item_id: 49100 })).shop_sales_list), undefined)
         setServerTime(new Date('2023-11-24T00:00:00Z'))
+        assert.equal(sale(700000, (await how({ item_id: 49100 })).shop_sales_list), undefined)
+        openShop('event_item_shop', 700000)
         assert.ok(sale(700000, (await how({ item_id: 49100 })).shop_sales_list))
         setServerTime(new Date('2025-07-26T00:00:00Z'))
         const source = sale(700000, (await how({ item_id: 49100 })).shop_sales_list)
@@ -58,12 +73,15 @@ test('入手方式沿用真实商店期限和库存，静态索引不缓存玩�
         })).sales_list)
         assert.deepEqual(source, actual)
         setServerTime(new Date('2025-08-15T00:00:00Z'))
+        assert.ok(sale(700000, (await how({ item_id: 49100 })).shop_sales_list), 'explicit permanent source survives original dates')
+        visibility('event_item_shop:700000', false)
         assert.equal(sale(700000, (await how({ item_id: 49100 })).shop_sales_list), undefined)
     })
     await t.test('12 对幻想商品沿用已存共享购买键，另一玩家不受影响', async () => {
         setServerTime(new Date('2025-07-26T00:00:00Z'))
         for (let i = 0; i < 12; i++) {
             const ids = [9700201 + i, 9700301 + i]
+            for (const id of ids) openShop('event_item_shop', id)
             const item = getShopItemSync(4, ids[0])
             const reward = item.rewards[0]
             const query = { [reward.type === 4 ? 'equipment_id' : 'item_id']: reward.id }
@@ -98,11 +116,15 @@ test('入手方式沿用真实商店期限和库存，静态索引不缓存玩�
         }
     })
     await t.test('保留现用五重来源和普通箱池，旧死亡使者商品不返回', async () => {
+        openShop('boss_coin_shop', 990099001)
+        const before = require('../out/data/snapshots/player-snapshot').createPlayerSaveSnapshotV2Sync(p1.id).data.tables
+        assert.throws(() => openShop('boss_coin_shop', 990099002), /定义|过时/)
         const weapon = await how({ equipment_id: 5900101 })
         assert.ok(sale(990099001, weapon.shop_sales_list))
         assert.equal(sale(59001010, weapon.shop_sales_list), undefined)
         const ticket = await how({ equipment_id: 0, item_id: 10000143 })
-        assert.ok(sale(990099002, ticket.shop_sales_list))
+        assert.equal(sale(990099002, ticket.shop_sales_list), undefined, 'unresolved native lifetime/per-purchase semantics cannot advertise a source')
+        assert.deepEqual(require('../out/data/snapshots/player-snapshot').createPlayerSaveSnapshotV2Sync(p1.id).data.tables, before)
         assert.ok(getHowToGetSources(false, 2).boxes.length > 0)
         assert.ok((await how({ item_id: 2 })).box_gacha_id_list.includes(1))
         assert.ok((await how({ equipment_id: 5100001 })).box_gacha_id_list.includes(1))

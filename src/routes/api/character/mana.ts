@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../../lib/mission/content-action-facts";
 // Character mana node endpoints — learn and awake
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -188,10 +189,12 @@ const routes = async (fastify: FastifyInstance) => {
                 updatePlayerCharacterSync(playerId, characterId, { manaBoardIndex: currentManaNodeIndex })
             }
             incrementActiveMissionUsedManaCountSync(playerId, manaCost)
+            recordContentActionFactsSync(playerId, { kind: "mana_spend", amount: manaCost })
             for (const [itemId, newAmount] of Object.entries(newItemAmounts)) {
                 updatePlayerItemSync(playerId, itemId, newAmount)
             }
             insertPlayerCharacterManaNodesSync(playerId, characterId, nodesToInsert)
+            recordContentActionFactsSync(playerId, { kind: "mana_node_release", amount: nodesToInsert.length })
 
             const bond = computeBondTokenAndEvolution(
                 playerId, characterId, characterData, currentManaNodeIndex, isBoardComplete
@@ -405,6 +408,7 @@ const routes = async (fastify: FastifyInstance) => {
         }, () => {
             updatePlayerSync({ id: playerId, freeMana: newFreeMana, paidMana: newPaidMana })
             incrementActiveMissionUsedManaCountSync(playerId, manaCost)
+            recordContentActionFactsSync(playerId, { kind: "mana_spend", amount: manaCost })
             for (const [itemId, newAmount] of Object.entries(newItemAmounts)) {
                 updatePlayerItemSync(playerId, itemId, newAmount)
             }

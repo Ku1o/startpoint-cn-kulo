@@ -20,6 +20,7 @@ import {
     getActiveMissionPracticeQuestChallengeCountSync,
 } from "../../data/domains/active_mission_counters"
 import { getPlayerSync } from "../../data/domains/player"
+import { getPlayerMultiSpecialExchangeCampaignsSync } from "../../data/domains/campaign"
 import {
     getPlayerQuestProgressSubsetSync,
     getPlayerQuestProgressSync,
@@ -30,6 +31,7 @@ import { getActiveMissionConditionalBattleFactsSync } from "../../data/domains/a
 import { getActiveMissionBattleFactsSync } from "../../data/domains/active_mission_battle_facts"
 import { runPersistenceTransactionSync } from "../persistence-coordinator"
 import { getDb } from "../../data/db"
+import { contentMissionDecision } from "../content-operations"
 import {
     getActiveMissionEventMasterDefinition,
     getActiveMissionMasterDefinitions,
@@ -75,6 +77,7 @@ const PATTERN_SET_UNISON_FIRST_TIME = 59
 const PATTERN_SET_PARTY_CHARACTER = 60
 const PATTERN_INJECTED_EXP_FIRST_TIME = 63
 const PATTERN_GACHA_CAMPAIGN = 83
+const PATTERN_MULTI_SPECIAL_EXCHANGE_FINALIZED = 69
 const PATTERN_BATTLE_CLEAR_COUNT = 23
 const PATTERN_SS_RANK_COUNT = 26
 const PATTERN_CHAPTER_COMPLETE = 66
@@ -170,6 +173,8 @@ export interface ActiveMissionFactState {
     readonly totalPartyCharacterSetCount: number
     readonly totalInjectedExpCount: number
     readonly totalGachaCampaignCount: number
+    /** Final selection is a durable campaign fact, not a candidate draw count. */
+    readonly finalizedMultiSpecialCampaignIds?: ReadonlySet<number>
     /** Request-scoped global facts computed once instead of once per mission definition. */
     readonly aggregate?: Readonly<{
         episodeClearCount: number
@@ -471,6 +476,12 @@ export function computeActiveMissionFactProgress(
             return state.totalInjectedExpCount
         case PATTERN_GACHA_CAMPAIGN:
             return state.totalGachaCampaignCount
+        case PATTERN_MULTI_SPECIAL_EXCHANGE_FINALIZED:
+            // The reviewed active mission selects MultiSpecial(kind2), campaign2.
+            // Other native selectors remain unreviewed rather than borrowing a
+            // general campaign/gacha counter or creating qualification.
+            if (Number(row[44]) !== 2 || Number(row[45]) !== 2) return null
+            return state.finalizedMultiSpecialCampaignIds?.has(2) ? 1 : 0
         case PATTERN_BATTLE_CLEAR_COUNT:
             return countBattleClearFacts(row, state.questProgress)
         case PATTERN_SS_RANK_COUNT:
@@ -888,6 +899,10 @@ function buildActiveMissionFactState(
         totalPartyCharacterSetCount: counters.totalPartyCharacterSetCount,
         totalInjectedExpCount: counters.totalInjectedExpCount,
         totalGachaCampaignCount: counters.totalGachaCampaignCount,
+        ...(requirements.patterns.has(PATTERN_MULTI_SPECIAL_EXCHANGE_FINALIZED) ? {
+            finalizedMultiSpecialCampaignIds: new Set(getPlayerMultiSpecialExchangeCampaignsSync(playerId)
+                .filter(campaign => campaign.status === 4).map(campaign => campaign.campaignId)),
+        } : {}),
         aggregate: {
             episodeClearCount,
             maxCharacterLevel,
@@ -1177,9 +1192,19 @@ export function reconcileActiveMissionFacts(
 
 function settleActiveMissionFacts(
     input: ReconcileActiveMissionFactsInput,
-    { definitions, definitionById, questReadPlan, requirements }: ReturnType<typeof getReconciliationPlan>,
+    plan: ReturnType<typeof getReconciliationPlan>,
     persist: boolean,
 ): ActiveMissionProgressDelta[] {
+    // Keep the cached plan definition-only; operational state must be checked
+    // again for each evaluation, including the final transaction.
+    const definitions = plan.definitions.filter(definition =>
+        contentMissionDecision(0, definition.missionId, "enter") !== false)
+    if (definitions.length === 0) return []
+    const definitionById = new Map(definitions.map(definition => [definition.missionId, definition]))
+    const questReadPlan = definitions.length === plan.definitions.length
+        ? plan.questReadPlan : planActiveMissionQuestRead(definitions, input.repository)
+    const requirements = definitions.length === plan.definitions.length
+        ? plan.requirements : buildActiveMissionFactRequirements(definitions)
     const player = input.player ?? getPlayerSync(input.playerId)
     if (!player) throw new Error(`Player ${input.playerId} does not exist.`)
     if (player.id !== input.playerId) {

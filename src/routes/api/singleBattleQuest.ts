@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
 import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueError,
     isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
@@ -9,7 +10,8 @@ import { clientSerializeDate } from "../../data/utils/date"
 import { getBattleClockDate, isSupportedBattleClockVersion } from "../../lib/battle-clock-compatibility"
 import { assertBattleCanStartSync, getBattleReplaySync } from "../../data/domains/battle-settlement-ledger"
 import { isSingleFinishResponse, singleFinishPlayId } from "../../lib/quest/finish/single-finish-identity"
-import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { getPlayerDailyChallengePointListSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { getContentNativeDailyChallengePointId } from "../../lib/content-quest-rules"
 import { getPlayerItemSync, updatePlayerItemSync } from "../../data/domains/item"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
 import { insertPlayerPracticeBattleHistorySync } from "../../data/domains/practice-battle-history"
@@ -54,6 +56,7 @@ import {
     getCachedFinishPlayId,
 } from "../../lib/finish-response-cache";
 import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
+import { isContentQuestOpenAt } from "../../lib/content-operations";
 import { canStartAbyssQuestSync } from "../../data/domains/abyss-tower-progress";
 import { isAbyssExEndlessQuest } from "../../lib/abyss-modes";
 import { isValidNormalPartySlotSync } from "../../data/domains/party";
@@ -613,6 +616,10 @@ const routes = async (fastify: FastifyInstance) => {
 
 
 
+        if (getPlayerActiveQuestSync(playerId)?.playId !== body.play_id && !isContentQuestOpenAt(category, questId, Date.now())) {
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({ data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {} })
+        }
         if (isStaleAbyssClient(category, questId, request.headers.res_ver)
             || !canStartAbyssQuestSync(playerId, category, questId)) {
             reply.header("content-type", "application/x-msgpack")
@@ -659,6 +666,12 @@ const routes = async (fastify: FastifyInstance) => {
                 "error": "Bad Request",
                 "message": "Quest doesn't exist."
             })
+        }
+
+        const nativeChallengePointId = getContentNativeDailyChallengePointId(category, questId)
+        if (nativeChallengePointId !== null && getPlayerActiveQuestSync(playerId)?.playId !== body.play_id
+            && !getPlayerDailyChallengePointListSync(playerId).some(entry => entry.id === nativeChallengePointId && entry.point > 0)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Daily challenge points exhausted." })
         }
 
         if (isFiveBossGauntletQuest(category, questId)) {
@@ -778,6 +791,11 @@ const routes = async (fastify: FastifyInstance) => {
                     afterStamina = currentPlayer.stamina
                     return
                 }
+                if (!isContentQuestOpenAt(category, questId, Date.now())) throw new Error("QUEST_OPERATIONS_CLOSED")
+                if (nativeChallengePointId !== null
+                    && !getPlayerDailyChallengePointListSync(playerId).some(entry => entry.id === nativeChallengePointId && entry.point > 0)) {
+                    throw new Error("Daily challenge points exhausted.")
+                }
                 const startedAtMs = getRealServerDate().getTime()
                 activeQuest.startedAtMs = startedAtMs
                 if (entryCost && entryCost.itemId > 0) {
@@ -814,6 +832,8 @@ const routes = async (fastify: FastifyInstance) => {
                     playerUpdate.partySlot = partyId
                 }
                 updatePlayerSync(playerUpdate)
+                recordContentActionFactsSync(playerId, { kind: "stamina_spend",
+                    amount: playerUpdate.totalStaminaUsed - (currentPlayer.totalStaminaUsed ?? 0) })
 
                 activeQuests[playerId] = activeQuest
                 registeredMemory = activeQuest
@@ -848,9 +868,14 @@ const routes = async (fastify: FastifyInstance) => {
             }
             const message = error instanceof Error ? error.message : String(error)
             const code = (error as { code?: string })?.code
+            if (message === "QUEST_OPERATIONS_CLOSED") {
+                reply.header("content-type", "application/x-msgpack")
+                return reply.status(200).send({ data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {} })
+            }
             if (code === "BATTLE_ALREADY_SETTLED" || code === "BATTLE_CLOCK_ABORTED"
                 || message === "Battle start does not match the pending play."
-                || message === "Insufficient stamina." || message.startsWith("Not enough entry items")) {
+                || message === "Insufficient stamina." || message === "Daily challenge points exhausted."
+                || message.startsWith("Not enough entry items")) {
                 return reply.status(400).send({ error: "Bad Request", message })
             }
             throw error

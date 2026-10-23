@@ -7,10 +7,11 @@ import { trackPowerflip } from "../quest/finish/powerflip-tracker"
 import type { FinishContext } from "../quest/finish/types"
 import { getServerTime } from "../../utils"
 import { recordEventMissionBattleFacts } from "./event-battle-facts"
-import { recordPassMissionBattleFacts } from "./pass-battle-facts"
+import { recordPassMissionBattleFacts, recordPassWeeklyEmotionFacts } from "./pass-battle-facts"
 import { recordActiveMissionConditionalBattleFactsSync } from "./active-conditional-battle-facts"
 import { recordActiveMissionLoadoutBattleFactsSync } from "./active-loadout-battle-facts"
 import { recordDailyMissionBattleFacts } from "./daily-battle-facts"
+import { recordCollectMissionBattleFacts } from "./collect-battle-facts"
 import { getDegreeMissionIdsForBattle, getDegreeMissionIdsForConditionTypes } from "./computer-degree"
 import { getEventItemMissionIdsForItems } from "./computer-event-safe"
 import { recordDegreePartyPowerClearSync } from "./degree-party-power"
@@ -20,7 +21,7 @@ import { QuestCategory } from "../types"
 // Category 5 (titles) must be settled in the battle result response.  Deferring
 // it until get_mission_progress made newly acquired titles invisible until the
 // player opened the title screen.
-export const BATTLE_SETTLEMENT_CATEGORIES = Object.freeze([1, 2, 3, 5, 6, 7, 8, 10])
+export const BATTLE_SETTLEMENT_CATEGORIES = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 10])
 
 const BATTLE_DEGREE_CONDITION_TYPES = Object.freeze([
     // Battle results may grant/level characters and equipment in addition to
@@ -40,6 +41,7 @@ export interface MissionBattleFactResult {
     readonly eventMissionIds: readonly number[]
     readonly passMissionIds: readonly number[]
     readonly awakeMissionIds: readonly number[]
+    readonly collectMissionIds?: readonly number[]
     readonly degreeTrigger?: {
         readonly questCategory: number
         readonly questId: number
@@ -79,6 +81,7 @@ export function buildBattleMissionSettlementScopes(
         // so category 2 deliberately remains a full (but small) evaluation.
         2,
         { category: 3, missionIds: eventMissionIds },
+        { category: 4, missionIds: facts.collectMissionIds ?? [] },
         {
             category: 5,
             missionIds: degreeMissionIds,
@@ -117,6 +120,7 @@ export function recordMissionBattleFacts(
         accomplished: ctx.questAccomplished,
         clearRank: ctx.clearRank,
     })
+    recordPassWeeklyEmotionFacts(ctx, evaluationTime)
     if (!ctx.questAccomplished) {
         return {
             dailyMissionIds: [], eventMissionIds: [], passMissionIds: [], awakeMissionIds: [],
@@ -127,6 +131,7 @@ export function recordMissionBattleFacts(
     const dailyMissionIds = recordDailyMissionBattleFacts(ctx, evaluationTime)
     const eventMissionIds = recordEventMissionBattleFacts(ctx, evaluationTime)
     const passMissionIds = recordPassMissionBattleFacts(ctx, evaluationTime)
+    const collectMissionIds = recordCollectMissionBattleFacts(ctx, evaluationTime)
     recordActiveMissionLoadoutBattleFactsSync(ctx)
     recordActiveMissionConditionalBattleFactsSync(ctx)
     if (ctx.isMulti) {
@@ -136,5 +141,5 @@ export function recordMissionBattleFacts(
     trackLeaderPowerflip(ctx)
     const awakeMissionIds = trackPartyCoClears(ctx)
     trackPowerflip(ctx)
-    return { dailyMissionIds, eventMissionIds, passMissionIds, awakeMissionIds, degreeTrigger }
+    return { dailyMissionIds, eventMissionIds, passMissionIds, awakeMissionIds, collectMissionIds, degreeTrigger }
 }

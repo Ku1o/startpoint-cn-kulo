@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { createHash } from "crypto";
 import characterTable from "../../../docs/generated/character_table.json";
-import { serverCharacters as serverCharacterData } from "../../lib/content-master";
+import { degreeDefinitions, serverCharacters as serverCharacterData } from "../../lib/content-master";
 import itemLookup from "../../../assets/item_lookup.json";
 import cnmodItemLookup from "../../../assets/item_lookup_cnmod.json";
 import equipmentLookup from "../../../assets/equipment_lookup.json";
@@ -59,22 +60,40 @@ const mergedItemLookup = {
     ...(itemLookup as Record<string, string>),
     ...(cnmodItemLookup as Record<string, string>),
 }
+
+export function buildDegreeLookup(rows: Readonly<Record<string, { name: string; string_id: string }>>): Record<string, { name: string; image: string }> {
+    return Object.fromEntries(Object.entries(rows).map(([id, degree]) => [id, {
+        name: degree.name,
+        image: `dynamic/degree/${degree.string_id}.png`,
+    }]))
+}
+
+function cachedLookup(value: unknown) {
+    const body = JSON.stringify(value)
+    return { body, etag: `"${createHash("sha256").update(body).digest("hex")}"` }
+}
+
+const lookups = {
+    characters: cachedLookup(charMap),
+    items: cachedLookup(mergedItemLookup),
+    equipment: cachedLookup(equipmentLookup),
+    quests: cachedLookup(questLookup),
+    degrees: cachedLookup(buildDegreeLookup(degreeDefinitions)),
+}
+
 const routes = async (fastify: FastifyInstance) => {
-    fastify.get("/characters", async (_request: FastifyRequest, reply: FastifyReply) => {
-        return reply.send(charMap)
-    })
-
-    fastify.get("/items", async (_request: FastifyRequest, reply: FastifyReply) => {
-        return reply.send(mergedItemLookup)
-    })
-
-    fastify.get("/equipment", async (_request: FastifyRequest, reply: FastifyReply) => {
-        return reply.send(equipmentLookup)
-    })
-
-    fastify.get("/quests", async (_request: FastifyRequest, reply: FastifyReply) => {
-        return reply.send(questLookup)
-    })
+    for (const [kind, value] of Object.entries(lookups)) {
+        fastify.get(`/${kind}`, async (request: FastifyRequest, reply: FastifyReply) => {
+            // These URLs are stable across releases: revalidate, never mark them immutable.
+            reply.header("Cache-Control", "private, no-cache").header("ETag", value.etag)
+            const condition = request.headers["if-none-match"]
+            if (typeof condition === "string" && condition.split(",").some(tag => {
+                const normalized = tag.trim().replace(/^W\//, "")
+                return normalized === "*" || normalized === value.etag
+            })) return reply.status(304).send()
+            return reply.type("application/json").send(value.body)
+        })
+    }
 }
 
 export default routes;

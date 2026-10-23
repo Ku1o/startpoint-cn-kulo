@@ -4,16 +4,16 @@ import { lstatSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
 import path from "path";
 import { randomBytes, randomUUID } from "crypto";
 import { Worker } from "worker_threads";
-import { getServerTime, getServerDate, setServerTime, getTimeOffset } from "../../utils";
+import { getServerTime, getServerDate, getTimeOffset, getServerClockSnapshot } from "../../utils";
 import { deleteAccountSync, getAccountPlayersSync, getAllAccountsSync, updateAccountSync } from "../../data/domains/account"
 import { deletePlayerSync, getPlayerSync, insertDefaultPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getAllDeviceBindingsSync, getAllViewerSessionsSync, getDeviceBindingSync, getSessionByAccountIdSync } from "../../data/domains/session"
 import { getPlayerCharactersSync } from "../../data/domains/character"
 import { getAllAdminPlayerSummariesSync, type AdminPlayerSummary } from "../../data/domains/admin-player"
-import { getActivePlayerId, getAdminPlayerSelectionState, setActivePlayerId, getSelectedAccountId, setSelectedAccountId, saveTimeOffset, saveAccountDefaultPlayer, getAccountDefaultPlayer, removeDeletedAccountFromState, removeDeletedAccountsFromState } from "../../data/activeAccount";
+import { getActivePlayerId, getAdminPlayerSelectionState, setActivePlayerId, getSelectedAccountId, setSelectedAccountId, saveAccountDefaultPlayer, getAccountDefaultPlayer, removeDeletedAccountFromState, removeDeletedAccountsFromState } from "../../data/activeAccount";
 import { saveDefaultSaveTemplate, loadDefaultSaveTemplate, clearDefaultSaveTemplate, getDefaultSaveMeta } from "../../data/defaultSave";
 import { detectCDNVersion, FULL_BASE, getEffectiveVersion, getPatchManifest } from "../../lib/version";
-import { buildShortUpCharacterGachaTimeline } from "../../lib/admin-clairvoyance";
+import { buildShortUpCharacterGachaTimeline, buildShortUpCharacterGachaCatalog, buildShortUpCharacterGachaCurrent } from "../../lib/admin-clairvoyance";
 import { wantsJson } from "./http";
 import { SessionType } from "../../data/types";
 import { getDb } from "../../data/db";
@@ -33,8 +33,21 @@ import {
     validatePlayerSaveSnapshotV2Sync,
 } from "../../data/snapshots/player-snapshot";
 
-interface TimeQuery {
-    time: string | undefined
+import { contentClientReload, ContentClientReloadConflict, CONTENT_CLIENT_RELOAD_CONFIRM } from "../../lib/content-client-reload";
+import type { ContentClientReloadPlay } from "../../lib/content-client-reload";
+import { hasManagementSession } from "../../lib/management-auth";
+import { getRoomCommandGateway } from "../../multi/coordinator/default-runtime";
+import { readAdminAccountSummary, readAdminAccountPage, readAdminAccountDetail, readAdminAccountTargets } from "../../lib/admin-account-overview";
+import { createAdminStaticCache } from "../../lib/admin-static-cache";
+
+async function disconnectClientsForContentReload(): Promise<{ applied: boolean; viewerCount?: number; message?: string }> {
+    try {
+        return await getRoomCommandGateway().execute("runtime.disconnectAllForContentReload", {}) as { applied: boolean; viewerCount: number }
+    } catch {
+        // The durable epoch remains authoritative even when the owner is unavailable.
+        // Never report that existing transports were closed without an owner ACK.
+        return { applied: false, message: "重登通知已保存；在线连接清理尚未确认，请重试。" }
+    }
 }
 
 const MANUAL_DATABASE_BACKUP_KEEP_COUNT = 5
@@ -416,58 +429,14 @@ function startAccountCleanupWorker(
     return job
 }
 
-const routes = async (fastify: FastifyInstance) => {
-
-    fastify.addHook("onClose", async () => {
-        accountCleanupClosing = true
-        if (accountCleanupWorker) {
-            await accountCleanupWorker.terminate()
-        }
-        await accountCleanupWorkerExit
-        await accountCleanupExecution
-    })
-
-    fastify.post("/databaseBackup", async (_request: FastifyRequest, reply: FastifyReply) => {
-        const backup = await createFullDatabaseBackup("manual-full")
-        let removedBackups: string[] = []
-        let backupCleanupError: string | null = null
-        try {
-            removedBackups = removeExpiredManualDatabaseBackups(path.dirname(backup.directory))
-        } catch (error) {
-            backupCleanupError = error instanceof Error ? error.message : String(error)
-        }
-        return reply.send({
-            ok: true,
-            backup: `.database/admin-backups/${backup.name}`,
-            retainedBackups: MANUAL_DATABASE_BACKUP_KEEP_COUNT,
-            removedBackups: removedBackups.length,
-            backupCleanupError,
-        })
-    })
-
-    fastify.get("/status", async (_request: FastifyRequest, reply: FastifyReply) => {
-        const root = process.cwd()
-        const cdnDir = process.env.CDN_DIR || ".cdn"
-        const cdnRoot = path.isAbsolute(cdnDir) ? path.join(cdnDir, "cn") : path.join(root, cdnDir, "cn")
-        const archiveSummary = getZipFileSummary(cdnRoot)
-        const activePatchSummary = getZipFileSummary(path.join(root, "assets", "asset-patch", "active"))
-        const patchManifest = getPatchManifest()
-        const enabledPatches = patchManifest.patches.filter(p => p.enabled)
-        const detectedVersion = detectCDNVersion()
-        const effectiveVersion = getEffectiveVersion()
-
-        return reply.status(200).send({
-            server: {
-                uptimeSeconds: Math.floor(process.uptime()),
-                onlinePlayers: getOnlinePlayerCount(),
-                nodeVersion: process.version,
-                platform: `${process.platform}/${process.arch}`,
-                pid: process.pid,
-                memory: process.memoryUsage(),
-                listenHost: process.env.CN_LISTEN_HOST || "localhost",
-                listenPort: process.env.CN_LISTEN_PORT || "8001",
-            },
-            cdn: {
+function buildAdminCdnStatus(root: string, cdnDir: string, patchManifest: ReturnType<typeof getPatchManifest>) {
+    const cdnRoot = path.isAbsolute(cdnDir) ? path.join(cdnDir, "cn") : path.join(root, cdnDir, "cn")
+    const archiveSummary = getZipFileSummary(cdnRoot)
+    const activePatchSummary = getZipFileSummary(path.join(root, "assets", "asset-patch", "active"))
+    const enabledPatches = patchManifest.patches.filter(patch => patch.enabled)
+    const detectedVersion = detectCDNVersion()
+    const effectiveVersion = getEffectiveVersion()
+    return {
                 baseUrl: getCdnBaseUrl(),
                 baseline: {
                     mode: "fixed-cn-final",
@@ -509,7 +478,57 @@ const routes = async (fastify: FastifyInstance) => {
                 enabledPatchCount: enabledPatches.length,
                 totalPatchCount: patchManifest.patches.length,
                 activePatchArchiveCount: activePatchSummary.count,
+            }
+}
+const adminCdnStatusCache = createAdminStaticCache<ReturnType<typeof buildAdminCdnStatus>>(60_000)
+
+const routes = async (fastify: FastifyInstance) => {
+
+    fastify.addHook("onClose", async () => {
+        accountCleanupClosing = true
+        if (accountCleanupWorker) {
+            await accountCleanupWorker.terminate()
+        }
+        await accountCleanupWorkerExit
+        await accountCleanupExecution
+    })
+
+    fastify.post("/databaseBackup", async (_request: FastifyRequest, reply: FastifyReply) => {
+        const backup = await createFullDatabaseBackup("manual-full")
+        let removedBackups: string[] = []
+        let backupCleanupError: string | null = null
+        try {
+            removedBackups = removeExpiredManualDatabaseBackups(path.dirname(backup.directory))
+        } catch (error) {
+            backupCleanupError = error instanceof Error ? error.message : String(error)
+        }
+        return reply.send({
+            ok: true,
+            backup: `.database/admin-backups/${backup.name}`,
+            retainedBackups: MANUAL_DATABASE_BACKUP_KEEP_COUNT,
+            removedBackups: removedBackups.length,
+            backupCleanupError,
+        })
+    })
+
+    fastify.get("/status", async (_request: FastifyRequest, reply: FastifyReply) => {
+        const root = process.cwd()
+        const cdnDir = process.env.CDN_DIR || ".cdn"
+        const patchManifest = getPatchManifest()
+        const cacheKey = JSON.stringify([root, cdnDir, getCdnBaseUrl()])
+        const cdn = adminCdnStatusCache.get(cacheKey, patchManifest, () => buildAdminCdnStatus(root, cdnDir, patchManifest))
+        return reply.status(200).send({
+            server: {
+                uptimeSeconds: Math.floor(process.uptime()),
+                onlinePlayers: getOnlinePlayerCount(),
+                nodeVersion: process.version,
+                platform: `${process.platform}/${process.arch}`,
+                pid: process.pid,
+                memory: process.memoryUsage(),
+                listenHost: process.env.CN_LISTEN_HOST || "localhost",
+                listenPort: process.env.CN_LISTEN_PORT || "8001",
             },
+            cdn,
         })
     })
 
@@ -518,67 +537,104 @@ const routes = async (fastify: FastifyInstance) => {
         return reply.status(200).send({
             servertime: getServerTime(),
             date: date.toISOString(),
-            isCustom: date.getTime() !== Date.now()
+            isCustom: (getTimeOffset() ?? 0) !== 0,
+            clockMode: getServerClockSnapshot().mode
         })
     })
 
-    fastify.get("/resetTime", async (_request: FastifyRequest, reply: FastifyReply) => {
-        setServerTime(null)
-        saveTimeOffset(null)
-        return reply.status(200).send({
-            servertime: getServerTime(),
-            date: getServerDate().toISOString(),
-            isCustom: false
-        })
+    // Clock editing is retired: operational refresh must not alter business time.
+    for (const endpoint of ["/resetTime", "/time"]) fastify.get(endpoint, async (_request, reply) => {
+        return reply.status(409).send({ error: "服务器时间不可修改；请使用全员重新登录刷新运营配置。" })
     })
 
-    fastify.get("/time", async (request: FastifyRequest, reply: FastifyReply) => {
-        const newTime = (request.query as TimeQuery).time
-        if (!newTime) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Missing 'time' parameter. Use format: 2025-06-01T12:00:00"
-        })
-
+    fastify.get("/clientReload", async (request, reply) => {
+        if (!hasManagementSession(request)) return reply.status(401).send({ error: "unauthorized" })
+        return contentClientReload().state()
+    })
+    fastify.post("/clientReload", async (request, reply) => {
+        if (!hasManagementSession(request)) return reply.status(401).send({ error: "unauthorized" })
+        const body = request.body as { expectedEpoch?: unknown; confirm?: unknown } | null
+        if (body?.confirm !== CONTENT_CLIENT_RELOAD_CONFIRM || !Number.isSafeInteger(body.expectedEpoch)
+            || Number(body.expectedEpoch) < 0 || Number(body.expectedEpoch) >= Number.MAX_SAFE_INTEGER) {
+            return reply.status(400).send({ error: "请确认全员重新登录操作，并提供当前重登版本。" })
+        }
         try {
-            let dateStr = newTime
-            if (!dateStr.includes('T')) {
-                dateStr = dateStr + 'T00:00:00'
+            // Capture only currently connected, committed plays before publishing the
+            // epoch; an immediate /load cannot race ahead of its protection record.
+            let preview: { plays: ContentClientReloadPlay[] }
+            try {
+                preview = await getRoomCommandGateway().execute("runtime.contentReloadPreview", {}) as { plays: ContentClientReloadPlay[] }
+            } catch {
+                return reply.status(503).send({ error: "多人连接状态暂不可用，尚未发出重登通知，请稍后重试。" })
             }
-            if (!dateStr.includes('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
-                dateStr = dateStr + 'Z'
-            }
-            const time = new Date(dateStr)
-            if (isNaN(time.getTime())) {
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": `Invalid time format: "${newTime}". Use ISO format.`
-                })
-            }
-            setServerTime(time)
-            saveTimeOffset(getTimeOffset())
-            return reply.status(200).send({
-                servertime: getServerTime(),
-                date: getServerDate().toISOString(),
-                isCustom: true
-            })
-        } catch (error: any) {
-            return reply.status(500).send({
-                "error": "Internal Server Error",
-                "message": error?.message ?? "Unknown error"
-            })
+            const state = await runPersistenceTransaction({ domain: "admin", operation: "request_content_client_reload" }, () =>
+                contentClientReload().request(body.expectedEpoch as number, Date.now(), preview.plays))
+            const realtime = await disconnectClientsForContentReload()
+            return reply.send({ ok: true, ...state, realtime })
+        } catch (error) {
+            if (error instanceof ContentClientReloadConflict) return reply.status(409).send({ error: error.message, current: error.current })
+            throw error
         }
     })
+    fastify.post("/clientReload/disconnect", async (request, reply) => {
+        if (!hasManagementSession(request)) return reply.status(401).send({ error: "unauthorized" })
+        const body = request.body as { epoch?: unknown; confirm?: unknown } | null
+        if (body?.confirm !== CONTENT_CLIENT_RELOAD_CONFIRM || !Number.isSafeInteger(body.epoch) || Number(body.epoch) < 1) {
+            return reply.status(400).send({ error: "请提供要重试的重登版本。" })
+        }
+        const state = contentClientReload().state()
+        if (body.epoch !== state.epoch) return reply.status(409).send({ error: "重登状态已更新，请刷新后重试。", current: state })
+        return reply.send({ ok: true, ...state, realtime: await disconnectClientsForContentReload() })
+    })
 
-    fastify.get("/clairvoyance/gacha", async (_request: FastifyRequest, reply: FastifyReply) => {
+    fastify.get("/clairvoyance/gacha", async (request: FastifyRequest, reply: FastifyReply) => {
+        const view = (request.query as { view?: string }).view
+        if (view !== undefined && view !== "catalog" && view !== "current") {
+            return reply.status(400).send({ error: "不支持的卡池资料视图。" })
+        }
         const patchManifest = getPatchManifest()
-        return reply.status(200).send({
-            cdnVersion: patchManifest.cdn_version,
-            baseline: "fixed-cn-final",
-            ...buildShortUpCharacterGachaTimeline(getServerDate()),
-        })
+        const metadata = { cdnVersion: patchManifest.cdn_version, baseline: "fixed-cn-final" }
+        if (view === "catalog") {
+            const catalog = buildShortUpCharacterGachaCatalog()
+            const etag = `"${catalog.catalogVersion}-${metadata.cdnVersion}"`
+            reply.header("cache-control", "private, no-cache").header("etag", etag)
+            const conditional = request.headers["if-none-match"]
+            if (typeof conditional === "string" && conditional.split(",").some(value => {
+                const tag = value.trim()
+                return tag === "*" || tag.replace(/^W\//, "") === etag
+            })) return reply.status(304).send()
+            return reply.send({ ...metadata, ...catalog })
+        }
+        reply.header("cache-control", "no-store")
+        return reply.send({ ...metadata, ...(view === "current"
+            ? buildShortUpCharacterGachaCurrent(getServerDate())
+            : buildShortUpCharacterGachaTimeline(getServerDate())) })
     })
 
     // === Account list (JSON, for admin SPA) ===
+
+    fastify.get("/accounts/summary", async (_request, reply) => {
+        return reply.header("cache-control", "no-store").send(readAdminAccountSummary(getDb()))
+    })
+    fastify.get("/accounts/page", async (request, reply) => {
+        const query = request.query as { page?: string; pageSize?: string; q?: string }
+        const page = Number(query.page ?? 1), pageSize = Number(query.pageSize ?? 20)
+        if (!Number.isSafeInteger(page) || page < 1 || ![20, 50, 100].includes(pageSize)
+            || (query.q !== undefined && typeof query.q !== "string")) {
+            return reply.status(400).send({ error: "请提供有效页码和每页条数（20、50 或 100）。" })
+        }
+        return reply.header("cache-control", "no-store").send(readAdminAccountPage(getDb(), getAdminPlayerSelectionState(), page, pageSize, query.q ?? ""))
+    })
+    fastify.get("/accounts/targets", async (_request, reply) => {
+        return reply.header("cache-control", "no-store").send(readAdminAccountTargets(getDb(), getAdminPlayerSelectionState()))
+    })
+    fastify.get("/accounts/:id", async (request, reply) => {
+        const id = Number((request.params as { id: string }).id)
+        if (!Number.isSafeInteger(id) || id < 1) return reply.status(400).send({ error: "无效账号。" })
+        const account = readAdminAccountDetail(getDb(), getAdminPlayerSelectionState(), id)
+        if (!account) return reply.status(404).send({ error: "账号不存在或已删除，请刷新账号列表。" })
+        return reply.header("cache-control", "no-store").send(account)
+    })
 
     fastify.get("/accounts", async (_request: FastifyRequest, reply: FastifyReply) => {
         const loginByAccount = playerLoginAdminOverview()

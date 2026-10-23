@@ -1,4 +1,5 @@
 import Fastify, { FastifyRequest } from "fastify";
+import { installContentClientReloadGuard } from "./lib/content-client-reload";
 import { ContentTypeParserDoneFunction } from "fastify/types/content-type-parser";
 import fastifyStatic from "@fastify/static";
 import { pack, unpack } from "msgpackr";
@@ -35,6 +36,8 @@ import rushEventApiPlugin from "./routes/api/rushEvent"
 import howToGetApiPlugin from "./routes/api/howToGet"
 import loungeApiPlugin from "./routes/api/lounge"
 import multiSpecialExchangeApiPlugin from "./routes/api/multiSpecialExchange"
+import specialExchangeApiPlugin from "./routes/api/specialExchange"
+import startDashExchangeApiPlugin from "./routes/api/startDashExchange"
 // web routes
 import indexWebPlugin from "./routes/web"
 // web api routes
@@ -98,6 +101,7 @@ fastify.addContentTypeParser('application/json', { parseAs: 'string' }, jsonPars
 
 //api
 const apiPrefix = "/latest/api/index.php"
+installContentClientReloadGuard(fastify)
 fastify.register(apiPlugin, { prefix: apiPrefix })
 fastify.register(assetApiPlugin, { prefix: `${apiPrefix}/asset` })
 fastify.register(toolApiPlugin, { prefix: `${apiPrefix}/tool` })
@@ -129,6 +133,8 @@ fastify.register(rushEventApiPlugin, { prefix: `${apiPrefix}/event/rush` })
 fastify.register(howToGetApiPlugin, { prefix: `${apiPrefix}/how_to_get` })
 fastify.register(loungeApiPlugin, { prefix: `${apiPrefix}/lounge` })
 fastify.register(multiSpecialExchangeApiPlugin, { prefix: `${apiPrefix}/multi_special_exchange` })
+fastify.register(specialExchangeApiPlugin, { prefix: `${apiPrefix}/special_exchange` })
+fastify.register(startDashExchangeApiPlugin, { prefix: `${apiPrefix}/start_dash_exchange` })
 
 // openapi
 fastify.register(openapiPlugin, { prefix: "/openapi/service" })

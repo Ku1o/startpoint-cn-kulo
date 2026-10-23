@@ -10,7 +10,9 @@ import {
 } from "../lib/persistence/command-registry"
 import { openWriterConnection } from "../lib/persistence/writer-connection"
 import { WRITER_PROTOCOL_VERSION } from "../lib/persistence/writer-config"
-import { setServerTimeOffset, getLegacyTimeOffset, withServerClock } from "../utils"
+import { getConfiguredBusinessTimeOffset, installServerClockSnapshot, validateServerClockSnapshot,
+    withServerClock, type ServerClockSnapshot } from "../utils"
+import { assertServerClockMatchesDatabaseSync, ensurePlayerClockStateForLoadSync, readServerClockStateSync } from "../lib/server-clock-state"
 
 export interface WriterWorkerInput {
     databasePath: string
@@ -18,6 +20,7 @@ export interface WriterWorkerInput {
     groupCommitWindowMs: number
     groupCommitMax: number
     protocolVersion: number
+    clockSnapshot: ServerClockSnapshot
 }
 
 interface WriterCommandMessage {
@@ -32,7 +35,7 @@ type WriterWorkerMessage =
     | WriterCommandMessage
     | { type: "close" }
     | { type: "checkpoint_owner", external: boolean }
-    | { type: "set_time_offset", offset: number | null }
+    | { type: "set_clock_snapshot", snapshot: ServerClockSnapshot }
 
 interface QueuedCommand extends WriterCommandMessage {
     receivedAt: number
@@ -58,6 +61,20 @@ if (input?.protocolVersion !== WRITER_PROTOCOL_VERSION) {
     throw new Error(
         `SQLite writer worker protocol mismatch: worker=${input?.protocolVersion} expected=${WRITER_PROTOCOL_VERSION}`,
     )
+}
+validateServerClockSnapshot(input.clockSnapshot)
+
+function assertCommittedClock(connection: Database, snapshot: ServerClockSnapshot): void {
+    validateServerClockSnapshot(snapshot)
+    const persisted = readServerClockStateSync(connection)
+    if (persisted) {
+        if ((Object.keys(persisted.snapshot) as Array<keyof ServerClockSnapshot>)
+            .some(key => persisted.snapshot[key] !== snapshot[key])) {
+            throw new Error("SQLite writer clock does not match the committed database clock")
+        }
+    } else if (snapshot.mode === "real") {
+        throw new Error("SQLite writer real clock has no committed database clock state")
+    }
 }
 
 let database: Database | null = null
@@ -172,7 +189,9 @@ function executeBatch(batch: QueuedCommand[]): BatchResult {
             }
             connection.exec(`SAVEPOINT ${savepoint}`)
             try {
-                const offset = getLegacyTimeOffset() ?? 0
+                if (command.meta.playerId !== undefined) ensurePlayerClockStateForLoadSync(command.meta.playerId, connection)
+                else assertServerClockMatchesDatabaseSync(connection)
+                const offset = getConfiguredBusinessTimeOffset() ?? 0
                 const value = withServerClock(Date.now() + offset, () => handler(command.args, context), offset)
                 // Clone before COMMIT: a result that cannot cross the thread
                 // boundary must roll the command back instead of committing a
@@ -302,14 +321,16 @@ function handleMessage(raw: unknown): void {
                 console.error("[WRITER] checkpoint ownership handoff failed", messageOf(error))
             }
             return
-        case "set_time_offset":
-            // Both threads must evaluate the same virtual clock: commands that
-            // settle player progress run here, and their timestamps were
-            // previously read with this thread's own (null) offset.
-            setServerTimeOffset(
-                typeof message.offset === "number" && Number.isFinite(message.offset)
-                    ? message.offset : null,
-            )
+        case "set_clock_snapshot":
+            try {
+                if (!database) throw new Error("SQLite writer clock update has no connection")
+                assertCommittedClock(database, message.snapshot)
+                installServerClockSnapshot(message.snapshot)
+            } catch (error) {
+                // A mismatched coordinate must never reach another command.
+                post({ type: "fatal", error: messageOf(error) })
+                process.exit(1)
+            }
             return
         case "close":
             closeRequested = true
@@ -334,6 +355,8 @@ async function main(): Promise<void> {
         busyTimeoutMs: input.busyTimeoutMs,
     })
     database = connection
+    assertCommittedClock(connection, input.clockSnapshot)
+    installServerClockSnapshot(input.clockSnapshot)
     // Domain modules resolve getDb() lazily, so pointing the override at the
     // writer connection before the command implementations load is enough for
     // the identical domain code to run inside this thread.

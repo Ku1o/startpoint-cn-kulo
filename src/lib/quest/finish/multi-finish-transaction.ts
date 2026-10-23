@@ -28,6 +28,7 @@ import type { FinishContext } from "./types"
 import { gameVerboseLog } from "../../game-logging"
 import { measureSettlementPhase } from "../../settlement-performance"
 import { getEligibleRescueFragmentReward, getRescueFragmentAdditionalReward } from "../../../multi/rescue-fragment-reward"
+import { isRegisteredRescueBattleSync } from "../../mission/rescue-battle-facts"
 import { isMode15Quest, settleMode15BattleSync } from "../../mode15-optional"
 import { MULTI_FINISH_RECEIPT_OPERATION, isMultiFinishResponse, multiFinishPlayId } from "./multi-finish-identity"
 
@@ -261,6 +262,8 @@ export function settleMultiQuestFinishInTransaction(args: MultiFinishTransaction
         partySlot: activeQuestData.partySlot ?? player.partySlot,
         isMulti: true,
         isMultiHost: finishedAsHost,
+        isRegisteredRescue: !finishedAsHost && isRegisteredRescueBattleSync({ playerId, playId,
+            category: questCategory, questId, roomNumber: activeQuestData.roomNumber ?? "" }),
     }
     const multiBattleParty = collectPartyCharacterIds(finishCtx.party)
     const missionEvaluationTime = new Date(evaluationTimeMs);

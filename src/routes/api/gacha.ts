@@ -19,7 +19,8 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { givePlayerCharacterSync } from "../../lib/character";
 import { givePlayerEquipmentSync } from "../../lib/equipment";
 import { buildGachaExecPlan } from "../../lib/gacha-exec-plan";
-import { getExchangeableGachaItem } from "../../lib/gacha-rules";
+import { getExchangeableGachaItem, isDeferredPersonalPeriodGacha } from "../../lib/gacha-rules";
+import { executeCrazyGacha, isCrazyGachaExecRequest, saveCrazyGacha, selectCrazyGacha } from "../../lib/crazy-gacha"
 import { getDb } from "../../data/db";
 import { reconcileAwakeUnlockCharacterList, settleDegreeMissionResponse } from "../../lib/mission";
 import {
@@ -30,6 +31,7 @@ import { gameVerboseLog } from "../../lib/game-logging";
 import { getPlayerOptionSync } from "../../data/domains/option";
 import { measureSettlementPhase, measureSettlementPhaseAsync, recordGachaRequest } from "../../lib/settlement-performance";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { contentDecision } from "../../lib/content-operations";
 import { createHash } from "node:crypto";
 import { getPlayerOperationReceiptSync, insertPlayerOperationReceiptSync } from "../../data/domains/player-operation-receipt";
 
@@ -125,6 +127,24 @@ function sendExchangeResponse(
 }
 
 const routes = async (fastify: FastifyInstance) => {
+    for (const selecting of [false, true]) {
+        fastify.post(selecting ? "/crazy_gacha_select" : "/crazy_gacha_save", async (request: FastifyRequest, reply: FastifyReply) => {
+            const body = (request.body ?? {}) as { viewer_id?: number; api_count?: number; index?: number; gacha_id?: number }
+            if (!Number.isSafeInteger(body.viewer_id) || !Number.isSafeInteger(body.index)
+                || (selecting ? body.gacha_id !== 100 || ![0, 1, 2].includes(body.index!) : ![1, 2].includes(body.index!))
+                || (body.gacha_id !== undefined && body.gacha_id !== 100)) {
+                return reply.status(400).send({ error: "Bad Request", message: "Invalid crazy gacha request." })
+            }
+            const session = await getSession(String(body.viewer_id))
+            if (!session) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." })
+            const playerId = resolvePlayerIdSync(session.accountId)
+            if (playerId === null) return reply.status(500).send({ error: "Internal Server Error", message: "No players bound to account." })
+            const context = { headerToken: request.headers['login_token'], body, accountId: session.accountId }
+            const result = selecting ? await selectCrazyGacha(playerId, body.viewer_id!, body.index!, context) : await saveCrazyGacha(playerId, body.index!, context)
+            if (!result.ok) return reply.status(400).send({ error: "Bad Request", message: result.message })
+            return sendExchangeResponse(reply, body.viewer_id!, result.data)
+        })
+    }
     fastify.post("/exchange_equipment", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as ExchangeEquipmentBody
 
@@ -165,6 +185,9 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "Equipment is not exchangeable from this gacha."
         })
+        if (contentDecision("gacha", gachaId, "exchange", Date.now()) === false) {
+            return reply.status(400).send({ error: "Bad Request", message: "Gacha exchange is closed." })
+        }
 
         const settlement = await runPersistenceTransaction({
             domain: "gacha", playerId, operation,
@@ -173,6 +196,10 @@ const routes = async (fastify: FastifyInstance) => {
                 ? getPlayerOperationReceiptSync<Record<string, any>>(playerId, operation, requestKey)
                 : null
             if (duplicate) return { responseData: duplicate.response, errorMessage: undefined }
+
+            if (contentDecision("gacha", gachaId, "exchange", Date.now()) === false) {
+                return { responseData: null, errorMessage: "Gacha exchange is closed." }
+            }
 
             const gachaInfo = getPlayerGachaInfoSync(playerId, gachaId)
             if (gachaInfo === null) return { responseData: null, errorMessage: "No data for gacha with provided id." }
@@ -247,6 +274,9 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "Character is not exchangeable from this gacha."
         })
+        if (contentDecision("gacha", gachaId, "exchange", Date.now()) === false) {
+            return reply.status(400).send({ error: "Bad Request", message: "Gacha exchange is closed." })
+        }
 
         const settlement = await runPersistenceTransaction({
             domain: "gacha", playerId, operation,
@@ -255,6 +285,10 @@ const routes = async (fastify: FastifyInstance) => {
                 ? getPlayerOperationReceiptSync<Record<string, any>>(playerId, operation, requestKey)
                 : null
             if (duplicate) return { responseData: duplicate.response, errorMessage: undefined }
+
+            if (contentDecision("gacha", gachaId, "exchange", Date.now()) === false) {
+                return { responseData: null, errorMessage: "Gacha exchange is closed." }
+            }
 
             const gachaInfo = getPlayerGachaInfoSync(playerId, gachaId)
             if (gachaInfo === null) return { responseData: null, errorMessage: "No data for gacha with provided id." }
@@ -332,6 +366,7 @@ const routes = async (fastify: FastifyInstance) => {
         // get player
         const playerId = measureSettlementPhase("gacha", "account", () => resolvePlayerIdSync(viewerIdSession.accountId))!
         if (playerId === null) return reply.status(500).send({ "error": "Internal Server Error", "message": "No players bound to account." })
+        if (isDeferredPersonalPeriodGacha(gachaId)) return reply.status(400).send({ error: "Bad Request", message: "Personal gacha period qualification is unavailable." })
         // get the gacha
         const gachaData = getGachaSync(gachaId)
         if (gachaData === null) {
@@ -341,8 +376,14 @@ const routes = async (fastify: FastifyInstance) => {
                 "message": "Gacha doesn't exist."
             })
         }
-        if (gachaData.enforceAvailabilityWindow === true
-            && !isGachaAvailableAt(gachaData, getServerTime() * 1000)) {
+        if (gachaId === 100) {
+            if (!isCrazyGachaExecRequest(gachaId, paymentType, type, numberOfExec)) return reply.status(400).send({ error: "Bad Request", message: "Invalid crazy gacha execution type." })
+            const result = await executeCrazyGacha(playerId, { headerToken: request.headers['login_token'], body, accountId: viewerIdSession.accountId })
+            if (!result.ok) return reply.status(400).send({ error: "Bad Request", message: result.message })
+            return sendExchangeResponse(reply, viewerId, result.data)
+        }
+        if (!(contentDecision("gacha", gachaId, "enter", Date.now())
+            ?? (gachaData.enforceAvailabilityWindow !== true || isGachaAvailableAt(gachaData, getServerTime() * 1000)))) {
             gameVerboseLog(() => `[GACHA] gacha unavailable: gachaId=${gachaId}`);
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -400,10 +441,11 @@ const routes = async (fastify: FastifyInstance) => {
             domain: "gacha", playerId, operation: "draw",
         }, () => {
             // Availability is authoritative at actual write execution, after queueing.
+            if (isDeferredPersonalPeriodGacha(gachaId)) return { ok: false as const, message: "Personal gacha period qualification is unavailable." }
             const currentGacha = getGachaSync(gachaId)
             if (currentGacha === null) return { ok: false as const, message: "Gacha doesn't exist." }
-            if (currentGacha.enforceAvailabilityWindow === true
-                && !isGachaAvailableAt(currentGacha, getServerTime() * 1000)) {
+            if (!(contentDecision("gacha", gachaId, "enter", Date.now())
+                ?? (currentGacha.enforceAvailabilityWindow !== true || isGachaAvailableAt(currentGacha, getServerTime() * 1000)))) {
                 return { ok: false as const, message: "Gacha is not available." }
             }
             const player = getPlayerSync(playerId)
@@ -417,7 +459,7 @@ const routes = async (fastify: FastifyInstance) => {
             }
             let plannedCampaign: PlayerGachaCampaign | null = null
             const planResult = buildGachaExecPlan({
-                gacha: gachaData,
+                gacha: currentGacha,
                 paymentType,
                 execType: type,
                 numberOfExec,

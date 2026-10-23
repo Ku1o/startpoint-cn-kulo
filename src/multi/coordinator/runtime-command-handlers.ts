@@ -1,6 +1,7 @@
 import type { RoomCommandExecutor } from "./command-executor"
 import { sessionManager } from "../state/SessionManager"
-import { disconnectLoungePlayerLogin } from "../../lounge/state"
+import { disconnectLoungePlayerLogin, disconnectAllLoungeForContentReload, loungeContentReloadViewerIds } from "../../lounge/state"
+import { invokeRealtimeBusiness } from "./business-rpc"
 import { battleTelemetry } from "../battle-telemetry"
 import { getRealtimeDiagnostics, configureRealtimeDiagnostics } from "../../lib/realtime-diagnostics"
 
@@ -11,6 +12,16 @@ export function registerRuntimeCommandHandlers(executor: RoomCommandExecutor): v
         disconnectLoungePlayerLogin(p.viewerId)
         return { applied: true }
     })
+    executor.register("runtime.disconnectAllForContentReload", async () => {
+        const active = [...new Set([...sessionManager.contentReloadViewerIds(), ...loungeContentReloadViewerIds()])]
+        // The owner lists transports; only the DB-owning parent reads reload acknowledgements.
+        const stale = new Set(active.length ? await invokeRealtimeBusiness<number[]>("contentReload.staleViewers", {
+            viewerIds: active, plays: sessionManager.contentReloadActivePlays(),
+        }) : [])
+        const viewers = new Set([...sessionManager.disconnectAllForContentReload(stale), ...disconnectAllLoungeForContentReload(stale)])
+        return { applied: true, viewerCount: viewers.size }
+    })
+    executor.register("runtime.contentReloadPreview", () => ({ plays: sessionManager.contentReloadActivePlays() }))
     executor.register("runtime.diagnostics", () => getRealtimeDiagnostics())
     executor.register("runtime.configureDiagnostics", raw => configureRealtimeDiagnostics(raw as Parameters<typeof configureRealtimeDiagnostics>[0]))
     executor.register("runtime.battles", () => ({ active: battleTelemetry.activeCount(), recent: battleTelemetry.recentSummaries() }))

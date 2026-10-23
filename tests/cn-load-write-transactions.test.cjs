@@ -20,7 +20,8 @@ const { promisify } = require('node:util')
 const { performance } = require('node:perf_hooks')
 
 const FIXED_NOW = Date.parse('2026-10-10T04:00:00.000Z')
-const FIXTURES = ['clean', 'daily', 'mana', 'abyss', 'mission', 'all']
+const FIXTURES = ['clean', 'daily', 'mana', 'abyss', 'mission', 'mission_closed', 'all']
+const ABILITY_MISSION_ID = 11070
 
 function freezeClock() {
     const RealDate = Date
@@ -32,22 +33,43 @@ function freezeClock() {
 }
 
 function countWrites(db) {
-    const counts = { begins: 0, commits: 0, implicitWrites: 0 }
+    const counts = { begins: 0, commits: 0, implicitWrites: 0, transactions: [] }
+    let current = null
+    const record = (sql, reader = false) => {
+        const text = String(sql).trim().toUpperCase()
+        if (text.startsWith('BEGIN')) {
+            counts.begins++
+            assert.equal(current, null, 'unexpected nested top-level transaction')
+            current = { writeStatements: 0, tables: new Set() }
+        } else if (text.startsWith('COMMIT')) {
+            counts.commits++
+            assert.ok(current, 'COMMIT without a measured BEGIN')
+            counts.transactions.push({
+                kind: current.writeStatements > 0 ? 'write' : 'read',
+                writeStatements: current.writeStatements,
+                tables: [...current.tables].sort(),
+            })
+            current = null
+        } else if (!reader && !/^(SAVEPOINT|RELEASE|ROLLBACK)\b/.test(text)) {
+            if (!db.inTransaction) counts.implicitWrites++
+            else {
+                assert.ok(current, 'write outside a measured transaction')
+                current.writeStatements++
+                const table = /^(?:INSERT(?: OR \w+)? INTO|UPDATE|DELETE FROM)\s+["`\[]?(\w+)/.exec(text)?.[1]
+                if (table) current.tables.add(table)
+            }
+        }
+    }
     const probe = db.prepare('SELECT 1')
     const proto = Object.getPrototypeOf(probe)
     const run = proto.run
     proto.run = function (...args) {
-        const sql = this.source.trim().toUpperCase()
-        if (sql.startsWith('BEGIN')) counts.begins++
-        else if (sql.startsWith('COMMIT')) counts.commits++
-        else if (!this.reader && !this.database.inTransaction) counts.implicitWrites++
+        record(this.source, this.reader)
         return run.apply(this, args)
     }
     const exec = db.exec
     db.exec = function (sql) {
-        const text = String(sql).trim().toUpperCase()
-        if (text.startsWith('BEGIN')) counts.begins++
-        else if (text.startsWith('COMMIT')) counts.commits++
+        record(sql)
         return exec.call(this, sql)
     }
     return counts
@@ -102,6 +124,30 @@ async function scenario(root, fixture) {
         }
     })()
 
+    // Growth tasks have no comeback qualification. Explicitly open just this
+    // original phase-one ability task in the synthetic operations store.
+    const operations = out('lib/content-operations')
+    const setMissionOpen = enabled => {
+        const store = operations.contentOperations()
+        const review = { readiness: 'verified', evidence: 'Synthetic original growth-task load repair', endsAtMs: null }
+        store.update('active_mission_event:1', {
+            expectedRevision: store.revision(), catalogDigest: store.digest,
+            reason: 'Synthetic load write-budget fixture',
+            actionOverrides: {
+                visible: { ...review, enabled: true },
+                enter: { ...review, enabled, missionKeys: [`0:${ABILITY_MISSION_ID}`] },
+            },
+        }, FIXED_NOW)
+    }
+    setMissionOpen(fixture !== 'mission_closed')
+    const learnAbility = () => {
+        const node = Object.entries(out('lib/assets').getCharacterManaNodesSync(ids[2], 1))
+            .find(([, value]) => ['1', '2', '3'].includes(value.field6))
+        assert.ok(node, 'fixture character needs an original ability node')
+        return db.prepare('INSERT INTO players_characters_mana_nodes (value,character_id,player_id) VALUES (?,?,?)')
+            .run(Number(node[0]), ids[2], player.id).changes
+    }
+
     const app = Fastify({ logger: false })
     let captured = null
     app.addHook('onSend', async (_request, _reply, payload) => {
@@ -141,15 +187,7 @@ async function scenario(root, fixture) {
         applied.abyss = db.prepare('UPDATE players_rush_events SET tower_revision=NULL, active_rush_battle_folder_id=2 WHERE player_id=? AND event_id IN (700099,700100)')
             .run(player.id).changes
     }
-    if (fixture === 'mission' || fixture === 'all') {
-        // One learned mana node (not a full board) advances a beginner mission
-        // whose progress row the reconciliation has to create.
-        const nodeId = Number(Object.keys(out('lib/assets').getCharacterManaNodesSync(ids[2], 1))[0])
-        db.prepare('INSERT INTO players_characters_mana_nodes (value,character_id,player_id) VALUES (?,?,?)')
-            .run(nodeId, ids[2], player.id)
-        applied.missionRowsBefore = 1 + db.prepare('SELECT COUNT(*) AS n FROM players_active_missions WHERE player_id=?')
-            .get(player.id).n
-    }
+    if (['mission', 'mission_closed', 'all'].includes(fixture)) applied.missionNode = learnAbility()
     if (fixture === 'units') {
         // Each repair helper used by /load, called on its own: no write
         // transaction when the save is current, exactly one when it is not.
@@ -181,14 +219,20 @@ async function scenario(root, fixture) {
         }
         db.prepare('UPDATE players_rush_events SET tower_revision=NULL WHERE player_id=? AND event_id IN (700099,700100)').run(player.id)
         db.prepare('DELETE FROM players_characters_bond_tokens WHERE player_id=? AND character_id=?').run(player.id, ids[0])
-        const nodeId = Number(Object.keys(out('lib/assets').getCharacterManaNodesSync(ids[2], 1))[0])
-        db.prepare('INSERT INTO players_characters_mana_nodes (value,character_id,player_id) VALUES (?,?,?)')
-            .run(nodeId, ids[2], player.id)
+        learnAbility()
         measure('abyss.repair', calls.abyss)
         measure('mana.repair', calls.mana)
+        setMissionOpen(false)
+        result.closedMissionDeltas = measure('mission.closed', calls.mission).length
+        assert.equal(db.prepare('SELECT COUNT(*) AS n FROM players_active_missions WHERE player_id=? AND id=?')
+            .get(player.id, ABILITY_MISSION_ID).n, 0, 'closed mission must not be resurrected')
+        setMissionOpen(true)
         result.missionDeltas = measure('mission.repair', calls.mission).length
         for (const [name, call] of Object.entries(calls)) measure(`${name}.repaired`, call)
         result.towerRevisions = db.prepare('SELECT COUNT(*) AS n FROM players_rush_events WHERE player_id=? AND event_id IN (700099,700100) AND tower_revision IS NOT NULL').get(player.id).n
+        result.abilityProgress = db.prepare('SELECT progress FROM players_active_missions WHERE player_id=? AND id=?')
+            .get(player.id, ABILITY_MISSION_ID)?.progress ?? 0
+        result.comebackRows = db.prepare('SELECT COUNT(*) AS n FROM players_active_missions WHERE player_id=? AND id=25002').get(player.id).n
         await app.close()
         db.close()
         return { fixture, units: result }
@@ -201,15 +245,13 @@ async function scenario(root, fixture) {
     const loadMs = performance.now() - startedAt
     const measured = { ...counts }
     const after = dumpPlayerRows(db, player.id)
-    if (applied.missionRowsBefore !== undefined) {
-        applied.mission = db.prepare('SELECT COUNT(*) AS n FROM players_active_missions WHERE player_id=?')
-            .get(player.id).n - (applied.missionRowsBefore - 1)
-        delete applied.missionRowsBefore
-    }
+    const abilityProgress = db.prepare('SELECT progress FROM players_active_missions WHERE player_id=? AND id=?')
+        .get(player.id, ABILITY_MISSION_ID)?.progress ?? 0
+    const comebackRows = db.prepare('SELECT COUNT(*) AS n FROM players_active_missions WHERE player_id=? AND id=25002').get(player.id).n
     await app.close()
     db.close()
     return {
-        fixture, applied, counts: measured,
+        fixture, applied, counts: measured, abilityProgress, comebackRows,
         changed: before !== after,
         response: crypto.createHash('sha256').update(body).digest('hex'),
         rows: after,
@@ -240,9 +282,10 @@ if (process.argv[2] === '--child') {
         console.log('UNITS ' + JSON.stringify(units))
         assert.deepEqual(units, {
             'abyss.clean': 0, 'mana.clean': 0, 'mission.clean': 0,
-            'abyss.repair': 1, 'mana.repair': 1, 'mission.repair': 1, missionDeltas: units.missionDeltas,
+            'abyss.repair': 1, 'mana.repair': 1, 'mission.closed': 0, closedMissionDeltas: 0,
+            'mission.repair': 1, missionDeltas: units.missionDeltas,
             'abyss.repaired': 0, 'mana.repaired': 0, 'mission.repaired': 0,
-            towerRevisions: 2,
+            towerRevisions: 2, abilityProgress: 1, comebackRows: 0,
         })
         assert.ok(units.missionDeltas > 0)
     })
@@ -253,13 +296,18 @@ if (process.argv[2] === '--child') {
             for (const [name, rows] of Object.entries(current.applied)) {
                 assert.ok(rows > 0, `fixture ${name} must change the save`)
             }
-            const writes = current.counts.begins + current.counts.implicitWrites
-            const commits = current.counts.commits + current.counts.implicitWrites
-            // The login timestamp is rewritten on every /load, so even a fully
-            // repaired save performs one write; every repair joins it.
-            assert.equal(writes, 1, JSON.stringify(current.counts))
-            assert.equal(commits, 1, JSON.stringify(current.counts))
-            if (fixture !== 'clean') assert.equal(current.changed, true)
+            // Save maintenance and successful-load acknowledgement each own
+            // one write transaction. The intervening operations snapshot owns
+            // a consistent read transaction, which must not count as a write.
+            assert.equal(current.counts.begins, 3)
+            assert.equal(current.counts.commits, 3)
+            assert.equal(current.counts.implicitWrites, 0)
+            assert.deepEqual(current.counts.transactions.map(row => row.kind), ['write', 'read', 'write'])
+            assert.ok(current.counts.transactions[0].tables.includes('PLAYERS'))
+            assert.deepEqual(current.counts.transactions[2].tables, ['CONTENT_CLIENT_RELOAD_ACK', 'CONTENT_CLIENT_RELOAD_PLAYS'])
+            assert.equal(current.abilityProgress, ['mission', 'all'].includes(fixture) ? 1 : 0)
+            assert.equal(current.comebackRows, 0, 'load must not grant comeback eligibility')
+            assert.equal(current.changed, !['clean', 'mission_closed'].includes(fixture))
             if (baseline) {
                 const reference = await runChild(path.resolve(baseline), fixture)
                 console.log('BASELINE ' + JSON.stringify(reference))

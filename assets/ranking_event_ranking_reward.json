@@ -1,0 +1,956 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "assetVersion": "1.4.258",
+    "manifestSha256": "fc28f55235f5a626fa169434a6e354972543b476b81855ea4631ca4804866188",
+    "resources": {
+      "master/quest/event/ranking_event_ranking_reward.orderedmap": {
+        "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-64-b9d7ea56.zip",
+        "sha256": "ee870456be885fac6b93124149f912d890d1c9a05b22b97f1673f04c79962a51",
+        "member": "production/upload/30/728c8a1b8df23d7181d2a6e75ba2c7e6d62020"
+      }
+    }
+  },
+  "events": {
+    "1": [
+      {
+        "id": 101,
+        "maxPercentile": 0.03,
+        "reasonId": 10001,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54040,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 50
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 1500
+          },
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 999004,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 102,
+        "maxPercentile": 0.05,
+        "reasonId": 10002,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54030,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 40
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 1500
+          },
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          },
+          {
+            "kind": 0,
+            "id": 999004,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 103,
+        "maxPercentile": 0.1,
+        "reasonId": 10003,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54030,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 40
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 1500
+          },
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 5
+          },
+          {
+            "kind": 0,
+            "id": 999005,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 104,
+        "maxPercentile": 0.2,
+        "reasonId": 10004,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54020,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 30
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 1000
+          },
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 5
+          },
+          {
+            "kind": 0,
+            "id": 999005,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 105,
+        "maxPercentile": 0.3,
+        "reasonId": 10005,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54020,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 30
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 1000
+          },
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 3
+          },
+          {
+            "kind": 0,
+            "id": 999005,
+            "number": 5
+          }
+        ]
+      },
+      {
+        "id": 106,
+        "maxPercentile": 0.4,
+        "reasonId": 10006,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54010,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 20
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 500
+          },
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 3
+          },
+          {
+            "kind": 0,
+            "id": 999005,
+            "number": 3
+          }
+        ]
+      },
+      {
+        "id": 107,
+        "maxPercentile": 0.5,
+        "reasonId": 10007,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54010,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 20
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 500
+          },
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 999005,
+            "number": 3
+          }
+        ]
+      },
+      {
+        "id": 108,
+        "maxPercentile": 0.7,
+        "reasonId": 10008,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54000,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 10
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 300
+          },
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 999005,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 109,
+        "maxPercentile": 1.0,
+        "reasonId": 10009,
+        "rewards": [
+          {
+            "kind": 7,
+            "id": 54000,
+            "number": 1
+          },
+          {
+            "kind": 0,
+            "id": 49100,
+            "number": 5
+          },
+          {
+            "kind": 2,
+            "id": null,
+            "number": 150
+          }
+        ]
+      }
+    ],
+    "1000": [
+      {
+        "id": 100001,
+        "maxPercentile": 0.03,
+        "reasonId": 10001,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100002,
+        "maxPercentile": 0.05,
+        "reasonId": 10002,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100003,
+        "maxPercentile": 0.1,
+        "reasonId": 10003,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100004,
+        "maxPercentile": 0.2,
+        "reasonId": 10004,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100005,
+        "maxPercentile": 0.3,
+        "reasonId": 10005,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100006,
+        "maxPercentile": 0.4,
+        "reasonId": 10006,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100007,
+        "maxPercentile": 0.5,
+        "reasonId": 10007,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100008,
+        "maxPercentile": 0.7,
+        "reasonId": 10008,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100009,
+        "maxPercentile": 1.0,
+        "reasonId": 10009,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      }
+    ],
+    "4": [
+      {
+        "id": 401,
+        "maxPercentile": 0.03,
+        "reasonId": 10029,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 402,
+        "maxPercentile": 0.06,
+        "reasonId": 10030,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 403,
+        "maxPercentile": 0.1,
+        "reasonId": 10031,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 404,
+        "maxPercentile": 0.2,
+        "reasonId": 10032,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 405,
+        "maxPercentile": 0.3,
+        "reasonId": 10033,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 406,
+        "maxPercentile": 0.4,
+        "reasonId": 10034,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 407,
+        "maxPercentile": 0.6,
+        "reasonId": 10035,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 408,
+        "maxPercentile": 0.8,
+        "reasonId": 10036,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 409,
+        "maxPercentile": 1.0,
+        "reasonId": 10037,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 5
+          }
+        ]
+      }
+    ],
+    "2": [
+      {
+        "id": 201,
+        "maxPercentile": 0.03,
+        "reasonId": 10011,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 202,
+        "maxPercentile": 0.06,
+        "reasonId": 10012,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 203,
+        "maxPercentile": 0.1,
+        "reasonId": 10013,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 204,
+        "maxPercentile": 0.2,
+        "reasonId": 10014,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 205,
+        "maxPercentile": 0.3,
+        "reasonId": 10015,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 206,
+        "maxPercentile": 0.4,
+        "reasonId": 10016,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 207,
+        "maxPercentile": 0.6,
+        "reasonId": 10017,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 208,
+        "maxPercentile": 0.8,
+        "reasonId": 10018,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 209,
+        "maxPercentile": 1.0,
+        "reasonId": 10019,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 5
+          }
+        ]
+      }
+    ],
+    "1001": [
+      {
+        "id": 100101,
+        "maxPercentile": 0.03,
+        "reasonId": 10001,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100102,
+        "maxPercentile": 0.05,
+        "reasonId": 10002,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100103,
+        "maxPercentile": 0.1,
+        "reasonId": 10003,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100104,
+        "maxPercentile": 0.2,
+        "reasonId": 10004,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100105,
+        "maxPercentile": 0.3,
+        "reasonId": 10005,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100106,
+        "maxPercentile": 0.4,
+        "reasonId": 10006,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100107,
+        "maxPercentile": 0.5,
+        "reasonId": 10007,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100108,
+        "maxPercentile": 0.7,
+        "reasonId": 10008,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      },
+      {
+        "id": 100109,
+        "maxPercentile": 1.0,
+        "reasonId": 10009,
+        "rewards": [
+          {
+            "kind": 3,
+            "id": null,
+            "number": 20000
+          }
+        ]
+      }
+    ],
+    "5": [
+      {
+        "id": 501,
+        "maxPercentile": 0.03,
+        "reasonId": 10038,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 502,
+        "maxPercentile": 0.06,
+        "reasonId": 10039,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 503,
+        "maxPercentile": 0.1,
+        "reasonId": 10040,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 504,
+        "maxPercentile": 0.2,
+        "reasonId": 10041,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 505,
+        "maxPercentile": 0.3,
+        "reasonId": 10042,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 506,
+        "maxPercentile": 0.4,
+        "reasonId": 10043,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 507,
+        "maxPercentile": 0.6,
+        "reasonId": 10044,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 508,
+        "maxPercentile": 0.8,
+        "reasonId": 10045,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 509,
+        "maxPercentile": 1.0,
+        "reasonId": 10046,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 5
+          }
+        ]
+      }
+    ],
+    "3": [
+      {
+        "id": 301,
+        "maxPercentile": 0.03,
+        "reasonId": 10020,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 302,
+        "maxPercentile": 0.06,
+        "reasonId": 10021,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 303,
+        "maxPercentile": 0.1,
+        "reasonId": 10022,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 304,
+        "maxPercentile": 0.2,
+        "reasonId": 10023,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 305,
+        "maxPercentile": 0.3,
+        "reasonId": 10024,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 306,
+        "maxPercentile": 0.4,
+        "reasonId": 10025,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 12002,
+            "number": 1
+          }
+        ]
+      },
+      {
+        "id": 307,
+        "maxPercentile": 0.6,
+        "reasonId": 10026,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 308,
+        "maxPercentile": 0.8,
+        "reasonId": 10027,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 309,
+        "maxPercentile": 1.0,
+        "reasonId": 10028,
+        "rewards": [
+          {
+            "kind": 0,
+            "id": 13001,
+            "number": 5
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,3 +1,6 @@
+import nativeRaidRules from "../../assets/raid_event_rules.json"
+import eventMissions from "../../assets/mission_event.json"
+
 export interface RaidEventProgressRule {
     requiredKillCount: number
     questWeights: Record<number, number>
@@ -41,9 +44,30 @@ const RAID_EVENT_PROGRESS_RULES: Record<number, RaidEventProgressRule> = {
     },
 }
 
+// Historical events retain their own native communal targets. Event 7 keeps
+// the adopted private-server threshold and weights above, including its ledger
+// calculation version; importing history must not replay or rescale that event.
+for (const [rawId, value] of Object.entries(nativeRaidRules.events)) {
+    const eventId = Number(rawId)
+    if (!Number.isSafeInteger(eventId) || eventId < 1 || eventId >= 7) continue
+    const rule = value as { nativeRequiredKillCount: number; questKillCountWeights: Record<string, number> }
+    const entries = Object.entries(rule.questKillCountWeights ?? {})
+    if (!Number.isSafeInteger(rule.nativeRequiredKillCount) || rule.nativeRequiredKillCount <= 0 || entries.length === 0
+        || entries.some(([id, weight]) => !Number.isSafeInteger(Number(id)) || Number(id) <= 0
+            || !Number.isSafeInteger(weight) || weight <= 0)) continue
+    RAID_EVENT_PROGRESS_RULES[eventId] = { requiredKillCount: rule.nativeRequiredKillCount,
+        questWeights: Object.fromEntries(entries.map(([id, weight]) => [Number(id), weight])) }
+}
+
 // mission_event master entries whose col[7]/col[8] identify Raid event 7.
 const RAID_EVENT_MISSION_IDS: Record<number, number[]> = {
     7: [400093, 400094, 400095, 400096],
+}
+for (const [id, value] of Object.entries(eventMissions)) {
+    const row = value[0]
+    const eventId = Number(row?.[8])
+    if (row?.[7] !== "16" || !isSupportedRaidEventId(eventId) || eventId === 7) continue
+    ;(RAID_EVENT_MISSION_IDS[eventId] ??= []).push(Number(id))
 }
 
 export function isSupportedRaidEventId(eventId: number): boolean {

@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 // Handles the insertion of mana into characters.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -28,10 +29,12 @@ import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, settleMissionCategories } from "../../lib/mission";
 import { addMissionCounterSync } from "../../lib/mission/counters";
 import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
-import { buildShopSalesEntry, getShopPurchaseKey, isShopItemAvailable } from "../../lib/shop-sales";
+import { getShopPurchaseKey, isShopItemAvailable } from "../../lib/shop-sales";
 import { grantEquipmentDegreeRewardsSync } from "../../lib/equipment-degree-rewards";
 import { grantPurchasedAbyssShopDegreeRewardSync } from "../../lib/abyss-shop-degree-reward";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { shopContentDecision } from "../../lib/content-economy-operations";
+import { buildPlayerShopSalesEntrySync, getShopQuotaStateSync, hasShopQuota, recordShopQuotaPurchaseSync } from "../../lib/shop-quota";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
 
@@ -82,8 +85,10 @@ function getEffectiveShopPurchaseCountSync(
 }
 
 function addEffectiveShopPurchaseCountSync(
-    playerId: number, shopType: number, shopItemId: number, count: number,
+    playerId: number, shopType: number, shopItemId: number, count: number, at = getServerDate(),
 ): number {
+    const item = getShopItemSync(shopType, shopItemId)
+    if (item) recordShopQuotaPurchaseSync(playerId, shopType, shopItemId, item, count, at)
     return addPlayerShopPurchaseCountSync(playerId, getShopPurchaseKey(shopType, shopItemId), count)
 }
 
@@ -204,6 +209,13 @@ interface BulkPurchaseEntry {
     shopItemId: number,
     purchaseAmount: number,
     shopItem: ShopItem
+}
+
+function getUniqueHoldingEquipmentRewardId(shopType: number, shopItem: ShopItem): number | null {
+    const firstReward = shopItem.rewards[0]
+    return shopType === ShopType.EVENT_ITEM && shopItem.kind1EquipmentOnlyPossessionOne === true
+        && firstReward?.type === ShopItemRewardType.EQUIPMENT
+        ? (firstReward as EquipmentItemShopItemReward).id : null
 }
 
 function getShopDegreeRewards(shopItem: ShopItem, purchaseAmount: number): number[] {
@@ -367,11 +379,17 @@ const routes = async (fastify: FastifyInstance) => {
         // Event products may still be present in a stale client cache after
         // their exchange window closes. The listing filter is not a security
         // boundary, so enforce the same period again before any costs change.
-        if (shopType === ShopType.EVENT_ITEM && !isShopItemAvailable(shopItemData, getServerDate())) {
+        if (!(shopContentDecision(shopType, shopItemId, "exchange", Date.now())
+            ?? (shopType !== ShopType.EVENT_ITEM || isShopItemAvailable(shopItemData, getServerDate())))) {
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Event shop item is not currently available."
             })
+        }
+
+        const uniqueEquipmentId = getUniqueHoldingEquipmentRewardId(shopType, shopItemData)
+        if (uniqueEquipmentId !== null && playerOwnsEquipmentSync(playerId, uniqueEquipmentId)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Player already owns this equipment." })
         }
 
         let degreeIds: number[]
@@ -398,8 +416,13 @@ const routes = async (fastify: FastifyInstance) => {
             const player = getPlayerSync(playerId)
             if (player === null) return reject("No players bound to account.", 500)
             const now = getServerDate()
-            if (shopType === ShopType.EVENT_ITEM && !isShopItemAvailable(shopItemData, now)) {
+            if (!(shopContentDecision(shopType, shopItemId, "exchange", Date.now())
+                ?? (shopType !== ShopType.EVENT_ITEM || isShopItemAvailable(shopItemData, now)))) {
                 return reject("Event shop item is not currently available.")
+            }
+
+            if (uniqueEquipmentId !== null && playerOwnsEquipmentSync(playerId, uniqueEquipmentId)) {
+                return reject("Player already owns this equipment.")
             }
 
             if (degreeIds.some(degreeId => hasPlayerDegreeSync(playerId, degreeId))) {
@@ -407,7 +430,11 @@ const routes = async (fastify: FastifyInstance) => {
             }
 
             // validate stock limit
-            if (shopItemData.stock !== undefined && shopItemData.stock > 0) {
+            if (hasShopQuota(shopItemData)) {
+                const quota = getShopQuotaStateSync(playerId, shopType, shopItemId, shopItemData, now)
+                if (quota.migrationState === "unresolved") return reject("Legacy periodic purchase history requires quota review.")
+                if (purchaseAmount > quota.remaining || purchaseAmount > quota.singleLimit) return reject("Shop item purchase limit reached.")
+            } else if (shopItemData.stock !== undefined && shopItemData.stock > 0) {
                 const purchased = getEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId)
                 if (purchased + purchaseAmount > shopItemData.stock) {
                     return reject("Shop item purchase limit reached.")
@@ -558,7 +585,10 @@ const routes = async (fastify: FastifyInstance) => {
                 vmoney: vmoney,
                 bondToken: bondTokens
             })
-            if (manaSpent > 0) incrementActiveMissionUsedManaCountSync(playerId, manaSpent)
+            if (manaSpent > 0) {
+                incrementActiveMissionUsedManaCountSync(playerId, manaSpent)
+                recordContentActionFactsSync(playerId, { kind: "mana_spend", amount: manaSpent })
+            }
 
             // Equipment enhancement shop: update equipment enhancement level
             if (enhancementPurchase !== null) {
@@ -569,6 +599,7 @@ const routes = async (fastify: FastifyInstance) => {
                     shopType,
                     shopItemId,
                     chargedPurchaseAmount,
+                    now,
                 )
                 const equipmentDegreeIds = grantEquipmentDegreeRewardsSync(playerId, [equipmentId])
                 return {
@@ -596,7 +627,7 @@ const routes = async (fastify: FastifyInstance) => {
                     throw new Error(`Degree ${degreeId} is already owned.`)
                 }
             }
-            addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount)
+            addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount, now)
             const abyssDegreeIds = grantPurchasedAbyssShopDegreeRewardSync(playerId, shopType, [{ shopItemId }])
             return {
                 ok: true as const,
@@ -781,7 +812,8 @@ const routes = async (fastify: FastifyInstance) => {
                 }
 
                 // Date filtering: only show items active at current server time
-                if (!isShopItemAvailable(item, getServerDate())) continue
+                if (!(shopContentDecision(shopTypeNum, Number(itemId), "visible", Date.now())
+                    ?? isShopItemAvailable(item, getServerDate()))) continue
 
                 if (shopTypeNum === ShopType.TREASURE_EQUIPMENT) {
                     // Collect for group-level processing later
@@ -793,7 +825,8 @@ const routes = async (fastify: FastifyInstance) => {
                     reward.type === ShopItemRewardType.DEGREE
                     && ownedDegrees.has((reward as DegreeShopItemReward).id)
                 )
-                salesList.push(buildShopSalesEntry(shopTypeNum, Number(itemId), item, purchasedMap, degreeOwned))
+                salesList.push(buildPlayerShopSalesEntrySync(playerId, shopTypeNum, Number(itemId), item,
+                    purchasedMap, getServerDate(), degreeOwned))
             }
         }
 
@@ -1030,11 +1063,21 @@ const routes = async (fastify: FastifyInstance) => {
         type BulkRejection = { ok: false, message: string }
         const reject = (message: string): BulkRejection => ({ ok: false, message })
 
+        // Preserve bulk purchase's partial-selection contract while rejecting
+        // explicitly closed products before queueing and again at write execution.
+        for (const shopItemId of requestedAmounts.keys()) {
+            if (shopContentDecision(shopType, shopItemId, "exchange", Date.now()) === false) {
+                requestedAmounts.delete(shopItemId)
+                rejectedRequestEntries++
+            }
+        }
+
         let outcome: BulkRejection | {
             ok: true
             result: ReturnType<typeof givePlayerRewardsSync>
             costItemList: Record<string, number>
             degreeIds: number[]
+            purchaseCount: number
         }
         try {
             // Planning reads balances, stock history and owned titles; it runs
@@ -1051,6 +1094,7 @@ const routes = async (fastify: FastifyInstance) => {
                 const degreeIds: number[] = []
                 const ownedDegreeIds = new Set(getPlayerDegreeIdsSync(playerId))
                 const plannedDegreeIds = new Set<number>()
+                const plannedEquipmentIds = new Set<number>()
                 const itemCostTotals = new Map<number, number>()
                 let manaCost = 0
                 let vmoneyCost = 0
@@ -1070,7 +1114,15 @@ const routes = async (fastify: FastifyInstance) => {
                         skippedEntries++
                         continue
                     }
-                    if (shopType === ShopType.EVENT_ITEM && !isShopItemAvailable(shopItem, purchaseNow)) {
+                    if (!(shopContentDecision(shopType, shopItemId, "exchange", Date.now())
+                        ?? (shopType !== ShopType.EVENT_ITEM || isShopItemAvailable(shopItem, purchaseNow)))) {
+                        skippedEntries++
+                        continue
+                    }
+
+                    const uniqueEquipmentId = getUniqueHoldingEquipmentRewardId(shopType, shopItem)
+                    if (uniqueEquipmentId !== null && (plannedEquipmentIds.has(uniqueEquipmentId)
+                        || playerOwnsEquipmentSync(playerId, uniqueEquipmentId))) {
                         skippedEntries++
                         continue
                     }
@@ -1079,7 +1131,11 @@ const routes = async (fastify: FastifyInstance) => {
                     // an extreme amount. Stock-limited products are capped again below.
                     let purchaseAmount = Math.min(requestedAmount, 10_000)
 
-                    if (shopItem.stock !== undefined && shopItem.stock > 0) {
+                    if (hasShopQuota(shopItem)) {
+                        const quota = getShopQuotaStateSync(playerId, shopType, shopItemId, shopItem, purchaseNow)
+                        purchaseAmount = Math.min(purchaseAmount, quota.remaining, quota.singleLimit)
+                        if (purchaseAmount <= 0) { skippedEntries++; continue }
+                    } else if (shopItem.stock !== undefined && shopItem.stock > 0) {
                         const purchased = getEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId)
                         purchaseAmount = Math.min(purchaseAmount, Math.max(0, shopItem.stock - purchased))
                         if (purchaseAmount <= 0) {
@@ -1229,6 +1285,12 @@ const routes = async (fastify: FastifyInstance) => {
                         degreeIds.push(degreeId)
                     }
                     appendShopItemRewards(rewards, shopItem, purchaseAmount)
+                    for (const reward of shopItem.rewards) {
+                        if (reward.type === ShopItemRewardType.EQUIPMENT) {
+                            const equipmentReward = reward as EquipmentItemShopItemReward
+                            if (equipmentReward.count > 0) plannedEquipmentIds.add(equipmentReward.id)
+                        }
+                    }
                     purchases.push({ shopItemId, purchaseAmount, shopItem })
                 }
 
@@ -1274,7 +1336,10 @@ const routes = async (fastify: FastifyInstance) => {
                     vmoney: availablePaidVmoney,
                     bondToken: player.bondToken - bondTokenCost
                 })
-                if (manaCost > 0) incrementActiveMissionUsedManaCountSync(playerId, manaCost)
+                if (manaCost > 0) {
+                    incrementActiveMissionUsedManaCountSync(playerId, manaCost)
+                    recordContentActionFactsSync(playerId, { kind: "mana_spend", amount: manaCost })
+                }
 
                 const result = givePlayerRewardsSync(playerId, mergedRewards)
                 if (result === null) {
@@ -1292,7 +1357,8 @@ const routes = async (fastify: FastifyInstance) => {
                         playerId,
                         shopType,
                         purchase.shopItemId,
-                        purchase.purchaseAmount
+                        purchase.purchaseAmount,
+                        purchaseNow,
                     )
                 }
                 degreeIds.push(...grantPurchasedAbyssShopDegreeRewardSync(playerId, shopType, purchases))
@@ -1303,7 +1369,8 @@ const routes = async (fastify: FastifyInstance) => {
                     manaCost,
                 )
 
-                return { ok: true as const, result, costItemList, degreeIds }
+                return { ok: true as const, result, costItemList, degreeIds,
+                    purchaseCount: purchases.reduce((total, purchase) => total + purchase.purchaseAmount, 0) }
             })
         } catch (error) {
             console.error(`[shop:bulk_buy] transaction failed player=${playerId}`, error)
@@ -1316,7 +1383,7 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": outcome.message
         })
-        const { result: rewardResult, costItemList, degreeIds } = outcome
+        const { result: rewardResult, costItemList, degreeIds, purchaseCount } = outcome
 
         const afterPlayer = getPlayerSync(playerId)
         if (afterPlayer === null || rewardResult === null) return reply.status(500).send({
@@ -1357,7 +1424,7 @@ const routes = async (fastify: FastifyInstance) => {
             })),
             "mail_arrived": false
         }
-        mergeShopDegreeSettlement(responseData, playerId, viewerId)
+        if (purchaseCount > 0) mergeShopDegreeSettlement(responseData, playerId, viewerId)
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
             "data": responseData

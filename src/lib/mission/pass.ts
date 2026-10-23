@@ -8,6 +8,7 @@ import type { CategoryContext, MissionComputer } from "./types"
 import { ensurePlayerPassCardLoginProgressSync } from "../../data/domains/pass-card"
 import { buildPeriodicSnapshotData, getPassWeekSnapshotType, getSnapshot, takeSnapshot } from "./snapshot"
 import type { MissionEvaluationReadContext } from "./evaluation-context"
+import { contentMissionDecision } from "../content-operations"
 
 function periodValue(current: number, baseline: number | undefined): number {
     return Math.max(0, current - (baseline ?? 0))
@@ -56,6 +57,7 @@ export const PassComputer: MissionComputer = {
         if (category === 7) {
             const eventId = getMissionMasterDefinitions(7).find(definition =>
                 definition.eventId !== undefined
+                && contentMissionDecision(7, definition.missionId, "enter") === null
                 && isMissionDefinitionEnabledAt(definition, evaluationTime)
             )?.eventId
             if (eventId === undefined) return context
@@ -83,6 +85,7 @@ export const PassComputer: MissionComputer = {
             if (definition.patternType !== 0
                 || definition.eventId === undefined
                 || (requestedMissionIds !== undefined && !requestedMissionIds.has(definition.missionId))
+                || contentMissionDecision(8, definition.missionId, "enter") !== null
                 || !isMissionDefinitionEnabledAt(definition, evaluationTime)) continue
             loginProgress[definition.missionId] = ensurePlayerPassCardLoginProgressSync(
                 playerId,
@@ -97,6 +100,12 @@ export const PassComputer: MissionComputer = {
     compute(missionId: number, context: CategoryContext, dbProgress: number): number {
         const definition = getMissionMasterDefinition(context.category, missionId)
         if (!definition) return dbProgress
+
+        // Explicitly controlled seasons record their own accepted action facts.
+        // Lifetime/period totals include time before opening and while closed.
+        if ((context.category === 6 || context.category === 7
+            || context.category === 8 && definition.patternType === 0)
+            && contentMissionDecision(context.category, missionId, "enter") !== null) return dbProgress
 
         if (context.category === 6 || context.category === 7) {
             return computePeriodicPassProgress(definition.patternType, context, dbProgress)

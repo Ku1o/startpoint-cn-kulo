@@ -74,6 +74,8 @@ export interface FiveBossStartClaim {
     battleSessionId: string
     frozenRunId: string
     oldPlayRecovery: ReturnType<typeof recovery>
+    isRescueGuest: boolean
+    isRescueFragmentEligible: boolean
 }
 export interface FiveBossPreparePayload {
     body: MultiStartBody; playerId: number; staleQuest?: PlayerActiveQuest
@@ -129,7 +131,9 @@ export function registerFiveBossCommandHandlers(executor: RoomCommandExecutor): 
             return JSON.parse(JSON.stringify({ status: "ready", token: claim.token, ownerEpoch: claim.ownerEpoch,
                 remainingMs: Math.max(0, claim.deadline - performance.now()), room,
                 roomInstanceId: claim.instanceId, generation: claim.generation,
-                battleSessionId: claim.battleSessionId, frozenRunId: claim.runId, oldPlayRecovery }))
+                battleSessionId: claim.battleSessionId, frozenRunId: claim.runId, oldPlayRecovery,
+                isRescueGuest: sessionManager.isRescueGuest(room.room_number, p.body.viewer_id),
+                isRescueFragmentEligible: sessionManager.isRescueFragmentEligibleGuest(room.room_number, p.body.viewer_id) }))
         })
     })
     executor.register("fiveBoss.start.commit", (raw: { token: string; playerId: number; playId: string; runId: string }) => {

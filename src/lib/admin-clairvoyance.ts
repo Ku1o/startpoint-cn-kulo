@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import {
     cdnCharacterTexts as characterTextJson,
     serverCharacters as characterJson,
@@ -172,6 +173,7 @@ function buildSearchIndex(timeline: ClairvoyanceGacha[]): ClairvoyanceSearchRow[
 }
 
 let staticTimelineCache: StaticClairvoyanceTimeline | null = null
+let catalogVersion: string | null = null
 
 function getStaticTimeline(): StaticClairvoyanceTimeline {
     if (staticTimelineCache !== null) return staticTimelineCache
@@ -198,5 +200,22 @@ export function buildShortUpCharacterGachaTimeline(now: Date = new Date()): Clai
         ),
         timeline: staticTimeline.timeline,
         searchIndex: staticTimeline.searchIndex,
+    }
+}
+
+/** Catalog identity comes from the merged data actually served, including local overlays. */
+export function buildShortUpCharacterGachaCatalog() {
+    const data = getStaticTimeline()
+    catalogVersion ??= createHash("sha256").update(JSON.stringify(data)).digest("hex")
+    return { scope: "short-up-character-gacha" as const, catalogVersion, ...data }
+}
+
+export function buildShortUpCharacterGachaCurrent(now: Date = new Date()) {
+    const catalog = buildShortUpCharacterGachaCatalog()
+    const nowMs = now.getTime()
+    return {
+        scope: catalog.scope, catalogVersion: catalog.catalogVersion, currentTime: now.toISOString(),
+        currentIds: catalog.timeline.filter(gacha => Date.parse(gacha.startTime) <= nowMs
+            && Date.parse(gacha.endTime) >= nowMs).map(gacha => gacha.id),
     }
 }

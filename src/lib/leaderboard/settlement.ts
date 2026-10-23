@@ -506,10 +506,14 @@ export function rolloverLeaderboardSeasonSync(
     return { ok: true, competitionKey, season, rolled: true, nextSeason }
 }
 
-export function getLeaderboardSettlementOverviewSync(competitionKey: string): object {
+export function getLeaderboardSettlementOverviewSync(
+    competitionKey: string,
+    prepared?: { season: number; view: LeaderboardSeasonRewardView },
+): object {
     const config = getLeaderboardSettlementConfigSync(competitionKey)
-    const season = getLeaderboardCompetitionSeasonSync(competitionKey)
-    const view = getLeaderboardSeasonRewardViewSync(competitionKey, season)
+    const season = prepared?.season ?? getLeaderboardCompetitionSeasonSync(competitionKey)
+    // Request-local reuse only. Never cache live rank/eligibility across requests.
+    const view = prepared?.view ?? getLeaderboardSeasonRewardViewSync(competitionKey, season)
     const history = getDb().prepare(`
         SELECT id, season, source, settled_at_ms, ranked_players,
             rewarded_players, status, summary_json

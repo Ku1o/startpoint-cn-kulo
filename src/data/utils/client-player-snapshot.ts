@@ -248,12 +248,14 @@ export function serializePlayerSnapshot(
         "user_character_from_town_history": [],
         "quest_progress": userQuestProgress,
         "last_main_quest_id": null,
+        ...(toSerialize.crazyGachaRecovery ?? { crazy_gacha_result_list: { "0": [], "1": [], "2": [] }, last_crazy_gacha_draw_result: [] }),
         "gacha_info_list": toSerialize.gachaInfoList.map(gachaInfo => {
             return {
                 "gacha_id": gachaInfo.gachaId,
                 "is_daily_first": gachaInfo.isDailyFirst,
                 "is_account_first": gachaInfo.isAccountFirst,
-                "gacha_exchange_point": gachaInfo.gachaExchangePoint
+                "gacha_exchange_point": gachaInfo.gachaExchangePoint,
+                ...(gachaInfo.crazyDrawCount === undefined ? {} : { crazy_draw_count: gachaInfo.crazyDrawCount }),
             }
         }),
         "available_asset_version": context.assetVersion,

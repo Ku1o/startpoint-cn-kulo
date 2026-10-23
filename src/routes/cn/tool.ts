@@ -9,6 +9,8 @@ import { readPlayerLoginSession, playerLoginProfile, verifiedPlayerLogin } from 
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { accountCreationBudget, AccountCreationBudgetError, AccountCreationReservation } from "../../lib/account-creation-budget";
 import { createPlayerLoginRateLimiter } from "../../lib/player-login-rate-limit";
+import { getDb } from "../../data/db";
+import { initializeGameplayRequestIdentitySchemaSync, issueGameplayLoginTokenSync } from "../../lib/gameplay-request-identity";
 
 interface CnSignupBody {
     device_id: number;
@@ -22,15 +24,6 @@ interface CnSignupBody {
     storage_directory_path?: string;
     first_viewer_id?: number;
     advertise_id?: string;
-}
-
-function generateLoginToken(): string {
-    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let token = "";
-    for (let i = 0; i < 32; i++) {
-        token += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return token;
 }
 
 interface GetHeaderResponseBody {
@@ -63,9 +56,12 @@ const routes = async (fastify: FastifyInstance) => {
         const signedIn = verifiedPlayerLogin(request) ?? readPlayerLoginSession(request.headers["x-sp-session"])
         if (signedIn) {
             const profile = playerLoginProfile(signedIn.account_id)
+            const loginToken = runPersistenceTransactionSync({ domain: "account", operation: "issue_gameplay_login" }, () =>
+                issueGameplayLoginTokenSync(getDb(), { accountId: signedIn.account_id, viewerId: signedIn.viewer_id,
+                    udid: signedIn.udid, parentToken: signedIn.token, expiresAt: signedIn.expires_at }))
             reply.type("application/x-msgpack")
             return reply.send({ data_headers: generateDataHeaders({ viewer_id: signedIn.viewer_id, short_udid: 0, udid: signedIn.udid }),
-                data: { login_token: signedIn.token, newAccount: 0, roleName: profile.name, accountName: profile.username,
+                data: { login_token: loginToken, newAccount: 0, roleName: profile.name, accountName: profile.username,
                     sign: "dummy_sign", createDate: new Date().toISOString(), serverName: "StarPoint CN", serverId: 1 } })
         }
         const body = request.body as CnSignupBody;
@@ -73,7 +69,6 @@ const routes = async (fastify: FastifyInstance) => {
         const shortUdid = 0;
         const deviceId = body.device_id
 
-        const loginToken = generateLoginToken();
         let accountId: number;
         let newAccount = true;
 
@@ -163,6 +158,9 @@ const routes = async (fastify: FastifyInstance) => {
         else reserved.current?.release()
         accountId = signup.accountId
         const viewerId = signup.viewerId
+        initializeGameplayRequestIdentitySchemaSync(getDb())
+        const loginToken = runPersistenceTransactionSync({ domain: "account", operation: "issue_legacy_gameplay_login" }, () =>
+            issueGameplayLoginTokenSync(getDb(), { accountId, viewerId, udid, expiresAt: Number.MAX_SAFE_INTEGER }))
         newAccount = signup.newAccount
         if (signup.createdPlayerId !== undefined) {
             // Update the management-panel preference only after the DB commit.

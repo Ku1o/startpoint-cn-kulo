@@ -22,11 +22,12 @@ import {
 } from "../../lib/player-history-aggregates"
 import { getFavoritePartySelectionSync } from "../../lib/profileFavorite"
 import { generateDataHeaders, getServerTimeForPlayer } from "../../utils"
-import { getServerDate, getTimeOffset } from "../../utils"
+import { getTimeOffset } from "../../utils"
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
 interface RequestBody {
     viewer_id?: unknown
+    player_history_id?: unknown
     party_info?: unknown
     degree_id?: unknown
     background_card_id?: unknown
@@ -41,6 +42,10 @@ async function resolvePlayer(request: FastifyRequest, reply: FastifyReply) {
     const body = request.body as RequestBody
     if (!isPositiveInteger(body?.viewer_id)) {
         reply.status(400).send({ error: "Bad Request", message: "Invalid request body." })
+        return null
+    }
+    if (body.player_history_id !== undefined && body.player_history_id !== 1) {
+        reply.status(400).send({ error: "Bad Request", message: "Invalid player history id." })
         return null
     }
 
@@ -116,9 +121,9 @@ function serializeTopics(
     ]))
 }
 
-function getStartGameDate(playerId: number, offsetMs: number): string {
+function getStartGameDate(playerId: number, offsetMs: number): string | null {
     const account = getAccountFromPlayerIdSync(playerId)
-    if (!account) return "2025-07-17 12:00:00"
+    if (!account) return null
     return formatPlayerHistoryJstDate(account.firstLoginTime, offsetMs)
 }
 
@@ -143,7 +148,6 @@ const routes = async (fastify: FastifyInstance) => {
             resolved.playerId,
             resolved.player,
             getStartGameDate(resolved.playerId, offsetMs),
-            formatPlayerHistoryJstDate(getServerDate(), 0),
             offsetMs,
         )
 

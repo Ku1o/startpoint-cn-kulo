@@ -75,7 +75,7 @@ function isManagementPath(pathname: string): boolean {
         || pathname.startsWith("/seeds/")
         || pathname === "/admin"
         || pathname.startsWith("/admin/")
-        || ["/api/server", "/api/player", "/api/mail", "/api/lookup", "/api/seeds", "/api/news", "/api/mod-admin", "/api/leaderboards"]
+        || ["/api/server", "/api/player", "/api/mail", "/api/lookup", "/api/seeds", "/api/news", "/api/mod-admin", "/api/leaderboards", "/api/content"]
             .some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
@@ -91,6 +91,11 @@ function hasSession(request: FastifyRequest): boolean {
     return true;
 }
 
+/** Allow sensitive plugins to fail closed even when mounted without the global guard. */
+export function hasManagementSession(request: FastifyRequest): boolean {
+    return hasSession(request);
+}
+
 function setSessionCookie(reply: FastifyReply, token: string, ttlMs: number): void {
     const secure = process.env.ADMIN_COOKIE_SECURE === "true" ? "; Secure" : "";
     reply.header(
@@ -104,8 +109,16 @@ function clearSessionCookie(reply: FastifyReply): void {
 }
 
 function loginPage(error = ""): string {
-    const message = error ? `<p class="error">${error}</p>` : "";
-    return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>管理面板登录</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#101827;color:#eef2ff;font:16px system-ui}.card{width:min(360px,calc(100vw - 32px));padding:28px;border-radius:12px;background:#1f2937;box-sizing:border-box}h1{margin-top:0;font-size:22px}input,button{box-sizing:border-box;width:100%;padding:11px;border-radius:7px;font-size:16px}input{border:1px solid #64748b;margin:10px 0 14px}button{border:0;background:#38bdf8;color:#082f49;font-weight:700;cursor:pointer}.error{color:#fca5a5}</style></head><body><main class="card"><h1>管理面板登录</h1>${message}<form id="login"><label>管理密码</label><input id="password" type="password" autocomplete="current-password" required autofocus><button>登录</button></form><script>document.querySelector('#login').addEventListener('submit',async e=>{e.preventDefault();const r=await fetch('/admin-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:document.querySelector('#password').value})});if(r.ok)location.replace('/admin/');else location.replace('/admin-login?error=1')})</script></main></body></html>`;
+    return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>管理面板登录</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#101827;color:#eef2ff;font:16px system-ui}.card{width:min(360px,calc(100vw - 32px));padding:28px;border-radius:12px;background:#1f2937;box-sizing:border-box}h1{margin-top:0;font-size:22px}input,button{box-sizing:border-box;width:100%;padding:11px;border-radius:7px;font-size:16px}input{border:1px solid #64748b;margin:10px 0 14px}button{border:0;background:#38bdf8;color:#082f49;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.error{color:#fca5a5}</style></head><body><main class="card"><h1>管理面板登录</h1><p id="login-error" class="error" role="alert"${error ? "" : " hidden"}>${error}</p><form id="login"><label for="password">管理密码</label><input id="password" type="password" autocomplete="current-password" aria-describedby="login-error" required autofocus><button id="login-submit">登录</button></form><script>
+const form=document.querySelector('#login'),button=document.querySelector('#login-submit'),feedback=document.querySelector('#login-error');
+form.addEventListener('submit',async e=>{
+e.preventDefault();if(button.disabled)return;button.disabled=true;button.textContent='正在登录…';feedback.hidden=true;
+try{const r=await fetch('/admin-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:document.querySelector('#password').value})});
+if(r.ok){location.replace('/admin/');return}
+feedback.textContent=r.status===401||r.status===429?'密码错误或尝试次数过多，请稍后重试。':'登录服务暂时不可用，请稍后重试。';feedback.hidden=false;
+}catch{feedback.textContent='无法连接登录服务，请检查网络后重试。';feedback.hidden=false}
+finally{button.disabled=false;button.textContent='登录'}
+})</script></main></body></html>`;
 }
 
 function failureAllowed(ip: string): boolean {

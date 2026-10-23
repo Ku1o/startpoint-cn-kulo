@@ -7,7 +7,9 @@ import { getPlayerDegreeIdsSync } from "../../data/domains/degree";
 import { getShopItemSync } from "../../lib/assets";
 import { ShopItemRewardType, DegreeShopItemReward } from "../../lib/types";
 import { getHowToGetSources } from "../../lib/how-to-get-sources";
-import { buildShopSalesEntry, isShopItemAvailable } from "../../lib/shop-sales";
+import { isShopItemAvailable } from "../../lib/shop-sales";
+import { buildPlayerShopSalesEntrySync } from "../../lib/shop-quota";
+import { shopContentDecision } from "../../lib/content-economy-operations";
 
 interface GetListBody {
     viewer_id?: number;
@@ -51,12 +53,13 @@ const routes = async (fastify: FastifyInstance) => {
             // The public accessor includes retired-row filtering and Rush rerun
             // compatibility periods. Never cache availability or player stock.
             const item = getShopItemSync(source.shopType, source.shopItemId);
-            if (!item || !isShopItemAvailable(item, now)) continue;
+            if (!item || !(shopContentDecision(source.shopType, source.shopItemId, "visible", Date.now())
+                ?? isShopItemAvailable(item, now))) continue;
             const degreeIds = item.rewards.filter(r => r.type === ShopItemRewardType.DEGREE)
                 .map(r => (r as DegreeShopItemReward).id);
             if (degreeIds.length && !ownedDegrees) ownedDegrees = new Set(getPlayerDegreeIdsSync(playerId));
             const degreeOwned = degreeIds.some(id => ownedDegrees!.has(id));
-            sales.push(buildShopSalesEntry(source.shopType, source.shopItemId, item, purchases, degreeOwned));
+            sales.push(buildPlayerShopSalesEntrySync(playerId, source.shopType, source.shopItemId, item, purchases, now, degreeOwned));
         }
         // Box event availability is resolved by the existing client against its
         // exchangeable event list. Keep that protocol and its original box IDs.

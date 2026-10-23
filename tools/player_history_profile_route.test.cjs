@@ -1,4 +1,4 @@
-require("ts-node/register/transpile-only")
+if (!process.env.STARPOINT_TEST_COMPILED_ROOT) require("ts-node/register/transpile-only")
 
 const assert = require("node:assert/strict")
 const fs = require("node:fs")
@@ -7,18 +7,21 @@ const path = require("node:path")
 const test = require("node:test")
 const Fastify = require("fastify")
 const { pack, unpack } = require("msgpackr")
+const compiledRoot = process.env.STARPOINT_TEST_COMPILED_ROOT
+const load = name => require(compiledRoot ? path.join(compiledRoot, name) : path.resolve(__dirname, "../src", name))
+const asset = name => require(path.resolve(compiledRoot ? path.dirname(compiledRoot) : path.resolve(__dirname, ".."), "assets", name))
 
 const dataDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "player-history-profile-"))
 const previousDataDirectory = process.env.DATA_DIR
 process.env.DATA_DIR = dataDirectory
 
-const { initializeDatabase } = require("../src/data")
-const { getDb } = require("../src/data/db")
-const { insertAccountSync } = require("../src/data/domains/account")
-const { insertDefaultPlayerSync } = require("../src/data/domains/player")
-const { setServerTime } = require("../src/utils")
-const playerHistoryRoutes = require("../src/routes/api/playerHistory").default
-const profileRoutes = require("../src/routes/api/profile").default
+const { initializeDatabase } = load("data")
+const { getDb } = load("data/db")
+const { insertAccountSync } = load("data/domains/account")
+const { insertDefaultPlayerSync } = load("data/domains/player")
+const { setServerTime } = load("utils")
+const playerHistoryRoutes = load("routes/api/playerHistory").default
+const profileRoutes = load("routes/api/profile").default
 
 initializeDatabase()
 setServerTime(new Date("2025-07-25T00:00:00.000Z"))
@@ -70,6 +73,12 @@ test.after(() => {
     fs.rmSync(dataDirectory, { recursive: true, force: true })
     if (previousDataDirectory === undefined) delete process.env.DATA_DIR
     else process.env.DATA_DIR = previousDataDirectory
+    if (compiledRoot) {
+        const sourceRoot = path.resolve(__dirname, "../src") + path.sep
+        assert.equal(Object.keys(require.cache).some(file => file.startsWith(sourceRoot)), false,
+            "compiled run must not load source modules")
+        console.log(`COMPILED_PROFILE_ROOT ${path.resolve(compiledRoot)}`)
+    }
 })
 
 test("player history exposes all required topic values and persists edits", async () => {
@@ -90,7 +99,7 @@ test("player history exposes all required topic values and persists edits", asyn
             SET status = 2
             WHERE player_id = ? AND character_id = 1 AND mana_board_index = 2
         `).run(owner.player.id)
-        const mainQuests = require("../assets/main_quest.json")
+        const mainQuests = asset("main_quest.json")
         const insertQuest = db.prepare(`
             INSERT INTO players_quest_progress
                 (section, quest_id, finished, host_finished, unlocked, player_id)
@@ -122,23 +131,19 @@ test("player history exposes all required topic values and persists edits", asyn
             /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
         )
         assert.deepEqual(initial.player_history_topic_list[2].value_list.int_values, [30])
-        assert.match(
-            initial.player_history_topic_list[3].value_list.date_values[0],
-            /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
-        )
+        assert.equal(initial.player_history_topic_list[3].value_list.date_values[0], null)
+        assert.deepEqual(initial.player_history_topic_list[3].value_list.int_values, [1, 0, 0, 0, 0, 0])
         assert.deepEqual(
             initial.player_history_topic_list[3].value_list.date_values.slice(1),
             [null, null, null, null, null],
         )
-        assert.match(
-            initial.player_history_topic_list[5].value_list.date_values[0],
-            /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
-        )
+        assert.equal(initial.player_history_topic_list[5].value_list.date_values[0], null)
+        assert.deepEqual(initial.player_history_topic_list[5].value_list.int_values, [1])
         assert.deepEqual(initial.player_history_topic_list[5].value_list.character_id_values, [1])
         assert.deepEqual(initial.player_history_topic_list[6].value_list.int_values, [1])
         assert.deepEqual(initial.player_history_topic_list[7].value_list.int_values, [12])
         assert.equal(initial.player_history_topic_list[6].is_visible, true)
-        assert.equal(initial.player_history_topic_list[7].is_visible, false)
+        assert.equal(Object.values(initial.player_history_topic_list).every(topic => topic.is_visible), true)
         assert.deepEqual(initial.player_history_topic_list[18].value_list.boss_id_values, [null])
         assert.deepEqual(initial.player_history_topic_list[19].value_list.character_id_values, [
             null, null, null, null, null, null, null,
@@ -214,9 +219,11 @@ test("profile statistics and visibility settings are real and persistent", async
         assert.equal(mine.profile_info.owned_character_count, 1)
         assert.equal(mine.profile_info.opened_mana_board_second_count, 1)
         assert.equal(mine.profile_info.owned_degree_count, 1)
-        assert.equal(mine.profile_info.max_owned_character_count, 515)
-        assert.equal(mine.profile_info.max_opened_mana_board_second_count, 484)
-        assert.equal(mine.profile_info.max_owned_degree_count, 1485)
+        const masters = load("lib/content-master")
+        assert.equal(mine.profile_info.max_owned_character_count, Object.keys(masters.serverCharacters).length)
+        assert.equal(mine.profile_info.max_opened_mana_board_second_count,
+            Object.values(masters.serverManaNodes).filter(boards => Object.hasOwn(boards, "2")).length)
+        assert.equal(mine.profile_info.max_owned_degree_count, Object.keys(masters.degreeDefinitions).length)
         assert.deepEqual(mine.profile_settings, {
             show_opened_mana_board_second_count: false,
             show_owned_character_count: true,
@@ -257,24 +264,28 @@ test("profile statistics and visibility settings are real and persistent", async
         assert.equal(publicProfile.opened_mana_board_second_count, null)
         assert.equal(publicProfile.owned_degree_count, null)
 
-        const clientOptions = require("../src/data/domains/option").getPlayerOptionsSync(owner.player.id)
+        const clientOptions = load("data/domains/option").getPlayerOptionsSync(owner.player.id)
         assert.equal(Object.keys(clientOptions).some(key => key.startsWith("profile.")), false)
     } finally {
         await app.close()
     }
 })
 
-test("player history returns the official period result code outside its window", async () => {
+test("player history remains available after its original end and rejects pre-start", async () => {
     const app = await createApp()
     try {
-        setServerTime(new Date("2025-08-15T00:00:00.000Z"))
+        setServerTime(new Date("2026-10-22T00:00:00.000Z"))
         const response = await app.inject({
             method: "POST",
             url: "/api/index.php/player_history/index",
             payload: { viewer_id: owner.viewerId },
         })
         assert.equal(response.statusCode, 200, response.body)
-        assert.equal(decode(response).data_headers.result_code, 11101)
+        assert.equal(decode(response).data.player_history_id, 1)
+        setServerTime(new Date("2025-07-16T00:00:00.000Z"))
+        const before = await app.inject({method: "POST", url: "/api/index.php/player_history/index",
+            payload: {viewer_id: owner.viewerId}})
+        assert.equal(decode(before).data_headers.result_code, 11101)
     } finally {
         setServerTime(new Date("2025-07-25T00:00:00.000Z"))
         await app.close()

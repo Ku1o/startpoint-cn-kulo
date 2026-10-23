@@ -24,7 +24,8 @@ import { clearEquipmentBlock } from "../room/equipment-ready"
 import { battleRelayBridge, isRelayProxySocket } from "../tcp/battle-relay/bridge"
 import type { RelayMember } from "../tcp/battle-relay/protocol"
 import { battleConnectionMatches, battleMemberCanPlay, bindBattleConnection, beginBattleSceneEpoch,
-    ensureBattleSessionContract, markBattleMemberPhase } from "./battle-contract"
+    ensureBattleSessionContract, getBattleSessionContract, markBattleMemberPhase } from "./battle-contract"
+import type { ContentClientReloadPlay } from "../../lib/content-client-reload"
 
 export interface SessionClient {
     socket: net.Socket
@@ -104,6 +105,43 @@ export class SessionManager {
                 client.socket.destroy()
             }
         }
+    }
+    /** Operational reload closes current transports through their ordinary close handlers.
+     * It does not delete durable active quests, settlement records or saved player state. */
+    public contentReloadViewerIds(): number[] {
+        return [...new Set([...this.clients.values(), ...this.cidToBattleClient.values()]
+            .filter(client => !client.socket.destroyed).map(client => client.viewerId))]
+    }
+    public contentReloadActivePlays(): ContentClientReloadPlay[] {
+        const plays = new Map<string, ContentClientReloadPlay>()
+        for (const client of new Set([...this.clients.values(), ...this.cidToBattleClient.values()])) {
+            if (client.socket.destroyed) continue
+            const room = require("../room/manager").getRoom(client.roomNumber)
+            if (!room || room.lifecycle.phase !== "BATTLE") continue
+            const run = getBattleSessionContract(room)
+            const member = run?.members.get(client.viewerId)
+            if (!run || !member?.playCommitted || !member.playerId || !member.playId
+                || !["LOADING", "READY", "ACTIVE"].includes(member.phase)) continue
+            const play = { viewerId: client.viewerId, playerId: member.playerId, playId: member.playId,
+                roomNumber: client.roomNumber, category: run.category, questId: run.questId }
+            plays.set(`${play.playerId}:${play.playId}`, play)
+        }
+        return [...plays.values()]
+    }
+    public disconnectAllForContentReload(staleViewers: ReadonlySet<number>): number[] {
+        const clients = new Set([...this.clients.values(), ...this.cidToBattleClient.values()])
+        const viewers = new Set<number>()
+        const sockets = new Set<net.Socket>()
+        for (const client of clients) {
+            if (client.socket.destroyed || !staleViewers.has(client.viewerId)) continue
+            viewers.add(client.viewerId)
+            sockets.add(client.socket)
+        }
+        for (const socket of sockets) {
+            markTcpDisconnectReason(socket, "login_replaced")
+            socket.destroy()
+        }
+        return [...viewers]
     }
     private clients = new Map<string, SessionClient>()
     private roomClients = new Map<string, Set<string>>()

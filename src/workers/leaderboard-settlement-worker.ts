@@ -4,6 +4,7 @@ import { openWriterConnection } from "../lib/persistence/writer-connection"
 import { runLeaderboardSettlementWorkerSync } from "../lib/leaderboard/settlement"
 import type { LeaderboardSettlementWorkerInput } from "../lib/leaderboard/background-worker"
 import { configureLeaderboardSettlementCancellation, assertLeaderboardSettlementNotCancelled } from "../lib/leaderboard/worker-cancellation"
+import { restoreServerClockStateSync } from "../lib/server-clock-state"
 
 const input = workerData as LeaderboardSettlementWorkerInput
 let db: ReturnType<typeof openWriterConnection> | undefined
@@ -15,6 +16,10 @@ try {
     setDbOverride(db)
     assertLeaderboardSettlementNotCancelled()
     db.exec("BEGIN IMMEDIATE")
+    // Each worker has its own process clock. Restore the committed coordinate
+    // under the same write lock before any guarded reward or schedule write.
+    // A corrupt state fails closed; absence preserves the existing legacy path.
+    restoreServerClockStateSync(db)
     parentPort?.postMessage({ type: "started" })
     const outcome = runLeaderboardSettlementWorkerSync(input)
     // A cancellation racing COMMIT is resolved from the durable receipt after exit.

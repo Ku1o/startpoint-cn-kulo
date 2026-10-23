@@ -6,9 +6,9 @@
  * fall back to the in-process persistence coordinator by unsetting one switch.
  */
 
-// 2: the client pushes the main thread's virtual-clock offset to the worker
-//    (`set_time_offset`) before dispatching commands.
-export const WRITER_PROTOCOL_VERSION = 2
+// 3: business and preserved legacy-battle coordinates travel as one validated
+//    snapshot at startup and on subsequent legacy-mode clock changes.
+export const WRITER_PROTOCOL_VERSION = 3
 
 export interface WriterThreadConfig {
     /** Route registered commands through the writer thread instead of the main process. */

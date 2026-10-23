@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 // Handles the insertion of mana into characters.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -155,6 +156,7 @@ const routes = async (fastify: FastifyInstance) => {
                 updatePlayerCharacterSync(playerId, characterId, { overLimitStep: newOverLimit })
             }
             grantCharacterDegreeRewardsSync(playerId, [characterId])
+            recordContentActionFactsSync(playerId, { kind: "over_limit", amount: overLimitCount })
             const data: Record<string, any> = {
                 character_list: [{
                     over_limit_step: newOverLimit, character_id: characterId, stack,
@@ -227,6 +229,7 @@ const routes = async (fastify: FastifyInstance) => {
                     stack: newStack,
                 })
                 grantCharacterDegreeRewardsSync(playerId, [Number(charId)])
+                recordContentActionFactsSync(playerId, { kind: "over_limit", amount: count })
 
                 characterList.push({
                     character_id: Number(charId),

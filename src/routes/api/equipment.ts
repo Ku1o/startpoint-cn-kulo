@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 // Equipment awakening and protection endpoints: upgrade, bulk_upgrade, set_protection.
 // Dismantle/sell endpoints are in sell.ts (same /equipment prefix).
 
@@ -53,6 +54,7 @@ const wrightpieceItemId = () => getConfigSync().craft_point_item_id || 100000
 const getUpgradeCost = (rarity: number): number => getEquipmentCraftSync(rarity)?.awakening_craft ?? 25
 
 function recordEquipmentAwakeningProgress(playerId: number, upgradeCount: number): void {
+    recordContentActionFactsSync(playerId, { kind: "equipment_awaken", amount: upgradeCount })
     addMissionCounterSync(playerId, {
         dimension: "equipment.awakening",
         scopeType: "lifetime",

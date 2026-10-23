@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getPlayerSingleQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../data/domains/quest"
 import { getPlayerSync } from "../../data/domains/player"
@@ -9,6 +10,7 @@ import { generateDataHeaders } from "../../utils";
 import { QuestCategory } from "../../lib/types";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { isContentQuestOpenAt } from "../../lib/content-operations";
 
 interface FinishBody {
     party_id: number,
@@ -37,6 +39,9 @@ async function processStoryQuestFinish(playerId: number, viewerId: number, quest
         return null
     }
 
+    if (!getPlayerSingleQuestProgressSync(playerId, questSection, questId)?.finished
+        && !isContentQuestOpenAt(questSection, questId)) return { unavailable: true as const, data: {} }
+
     return runPersistenceTransaction({
         domain: "single-quest", playerId, operation: "story_finish",
     }, () => {
@@ -46,6 +51,10 @@ async function processStoryQuestFinish(playerId: number, viewerId: number, quest
         const questProgress = getPlayerSingleQuestProgressSync(playerId, questSection, questId)
         const finished = questProgress !== null ? questProgress.finished : false
         if (finished) return { data: [] }
+        if (!isContentQuestOpenAt(questSection, questId)) return { unavailable: true as const, data: {} }
+
+        if (questSection === QuestCategory.CHARACTER)
+            recordContentActionFactsSync(playerId, { kind: "character_story_finish" })
 
         const rewardResult = questData.clearReward != null
             ? givePlayerRewardSync(playerId, questData.clearReward)
@@ -107,6 +116,9 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "Invalid quest ID provided."
         })
+        if ("unavailable" in result) return reply.type("application/x-msgpack").send({
+            data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {},
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -141,6 +153,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (result === null) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid quest ID provided."
+        })
+        if ("unavailable" in result) return reply.type("application/x-msgpack").send({
+            data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {},
         })
 
         reply.header("content-type", "application/x-msgpack")

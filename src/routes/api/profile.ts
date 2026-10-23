@@ -1,3 +1,4 @@
+import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 /**
  * Profile API — get_my_profile.
  * Returns player profile info, settings, and party groups.
@@ -84,6 +85,7 @@ const routes = async (fastify: FastifyInstance) => {
             player.leaderCharacterId,
         )
 
+        recordContentActionFactsSync(playerId, { kind: "profile_view" })
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: viewerId }),

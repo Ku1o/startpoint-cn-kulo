@@ -5,6 +5,7 @@ import { collectPlayerDataPooledExpSync, dailyResetPlayerDataSync, getPlayerSync
 import { deletePlayerActiveQuestIfPlayIdSync, getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { getSession } from "../../data/domains/session"
 import { prepareClientSerializedData } from "../../data/utils/player-data";
+import { reconcileCrazyGachaCompletionSync } from "../../data/domains/crazy_gacha";
 import { getContentSnapshot } from "../../content/runtime/content-snapshot";
 import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconciliation";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -41,10 +42,18 @@ import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-deliv
 import { performance } from "node:perf_hooks";
 import { recordServerWork } from "../../lib/server-work-performance";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { ensurePlayerClockStateForLoadSync } from "../../lib/server-clock-state";
+import { getDb } from "../../data/db";
 import { isPersistenceAdmissionError } from "../../lib/persistence-admission";
 import { serializePlayerSnapshot } from "../../data/utils/client-player-snapshot";
 import { formatClientDisplayDateTime } from "../../lib/client-display-time";
 import { withServerWorkAdmission } from "../../lib/shutdown-state";
+
+import { contentOperations } from "../../lib/content-operations";
+import { contentClientReload } from "../../lib/content-client-reload";
+import { getSpecialExchangeEntitlementsSync } from "../../lib/exchange-campaign-entitlements";
+import { getRetainedStarCrumbExchangeIds } from "../../lib/star-crumb-exchange-rules";
+import { townThemeLoginSnapshot } from "../../lib/town-theme";
 
 interface CnLoadBody {
     device_id: number;
@@ -87,6 +96,10 @@ function fillClientDefaults(d: any) {
 }
 
 function wrapOptionFields(d: any, playerId: number, resVer?: string) {
+    d.town_presentation = townThemeLoginSnapshot();
+    d.town_presentation_load = true;
+    d.content_operations = contentOperations().snapshot(Date.now());
+    d.star_crumb_exchange_retained_ids = getRetainedStarCrumbExchangeIds();
     const { getEffectiveVersion } = require("../../lib/version");
     d.available_asset_version = getEffectiveVersion();
     fillClientDefaults(d);
@@ -105,12 +118,10 @@ function wrapOptionFields(d: any, playerId: number, resVer?: string) {
     d.simple_payment_item_list = [];
     d.ex_boost_draw_result = null;
     d.pass_force_reward = false;
-    d.crazy_gacha_result_list = [];
-    d.last_crazy_gacha_draw_result = [];
     d.fund_receive_list = [];
     d.login_info = {};
     d.tower_dungeon_list = [];
-    d.special_exchange_campaign_list = [];
+    d.special_exchange_campaign_list = getSpecialExchangeEntitlementsSync(playerId);
     d.win_lottery_active_mission_list = [];
     d.stars_gacha_campaign_list = [];
     // Profile favorites are stored separately as party category 99.  Do not
@@ -132,6 +143,24 @@ function wrapOptionFields(d: any, playerId: number, resVer?: string) {
 }
 
 const routes = async (fastify: FastifyInstance) => {
+    // Initialize durable reload metadata before requests or settlement workers
+    // start, so a first load only reads it while another worker owns the writer.
+    contentClientReload();
+    fastify.post("/content_operations", async (request, reply) => {
+        const body = request.body as { viewer_id?: unknown } | null
+        if (!body || !Number.isSafeInteger(body.viewer_id) || (body.viewer_id as number) <= 0) {
+            return reply.status(400).send({ error: "Invalid viewer id." })
+        }
+        const session = await getSession(String(body.viewer_id))
+        if (!session || session.type !== 2 || !resolvePlayerIdSync(session.accountId)) {
+            return reply.status(401).send({ error: "Invalid session." })
+        }
+        reply.type("application/x-msgpack")
+        return reply.send({ data_headers: generateDataHeaders({ viewer_id: body.viewer_id as number }),
+            data: { content_operations: contentOperations().snapshot(Date.now()),
+                star_crumb_exchange_retained_ids: getRetainedStarCrumbExchangeIds() } })
+    })
+
     fastify.post("/load", async (request: FastifyRequest, reply: FastifyReply) => {
         try {
         let phaseStartedAt = performance.now()
@@ -154,6 +183,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (!playerId) {
             return reply.status(400).send({ error: "Bad Request", message: "No player found" });
         }
+        const loadedReloadEpoch = contentClientReload().state().epoch;
 
         return await withServerWorkAdmission(async () => {
         // The load snapshot preparation also repairs old saves (including
@@ -162,9 +192,11 @@ const routes = async (fastify: FastifyInstance) => {
         const { now, prepared } = await runPersistenceTransaction({
             domain: "player", playerId, operation: "load_maintenance",
         }, () => {
+            ensurePlayerClockStateForLoadSync(playerId, getDb());
             const now = getServerDate();
             const current = getPlayerSync(playerId);
             if (!current) throw new Error("No player data.");
+            reconcileCrazyGachaCompletionSync(playerId);
             ensureDailyVmoneyMailForPlayerSync(playerId, getRealServerDate().getTime());
             dailyResetPlayerDataSync(current, now);
             collectPlayerDataPooledExpSync(current, now);
@@ -264,7 +296,13 @@ const routes = async (fastify: FastifyInstance) => {
             const multiRecovery = await getRoomCommandGateway().execute("battle.recovery", {
                 quest: activeQuest, viewerId, playerId,
             }) as MultiActiveQuestRecoveryDecision & { roomPhase: string | null };
-            if (multiRecovery.retained && !isStaleAbyssBattle(activeQuest)) {
+            if ((!multiRecovery.recoverable || isStaleAbyssBattle(activeQuest)) && contentClientReload().preservesPlay(playerId, activeQuest.playId)) {
+                // Operational reload may retire a transport seat. Keep only the
+                // exact registered play; do not advertise an impossible restore
+                // or change finish/abort eligibility and rewards.
+                clientData.unfinished_quest_list = [];
+                clientData.unfinished_multi_quest_list = [];
+            } else if (multiRecovery.retained && !isStaleAbyssBattle(activeQuest)) {
                 // A lobby can advance before another member posts its result.
                 // Keep that exact play for finish; legacy clients cannot resume
                 // gameplay after Finalize or rejoin it in a newer room battle.
@@ -331,8 +369,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
         markLoadPhase("load.active")
 
-        reply.header("content-type", "application/x-msgpack");
-        return reply.status(200).send({
+        const response = {
             data_headers: generateDataHeaders({
                 asset_update: true,
                 // The client treats 2 as "open the announcement list" and
@@ -345,7 +382,13 @@ const routes = async (fastify: FastifyInstance) => {
                 servertime: getServerTime(),
             }),
             data: clientData
+        };
+        await runPersistenceTransaction({ domain: "account", operation: "acknowledge_cn_client_load" }, () => {
+            contentClientReload().acknowledge(viewerId, loadedReloadEpoch);
+            contentClientReload().pruneFinishedPlays(playerId);
         });
+        reply.header("content-type", "application/x-msgpack");
+        return reply.status(200).send(response);
         });
         } catch(e: any) {
             if (hijackUnavailableReply(request, reply)) return reply;

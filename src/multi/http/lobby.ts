@@ -14,9 +14,10 @@ import { SELECT_ROOM_FILLED_STATE } from "../room/select-denial"
 import { cacheMultiPlayerContext, resolveMultiPlayerContext } from "../player-context"
 import { primeRealPartySnapshot } from "../party-snapshot"
 import { canJoinMultiGuestQuestSync } from "../guest-eligibility"
+import { contentQuestDecision, isContentQuestOpenAt } from "../../lib/content-operations"
 import { getRoomCommandGateway } from "../coordinator/default-runtime"
 import { createRoomCommandId, RoomCommandError } from "../coordinator/command-protocol"
-import type { LobbyRoomProjection, LobbyRoomPage, LobbySelectPayload, LobbySelectResult } from "../coordinator/lobby-command-handlers"
+import type { LobbyCreatePrepared, LobbyRoomProjection, LobbyRoomPage, LobbySelectPayload, LobbySelectResult } from "../coordinator/lobby-command-handlers"
 
 /** Bounded owner RPC pages; a fixed upper sequence avoids chasing new rooms forever. */
 export async function fetchLobbyRoomProjections(viewerId: number, categories?: number[], eventId?: number, onlyRecruiting = false,
@@ -63,6 +64,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             room.host_viewer_id !== body.viewer_id && isRoomSharedWithPlayer(room, ctx.playerId)
             && !["STARTING", "BATTLE"].includes(room.phase) && !isMode15RoomClosed(room)
             && room.hostOnline && room.occupancy < 3
+            && isContentQuestOpenAt(room.category, room.quest_id)
             && canJoinMultiGuestQuestSync(ctx.playerId, room.category, room.quest_id, ctx.player).allowed)
         const rooms = projections.map(room => {
                 const serialized = serializeRoom(room, ctx.playerId)
@@ -78,15 +80,29 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         cacheMultiPlayerContext(body.viewer_id, ctx)
         primeRealPartySnapshot(ctx.playerId)
         if (!getQuestFromCategorySync(body.category, body.quest_id)
+            || !isContentQuestOpenAt(body.category, body.quest_id)
             || (isMode15Quest(body.category, body.quest_id) && !canStartMode15QuestSync(ctx.playerId, body.category, body.quest_id).allowed)) {
             return send(reply, body.viewer_id, {}, 4507)
         }
         const favorite = getFavoritePartySelectionSync(ctx.playerId, ctx.player.leaderCharacterId)
-        const room = await getRoomCommandGateway().execute("lobby.create", {
+        const payload = {
             viewerId: body.viewer_id, playerId: ctx.playerId, partyId: body.party_id,
             category: body.category, questId: body.quest_id,
             profileMainCharacterId: favorite.characterIds[0] ?? ctx.player.leaderCharacterId ?? 1,
-        }) as LobbyRoomProjection
+        }
+        const controlled = contentQuestDecision(body.category, body.quest_id) !== null
+        let room: LobbyRoomProjection
+        if (controlled) {
+            const prepared = await getRoomCommandGateway().execute("lobby.create.prepare", payload) as LobbyCreatePrepared
+            const attempt = { attemptId: prepared.attemptId, viewerId: body.viewer_id }
+            // This synchronous recheck and the exact commit request are the
+            // authorization point. A later close does not revoke accepted joins.
+            if (!isContentQuestOpenAt(body.category, body.quest_id)) {
+                await getRoomCommandGateway().execute("lobby.create.cancel", attempt)
+                return send(reply, body.viewer_id, {}, 4507)
+            }
+            room = await getRoomCommandGateway().execute("lobby.create.commit", attempt) as LobbyRoomProjection
+        } else room = await getRoomCommandGateway().execute("lobby.create", payload) as LobbyRoomProjection
         return send(reply, body.viewer_id, { access_token: room.access_token, room_number: room.room_number, room_url: "" })
     })
     fastify.post("/search_room", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -95,7 +111,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         if (!ctx) return bad(reply)
         const room = await query(body.viewer_id, body.room_number)
         const visible = !!room && !isMode15RoomClosed(room) && !room.restoreBlocked
-            && (room.returningMember || (canJoinMultiGuestQuestSync(ctx.playerId, room.category, room.quest_id, ctx.player).allowed
+            && (room.returningMember || (isContentQuestOpenAt(room.category, room.quest_id) && canJoinMultiGuestQuestSync(ctx.playerId, room.category, room.quest_id, ctx.player).allowed
                 && !["STARTING", "BATTLE"].includes(room.phase) && !room.waitingForExpectedMember && room.occupancy < 3))
         return send(reply, body.viewer_id, {
             room_exists: visible, category_id: visible ? room.category : 0, quest_id: visible ? room.quest_id : 0,
@@ -113,21 +129,32 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                 roomNumber: snapshot?.room_number || body.room_number || "", viewerId: body.viewer_id,
                 identity: snapshot?.identity ?? null, category: Number(body.category), questId: Number(body.quest_id),
                 rescueSelection: Number(body.accepted_type) === 2,
-                guestAllowed: !snapshot || snapshot.returningMember || canJoinMultiGuestQuestSync(ctx!.playerId, snapshot.category, snapshot.quest_id, ctx!.player).allowed,
+                guestAllowed: !snapshot || snapshot.returningMember || (isContentQuestOpenAt(snapshot.category, snapshot.quest_id) && canJoinMultiGuestQuestSync(ctx!.playerId, snapshot.category, snapshot.quest_id, ctx!.player).allowed),
                 mode15Closed: !!snapshot && isMode15RoomClosed(snapshot),
                 mode15Helper: !!snapshot && isMode15Quest(snapshot.category, snapshot.quest_id),
                 hostNewbie: !!snapshot && isNewbiePlayerSync(snapshot.host_player_id, getPlayerSync(snapshot.host_player_id)),
             }
         }
         let commandId = createRoomCommandId()
-        let result = await getRoomCommandGateway().execute("lobby.select", facts(room), { commandId }) as LobbySelectResult
+        const selectionKind = (snapshot: LobbyRoomProjection | null) => snapshot && !snapshot.returningMember
+            && contentQuestDecision(snapshot.category, snapshot.quest_id) !== null ? "lobby.select.prepare" : "lobby.select"
+        let result = await getRoomCommandGateway().execute(selectionKind(room), facts(room), { commandId }) as LobbySelectResult
         // Retry only an explicit, unapplied stale decision within the same instance and generation.
         if (result.status === "stale" && room) {
             const fresh = await query(body.viewer_id, room.room_number)
             if (fresh && fresh.identity.instanceId === room.identity.instanceId && fresh.identity.generation === room.identity.generation) {
                 room = fresh; commandId = createRoomCommandId()
-                result = await getRoomCommandGateway().execute("lobby.select", facts(room), { commandId }) as LobbySelectResult
+                result = await getRoomCommandGateway().execute(selectionKind(room), facts(room), { commandId }) as LobbySelectResult
             }
+        }
+        if (result.status === "prepared") {
+            const prepared = result, attempt = { attemptId: prepared.attemptId, viewerId: body.viewer_id }
+            // No await separates this permission check from issuing commit.
+            // Returning and previously TCP-claimed members never prepare.
+            if (!isContentQuestOpenAt(prepared.room.category, prepared.room.quest_id)) {
+                await getRoomCommandGateway().execute("lobby.select.cancel", attempt)
+                result = { status: "denied", raisingState: SELECT_ROOM_FILLED_STATE, roomNumber: prepared.room.room_number }
+            } else result = await getRoomCommandGateway().execute("lobby.select.commit", attempt) as LobbySelectResult
         }
         if (result.status === "stale" || result.status === "expired") throw new RoomCommandError(
             result.status === "stale" ? "STALE_ROOM_IDENTITY" : "COMMAND_EXPIRED", "Lobby selection was not applied", commandId, false)

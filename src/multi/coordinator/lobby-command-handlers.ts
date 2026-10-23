@@ -36,8 +36,14 @@ export interface LobbySelectPayload {
     mode15Helper: boolean
     hostNewbie: boolean
 }
+export interface LobbyCreatePayload {
+    viewerId: number; playerId: number; partyId: number; category: QuestCategory; questId: number; profileMainCharacterId: number
+}
+export interface LobbyAttemptPayload { attemptId: string; viewerId: number }
+export interface LobbyCreatePrepared { status: "prepared"; attemptId: string }
 export interface LobbyRoomPage { rooms: LobbyRoomProjection[]; nextSequence: number | null; throughSequence: number }
 export type LobbySelectResult = { status: "ready"; room: LobbyRoomProjection }
+    | { status: "prepared"; attemptId: string; room: LobbyRoomProjection }
     | { status: "denied"; raisingState: number; roomNumber: string }
     | { status: "stale" | "expired" }
 
@@ -87,6 +93,36 @@ async function cleanupHosted(viewerId: number, context: RoomCommandContext): Pro
     return removed
 }
 export function registerLobbyCommandHandlers(executor: RoomCommandExecutor): void {
+    // Parent permission is rechecked after prepare acknowledgement. A commit
+    // then consumes this exact, finite lease; the owner never reads business DB.
+    const leaseMs = 5_000
+    type Attempt = { viewerId: number; expiresAt: number } & (
+        { kind: "create"; payload: LobbyCreatePayload } | { kind: "select"; payload: LobbySelectPayload })
+    const attempts = new Map<string, Attempt>()
+    function cancelReservation(attemptId: string, attempt: Attempt): boolean {
+        if (attempt.kind !== "select" || !attempt.payload.identity) return false
+        const p = attempt.payload, identity = p.identity!
+        const room = getRoom(p.roomNumber)
+        if (!roomCommandIdentityMatches(room, { ...identity, version: undefined })) return false
+        return roomAdmissionRegistry.cancelAttempt(p.roomNumber, identity.generation, p.viewerId, attemptId)
+    }
+    function retain(attemptId: string, attempt: Attempt): boolean {
+        for (const [id, old] of attempts) if (old.expiresAt <= Date.now()) {
+            cancelReservation(id, old); attempts.delete(id)
+        }
+        if (attempts.size >= 256) return false
+        attempts.set(attemptId, attempt); return true
+    }
+    function take(raw: unknown, kind: Attempt["kind"]): Attempt | undefined {
+        const p = raw as LobbyAttemptPayload, attempt = attempts.get(p.attemptId)
+        if (!attempt || attempt.kind !== kind || attempt.viewerId !== p.viewerId) return undefined
+        attempts.delete(p.attemptId)
+        if (attempt.expiresAt <= Date.now()) { cancelReservation(p.attemptId, attempt); return undefined }
+        return attempt
+    }
+    function leasedContext(context: RoomCommandContext, expiresAt: number): RoomCommandContext {
+        return { ...context, remainingMs: () => Math.min(context.remainingMs(), expiresAt - Date.now()) }
+    }
     executor.register("lobby.query", raw => {
         const p = raw as { roomNumber?: string; accessToken?: string; viewerId: number }
         const room = p.roomNumber ? getRoom(p.roomNumber) : getRoomByToken(p.accessToken || "")
@@ -105,8 +141,7 @@ export function registerLobbyCommandHandlers(executor: RoomCommandExecutor): voi
             nextSequence: !p.onlyRecruiting && remaining.length > page.length ? page[page.length - 1].room_sequence : null }
     })
     executor.register("lobby.cleanupHosted", (raw, context) => cleanupHosted((raw as { viewerId: number }).viewerId, context))
-    executor.register("lobby.create", async (raw, context) => {
-        const p = raw as { viewerId: number; playerId: number; partyId: number; category: QuestCategory; questId: number; profileMainCharacterId: number }
+    async function create(p: LobbyCreatePayload, context: RoomCommandContext): Promise<LobbyRoomProjection> {
         const scope = { category: p.category, questId: p.questId, partyId: p.partyId }
         if (isRealtimeOwnerChild()) await refreshRealtimePlayerFacts(p.playerId, scope)
         const assertHostFacts = () => {
@@ -122,9 +157,26 @@ export function registerLobbyCommandHandlers(executor: RoomCommandExecutor): voi
         assertHostFacts()
         const room = createRoom(p.viewerId, p.playerId, p.partyId, p.category, p.questId, 0, p.profileMainCharacterId)
         return project(room, p.viewerId)
+    }
+    executor.register("lobby.create", (raw, context) => create(raw as LobbyCreatePayload, context))
+    executor.register("lobby.create.prepare", async (raw, context): Promise<LobbyCreatePrepared> => {
+        const p = raw as LobbyCreatePayload, scope = { category: p.category, questId: p.questId, partyId: p.partyId }
+        if (isRealtimeOwnerChild()) await refreshRealtimePlayerFacts(p.playerId, scope)
+        if (context.remainingMs() <= 0) throw new Error("Lobby prepare command expired")
+        if (isRealtimeOwnerChild()) {
+            const facts = getPlayerBusinessFacts(p.playerId, scope)
+            if (!facts || facts.playerId !== p.playerId || !facts.questPolicy.hostAllowed) throw new Error("LOBBY_HOST_FACTS_UNAVAILABLE")
+        }
+        if (!retain(context.commandId, { kind: "create", payload: p, viewerId: p.viewerId, expiresAt: Date.now() + leaseMs })) throw new Error("LOBBY_PREPARE_CAPACITY")
+        return { status: "prepared", attemptId: context.commandId }
     })
-    executor.register("lobby.select", (raw, context) => {
-        const p = raw as LobbySelectPayload
+    executor.register("lobby.create.commit", (raw, context) => {
+        const attempt = take(raw, "create")
+        if (!attempt || attempt.kind !== "create") throw new Error("LOBBY_PREPARE_EXPIRED")
+        return create(attempt.payload, leasedContext(context, attempt.expiresAt))
+    })
+    executor.register("lobby.create.cancel", raw => !!take(raw, "create"))
+    function select(p: LobbySelectPayload, context: RoomCommandContext, prepare = false, attemptId?: string): Promise<LobbySelectResult> {
         return embeddedMultiCoordinator.enqueueRoomCommand<LobbySelectResult>(p.roomNumber, () => {
             if (context.remainingMs() <= 0) return { status: "expired" }
             const room = p.identity ? getRoom(p.roomNumber) : undefined
@@ -140,11 +192,27 @@ export function registerLobbyCommandHandlers(executor: RoomCommandExecutor): voi
             const unavailable = p.category !== Number(room.category) || p.questId !== room.quest_id || p.mode15Closed
                 || (!member && (battleStarted || waiting || full || staleNotice || (p.rescueSelection && !randomRescue) || !p.guestAllowed))
             const blocked = sessionManager.isRoomRestoreBlocked(room.room_number, p.viewerId)
-            const capacityDenied = !member && !unavailable && !blocked && !roomAdmissionRegistry.reserve(
-                room.room_number, room.lobby_generation, p.viewerId, currentViewers(room), 3, Date.now(), randomRescue ? "rescue" : "direct")
+            const now = Date.now(), expiresAt = now + leaseMs
+            const capacityDenied = !member && !unavailable && !blocked && (attemptId
+                ? !roomAdmissionRegistry.confirmAttempt(room.room_number, room.lobby_generation, p.viewerId, attemptId, now)
+                : !roomAdmissionRegistry.reserve(room.room_number, room.lobby_generation, p.viewerId, currentViewers(room), 3, now,
+                    randomRescue ? "rescue" : "direct", prepare ? context.commandId : undefined, prepare ? expiresAt : undefined))
             if (unavailable || blocked || capacityDenied) {
-                if (!member) roomAdmissionRegistry.release(room.room_number, p.viewerId)
+                if (!member && !prepare && !attemptId) roomAdmissionRegistry.release(room.room_number, p.viewerId)
+                if (attemptId) roomAdmissionRegistry.cancelAttempt(room.room_number, room.lobby_generation, p.viewerId, attemptId)
                 return { status: "denied", raisingState: getSelectRoomDenialRaisingState({ battleStarted, roomFull: waiting || full || capacityDenied }), roomNumber: room.room_number }
+            }
+            if (prepare && !member) {
+                if (roomAdmissionRegistry.hasReservedAttempt(room.room_number, room.lobby_generation, p.viewerId, context.commandId, now)) {
+                    if (!retain(context.commandId, { kind: "select", payload: p, viewerId: p.viewerId, expiresAt })) {
+                        roomAdmissionRegistry.cancelAttempt(room.room_number, room.lobby_generation, p.viewerId, context.commandId)
+                        return { status: "expired" }
+                    }
+                    return { status: "prepared", attemptId: context.commandId, room: project(room, p.viewerId) }
+                }
+                // A TCP-claimed/occupied admission predates this request. It is
+                // already accepted and must not be revoked by a new prepare.
+                return { status: "ready", room: project(room, p.viewerId) }
             }
             if (randomRescue || (!member && p.mode15Helper)) sessionManager.markRescueGuest(room.room_number, p.viewerId, p.hostNewbie, randomRescue)
             if (randomRescue) acceptRandomRecruitmentForViewer(room.room_number, p.viewerId)
@@ -153,6 +221,17 @@ export function registerLobbyCommandHandlers(executor: RoomCommandExecutor): voi
             else if (!result.hostOnline) result.raising_state = 2
             return { status: "ready", room: result }
         })
+    }
+    executor.register("lobby.select", (raw, context) => select(raw as LobbySelectPayload, context))
+    executor.register("lobby.select.prepare", (raw, context) => select(raw as LobbySelectPayload, context, true))
+    executor.register("lobby.select.commit", (raw, context) => {
+        const attempt = take(raw, "select")
+        if (!attempt || attempt.kind !== "select") return { status: "expired" }
+        return select(attempt.payload, leasedContext(context, attempt.expiresAt), false, (raw as LobbyAttemptPayload).attemptId)
+    })
+    executor.register("lobby.select.cancel", raw => {
+        const attempt = take(raw, "select")
+        return attempt ? cancelReservation((raw as LobbyAttemptPayload).attemptId, attempt) : false
     })
     executor.register("lobby.attention.take", raw => {
         const p = raw as { viewerId: number; limit: number; eligible: { roomNumber: string; identity: RoomCommandIdentity }[] }

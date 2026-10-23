@@ -18,6 +18,7 @@ const items = require('../out/data/domains/item');
 const mail = require('../out/data/domains/mail');
 const gachaState = require('../out/data/domains/gacha');
 const assets = require('../out/lib/assets');
+const operations = require('../out/lib/content-operations');
 const { drawGachaWithMetadataSync } = require('../out/lib/gacha');
 const seed = require('../out/lib/seed-validator').default;
 const { getPlayerCharacterAwakeUnlocksSync } = require('../out/data/domains/character_awake');
@@ -26,7 +27,24 @@ const db = getDb();
 const app = Fastify({ logger: false });
 app.addHook('onSend', (_request, reply, body, done) => done(null,
     String(reply.getHeader('content-type')).startsWith('application/x-msgpack') ? pack(body).toString('base64') : body));
-test.before(async () => { await app.register(require('../out/routes/api/gacha').default, { prefix: '/gacha' }); });
+test.before(async () => {
+    assert.equal(path.dirname(fs.realpathSync(db.name)), fs.realpathSync(process.env.DATA_DIR));
+    const store = operations.contentOperations();
+    for (const [gid, pageKind] of [[1, 0], [3, 0], [990001, 2], [990002, 2]]) {
+        const pool = assets.getGachaSync(gid);
+        assert.equal(pool.pageKind, pageKind, `pool${gid} retains its original payment page`);
+        const row = store.rows.get(`gacha:${gid}`);
+        assert.ok(row && !row.personalWindow, `pool${gid} has no deferred personal-period qualification`);
+        assert.equal(operations.contentDecision('gacha', gid, 'enter', Date.now()), false);
+        const review = { enabled: true, readiness: 'verified', endsAtMs: null,
+            evidence: 'Isolated preservation fixture: exact native pool, configured payment and owned-ticket rules' };
+        store.update(`gacha:${gid}`, { expectedRevision: store.revision(), catalogDigest: store.digest,
+            reason: 'Prepare four reviewed original pools in the disposable regression database',
+            actionOverrides: { visible: { ...review }, enter: { ...review } } }, Date.now());
+        assert.equal(operations.contentDecision('gacha', gid, 'enter', Date.now()), true);
+    }
+    await app.register(require('../out/routes/api/gacha').default, { prefix: '/gacha' });
+});
 test.after(async () => {
     await app.close(); await seed.close(); db.close();
     assert.equal(path.dirname(fs.realpathSync(directory)), fs.realpathSync(os.tmpdir()));
@@ -140,16 +158,17 @@ test('a failure after character grant rolls back ticket debit, rewards, history 
     const before = snapshot(p.id);
     const original = mail.insertReceiveHistorySync;
     const originalMarkSent = seed.markSent;
-    let markedSeeds = 0;
+    let markedSeeds = 0, historyGrantAttempts = 0;
     try {
         seed.markSent = (...args) => { markedSeeds++; return originalMarkSent.apply(seed, args); };
-        mail.insertReceiveHistorySync = () => { throw new Error('injected history failure'); };
+        mail.insertReceiveHistorySync = () => { historyGrantAttempts++; throw new Error('injected history failure'); };
         assert.equal((await request(p, 990001, 3, 4)).statusCode, 500);
     } finally {
         mail.insertReceiveHistorySync = original;
         seed.markSent = originalMarkSent;
     }
     assert.deepEqual(snapshot(p.id), before);
+    assert.equal(historyGrantAttempts, 1, 'the authorized draw reaches the injected post-grant failure');
     assert.equal(markedSeeds, 0);
 });
 
@@ -163,7 +182,9 @@ test('interleaved accounts keep separate inventories and points, and insufficien
         assert.equal(items.getPlayerItemSync(p.id, ticket), 1);
         assert.equal(gachaState.getPlayerGachaInfoSync(p.id, 990002).gachaExchangePoint, 20);
         const before = snapshot(p.id);
-        assert.equal((await request(p, 990002, 3, 4, 2)).statusCode, 400);
+        const insufficient = await request(p, 990002, 3, 4, 2);
+        assert.equal(insufficient.statusCode, 400);
+        assert.equal(insufficient.json().message, 'Not enough tickets.');
         assert.deepEqual(snapshot(p.id), before);
     }
 });

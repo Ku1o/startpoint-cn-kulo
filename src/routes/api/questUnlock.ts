@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getPlayerItemSync, updatePlayerItemSync } from "../../data/domains/item"
-import { getPlayerQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../data/domains/quest"
+import { getPlayerQuestProgressSync, getPlayerSingleQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../data/domains/quest"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -8,6 +8,7 @@ import { getQuestFromCategorySync } from "../../lib/assets";
 import { generateDataHeaders } from "../../utils";
 import questUnlockCosts from "../../../assets/quest_unlock_costs.json";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { isContentQuestOpenAt } from "../../lib/content-operations";
 
 interface UnlockBody {
     category: number
@@ -64,6 +65,12 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
+        const unavailable = () => reply.type("application/x-msgpack").send({
+            data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }), data: {},
+        })
+        if (!getPlayerSingleQuestProgressSync(playerId, category, questId)?.unlocked
+            && !isContentQuestOpenAt(category, questId)) return unavailable()
+
         const result = await runPersistenceTransaction({
             domain: "player", playerId, operation: "quest_unlock",
         }, () => {
@@ -71,6 +78,7 @@ const routes = async (fastify: FastifyInstance) => {
             const sectionProg = progress[String(category)] ?? []
             const existing = sectionProg.find(p => p.questId === questId)
             if (existing?.unlocked) return { error: "Quest already unlocked." }
+            if (!isContentQuestOpenAt(category, questId)) return { unavailable: true as const }
 
             const unlockCost = (questUnlockCosts as Record<string, {itemIds: number[], itemCounts: number[]}>)[String(questId)]
             const itemList: Record<string, number> = {}
@@ -88,6 +96,7 @@ const routes = async (fastify: FastifyInstance) => {
             else insertPlayerQuestProgressSync(playerId, category, { questId, finished: false, unlocked: true })
             return { itemList }
         })
+        if ("unavailable" in result) return unavailable()
         if (result.error !== undefined) return reply.status(400).send({
             "error": "Bad Request", "message": result.error,
         })

@@ -3,7 +3,7 @@ import { getPlayerClientExpTime } from "../../lib/player-time-compat"
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getAccountPlayers } from "../../data/domains/account"
-import { getPlayerBoxGachaDrawnRewardsSync, getPlayerBoxGachaSync, insertPlayerBoxGachaDrawnRewardSync, insertPlayerBoxGachaSync, resetPlayerBoxGachaSync, updatePlayerBoxGachaDrawnRewardSync, updatePlayerBoxGachaSync } from "../../data/domains/boxGacha"
+import { getPlayerBoxGachaDrawnRewardsSync, getPlayerBoxGachaSync, getPlayerBoxGachasSync, insertPlayerBoxGachaDrawnRewardSync, insertPlayerBoxGachaSync, resetPlayerBoxGachaSync, updatePlayerBoxGachaDrawnRewardSync, updatePlayerBoxGachaSync } from "../../data/domains/boxGacha"
 import { getPlayerItemSync, updatePlayerItemSync } from "../../data/domains/item"
 import { getPlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
@@ -19,6 +19,8 @@ import { PlayerBoxGacha, PlayerBoxGachaDrawnReward } from "../../data/types";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { BOX_GACHA_1001_ID, getBoxGacha1001PeriodError, getBoxGacha1001Settings } from "../../lib/box-gacha-1001";
+import { contentDecision } from "../../lib/content-operations";
+import { boxPolicyCloseError, boxPolicyResetError, getBoxOperationRule } from "../../lib/box-gacha-policy";
 
 interface GetBoxListBody {
     box_gacha_id: number
@@ -72,10 +74,12 @@ function getCurrentRemainingNumber(
 }
 
 /** Read eligibility after queueing, against the transaction's clock and facts. */
-function get1001EligibilityError(playerId: number, boxId: number, boxes: BoxGachaBoxes): string | null {
+function get1001EligibilityError(playerId: number, boxId: number, boxes: BoxGachaBoxes, action: "enter" | "claim" = "enter"): string | null {
     const settings = getBoxGacha1001Settings(boxId)
     if (settings === null) return "Missing box availability settings."
-    const periodError = getBoxGacha1001PeriodError(boxId, getServerTime())
+    const controlled = contentDecision("box_gacha", BOX_GACHA_1001_ID, action, Date.now())
+    const periodError = controlled === false ? "Box gacha operation is closed."
+        : controlled === true ? null : getBoxGacha1001PeriodError(boxId, getServerTime())
     if (periodError !== null) return periodError
     if (settings.requiredBoxId !== null) {
         const requiredId = settings.requiredBoxId
@@ -86,6 +90,23 @@ function get1001EligibilityError(playerId: number, boxId: number, boxes: BoxGach
             getPlayerBoxGachaDrawnRewardsSync(playerId, BOX_GACHA_1001_ID, requiredId)) > 0) {
             return "Required box is not empty or closed."
         }
+    }
+    return null
+}
+
+function getBoxEligibilityError(playerId: number, gachaId: number, boxId: number,
+    boxes: BoxGachaBoxes, action: "enter" | "claim" = "enter"): string | null {
+    const controlled = contentDecision("box_gacha", gachaId, action, Date.now())
+    if (controlled === false) return "Box gacha operation is closed."
+    if (controlled === null) return gachaId === BOX_GACHA_1001_ID ? get1001EligibilityError(playerId, boxId, boxes, action) : null
+    const rule = getBoxOperationRule(gachaId, boxId, boxes)
+    if (!rule) return "Missing verified box policy."
+    if (rule.requiredBoxId !== null) {
+        const rewards = boxes[rule.requiredBoxId]
+        if (!rewards) return "Required box does not exist."
+        const prior = getPlayerBoxGachaSync(playerId, gachaId, rule.requiredBoxId)
+        if (!prior?.isClosed && getCurrentRemainingNumber(rewards,
+            getPlayerBoxGachaDrawnRewardsSync(playerId, gachaId, rule.requiredBoxId)) > 0) return "Required box is not empty or closed."
     }
     return null
 }
@@ -136,7 +157,8 @@ function getAllBoxList(
     playerId: number,
     boxGachaId: number,
     boxes: BoxGachaBoxes,
-    skipBoxId?: number
+    skipBoxId?: number,
+    readOnly = false
 ): Object[] {
     const boxInfo: Object[] = []
     for (const [boxId, rewards] of Object.entries(boxes)) {
@@ -146,7 +168,7 @@ function getAllBoxList(
             const playerDrawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, parsedBoxId)
             // Historical 1001 state is portable progress; listing must not reopen it.
             const storedBoxData = getPlayerBoxGachaSync(playerId, boxGachaId, parsedBoxId)
-            const playerBoxData = boxGachaId === BOX_GACHA_1001_ID ? storedBoxData : reconcileExpandedEmptyBox(
+            const playerBoxData = readOnly || boxGachaId === BOX_GACHA_1001_ID ? storedBoxData : reconcileExpandedEmptyBox(
                 playerId,
                 boxGachaId,
                 parsedBoxId,
@@ -172,7 +194,31 @@ function getAllBoxList(
     return boxInfo
 }
 
+function hasRetainedBoxState(playerId: number, gachaId: number, boxes: BoxGachaBoxes): boolean {
+    return (getPlayerBoxGachasSync(playerId)[String(gachaId)] ?? []).some(box => {
+        const rewards = boxes[box.boxId]
+        return !!rewards && (box.isClosed || box.resetTimes > 0
+            || getPlayerBoxGachaDrawnRewardsSync(playerId, gachaId, box.boxId).some(reward => reward.number > 0 && rewards[reward.id] !== undefined))
+    })
+}
+
 const routes = async (fastify: FastifyInstance) => {
+    fastify.post("/get_retained_box_gachas", async (request: FastifyRequest, reply: FastifyReply) => {
+        const viewerId = (request.body as { viewer_id?: unknown } | null)?.viewer_id
+        if (!isPositiveSafeInteger(viewerId)) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." })
+        const session = await getSession(String(viewerId))
+        if (!session) return reply.status(401).send({ error: "Unauthorized", message: "Invalid viewer id." })
+        const playerId = resolvePlayerIdSync(session.accountId)
+        if (playerId === null) return reply.status(400).send({ error: "Bad Request", message: "No players bound to account." })
+        // Inspect existing saved boxes only; this never creates a new participation or reconciles expanded stock.
+        const history = Object.keys(getPlayerBoxGachasSync(playerId)).map(Number).sort((a, b) => a - b).flatMap(id => {
+            const master = getBoxGachaSync(id)
+            return master && hasRetainedBoxState(playerId, id, master.boxes) ? [{ box_gacha_id: id, participation_enabled: contentDecision("box_gacha", id, "enter", Date.now()) === true,
+                all_box_info: getAllBoxList(playerId, id, master.boxes, undefined, true) }] : []
+        })
+        reply.header("content-type", "application/x-msgpack")
+        return reply.send({ data_headers: generateDataHeaders({ viewer_id: viewerId }), data: { retained_box_gacha_list: history } })
+    })
     fastify.post("/reset", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = (request.body ?? {}) as ResetBody
 
@@ -205,10 +251,21 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid box gacha or box id."
         })
 
+        if (contentDecision("box_gacha", boxGachaId, "enter", Date.now()) === false) {
+            return reply.status(400).send({ error: "Bad Request", message: "Box gacha operation is closed." })
+        }
         const resetResult = await runPersistenceTransaction({
             domain: "gacha", playerId, operation: "box_reset",
         }, () => {
-            if (boxGachaId === BOX_GACHA_1001_ID) {
+            const controlled = contentDecision("box_gacha", boxGachaId, "enter", Date.now())
+            if (controlled === false) {
+                return { allBoxInfo: null, errorMessage: "Box gacha operation is closed." }
+            }
+            if (controlled === true) {
+                const eligibilityError = getBoxEligibilityError(playerId, boxGachaId, boxId, boxGachaData.boxes)
+                if (eligibilityError) return { allBoxInfo: null, errorMessage: eligibilityError }
+            }
+            if (boxGachaId === BOX_GACHA_1001_ID && controlled !== true) {
                 const settings = getBoxGacha1001Settings(boxId)
                 return { allBoxInfo: null, errorMessage: settings?.resetKind === 0
                     ? "Box cannot be reset." : "Missing box reset settings." }
@@ -216,7 +273,13 @@ const routes = async (fastify: FastifyInstance) => {
             const playerDrawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId)
             const playerBoxData = getPlayerBoxGachaSync(playerId, boxGachaId, boxId)
             if (playerBoxData === null) return { allBoxInfo: null, errorMessage: "Box doesn't exist." }
-            if (getCurrentRemainingNumber(boxRewards, playerDrawnRewards) > 0) {
+            const remaining = getCurrentRemainingNumber(boxRewards, playerDrawnRewards)
+            if (controlled === true) {
+                const rule = getBoxOperationRule(boxGachaId, boxId, boxGachaData.boxes)
+                const error = rule ? boxPolicyResetError(rule, remaining, playerBoxData.resetTimes, boxRewards, playerDrawnRewards)
+                    : "Missing verified box policy."
+                if (error) return { allBoxInfo: null, errorMessage: error }
+            } else if (remaining > 0) {
                 return { allBoxInfo: null, errorMessage: "Box still has remaining rewards." }
             }
             const availableCount = getCurrentRemainingNumber(boxRewards, [])
@@ -278,21 +341,39 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid box gacha id."
         })
 
+        if (contentDecision("box_gacha", boxGachaId, "claim", Date.now()) === false
+            && !getPlayerBoxGachaSync(playerId, boxGachaId, boxId)?.isClosed) {
+            return reply.status(400).send({ error: "Bad Request", message: "Box gacha operation is closed." })
+        }
         const closeResult = await runPersistenceTransaction({
             domain: "gacha", playerId, operation: "box_close",
         }, () => {
             const playerBoxData = getPlayerBoxGachaSync(playerId, boxGachaId, boxId)
             if (playerBoxData === null) return { allBoxInfo: null, errorMessage: "Box doesn't exist" }
-            if (boxGachaId === BOX_GACHA_1001_ID) {
+            const controlled = contentDecision("box_gacha", boxGachaId, "claim", Date.now())
+            if (playerBoxData.isClosed && controlled !== null) {
+                return { allBoxInfo: getAllBoxList(playerId, boxGachaId, boxGachaData.boxes, undefined, true) }
+            }
+            if (controlled === false) {
+                return { allBoxInfo: null, errorMessage: "Box gacha operation is closed." }
+            }
+            if (controlled === true) {
+                const eligibilityError = getBoxEligibilityError(playerId, boxGachaId, boxId, boxGachaData.boxes, "claim")
+                if (eligibilityError) return { allBoxInfo: null, errorMessage: eligibilityError }
+            }
+            if (boxGachaId === BOX_GACHA_1001_ID && controlled !== true) {
                 // An existing terminal state is returned without rewriting old progress.
                 if (playerBoxData.isClosed) return { allBoxInfo: getAllBoxList(playerId, boxGachaId, boxGachaData.boxes) }
-                const eligibilityError = get1001EligibilityError(playerId, boxId, boxGachaData.boxes)
+                const eligibilityError = get1001EligibilityError(playerId, boxId, boxGachaData.boxes, "claim")
                 if (eligibilityError !== null) return { allBoxInfo: null, errorMessage: eligibilityError }
             }
-            const remainingNumber = getCurrentRemainingNumber(
-                boxRewards, getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId),
-            )
-            if (boxGachaId === BOX_GACHA_1001_ID && remainingNumber > 0) {
+            const drawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId)
+            const remainingNumber = getCurrentRemainingNumber(boxRewards, drawnRewards)
+            if (controlled === true) {
+                const rule = getBoxOperationRule(boxGachaId, boxId, boxGachaData.boxes)
+                const error = rule ? boxPolicyCloseError(rule, remainingNumber, boxRewards, drawnRewards) : "Missing verified box policy."
+                if (error) return { allBoxInfo: null, errorMessage: error }
+            } else if (boxGachaId === BOX_GACHA_1001_ID && remainingNumber > 0) {
                 return { allBoxInfo: null, errorMessage: "Box still has remaining rewards." }
             }
             if (!playerBoxData.isClosed || playerBoxData.remainingNumber !== remainingNumber) {
@@ -359,13 +440,14 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid box ID."
         })
 
+        if (contentDecision("box_gacha", boxGachaId, "enter", Date.now()) === false) {
+            return reply.status(400).send({ error: "Bad Request", message: "Box gacha operation is closed." })
+        }
         const settlement = await runPersistenceTransaction({
             domain: "gacha", playerId, operation: "box_exec",
         }, () => {
-            if (boxGachaId === BOX_GACHA_1001_ID) {
-                const eligibilityError = get1001EligibilityError(playerId, boxId, boxGachaData.boxes)
-                if (eligibilityError !== null) return { errorMessage: eligibilityError }
-            }
+            const eligibilityError = getBoxEligibilityError(playerId, boxGachaId, boxId, boxGachaData.boxes)
+            if (eligibilityError !== null) return { errorMessage: eligibilityError }
             const currentDrawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId)
             const currentBoxData = getPlayerBoxGachaSync(playerId, boxGachaId, boxId)
             const remainingNumber = getCurrentRemainingNumber(boxRewards, currentDrawnRewards)
@@ -530,9 +612,21 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid box gacha id."
         })
 
-        const allBoxInfo = await runPersistenceTransaction({
+        const retained = hasRetainedBoxState(playerId!, boxGachaId, boxGachaData.boxes)
+        if (contentDecision("box_gacha", boxGachaId, "visible", Date.now()) === false && !retained) {
+            return reply.status(400).send({ error: "Bad Request", message: "Box gacha operation is closed." })
+        }
+        const listing = await runPersistenceTransaction({
             domain: "gacha", playerId, operation: "box_list",
-        }, () => getAllBoxList(playerId, boxGachaId, boxGachaData.boxes))
+        }, () => {
+            const visible = contentDecision("box_gacha", boxGachaId, "visible", Date.now())
+            const oldState = hasRetainedBoxState(playerId!, boxGachaId, boxGachaData.boxes)
+            if (visible === false && !oldState) return { ok: false as const }
+            const readOnly = visible === false || contentDecision("box_gacha", boxGachaId, "enter", Date.now()) === false
+            return { ok: true as const, allBoxInfo: getAllBoxList(playerId!, boxGachaId, boxGachaData.boxes, undefined, readOnly) }
+        })
+        if (!listing.ok) return reply.status(400).send({ error: "Bad Request", message: "Box gacha operation is closed." })
+        const allBoxInfo = listing.allBoxInfo
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({

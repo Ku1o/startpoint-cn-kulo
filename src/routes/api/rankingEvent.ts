@@ -8,9 +8,10 @@ import { QuestCategory } from "../../lib/types";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import {
     getRankingPlacementSync,
-    grantEligibleRankingEventDegreesSync,
     rankingEventIdQuestMap,
 } from "../../lib/activity-degree-rewards";
+import { claimRankingEventRewardsSync } from "../../lib/ranking-event-rewards";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface ReceiveRewardBody {
     api_count: number,
@@ -143,19 +144,29 @@ const routes = async (fastify: FastifyInstance) => {
             "message": `Summary could not be generated for '${eventId}' and PlayerId '${playerId}'.`
         })
 
-        const degreeIds = grantEligibleRankingEventDegreesSync(playerId, eventId)
+        // Eligibility and the original-event receipt are read after entering the
+        // player write queue. Closed events still pay already earned results.
+        const settlement = await runPersistenceTransaction({ domain: "event", playerId, operation: "ranking_event_receive" },
+            () => claimRankingEventRewardsSync(playerId, eventId))
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({
                 viewer_id: viewerId
             }),
             "data": {
-                "status": 1,
-                "degree_list": degreeIds.map(degreeId => ({
+                "status": settlement.replayed ? 2 : settlement.received ? 1 : 3,
+                "degree_list": settlement.degreeIds.map(degreeId => ({
                     viewer_id: viewerId,
                     degree_id: degreeId,
                 })),
-                ...summary
+                ...summary,
+                ...(settlement.userInfo ? { user_info: settlement.userInfo } : {}),
+                ...(settlement.rewardResult ? {
+                    item_list: settlement.rewardResult.items,
+                    character_list: settlement.rewardResult.character_list,
+                    joined_character_id_list: settlement.rewardResult.joined_character_id_list,
+                    equipment_list: settlement.rewardResult.equipment_list,
+                } : {}),
             }
         })
     })

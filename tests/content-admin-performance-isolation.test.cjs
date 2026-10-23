@@ -1,0 +1,27 @@
+'use strict'
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path')
+const {assertExternalFixtureRoot,readSealedOperations}=require('../tools/content-admin-mixed-benchmark.cjs')
+test('mixed benchmark rejects an in-worktree fixture before creating any directory',()=>{
+ const target=path.resolve(__dirname,'../player-priority-performance-20261022-forbidden-fixture')
+ assert.equal(fs.existsSync(target),false)
+ assert.throws(()=>assertExternalFixtureRoot(target),/outside every registered worktree/)
+ assert.equal(fs.existsSync(target),false)
+})
+test('sealed extraction rejects a nonempty WAL before SQLite opens the file',{skip:!process.env.STARPOINT_PERFTEST_ROOT},()=>{
+ const directory=path.join(assertExternalFixtureRoot(process.env.STARPOINT_PERFTEST_ROOT),'nonempty-wal')
+ fs.mkdirSync(directory,{recursive:true});const file=path.join(directory,'synthetic-sealed.db')
+ fs.writeFileSync(file,'deliberately not SQLite');fs.writeFileSync(file+'-wal','uncheckpointed bytes')
+ assert.throws(()=>readSealedOperations(file),/sealed snapshot with absent or empty WAL/)
+ assert.equal(fs.readFileSync(file,'utf8'),'deliberately not SQLite')
+ assert.equal(fs.readFileSync(file+'-wal','utf8'),'uncheckpointed bytes')
+})
+test('immutable extraction reads only operations and creates no journal sidecar',{skip:!process.env.STARPOINT_PERFTEST_ROOT},()=>{
+ const directory=path.join(assertExternalFixtureRoot(process.env.STARPOINT_PERFTEST_ROOT),'immutable-read')
+ fs.mkdirSync(directory,{recursive:true});const file=path.join(directory,'synthetic-sealed.db')
+ const created=require('node:child_process').spawnSync('python',['-c','import sqlite3,sys\nc=sqlite3.connect(sys.argv[1])\nc.execute("CREATE TABLE content_operations_state (key TEXT)")\nc.execute("CREATE TABLE content_operations_meta (revision INTEGER)")\nc.execute("INSERT INTO content_operations_state VALUES (\'synthetic:1\')")\nc.execute("INSERT INTO content_operations_meta VALUES (7)")\nc.commit()\nc.close()',file],{encoding:'utf8',windowsHide:true})
+ assert.equal(created.status,0,created.stderr)
+ const before=fs.readFileSync(file),beforeStat=fs.statSync(file)
+ assert.deepEqual(readSealedOperations(file),{content_operations_state:[{key:'synthetic:1'}],content_operations_meta:[{revision:7}]})
+ assert.deepEqual(fs.readFileSync(file),before);assert.equal(fs.statSync(file).mtimeMs,beforeStat.mtimeMs)
+ assert.equal(fs.existsSync(file+'-shm'),false);assert.equal(fs.existsSync(file+'-wal'),false)
+})

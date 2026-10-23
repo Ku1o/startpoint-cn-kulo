@@ -515,10 +515,13 @@ export function updatePlayerCategoryMissionStageBatchSync(
     }
 }
 
-export function deletePlayerCategoryMissionsSync(playerId: number, category: number) {
+export function deletePlayerCategoryMissionsSync(playerId: number, category: number, keepMissionIds: readonly number[] = []) {
     runPersistenceTransactionSync({ domain: "mission", playerId, operation: "delete_category_missions" }, () => {
-        cachedStatement(getDb(), `DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?`).run(playerId, category)
-        cachedStatement(getDb(), `DELETE FROM players_category_missions WHERE player_id = ? AND category = ?`).run(playerId, category)
+        const retained = JSON.stringify(keepMissionIds)
+        cachedStatement(getDb(), `DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?
+            AND mission_id NOT IN (SELECT CAST(value AS INTEGER) FROM json_each(?))`).run(playerId, category, retained)
+        cachedStatement(getDb(), `DELETE FROM players_category_missions WHERE player_id = ? AND category = ?
+            AND id NOT IN (SELECT CAST(value AS INTEGER) FROM json_each(?))`).run(playerId, category, retained)
     })
 }
 

@@ -3,6 +3,7 @@ import { PlayerGachaInfo, PlayerGachaCampaign, RawPlayerGachaInfo, RawPlayerGach
 import { deserializeBoolean, serializeBoolean, deserializeNumberList } from "../utils";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { cachedStatement } from "../../lib/cached-statement";
+import { CRAZY_GACHA_ID, crazyGachaDrawCount, getLatestCrazyGachaStateSync } from "./crazy_gacha"
 
 /**
  * Converts a RawPlayerGachaInfo object into a PlayerGachaInfo object.
@@ -36,9 +37,13 @@ export function getPlayerGachaInfoListSync(
     WHERE player_id = ?
     `).all(playerId) as RawPlayerGachaInfo[]
 
-    return rawInfo.map(raw => {
-        return buildPlayerGachaInfo(raw)
-    })
+    const result = rawInfo.map(raw => buildPlayerGachaInfo(raw))
+    const crazy = getLatestCrazyGachaStateSync(playerId)
+    const entry = result.find(row => row.gachaId === CRAZY_GACHA_ID)
+    if (entry) entry.crazyDrawCount = crazy?.state.status === "pending" ? crazy.state.drawCount : 0
+    else if (crazy) result.push({ gachaId: CRAZY_GACHA_ID, isAccountFirst: true, isDailyFirst: true,
+        gachaExchangePoint: 0, crazyDrawCount: crazy.state.status === "pending" ? crazy.state.drawCount : 0 })
+    return result
 }
 
 /**
@@ -58,7 +63,10 @@ export function getPlayerGachaInfoSync(
     WHERE player_id = ? AND gacha_id = ?
     `).get(playerId, gachaId) as RawPlayerGachaInfo
 
-    return rawInfo === undefined ? null : buildPlayerGachaInfo(rawInfo)
+    if (rawInfo === undefined) return null
+    const result = buildPlayerGachaInfo(rawInfo)
+    if (gachaId === CRAZY_GACHA_ID) result.crazyDrawCount = crazyGachaDrawCount(playerId)
+    return result
 }
 
 /**

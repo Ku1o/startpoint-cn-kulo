@@ -6,7 +6,9 @@ import { cachedStatement } from "../lib/cached-statement";
  */
 import * as fs from "fs";
 import * as path from "path";
-import { setServerTimeOffset } from "../utils";
+import { getServerClockSnapshot, setServerTimeOffset } from "../utils";
+import type { Database } from "better-sqlite3";
+import { restoreServerClockStateSync } from "../lib/server-clock-state";
 import { resolveAccountPlayerIdSync } from "./domains/account";
 
 const STATE_DIRECTORY = process.env.DATA_DIR
@@ -105,6 +107,8 @@ export function setSelectedAccountId(id: number | null): void {
  * virtual-clock jump into elapsed EXP-pool time.
  */
 export function saveTimeOffset(offset: number | null): void {
+    if (getServerClockSnapshot().mode === "real") throw new Error("Persisted real clock rejects virtual-time reset");
+    if (offset !== null && !Number.isSafeInteger(offset)) throw new Error("Invalid server clock offset");
     const state = mutableState();
     state.timeOffset = offset;
     state.lastSetTime = offset !== null ? new Date(Date.now() + offset).toISOString() : null;
@@ -115,7 +119,12 @@ export function saveTimeOffset(offset: number | null): void {
  * Restore time offset on server startup.
  * Uses saved offset, or defaults to 2024-08-14 12:00 UTC if not set.
  */
-export function restoreTimeOffset(): void {
+export function restoreTimeOffset(db?: Database): void {
+    // This read-only lookup precedes legacy JSON/default handling. A present
+    // invalid singleton throws, so neither the legacy file nor 2024 fallback
+    // can silently replace a persisted real clock after restart.
+    const connection: Database = db ?? require("./db").getDb();
+    if (restoreServerClockStateSync(connection)) return;
     const state = mutableState();
     if (state.timeOffset !== null) {
         setServerTimeOffset(state.timeOffset);
