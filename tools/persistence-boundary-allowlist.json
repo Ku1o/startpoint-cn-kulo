@@ -1,5 +1,5 @@
 {
-  "description": "可以直接调用 better-sqlite3 transaction() 的文件（基础设施、迁移、快照恢复、worker 本地数据库）。新增条目须经仓库所有者同意。",
+  "description": "基础设施保留原文件例外；内容与时钟的特殊操作按完整声明身份及数量精确放行，变更须重新核查。新增或扩大例外须经仓库所有者同意。",
   "transaction": [
     {
       "path": "src/lib/persistence-coordinator.ts",
@@ -40,42 +40,231 @@
     {
       "path": "src/workers/**",
       "reason": "worker 本地数据库"
-    },
+    }
+  ],
+  "reviewedOperations": [
     {
       "path": "src/lib/content-history-bootstrap.ts",
-      "reason": "受保护的显式离线数据库历史准备、核查与身份重绑定；四处本地事务不使用全局连接"
+      "reason": "受保护的显式离线数据库历史准备、核查与身份重绑定；四处本地事务不使用全局连接",
+      "operations": [
+        {
+          "name": "runReviewedHistoryBatchOfflineSync",
+          "startLine": "export function runReviewedHistoryBatchOfflineSync<T>(store: ContentOperationsStore, options: {",
+          "endLine": "}",
+          "sha256": "29ee2cd128829e1cba2e72c028a4b6e18704d545e8e707fbc3cc62624ced4309",
+          "transactions": 1
+        },
+        {
+          "name": "completeExistingHistoryReviewsOfflineSync",
+          "startLine": "export function completeExistingHistoryReviewsOfflineSync(store: ContentOperationsStore, plan: ExistingHistoryReviewPlan, options: {",
+          "endLine": "}",
+          "sha256": "887739725eed8876672e05a90de9f852a791dd6f22746a84398ba95d00676d4c",
+          "transactions": 1
+        },
+        {
+          "name": "rebindReviewedContentIdentitiesOfflineSync",
+          "startLine": "export function rebindReviewedContentIdentitiesOfflineSync(store: ContentOperationsStore, plan: ContentIdentityRebindPlan, options: {",
+          "endLine": "}",
+          "sha256": "2a49685f5161cf60cea98dc158ed009278aa92d2bc1d0632232b4e54d18e05d6",
+          "transactions": 1
+        },
+        {
+          "name": "prepareReviewedHistoryOfflineSync",
+          "startLine": "export function prepareReviewedHistoryOfflineSync(store: ContentOperationsStore, plan: ReviewedHistoryPlan, options: {",
+          "endLine": "}",
+          "sha256": "34173620f5e5017b50e3580c3674d468e3cffe09aeddf40acd3e8b4db15d43c2",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/lib/content-operations-bootstrap.ts",
-      "reason": "受保护的显式离线数据库初始化与 July 升级；两处一次性迁移事务"
+      "reason": "受保护的显式离线数据库初始化与 July 升级；两处一次性迁移事务",
+      "operations": [
+        {
+          "name": "upgradeJulyContentPlanOfflineSync",
+          "startLine": "export function upgradeJulyContentPlanOfflineSync(store: ContentOperationsStore, options: {",
+          "endLine": "}",
+          "sha256": "c3f2fd0be99405046470c20e2a8bc5629f07ce251f28eeb234ff195faefd2206",
+          "transactions": 1
+        },
+        {
+          "name": "applyJulyContentPlanOfflineSync",
+          "startLine": "export function applyJulyContentPlanOfflineSync(store: ContentOperationsStore, options: {",
+          "endLine": "}",
+          "sha256": "fcd95a98b8250ca829e39396b8f3eb52c999104c94841bfe1eaf526df3cc9817",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/lib/server-clock-state.ts",
-      "reason": "离线时钟激活与回退；显式数据库、offlineGuard 和完整状态检查"
+      "reason": "离线时钟激活与回退；显式数据库、offlineGuard 和完整状态检查",
+      "operations": [
+        {
+          "name": "activateRealServerClockOfflineSync",
+          "startLine": "export function activateRealServerClockOfflineSync(db: Database, options: ActivateRealServerClockOptions): PersistedServerClockState {",
+          "endLine": "}",
+          "sha256": "fb2a9fef1a8056a8981eb302586837ade7249852f977e1a6c5cf1ede87eb3b49",
+          "transactions": 1
+        },
+        {
+          "name": "rollbackRealServerClockOfflineSync",
+          "startLine": "export function rollbackRealServerClockOfflineSync(db: Database, options: RollbackRealServerClockOptions): RollbackRealServerClockResult {",
+          "endLine": "}",
+          "sha256": "32eb7a1cf6d1b0a4f0fbc96e87fec0091f8e5dae63fc5b1954dbaabfb9dce6bf",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/lib/time-cutover-rehearsal.ts",
-      "reason": "受保护的离线一致规划、应用与回退；显式数据库和摘要校验"
+      "reason": "受保护的离线一致规划、应用与回退；显式数据库和摘要校验",
+      "operations": [
+        {
+          "name": "planTimeCutoverRehearsalSync",
+          "startLine": "export function planTimeCutoverRehearsalSync(db: Database, options: TimeCutoverRehearsalOptions): TimeCutoverRehearsalPlan {",
+          "endLine": "}",
+          "sha256": "d6c5ae1f009b0491dfcc34c4a5df60d704628c3906a097a556eb008db31a1fee",
+          "transactions": 1
+        },
+        {
+          "name": "applyTimeCutoverRehearsalSync",
+          "startLine": "export function applyTimeCutoverRehearsalSync(db: Database, options: TimeCutoverApplyOptions): { status: \"applied\" | \"already-applied\"; digest: string } {",
+          "endLine": "}",
+          "sha256": "b677c67e5d0acd9906dd12bf28e2006ede03ea985f7d4f2b91abc859a8d463e1",
+          "transactions": 1
+        },
+        {
+          "name": "rollbackTimeCutoverRehearsalSync",
+          "startLine": "export function rollbackTimeCutoverRehearsalSync(db: Database, options: TimeCutoverRollbackOptions): { status: \"rolled-back\" | \"already-rolled-back\"; digest: string } {",
+          "endLine": "}",
+          "sha256": "a15aa61a598000806fb3bb94c619ce7e6c998ec91c35b245a87f7dcffd25c46c",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/lib/content-operations-store.ts",
-      "reason": "四处一致读取快照及三处实例原子更新；线上写入口已有异步 admin 协调器，离线入口由受保护迁移持有事务"
+      "reason": "四处一致读取快照及三处实例原子更新；线上写入口已有异步 admin 协调器，离线入口由受保护迁移持有事务",
+      "operations": [
+        {
+          "name": "managementSnapshot",
+          "startLine": "    managementSnapshot(keys?: readonly string[]): ContentManagementSnapshot {",
+          "endLine": "    }",
+          "sha256": "f4edb3d8d6d17bdaf758a91003188565faa6ea40f102f48631d055bc715813d5",
+          "transactions": 1
+        },
+        {
+          "name": "list",
+          "startLine": "    list(query: ContentManagementQuery = {}): ContentCatalogListing {",
+          "endLine": "    }",
+          "sha256": "e83020d56c167bd7579996433ca7f7ee2d67c28e100fb2054aaf872ef51e18ee",
+          "transactions": 1
+        },
+        {
+          "name": "snapshot",
+          "startLine": "    snapshot(nowMs: number): { schema_version: number; full_snapshot: boolean; revision: number; catalog_digest: string; server_time_ms: number; states: Array<Record<string, unknown>>; catalog: Array<Record<string, unknown>>; default_policy?: unknown } {",
+          "endLine": "    }",
+          "sha256": "abc1d45a2b3b1a0acb0de40e0361a02bf19d2699bc13a11889f66744ec388046",
+          "transactions": 1
+        },
+        {
+          "name": "audit",
+          "startLine": "    audit(query: { key?: string; beforeRevision?: number; limit?: number } = {}): {",
+          "endLine": "    }",
+          "sha256": "849edc0b0ec8452d7e5d913a7b33f1994f495f72cdefe1054263aa6cafb989dd",
+          "transactions": 1
+        },
+        {
+          "name": "setPublished",
+          "startLine": "    setPublished(key: string, input: unknown, nowMs: number): ContentControl {",
+          "endLine": "    }",
+          "sha256": "3d7a7c648996eafa927bb3510ec5766efb6642c2e890344f3e54d3292f573b52",
+          "transactions": 1
+        },
+        {
+          "name": "setDeadline",
+          "startLine": "    setDeadline(key: string, input: unknown, nowMs: number): ContentControl {",
+          "endLine": "    }",
+          "sha256": "11ea1019282699f3f63014ebd5f5c84ff091c0f9348b4f8faf19f122f64e809d",
+          "transactions": 1
+        },
+        {
+          "name": "update",
+          "startLine": "    update(key: string, input: unknown, nowMs: number): ContentControl {",
+          "endLine": "    }",
+          "sha256": "3b5473873801d870fb9d25f28783cd08a0cb3206839672abb4439efbc79a7bac",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/lib/content-client-reload.ts",
-      "reason": "重登 epoch、审计与已接受战斗的实例原子更新；线上入口已有异步 admin 协调器"
+      "reason": "重登 epoch、审计与已接受战斗的实例原子更新；线上入口已有异步 admin 协调器",
+      "operations": [
+        {
+          "name": "request",
+          "startLine": "    request(expectedEpoch: number, nowMs = Date.now(), plays: readonly ContentClientReloadPlay[] = []): ContentClientReloadState {",
+          "endLine": "    }",
+          "sha256": "548b6e62920a1606c011f35e8832b37855cccc99114ef7d2be0381920904eba9",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/lib/town-theme-store.ts",
-      "reason": "主城设置的实例更新保存点；线上入口已有异步 admin 协调器"
+      "reason": "主城设置的实例更新保存点；线上入口已有异步 admin 协调器",
+      "operations": [
+        {
+          "name": "update",
+          "startLine": "    update(input: unknown, nowMs = Date.now()): TownThemeStatus {",
+          "endLine": "    }",
+          "sha256": "d3bee4b1f43e7b5507f8e5f99e747f77c67b40c8b4020af39e17a540a488f5ab",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/routes/web_api/content.ts",
-      "reason": "关联活动与箱池的发布、截止组合保存点；唯一线上入口在异步 admin 协调器内，异常整体回滚"
+      "reason": "关联活动与箱池的发布、截止组合保存点；唯一线上入口在异步 admin 协调器内，异常整体回滚",
+      "operations": [
+        {
+          "name": "setDailyPublication",
+          "startLine": "function setDailyPublication(store: ReturnType<typeof contentOperations>, key: string, input: unknown, nowMs: number) {",
+          "endLine": "}",
+          "sha256": "7948992ed88413389b5cdf151e029022fa8ff961a9bbc2e2373c0f2530e6c9c3",
+          "transactions": 1
+        },
+        {
+          "name": "setDailyDeadline",
+          "startLine": "function setDailyDeadline(store: ReturnType<typeof contentOperations>, key: string, input: unknown, nowMs: number) {",
+          "endLine": "}",
+          "sha256": "91196f9a64e99a933354836eb862f502fede2d1ca0bd6c6d3e1837a5a81a5f9a",
+          "transactions": 1
+        }
+      ]
     },
     {
       "path": "src/routes/web_api/town-theme.ts",
-      "reason": "注入的 deps.transaction 是返回 Promise 的 runPersistenceTransaction 包装，非 SQLite 直接事务"
+      "reason": "注入的 deps.transaction 是返回 Promise 的 runPersistenceTransaction 包装，非 SQLite 直接事务",
+      "operations": [
+        {
+          "name": "createTownThemeRoutes",
+          "startLine": "export function createTownThemeRoutes(deps: TownThemeRouteDependencies) {",
+          "endLine": "}",
+          "sha256": "3b0bbe26c7c0932db205c007c7f8d9ef419eeeda9ed10eb14cbac083faee14f0",
+          "transactions": 1
+        }
+      ],
+      "contexts": [
+        {
+          "name": "defaultAsyncPersistenceDependency",
+          "startLine": "const dependencies: TownThemeRouteDependencies = {",
+          "endLine": "}",
+          "sha256": "941c9144edfc2b58e131e84416f3aba8b1153551d95bbae2b44cea02fe21d490"
+        }
+      ]
     }
   ]
 }
