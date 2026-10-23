@@ -38,12 +38,12 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
             raise ValueError("acceptance must record an explicit result, release scope and audit")
     if variant not in record["variants"]:
         raise ValueError(
-            f"No current {variant} Android baseline is registered; derive it from the latest public baseline. "
+            f"No current {variant} Android baseline is registered; derive it from the registered default baseline. "
             "Use --record only for explicit historical reproduction.")
     entry = record["variants"][variant]
     if identity == (6, "accepted_offline"):
         acceptance = record["acceptance"]
-        if acceptance.get("result") != "accepted_offline" or acceptance.get("scope") != "offline_artifact_lineage_and_public_admission" or not acceptance.get("audit"):
+        if acceptance.get("result") != "accepted_offline" or acceptance.get("scope") not in ("offline_artifact_lineage_and_public_admission", "offline_artifact_and_cumulative_lineage") or not acceptance.get("audit"):
             raise ValueError("offline acceptance must state its evidence scope and audit")
     path = apk.resolve() if apk else ROOT / entry["apk"]
     if not path.is_file():

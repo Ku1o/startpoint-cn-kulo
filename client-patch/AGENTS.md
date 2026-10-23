@@ -1,8 +1,8 @@
 # Android APK/SWF 工作入口
 
-2026-10-17 当前后续开发基线为 PR43 功能移植、旧服材料兼容、新准入和 ARM64/x86_64 的安卓公网成品，登记层级为 `accepted_offline`，默认读取 [android-accepted.json](android-accepted.json) 的 `variants.public`。身份与验证范围见 [登记记录](ACCEPTANCE-PR43-ANDROID-COMPAT-20261017.md)。当前没有同功能内网登记，需要内网版时从该公网基线转换；10-02/10-04 旧包仅保留历史复现，不能作为默认输入。R4、加载修复 r2、Q1/Q2/Q3 仍不采用。
+2026-10-24 当前后续开发基线为累计内容运营、历史入口、时间栏及兑换修复、个人“一览”和主城外观控制的 Android 内网 R11，登记层级为 `accepted_offline`，默认读取 [android-accepted.json](android-accepted.json) 的 `variants.lan`。身份与验证范围见 [R11 登记记录](ACCEPTANCE-CONTENT-OPERATIONS-ANDROID-LAN-20261024.md)。`variants.public` 保留 10-17 PR43 公网包的原身份和验收范围，它尚未包含 R11 累计改动；后续同功能公网版应从 R11 转换，不回落旧公网包重新拼装。R4、加载修复 r2、Q1/Q2/Q3 仍不采用。
 
-当前 Android 直接基线以 [android-accepted.json](android-accepted.json) 的 `variants` 为准，默认选择 `public`；未登记的环境先从当前基线派生，不回落历史变体。从登记读取成品路径、哈希、地址、ABC 身份、准入号、验收层级及对应审计/方法文档；不按旧日期、文件名或历史报告选包。累计功能和构建约束见下文，历史验收记录只证明各自载体与当时覆盖范围。
+当前 Android 直接基线以 [android-accepted.json](android-accepted.json) 的 `default_variant` 和 `baseline_selection` 为准，默认选择 `lan`；同功能公网版尚未制作，不把现存旧 `public` 当成功能对等包。从登记读取成品路径、哈希、地址、ABC 身份、准入号、验收层级及对应审计/方法文档；不按旧日期、文件名或历史报告选包。R11 沿用原内网测试准入材料，登记不推进准入号或更改服务端允许名单。累计实现入口见 [content-operations](content-operations/README.md) 与 [town-theme](town-theme/README.md)；历史验收记录只证明各自载体与当时覆盖范围。
 
 - 实际选择、解包或修改 Android APK/SWF 输入时，读取本目录 `ANDROID-BASELINE.md`、所选 `android-accepted.json` 变体及相关补丁文档；已加载且未变的规则不重读。JSON 中登记的已验收公网/内网成品是当前直接基线，其他文档的旧哈希只代表历史步骤；仅整理文档不触发包身份校验。
 - 对所选实际输入运行 `python client-patch/verify_android_baseline.py --variant public` 或 `--variant lan`，回读 APK、内嵌 SWF 和 AIR UUID。同任务登记、成品及相关校验条件未变时复用有效结果，不因切换步骤或收尾重跑；输入/登记变化或身份矛盾时补查。输入缺失或不匹配时不得按日期、文件名或旧报告另选 APK，也不得跳过哈希保护。新成品按其自身最终载荷验证，不能沿用基线结果。

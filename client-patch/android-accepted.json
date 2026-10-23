@@ -1,19 +1,18 @@
 {
   "schema_version": 6,
   "status": "accepted_offline",
-  "accepted_on": "2026-10-17",
+  "accepted_on": "2026-10-24",
   "acceptance": {
     "result": "accepted_offline",
-    "scope": "offline_artifact_lineage_and_public_admission",
-    "audit": "client-patch/ACCEPTANCE-PR43-ANDROID-COMPAT-20261017.md",
+    "scope": "offline_artifact_and_cumulative_lineage",
+    "audit": "client-patch/ACCEPTANCE-CONTENT-OPERATIONS-ANDROID-LAN-20261024.md",
     "baseline_selection_approved": true,
     "device_tested_by_codex": false,
     "user_device_acceptance_recorded": false,
     "public_admission_http_verified": false,
     "current_cloud_admission_verified": false,
-    "offline_protocol_verified": true,
     "build_reports_are_immutable": true,
-    "per_feature_device_results": "not_device_tested; offline artifact, compatibility, signature and admission checks only"
+    "per_feature_device_results": "offline identity and preservation receipts; bounded native AIR fixtures; no new full-device acceptance"
   },
   "variants": {
     "public": {
@@ -71,6 +70,65 @@
         "old_server_material_compatibility": true,
         "overlimit_preserved": true,
         "cache_period_seconds": 600
+      }
+    },
+    "lan": {
+      "apk_sha256": "e9b9bbd8a0557a4cfaf6534b0e952caf20d142f5e6702fb2d35a0977f9a871b8",
+      "swf_sha256": "9c672e56e5911679848047daece874e139255b2d128f67ab11e605c5db2bb951",
+      "size_bytes": 214212284,
+      "dex_sha256": "5859dccb9af162a760874db0d523c222d632cef3146f750242bd4570dec2cd18",
+      "main_abc_index": 304,
+      "main_abc_raw_tag_index": 367,
+      "doabc_count": 305,
+      "main_method_bodies": 92601,
+      "total_swf_method_bodies": 96836,
+      "endpoint": "http://<LAN_HOST>:18001",
+      "endpoint_sha256": "66e3bb61610d6a966f982380b13c78e809505f4cec7da31bb2d864a9b08fd669",
+      "apk": "F:\\codex\\outputs\\server-time-july-ops-20261021\\isolated-r11\\StarPoint-CN-1.8.1-主城外观管理-isolated-lan-r11-20261023.apk",
+      "uniqueappversionid": "2345e786-411e-4f03-870e-8f3100737da9",
+      "native_build_identity": "2345e786-411e-4f03-870e-8f3100737da9",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001,
+      "accepted_on": "2026-10-24",
+      "acceptance_status": "accepted_offline",
+      "acceptance_scope": "offline_artifact_and_cumulative_lineage",
+      "acceptance_audit": "client-patch/ACCEPTANCE-CONTENT-OPERATIONS-ANDROID-LAN-20261024.md",
+      "artifact_id": "content-operations-town-theme-lan-r11-20261023",
+      "build_id": "android-181-author-1047-public-20261001",
+      "admission_id": "android-181-author-1047-public-20261001",
+      "admission_policy": "inherited unchanged LAN testing identity; no new ID or server allowlist change",
+      "diagnostic_export": false,
+      "device_acceptance": "baseline registered from offline evidence; original package report remains deviceTested=false",
+      "main_abc_index_kind": "zero_based_DoABC_ordinal",
+      "supported_abis": [
+        "arm64-v8a",
+        "x86_64"
+      ],
+      "derived_from_apk_sha256": "ec17a131cc879119b252ed857c18793ee69934abfc357193cc01c6079b3e2be5",
+      "local_build_report": "F:\\codex\\outputs\\server-time-july-ops-20261021\\isolated-r11\\verification.json",
+      "local_acceptance_report": "F:\\codex\\work\\server-time-july-ops-20261021\\continuation\\android-r11-baseline-20261024\\verification.json",
+      "local_functional_report": "F:/codex/work/server-time-july-ops-20261021/continuation/town-theme-admin-20261023/client/FINAL.json",
+      "local_build_checks": {
+        "method_bodies_checked": 96836,
+        "method_check_scope": "ABC structure parsed and counted; cumulative preservation and native fixture receipts reused",
+        "main_method_bodies": 92601,
+        "main_abc_identity_checked": true,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
+        "retained_native_library_counts": {
+          "arm64-v8a": 15,
+          "x86_64": 15
+        },
+        "preserved_non_target_members": 6125,
+        "retained_network_constant_slots": 70,
+        "admission_tags_byte_identical": true,
+        "native_town_fixture_assertions": 122,
+        "native_profile_regression_assertions": 153,
+        "device_tested": false,
+        "public_admission_http_verified": false
       }
     }
   },
@@ -403,10 +461,60 @@
       "default_input_allowed": false
     },
     "reproduction_recipe": "client-patch/pr43-port/README.md",
-    "current_source_commit": "57666443cd72453fd7a15b9e5b85bbe50eb451d9",
+    "current_source_commit": "6283a9229cad4bdce7537d99e7290d92d5856845",
     "historical_build_entries_require_explicit_inputs": true,
     "historical_latest_lan_acceptance": "client-patch/ACCEPTANCE-OROCHI-RESCUE-BELL-C8016-CACHE-20261002.md",
-    "historical_public_release_deferred": true
+    "historical_public_release_deferred": true,
+    "previous_default_baseline_selection_20261017": {
+      "accepted_on": "2026-10-17",
+      "current_source_commit": "57666443cd72453fd7a15b9e5b85bbe50eb451d9",
+      "acceptance": {
+        "result": "accepted_offline",
+        "scope": "offline_artifact_lineage_and_public_admission",
+        "audit": "client-patch/ACCEPTANCE-PR43-ANDROID-COMPAT-20261017.md",
+        "baseline_selection_approved": true,
+        "device_tested_by_codex": false,
+        "user_device_acceptance_recorded": false,
+        "public_admission_http_verified": false,
+        "current_cloud_admission_verified": false,
+        "offline_protocol_verified": true,
+        "build_reports_are_immutable": true,
+        "per_feature_device_results": "not_device_tested; offline artifact, compatibility, signature and admission checks only"
+      },
+      "baseline_selection": {
+        "selected_on": "2026-10-17",
+        "selection": "pr43_compat_admission_dual_abi_public",
+        "default_input": "variants.public",
+        "default_variant": "public",
+        "audit": "client-patch/ACCEPTANCE-PR43-ANDROID-COMPAT-20261017.md",
+        "supersedes": "pre_r4_android_variants",
+        "historical_variants_preserved": true,
+        "new_device_acceptance": false,
+        "current_cloud_admission_verified": false,
+        "current_device_installation_verified": false,
+        "ios_changed": false,
+        "lan_policy": "No current LAN artifact; derive a future LAN variant from the current public baseline."
+      },
+      "default_variant": "public"
+    },
+    "current_android_baseline": {
+      "audit": "client-patch/ACCEPTANCE-CONTENT-OPERATIONS-ANDROID-LAN-20261024.md",
+      "implementation_commit": "6283a9229cad4bdce7537d99e7290d92d5856845",
+      "direct_input_apk_sha256": "ec17a131cc879119b252ed857c18793ee69934abfc357193cc01c6079b3e2be5",
+      "added": [
+        "Admin-controlled content and gacha availability after login, with real server time",
+        "Native time labels honor permanent/cutoff settings only on existing time fields",
+        "Exchange-period repair and server-selected star-crumb listing",
+        "Permanent player profile history entry and legacy completion display",
+        "Login-based town theme selection with native fallback and personal BGM priority"
+      ],
+      "source_entries": [
+        "client-patch/content-operations/README.md",
+        "client-patch/town-theme/README.md"
+      ],
+      "same_feature_public_variant_available": false,
+      "same_feature_ios_variant_available": false
+    }
   },
   "excluded_artifacts": [
     {
@@ -423,21 +531,23 @@
     }
   ],
   "per_variant_acceptance": {
-    "public": "accepted_offline"
+    "public": "accepted_offline",
+    "lan": "accepted_offline"
   },
   "baseline_selection": {
-    "selected_on": "2026-10-17",
-    "selection": "pr43_compat_admission_dual_abi_public",
-    "default_input": "variants.public",
-    "default_variant": "public",
-    "audit": "client-patch/ACCEPTANCE-PR43-ANDROID-COMPAT-20261017.md",
-    "supersedes": "pre_r4_android_variants",
+    "selected_on": "2026-10-24",
+    "selection": "content_operations_town_theme_cumulative_lan_r11",
+    "default_input": "variants.lan",
+    "default_variant": "lan",
+    "audit": "client-patch/ACCEPTANCE-CONTENT-OPERATIONS-ANDROID-LAN-20261024.md",
+    "supersedes": "pr43_public_as_default_functional_input",
     "historical_variants_preserved": true,
     "new_device_acceptance": false,
     "current_cloud_admission_verified": false,
     "current_device_installation_verified": false,
     "ios_changed": false,
-    "lan_policy": "No current LAN artifact; derive a future LAN variant from the current public baseline."
+    "lan_policy": "Use the exact registered R11 LAN artifact for subsequent Android changes.",
+    "public_policy": "The retained public variant predates R11 features. Derive the next cumulative public client from variants.lan; address conversion and public admission release require separate authorization."
   },
   "withdrawn_r4": {
     "withdrawn_on": "2026-10-17",
@@ -478,5 +588,5 @@
     "verification_scope": "controlled_AIR_and_offline_artifact_checks_only",
     "new_device_acceptance": false
   },
-  "default_variant": "public"
+  "default_variant": "lan"
 }

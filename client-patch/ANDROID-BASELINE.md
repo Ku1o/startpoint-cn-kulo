@@ -1,23 +1,25 @@
 # Android APK/SWF：当前后续开发基线
 
-2026-10-17 当前选择 PR43 功能移植、旧服材料兼容、新准入和 ARM64/x86_64 的安卓公网包，登记为 `accepted_offline`。后续 Android 修改从该包继续；精确身份以 [android-accepted.json](android-accepted.json) 的 `variants.public` 为准，范围见 [登记记录](ACCEPTANCE-PR43-ANDROID-COMPAT-20261017.md)。
+2026-10-24 当前选择 Android 内网 R11，登记为 `accepted_offline`。后续 Android 修改从这个最终累计包继续；精确身份以 [android-accepted.json](android-accepted.json) 的 `variants.lan` 为准，范围见 [R11 登记记录](ACCEPTANCE-CONTENT-OPERATIONS-ANDROID-LAN-20261024.md)。
 
 | 项目 | 当前登记 |
 | --- | --- |
-| 默认变体 | `public`；本批无同功能 LAN 成品 |
-| 准入 ID | `android-181-pr43-compat-public-20261017` |
+| 默认变体 | `lan`，最终 R11；旧 `public` 保留原登记，但不包含本批累计功能 |
+| 准入 ID | `android-181-author-1047-public-20261001`，沿用原内网测试材料；不因登记推进新号 |
 | 架构 | ARM64 与 x86_64 |
-| 证据层级 | 离线身份、功能差异、材料兼容、封包和准入配对；未真机或公网游戏验收 |
+| 证据层级 | 成品身份、累计差异保全、封包及受控 AIR 原生执行；未新增完整设备或公网游戏验收 |
 
-需要内网版时，保留该包的累计功能和准入配对再转换地址；不得改用历史 10-02 LAN。旧 10-02/10-04 登记存于 `lineage.previous_android_baseline_registration`，完整旧登记可从 Git 修订 `a199a139` 取出并用 `--record` 明确复现。历史验收层级和原成品保留。
+R11 包含后台活动和卡池状态桥接、真实时间同步及重新登录通知、历史玩法入口、原有时间栏的常驻/截止显示与通行证排版、兑换期及星之碎片列表修复、个人“一览”常驻，以及登录后读取主城主题。每日任务计数和兑换资格等权威规则在服务端，不能仅凭 SWF 推定完整玩法可用。主城音乐继续遵循玩家自选优先、主题默认音乐其次的现有规则。
 
-当前 SWF 有 302 个 DoABC，主 `boot_ffc6` 为零基 ordinal `301`、原始 tag index `364`；主 ABC 方法体 92601，整个 SWF 方法体 96734，两者不能混用。每个不同 SWF 继续使用新的 AIR UUID，保留包名、版本和平台签名。
+需要同功能公网版时，直接保留 R11 的累计载荷再按发布流程转换地址、缓存身份和准入配置；本次登记不授权制作或发布。10-17 公网登记的原入口及证据保留在 `variants.public` 与 `lineage.previous_default_baseline_selection_20261017`；10-02/10-04 旧登记及历史复现入口保持原样，不能作为当前功能输入。
+
+当前 SWF 有 305 个 DoABC，主 `boot_ffc6` 为零基 ordinal `304`、原始 tag index `367`；主 ABC 方法体 92601，整个 SWF 方法体 96836，两者不能混用。每个不同 SWF 继续使用新的 AIR UUID，保留包名、版本和平台签名。
 
 ```powershell
-python -B client-patch/verify_android_baseline.py --variant public
+python -B client-patch/verify_android_baseline.py --variant lan
 ```
 
-当前 `--variant lan` 会明确拒绝，不会回落旧包。R4 及加载修复 r2 仍不采用，先前 [回退记录](ANDROID-BASELINE-ROLLBACK-20261017.md)保留历史事实。本次只登记已有 APK，不制作新包、不变更运行配置或云端、不改 iOS。
+`--variant public` 只验证保留的旧公网包，不代表它与 R11 功能对等。R4 及加载修复 r2 仍不采用，先前 [回退记录](ANDROID-BASELINE-ROLLBACK-20261017.md)保留历史事实。本次只登记已有 APK，不制作新包、不变更运行配置或云端、不改 iOS。
 
 以下为仍须保留的历史累计方法，容器索引按各历史步骤记录，不代表当前主 ABC 索引。
 
