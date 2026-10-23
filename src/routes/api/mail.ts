@@ -17,6 +17,7 @@ import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import type { Player } from "../../data/types";
 import { createHash } from "node:crypto";
 import { getPlayerOperationReceiptSync, insertPlayerOperationReceiptSync } from "../../data/domains/player-operation-receipt";
+import { givePlayerCharacterSync } from "../../lib/character";
 
 interface IndexBody {
     api_count: number
@@ -84,6 +85,19 @@ function applyMailReward(playerId: number, player: Player, mail: RawPlayerMail):
     const itemList: Record<string, number> = {}
     const userInfo: Record<string, any> = {}
     const degreeIds: number[] = []
+    const supportedTypes = [MailType.ITEM, MailType.PAID_VMONEY, MailType.FREE_VMONEY, MailType.CHARACTER,
+        MailType.EQUIPMENT, MailType.STAR_CRUMB, MailType.FREE_MANA, MailType.EXP_POOL, MailType.BOND_TOKEN,
+        MailType.BOSS_BOOST_POINT, MailType.BOOST_POINT, MailType.DEGREE, MailType.RANK_POINT]
+    if (!supportedTypes.includes(mail.type) || !Number.isSafeInteger(mail.number) || mail.number < 0
+        || ([MailType.ITEM, MailType.CHARACTER, MailType.EQUIPMENT, MailType.DEGREE].includes(mail.type)
+            && (!Number.isSafeInteger(mail.type_id) || Number(mail.type_id) <= 0))) {
+        throw Object.assign(new Error(`Mail ${mail.id} has an invalid attachment.`), { statusCode: 400 })
+    }
+    // Countless titles use number=0 by protocol; other zero-count attachments are notifications.
+    if (mail.number === 0 && mail.type !== MailType.DEGREE) return { characterList, equipmentList, itemList, userInfo, degreeIds }
+    if (mail.type === MailType.CHARACTER && mail.number > 1000) {
+        throw Object.assign(new Error("A character mail may contain at most 1000 attachments."), { statusCode: 400 })
+    }
 
     switch (mail.type) {
         case MailType.ITEM: {
@@ -108,13 +122,10 @@ function applyMailReward(playerId: number, player: Player, mail: RawPlayerMail):
         }
         case MailType.CHARACTER: {
             if (mail.type_id === null) break
-            const existing = getPlayerCharacterSync(playerId, mail.type_id)
-            if (existing) {
-                updatePlayerCharacterSync(playerId, mail.type_id, {
-                    entryCount: existing.entryCount + 1
-                })
-            } else {
-                insertDefaultPlayerCharacterSync(playerId, mail.type_id)
+            for (let index = 0; index < mail.number; index++) {
+                const grant = givePlayerCharacterSync(playerId, mail.type_id)
+                if (!grant) throw new Error(`Mail ${mail.id} character is unavailable.`)
+                if (grant.item) itemList[String(grant.item.id)] = grant.item.inventoryCount
             }
             const charData = getPlayerCharacterSync(playerId, mail.type_id)!
             characterList.push({

@@ -1,3 +1,6 @@
+const compiled = process.env.STARPOINT_TEST_COMPILED === '1'
+if (!compiled) require('ts-node/register/transpile-only')
+const load = name => require(`../${compiled ? 'out' : 'src'}/${name}`)
 const test = require('node:test')
 const assert = require('node:assert/strict')
 const fs = require('node:fs')
@@ -9,22 +12,22 @@ const isolated = fs.mkdtempSync(path.join(tempRoot, 'startpoint-exchange-exboost
 process.env.DATA_DIR = isolated
 
 const Fastify = require('fastify')
-const exchangeRoutes = require('../out/routes/api/multiSpecialExchange').default
-const exBoostRoutes = require('../out/routes/api/exBoost').default
-const shopRoutes = require('../out/routes/api/shop').default
-const { insertAccountSync } = require('../out/data/domains/account')
-const { insertDefaultPlayerSync, getPlayerSync, updatePlayerSync } = require('../out/data/domains/player')
-const { saveAccountDefaultPlayer } = require('../out/data/activeAccount')
-const { insertSessionWithToken } = require('../out/data/domains/session')
-const { getPlayerItemSync, setPlayerItemSync } = require('../out/data/domains/item')
-const { getPlayerCharacterSync, updatePlayerCharacterSync } = require('../out/data/domains/character')
+const exchangeRoutes = load('routes/api/multiSpecialExchange').default
+const exBoostRoutes = load('routes/api/exBoost').default
+const shopRoutes = load('routes/api/shop').default
+const { insertAccountSync } = load('data/domains/account')
+const { insertDefaultPlayerSync, getPlayerSync, updatePlayerSync } = load('data/domains/player')
+const { saveAccountDefaultPlayer } = load('data/activeAccount')
+const { insertSessionWithToken } = load('data/domains/session')
+const { getPlayerItemSync, setPlayerItemSync } = load('data/domains/item')
+const { getPlayerCharacterSync, updatePlayerCharacterSync } = load('data/domains/character')
 const {
     getPlayerMultiSpecialExchangeCampaignsSync,
     updatePlayerMultiSpecialExchangeCampaignSync,
-} = require('../out/data/domains/campaign')
-const { givePlayerCharacterSync } = require('../out/lib/character')
-const { isMultiSpecialExchangeCharacter } = require('../out/lib/multi-special-exchange')
-const { getDb } = require('../out/data/db')
+} = load('data/domains/campaign')
+const { givePlayerCharacterSync } = load('lib/character')
+const { isMultiSpecialExchangeCharacter } = load('lib/multi-special-exchange')
+const { getDb } = load('data/db')
 const exchangeTable = require('../assets/multi_special_exchange_campaign_character.json')
 
 let nextViewer = 77450100
@@ -127,26 +130,26 @@ test('交换券角色白名单、EX 抽取并发扣料与商店购买数量校�
     })
 
     for (const route of ['draw', 'first_draw']) {
-        await t.test(`EX ${route} 并发请求按实际余量依次扣料`, async () => {
+        await t.test(`EX ${route} 并发重入同一待选结果只扣一次`, async () => {
             const ctx = await exBoostReadyPlayer(5)
             const results = await Promise.all([exDraw(ctx, route), exDraw(ctx, route), exDraw(ctx, route)])
             const ok = results.filter(r => r.statusCode === 200)
             const rejected = results.filter(r => r.statusCode === 400)
-            assert.equal(ok.length, 1, results.map(r => r.payload).join('\n'))
-            assert.equal(rejected.length, 2)
+            assert.equal(ok.length, 3, results.map(r => r.payload).join('\n'))
+            assert.equal(rejected.length, 0)
             for (const r of rejected) assert.equal(JSON.parse(r.payload).message, 'Not enough of item.')
             assert.equal(getPlayerItemSync(ctx.playerId, 10001), 0)
             assert.equal(JSON.parse(ok[0].payload).data.item_list['10001'], 0)
         })
     }
 
-    await t.test('EX 抽取余量充足时并发请求各自扣料，结果与余量一致', async () => {
+    await t.test('EX 待选结果并发回放不再次扣料', async () => {
         const ctx = await exBoostReadyPlayer(15)
         const results = await Promise.all([exDraw(ctx, 'draw'), exDraw(ctx, 'draw'), exDraw(ctx, 'draw')])
         assert.deepEqual(results.map(r => r.statusCode), [200, 200, 200])
         const remaining = results.map(r => JSON.parse(r.payload).data.item_list['10001']).sort((a, b) => a - b)
-        assert.deepEqual(remaining, [0, 5, 10])
-        assert.equal(getPlayerItemSync(ctx.playerId, 10001), 0)
+        assert.deepEqual(remaining, [10, 10, 10])
+        assert.equal(getPlayerItemSync(ctx.playerId, 10001), 10)
     })
 
     await t.test('EX 抽取前置校验的错误响应保持原样', async () => {
@@ -167,6 +170,16 @@ test('交换券角色白名单、EX 抽取并发扣料与商店购买数量校�
     await t.test('商店购买数量必须为正整数，非法数量返回 400 且不扣款', async () => {
         const ctx = await createPlayer()
         updatePlayerSync({ id: ctx.playerId, freeVmoney: 5_000_000, vmoney: 0 })
+        // Open this historical fixture explicitly; the assertion concerns count
+        // validation and must not depend on the machine's current calendar.
+        const operations = load('lib/content-operations'), store = operations.contentOperations()
+        const row = operations.contentCatalog.rows.find(row => row.key === 'event_item_shop:9700118')
+        assert.ok(row?.parentKey)
+        for (const key of [row.parentKey, row.key]) store.update(key, {
+            expectedRevision: store.revision(), catalogDigest: store.digest, reason: 'Isolated purchase count fixture',
+            actionOverrides: { visible: { enabled: true, endsAtMs: null, readiness: 'verified', evidence: 'Synthetic count validation fixture' },
+                exchange: { enabled: true, endsAtMs: null, readiness: 'verified', evidence: 'Synthetic count validation fixture' } },
+        }, Date.now())
         const buy = number => post('/shop/buy', {
             viewer_id: ctx.viewer, api_count: 1, shop_type: 4, shop_item_id: 9700118, number,
         })

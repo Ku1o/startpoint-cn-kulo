@@ -26,6 +26,7 @@ const Dashboard = createAsyncPage(() => import("./pages/Dashboard"), "Dashboard"
 const Accounts = createAsyncPage(() => import("./pages/Accounts"), "Accounts")
 const PlayerDetail = createAsyncPage(() => import("./pages/PlayerDetail"), "PlayerDetail")
 const Mail = createAsyncPage(() => import("./pages/Mail"), "Mail")
+const Gifts = createAsyncPage(() => import("./pages/Gifts"), "Gifts")
 const Seeds = createAsyncPage(() => import("./pages/Seeds"), "Seeds")
 const HistoricalGacha = createAsyncPage(() => import("./pages/TimeControl"), "TimeControl")
 const DataMaintenance = createAsyncPage(() => import("./pages/DataMaintenance"), "DataMaintenance")
@@ -43,6 +44,7 @@ const navigationPages = [
     { key: "/town-themes", icon: <Palette size={18} />, label: "主城外观" },
     { key: "/accounts", icon: <Users size={18} />, label: "账号 / 存档" },
     { key: "/mail", icon: <MailIcon size={18} />, label: "邮件" },
+    { key: "/gifts", icon: <MailIcon size={18} />, label: "礼包码" },
     { key: "/news", icon: <Newspaper size={18} />, label: "公告" },
     { key: "/seeds", icon: <Database size={18} />, label: "种子管理" },
     { key: "/leaderboards", icon: <Trophy size={18} />, label: "排行榜" },
@@ -51,7 +53,7 @@ const navigationPages = [
 
 const menuItems = [
     navigationPages[0],
-    { type: "group" as const, label: "日常运营", children: navigationPages.filter(page => ["/content", "/town-themes", "/news", "/mail", "/leaderboards"].includes(page.key)) },
+    { type: "group" as const, label: "日常运营", children: navigationPages.filter(page => ["/content", "/town-themes", "/news", "/mail", "/gifts", "/leaderboards"].includes(page.key)) },
     { type: "group" as const, label: "玩家管理", children: navigationPages.filter(page => page.key === "/accounts") },
     { type: "group" as const, label: "维护工具", children: navigationPages.filter(page => ["/seeds", "/maintenance"].includes(page.key)) },
 ]
@@ -62,6 +64,7 @@ const pageTitles: Record<string, string> = {
     "/town-themes": "主城外观",
     "/accounts": "账号 / 存档",
     "/mail": "邮件",
+    "/gifts": "礼包码",
     "/news": "公告",
     "/seeds": "种子管理",
     "/leaderboards": "排行榜",
@@ -194,6 +197,7 @@ export default function App({ dark, onToggleDark }: AppProps) {
                         <Route path="/accounts" element={<Accounts />} />
                         <Route path="/players/:playerId" element={<PlayerDetail />} />
                         <Route path="/mail" element={<Mail />} />
+                        <Route path="/gifts" element={<Gifts />} />
                         <Route path="/news" element={<News />} />
                         <Route path="/seeds" element={<Seeds />} />
                         <Route path="/leaderboards" element={<Leaderboards />} />

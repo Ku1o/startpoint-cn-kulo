@@ -35,6 +35,9 @@ import { grantPurchasedAbyssShopDegreeRewardSync } from "../../lib/abyss-shop-de
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { shopContentDecision } from "../../lib/content-economy-operations";
 import { buildPlayerShopSalesEntrySync, getShopQuotaStateSync, hasShopQuota, recordShopQuotaPurchaseSync } from "../../lib/shop-quota";
+import { getPlayerShopCampaignLineupSync, selectPlayerShopCampaignLineupSync } from "../../data/domains/shop-campaign-lineup";
+import { isShopItemInSelectedLineupSync, validateShopCampaignSelection } from "../../lib/shop-campaign-lineup";
+import { bondTokenEquipmentForShopItem, getBondTokenExchangeCountSync } from "../../lib/bond-token-exchange";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
 
@@ -81,7 +84,9 @@ function mergeShopDegreeSettlement(
 function getEffectiveShopPurchaseCountSync(
     playerId: number, shopType: number, shopItemId: number,
 ): number {
-    return getPlayerShopPurchaseCountSync(playerId, getShopPurchaseKey(shopType, shopItemId))
+    const purchased = getPlayerShopPurchaseCountSync(playerId, getShopPurchaseKey(shopType, shopItemId))
+    const equipmentId = bondTokenEquipmentForShopItem(shopType, shopItemId)
+    return equipmentId === null ? purchased : Math.max(purchased, getBondTokenExchangeCountSync(playerId, equipmentId))
 }
 
 function addEffectiveShopPurchaseCountSync(
@@ -416,6 +421,7 @@ const routes = async (fastify: FastifyInstance) => {
             const player = getPlayerSync(playerId)
             if (player === null) return reject("No players bound to account.", 500)
             const now = getServerDate()
+            if (!isShopItemInSelectedLineupSync(playerId, shopType, shopItemId)) return reject("Shop campaign lineup has not been selected for this item.")
             if (!(shopContentDecision(shopType, shopItemId, "exchange", Date.now())
                 ?? (shopType !== ShopType.EVENT_ITEM || isShopItemAvailable(shopItemData, now)))) {
                 return reject("Event shop item is not currently available.")
@@ -786,6 +792,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Load purchase history for stock tracking
         const purchasedMap = getPlayerShopPurchasesMapSync(playerId)
+        for (const itemId of [100001, 100002]) {
+            purchasedMap[getShopPurchaseKey(ShopType.GENERAL, itemId)] = getEffectiveShopPurchaseCountSync(playerId, ShopType.GENERAL, itemId)
+        }
         const ownedDegrees = new Set(getPlayerDegreeIdsSync(playerId))
         const totalPurchased = Object.values(purchasedMap).reduce((a, b) => a + b, 0)
         gameVerboseLog(() => `[shop:get_sales] player=${playerId} purchasedKeys=${Object.keys(purchasedMap).length} totalPurchased=${totalPurchased}`)
@@ -814,6 +823,7 @@ const routes = async (fastify: FastifyInstance) => {
                 // Date filtering: only show items active at current server time
                 if (!(shopContentDecision(shopTypeNum, Number(itemId), "visible", Date.now())
                     ?? isShopItemAvailable(item, getServerDate()))) continue
+                if (!isShopItemInSelectedLineupSync(playerId, shopTypeNum, Number(itemId))) continue
 
                 if (shopTypeNum === ShopType.TREASURE_EQUIPMENT) {
                     // Collect for group-level processing later
@@ -1116,6 +1126,10 @@ const routes = async (fastify: FastifyInstance) => {
                     }
                     if (!(shopContentDecision(shopType, shopItemId, "exchange", Date.now())
                         ?? (shopType !== ShopType.EVENT_ITEM || isShopItemAvailable(shopItem, purchaseNow)))) {
+                        skippedEntries++
+                        continue
+                    }
+                    if (!isShopItemInSelectedLineupSync(playerId, shopType, shopItemId)) {
                         skippedEntries++
                         continue
                     }
@@ -1431,33 +1445,34 @@ const routes = async (fastify: FastifyInstance) => {
         })
     }})
 
-    // get_campaign_lineup_id — stub
-    fastify.post("/get_campaign_lineup_id", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as any
-        const viewerId = body.viewer_id
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
-            "error": "Bad Request", "message": "Invalid request body."
+    for (const setting of [false, true]) {
+        fastify.post(setting ? "/set_campaign_lineup_id" : "/get_campaign_lineup_id", async (request, reply) => {
+            const body = request.body as { viewer_id?: number; shop_type?: number; campaign_id?: number; lineup_id?: number } | null
+            const viewerId = body?.viewer_id, shopType = body?.shop_type, campaignId = body?.campaign_id, lineupId = body?.lineup_id
+            if (!Number.isSafeInteger(viewerId) || viewerId! <= 0 || ![4, 7].includes(shopType!)
+                || !Number.isSafeInteger(campaignId) || campaignId! <= 0
+                || (setting && (!Number.isSafeInteger(lineupId) || lineupId! <= 0))) {
+                return reply.status(400).send({ error: "Bad Request", message: "Invalid shop campaign request." })
+            }
+            const session = await getSession(String(viewerId))
+            if (!session) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." })
+            const playerId = resolvePlayerIdSync(session.accountId)
+            if (!playerId) return reply.status(400).send({ error: "Bad Request", message: "No player bound to account." })
+            const execute = () => {
+                const validation = validateShopCampaignSelection(shopType!, campaignId!, setting ? lineupId! : null, getServerDate())
+                if (validation !== "valid") return validation
+                return setting ? selectPlayerShopCampaignLineupSync(playerId, shopType!, campaignId!, lineupId!) : "valid"
+            }
+            const outcome = setting ? await runPersistenceTransaction({ domain: "shop", playerId, operation: "select_campaign_lineup" }, execute) : execute()
+            if (outcome === "invalid" || outcome === "conflict") return reply.status(400).send({ error: "Bad Request",
+                message: outcome === "conflict" ? "Shop campaign lineup has already been selected." : "Unknown shop campaign or lineup." })
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: viewerId!, ...(outcome === "unavailable" ? { result_code: 1652 } : {}) }),
+                data: outcome === "unavailable" || setting ? {} : { lineup_id: getPlayerShopCampaignLineupSync(playerId, shopType!, campaignId!) },
+            })
         })
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send({
-            "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-            "data": { "lineup_id": null }
-        })
-    })
-
-    // set_campaign_lineup_id — stub
-    fastify.post("/set_campaign_lineup_id", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as any
-        const viewerId = body.viewer_id
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
-            "error": "Bad Request", "message": "Invalid request body."
-        })
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send({
-            "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-            "data": {}
-        })
-    })
+    }
 }
 
 export default routes;

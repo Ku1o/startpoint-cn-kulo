@@ -2,6 +2,7 @@ import { recordContentActionFactsSync } from "../../lib/mission/content-action-f
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getPlayerSingleQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../data/domains/quest"
 import { getPlayerSync } from "../../data/domains/player"
+import { getPlayerCharacterSync } from "../../data/domains/character"
 import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getQuestFromCategorySync } from "../../lib/assets";
@@ -9,6 +10,8 @@ import { givePlayerRewardSync } from "../../lib/quest";
 import { generateDataHeaders } from "../../utils";
 import { QuestCategory } from "../../lib/types";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
+import { givePlayerCharacterSync } from "../../lib/character";
+import { getQuestJoinCharacterIds } from "../../lib/story-join-character";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { isContentQuestOpenAt } from "../../lib/content-operations";
 
@@ -59,6 +62,17 @@ async function processStoryQuestFinish(playerId: number, viewerId: number, quest
         const rewardResult = questData.clearReward != null
             ? givePlayerRewardSync(playerId, questData.clearReward)
             : null
+        const storyJoinCharacterIds: number[] = []
+        const storyCharacterList: Object[] = []
+        for (const characterId of getQuestJoinCharacterIds(questSection, questId)) {
+            // Existing saves and rewards may already own this character. Joining is
+            // confined to this first-clear transaction and never retroactive.
+            if (getPlayerCharacterSync(playerId, characterId) !== null) continue
+            const granted = givePlayerCharacterSync(playerId, characterId)
+            if (!granted?.character) throw new Error(`Story join character ${characterId} is missing from content.`)
+            storyJoinCharacterIds.push(characterId)
+            storyCharacterList.push(granted.character)
+        }
         if (questProgress === null) {
             insertPlayerQuestProgressSync(playerId, questSection, {
                 questId: questId,
@@ -79,8 +93,11 @@ async function processStoryQuestFinish(playerId: number, viewerId: number, quest
                     "free_vmoney": playerData.freeVmoney + (rewardResult?.user_info.free_vmoney || 0),
                     "free_mana": playerData.freeMana + (rewardResult?.user_info.free_mana || 0)
                 },
-                "character_list": reconcileAwakeUnlockCharacterList(playerId, rewardResult?.character_list || []),
+                "character_list": reconcileAwakeUnlockCharacterList(playerId, [
+                    ...(rewardResult?.character_list || []), ...storyCharacterList,
+                ]),
                 "joined_character_id_list": rewardResult?.joined_character_id_list || [],
+                "story_join_character_id_list": storyJoinCharacterIds,
                 "equipment_list": rewardResult?.equipment_list || [],
                 "items": rewardResult?.items || {},
                 "presigned_quest_category": []

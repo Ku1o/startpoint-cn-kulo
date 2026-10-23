@@ -14,6 +14,10 @@ import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
 import { observeSqliteDatabase } from "../lib/sqlite-diagnostics";
 import { applySqliteSettings } from "../lib/sqlite-settings";
 import { initializeContentOperationsSchema } from "../lib/content-operations-store";
+import { initializeBondTokenExchange } from "./initializers/bond-token-exchange";
+import { initializeGiftCodes } from "./initializers/gift-codes";
+import { initializeExBoostPendingSchema } from "./initializers/ex-boost-pending";
+import { initializeShopCampaignLineups } from "./initializers/shop-campaign-lineups";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
@@ -128,6 +132,10 @@ export default function getDatabase(
             initializeAbyssRecords(db)
             initializeFiveBossGauntlet(db)
             initializeContentOperationsSchema(db)
+            initializeBondTokenExchange(db)
+            initializeGiftCodes(db)
+            initializeExBoostPendingSchema(db)
+            initializeShopCampaignLineups(db)
             console.log("[DB] init done")
 
             // try to update after initialization

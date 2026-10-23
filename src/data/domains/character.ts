@@ -652,4 +652,7 @@ export function updatePlayerCharacterManaNodeAwakeLevelSync(
     SET awake_level = ?
     WHERE value = ? AND character_id = ? AND player_id = ?
     `).run(awakeLevel, manaNodeId, characterId, playerId)
+    // Only discard the DB fallback cache; active room/NPC/frozen battle
+    // snapshots keep the exact party already accepted for that play.
+    require("../../multi/party-snapshot").invalidateRealPartySnapshot(playerId)
 }

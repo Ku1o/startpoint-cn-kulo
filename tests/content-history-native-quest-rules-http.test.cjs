@@ -181,3 +181,105 @@ test('native Story stays on registered story finish and its completed reward rem
     assert.equal(players.getPlayerSync(p.id).freeVmoney - before, 15)
     assert.deepEqual(quests.getPlayerSingleQuestProgressSync(p.id, 10, body.quest_id), progress)
 })
+
+test('native main Story joins only on a new first clear, without repairing older completed saves', async () => {
+    const fresh = fixture(), body = { category: 1, quest_id: 2009007 }
+    const joins = load('lib/story-join-character')
+    assert.deepEqual(joins.getQuestJoinCharacterIds(1, 2009007), [10])
+    assert.deepEqual(joins.getQuestJoinCharacterIds(1, 10015003), [213013])
+    assert.deepEqual(joins.getQuestJoinCharacterIds(10, 2009007), [])
+    assert.equal(character(fresh, 10), undefined)
+    const first = response(await post(fresh, '/story/finish', body))
+    assert.deepEqual(first.data.story_join_character_id_list, [10])
+    assert.ok(first.data.character_list.some(row => row.character_id === 10))
+    assert.ok(character(fresh, 10))
+    const saved = character(fresh, 10)
+    const repeated = response(await post(fresh, '/story/finish', body))
+    assert.deepEqual(repeated.data, [])
+    assert.deepEqual(character(fresh, 10), saved)
+
+    const old = fixture()
+    quests.insertPlayerQuestProgressSync(old.id, 1, { questId: body.quest_id, finished: true, clearRank: 5 })
+    assert.deepEqual(response(await post(old, '/story/finish', body)).data, [])
+    assert.equal(character(old, 10), undefined)
+
+    const owned = fixture()
+    assert.ok(load('lib/character').givePlayerCharacterSync(owned.id, 10))
+    const ownedJoin = response(await post(owned, '/story/finish', body)).data
+    assert.deepEqual(ownedJoin.story_join_character_id_list, [])
+    assert.ok(quests.getPlayerSingleQuestProgressSync(owned.id, 1, body.quest_id).finished)
+})
+
+test('failed story join rolls back the first clear and reward for a retry', async () => {
+    const p = fixture(), body = { category: 1, quest_id: 2009007 }
+    const before = players.getPlayerSync(p.id)
+    db.exec(`CREATE TRIGGER deny_story_join BEFORE INSERT ON players_characters
+        WHEN NEW.player_id=${p.id} AND NEW.id=10
+        BEGIN SELECT RAISE(ABORT, 'story join rollback'); END`)
+    try {
+        assert.equal((await post(p, '/story/finish', body)).statusCode, 500)
+        assert.equal(quests.getPlayerSingleQuestProgressSync(p.id, 1, body.quest_id), null)
+        assert.equal(character(p, 10), undefined)
+        assert.equal(players.getPlayerSync(p.id).freeVmoney, before.freeVmoney)
+    } finally {
+        db.exec('DROP TRIGGER deny_story_join')
+    }
+    assert.deepEqual(response(await post(p, '/story/finish', body)).data.story_join_character_id_list, [10])
+})
+
+test('ordinary revive replays the same zone count without charging twice and rejects gaps', async () => {
+    const parseCount = load('lib/quest/single-continue-request').parseSingleContinueExpectedCount
+    assert.equal(parseCount({ zones: [{ continue_count: 1 }, { continue_count: 2 }] }), 3)
+    assert.equal(parseCount(JSON.stringify({ zones: [{ continue_count: 1 }, { continue_count: 2 }] })), 3)
+    assert.equal(parseCount({ zones: [{ continue_count: 0 }, { continue_count: -1 }] }), null)
+    assert.equal(parseCount({ zones: [] }), null)
+    assert.equal(parseCount('{bad JSON'), null)
+    assert.equal(parseCount(JSON.stringify({ zones: Array.from({ length: 129 }, () => ({ continue_count: 0 })) })), null)
+    assert.equal(parseCount(' '.repeat(64 * 1024 + 1)), null)
+    assert.equal(parseCount(undefined), null)
+    const p = fixture(), play = randomUUID(), identity = { category: 2, quest_id: 1001001, play_id: play }
+    players.updatePlayerSync({ id: p.id, freeVmoney: 120, vmoney: 0 })
+    assert.equal(response(await post(p, '/single/start', { ...identity, party_id: 1,
+        use_boost_point: false, use_boss_boost_point: false, is_auto_start_mode: false })).data_headers.result_code, 1)
+    const revive = count => post(p, '/single/play_continue', { ...identity, payment_type: 1,
+        statistics: { zones: [{ continue_count: count }] } })
+    const reviveGet = count => app.inject({ method: 'GET', url: '/single/play_continue?' + new URLSearchParams({
+        viewer_id: String(p.viewer), api_count: '1', category: String(identity.category),
+        quest_id: String(identity.quest_id), play_id: identity.play_id, payment_type: '1',
+        statistics: JSON.stringify({ zones: [{ continue_count: count }] }),
+    }) })
+    assert.equal(response(await reviveGet(0)).data.user_info.free_vmoney, 70)
+    const afterFirst = players.getPlayerSync(p.id)
+    assert.equal(response(await reviveGet(0)).data.user_info.free_vmoney, 70)
+    assert.equal(players.getPlayerSync(p.id).freeVmoney, afterFirst.freeVmoney)
+    assert.equal(load('data/domains/quest_active').getPlayerActiveQuestSync(p.id).continueCount, 1)
+    assert.equal((await revive(3)).statusCode, 400)
+    assert.equal(response(await revive(1)).data.user_info.free_vmoney, 20)
+    assert.equal((await revive(2)).statusCode, 400, 'insufficient funds cannot advance the persisted count')
+    assert.equal(load('data/domains/quest_active').getPlayerActiveQuestSync(p.id).continueCount, 2)
+    assert.equal(players.getPlayerSync(p.id).freeVmoney, 20)
+})
+
+test('7014002 forced loss advances only story completion, retaining actual failed battle facts', async () => {
+    const p = fixture(), play = randomUUID(), body = { category: 1, quest_id: 7014002, play_id: play }
+    assert.equal(response(await post(p, '/single/start', { ...body, party_id: 1,
+        use_boost_point: false, use_boss_boost_point: false, is_auto_start_mode: false })).data_headers.result_code, 1)
+    const before = load('data/domains/mission_battle_facts').getMissionBattleCountersSync(p.id)
+    const result = response(await post(p, '/single/finish', { ...body, continue_count: 0,
+        elapsed_time_ms: 1000, score: 0, add_mana: 0, is_accomplished: false, is_lose: true,
+        is_restored: false, statistics: { clear_phase: 0, party: { characters: [{ id: 1 }, null, null],
+            unison_characters: [null, null, null], equipments: [null, null, null],
+            ability_soul_ids: [null, null, null] }, zones: [] } }))
+    assert.equal(result.data_headers.result_code, 1)
+    assert.equal(quests.getPlayerSingleQuestProgressSync(p.id, 1, body.quest_id).finished, true)
+    const after = load('data/domains/mission_battle_facts').getMissionBattleCountersSync(p.id)
+    assert.equal(after.singlePlayCount, before.singlePlayCount + 1)
+    assert.equal(after.singleClearCount, before.singleClearCount)
+    const replay = response(await post(p, '/single/finish', { ...body, continue_count: 0,
+        elapsed_time_ms: 1000, score: 0, add_mana: 0, is_accomplished: false, is_lose: true,
+        is_restored: false, statistics: { clear_phase: 0, party: { characters: [{ id: 1 }, null, null],
+            unison_characters: [null, null, null], equipments: [null, null, null],
+            ability_soul_ids: [null, null, null] }, zones: [] } }))
+    assert.deepEqual(replay, result)
+    assert.deepEqual(load('data/domains/mission_battle_facts').getMissionBattleCountersSync(p.id), after)
+})

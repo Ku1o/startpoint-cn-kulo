@@ -1,4 +1,5 @@
 import { getPlayerBusinessDateSync } from "../../lib/player-time-compat"
+import { isGiftEnabledSync } from "../../lib/gift-codes"
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { generateDataHeaders, getServerTime, getServerDate, getRealServerDate, getTimeOffset, withServerClock } from "../../utils";
 import { collectPlayerDataPooledExpSync, dailyResetPlayerDataSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
@@ -107,7 +108,7 @@ function wrapOptionFields(d: any, playerId: number, resVer?: string) {
     d.survey_url = "";
     d.qq_group_url = "";
     d.bug_report_url = "";
-    d.enable_gift = false;
+    d.enable_gift = isGiftEnabledSync();
     d.enable_customer_service = false;
     d.enable_rename = true;
     d.enable_delete_file = false;

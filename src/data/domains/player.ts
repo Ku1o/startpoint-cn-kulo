@@ -1217,6 +1217,10 @@ export function adjustPlayerExpPoolSync(
 }
 
 const LEGACY_REPLACE_PRESERVED_RELATIONS = [
+    // V1 has no representation for these paid draws or durable choices/quotas.
+    ...["players_ex_boost_pending_draws", "players_shop_campaign_lineups", "players_bond_token_exchanges"].map(table => ({
+        table, where: "player_id = ?", parameters: (playerId: number) => [playerId],
+    })),
     {
         table: "players_shop_quotas",
         where: "player_id = ?",

@@ -1253,7 +1253,7 @@ async function handleChangeParty(_socket: net.Socket, client: SessionClient, dat
         if (client.playerId && pd.party !== undefined) {
             // Keep reconnect handshakes aligned with the in-memory room
             // roster immediately; the low-priority DB save may finish later.
-            if (!isRealtimeOwnerChild()) require("../party-snapshot").setRealPartySnapshot(client.playerId, pd.party)
+            if (!isRealtimeOwnerChild()) require("../party-snapshot").setRealPartySnapshot(client.playerId, pd.party, currentPartyId ?? client.yourself.currentPartyId)
         }
         if (currentPartyId !== undefined) {
             client.yourself.currentPartyId = currentPartyId

@@ -70,6 +70,8 @@ import exBoostApiPlugin from "./routes/api/exBoost";
 import boxGachaApiPlugin from "./routes/api/boxGacha";
 import shopApiPlugin from "./routes/api/shop";
 import exchangeApiPlugin from "./routes/api/exchange";
+import giftApiPlugin from "./routes/api/gift";
+import { isGiftEnabledSync } from "./lib/gift-codes";
 import encyclopediaApiPlugin from "./routes/api/encyclopedia";
 import mailApiPlugin from "./routes/api/mail";
 import rankingEventApiPlugin from "./routes/api/rankingEvent";
@@ -299,9 +301,9 @@ fastify.post(`${apiPrefix}/tool/check_social_link_enable`, async (_request, repl
     return stubMsgpackReply(reply, { enable: false });
 });
 
-// Gift code exchange (礼包码兑换): enable button in menu, exchange not implemented
+// The menu and /load share the same persisted gift-code capability.
 fastify.post(`${apiPrefix}/tool/check_enable_gift`, async (_request, reply) => {
-    return stubMsgpackReply(reply, { enable_gift: true });
+    return stubMsgpackReply(reply, { enable_gift: isGiftEnabledSync() });
 });
 
 fastify.post(`${apiPrefix}/tool/contact_active`, async (_request, reply) => {
@@ -435,6 +437,7 @@ fastify.register(exBoostApiPlugin, { prefix: `${apiPrefix}/ex_boost` });
 fastify.register(boxGachaApiPlugin, { prefix: `${apiPrefix}/box_gacha` });
 fastify.register(shopApiPlugin, { prefix: `${apiPrefix}/shop` });
 fastify.register(exchangeApiPlugin, { prefix: `${apiPrefix}/exchange` });
+fastify.register(giftApiPlugin, { prefix: `${apiPrefix}/gift` });
 fastify.register(encyclopediaApiPlugin, { prefix: `${apiPrefix}/encyclopedia` });
 fastify.register(mailApiPlugin, { prefix: `${apiPrefix}/mail` });
 fastify.register(rankingEventApiPlugin, { prefix: `${apiPrefix}/ranking_event` });

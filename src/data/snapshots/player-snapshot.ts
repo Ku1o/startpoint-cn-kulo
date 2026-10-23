@@ -1,5 +1,6 @@
 import { createHash } from "crypto"
 import { parseCrazyGachaState } from "../domains/crazy_gacha"
+import { parseExBoostPendingRow } from "../domains/ex-boost-pending"
 import type { Database as BetterSqlite3Database } from "better-sqlite3"
 import { COMPACT_COUNTER_VALUES, getStorageSnapshotTableInfo, isCompactStorage, RETIRED_COUNTER_SNAPSHOTS } from "../../lib/storage-layout"
 import { getExistingPlayerTimeStateSync, getPlayerBusinessDateSync, getPlayerBusinessOffsetSync, PlayerArchiveTimeBasis, validatePlayerArchiveTimeBasis } from "../../lib/player-time-compat"
@@ -125,7 +126,16 @@ export const PLAYER_SNAPSHOT_V2_TABLES = Object.freeze([
     "players_carnival_event_rewards",
     "players_carnival_event_reward_claims",
     "players_shop_purchases",
+    "players_ex_boost_pending_draws",
+    "players_shop_campaign_lineups",
+    "players_bond_token_exchanges",
 ] as const)
+
+// One additive schema generation. Older exact fingerprints retain destination
+// paid pending draws and exchange/selection rights when these tables are absent.
+const UPSTREAM_BUSINESS_TABLES = new Set<string>([
+    "players_ex_boost_pending_draws", "players_shop_campaign_lineups", "players_bond_token_exchanges",
+])
 
 const EXCLUDED_PLAYER_STATE = Object.freeze([
     {
@@ -236,9 +246,11 @@ function getSchemaFingerprint(
     beforeEconomyExtensions = false,
     archiveTables?: PlayerSaveSnapshotV2["data"]["tables"],
     beforeCrazyGacha = false,
+    beforeUpstreamBusiness = false,
 ): string {
     const schema = PLAYER_SNAPSHOT_V2_TABLES.filter(table => !(beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)))
-        .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha")).map(table => ({
+        .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha"))
+        .filter(table => !(beforeUpstreamBusiness && UPSTREAM_BUSINESS_TABLES.has(table))).map(table => ({
         table,
         columns: (() => {
             const columns = getTableInfo(db, table)
@@ -436,20 +448,23 @@ export function validatePlayerSaveSnapshotV2Sync(
         { beforeAbyssTowerRevision: false, beforeEconomyExtensions: true },
         { beforeAbyssTowerRevision: true, beforeEconomyExtensions: true },
     ].flatMap(profile => [{ ...profile, beforeCrazyGacha: false }, { ...profile, beforeCrazyGacha: true }])
+        .flatMap(profile => [{ ...profile, beforeUpstreamBusiness: false }, { ...profile, beforeUpstreamBusiness: true }])
         .find(profile => snapshot.schemaFingerprint === getSchemaFingerprint(
         db, profile.beforeAbyssTowerRevision, profile.beforeEconomyExtensions, snapshot.data?.tables,
         profile.beforeCrazyGacha,
+        profile.beforeUpstreamBusiness,
     ))
     if (!schema) {
         throw new Error("存档数据库结构与当前服务器不一致，拒绝执行覆盖；请先使用匹配版本迁移")
     }
-    const { beforeAbyssTowerRevision, beforeEconomyExtensions, beforeCrazyGacha } = schema
+    const { beforeAbyssTowerRevision, beforeEconomyExtensions, beforeCrazyGacha, beforeUpstreamBusiness } = schema
     if (!snapshot.data || typeof snapshot.data !== "object" || !snapshot.data.tables || typeof snapshot.data.tables !== "object") {
         throw new Error("存档缺少 data.tables")
     }
 
     const expectedTables = new Set<string>(PLAYER_SNAPSHOT_V2_TABLES.filter(table => !(beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)))
-        .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha")))
+        .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha"))
+        .filter(table => !(beforeUpstreamBusiness && UPSTREAM_BUSINESS_TABLES.has(table))))
     const actualTables = Object.keys(snapshot.data.tables)
     const missing = [...expectedTables].filter(table => !Object.prototype.hasOwnProperty.call(snapshot.data.tables, table))
     const extra = actualTables.filter(table => !expectedTables.has(table))
@@ -459,6 +474,7 @@ export function validatePlayerSaveSnapshotV2Sync(
 
     let totalRows = 0
     for (const table of PLAYER_SNAPSHOT_V2_TABLES) {
+        if (beforeUpstreamBusiness && UPSTREAM_BUSINESS_TABLES.has(table)) continue
         if (beforeCrazyGacha && table === "players_crazy_gacha") continue
         if (beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)) continue
         const tableData = snapshot.data.tables[table]
@@ -497,6 +513,13 @@ export function validatePlayerSaveSnapshotV2Sync(
                 const sessionNumber = row[expectedColumns.indexOf("session_number")]
                 if (gachaId !== 100 || !Number.isSafeInteger(sessionNumber) || Number(sessionNumber) < 1) throw new Error("Invalid crazy gacha archive identity")
                 parseCrazyGachaState(row[expectedColumns.indexOf("state_json")] as string)
+            }
+            if (table === "players_ex_boost_pending_draws") {
+                const pending = parseExBoostPendingRow(Object.fromEntries(expectedColumns.map((name, index) => [name, row[index]])))
+                const characters = snapshot.data.tables.players_characters
+                const characterIndex = characters.columns.indexOf("id")
+                if (!characters.rows.some(character => character[characterIndex] === pending.characterId))
+                    throw new Error("EX pending draw character is absent from the archive")
             }
         }
     }

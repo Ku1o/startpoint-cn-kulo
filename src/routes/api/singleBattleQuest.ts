@@ -1,4 +1,5 @@
 import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
+import { parseSingleContinueExpectedCount } from "../../lib/quest/single-continue-request";
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
 import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueError,
     isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
@@ -114,6 +115,7 @@ export interface FinishBody {
     viewer_id: number
     add_mana: number
     is_accomplished: boolean
+    is_lose?: boolean
     statistics: QuestStatistics
     api_count: number
 }
@@ -399,7 +401,14 @@ const routes = async (fastify: FastifyInstance) => {
             const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId)
             const manaObtained = isAbyssExEndlessQuest(questCategory, questId) ? 0 : questData.manaReward + body.add_mana
 
+            // The native forced-loss main scene advances the story while the
+            // battle itself remains a defeat for mission and history facts.
             let questAccomplished = body.is_accomplished
+            let battleFactsAccomplished = body.is_accomplished
+            if (questCategory === QuestCategory.MAIN && questId === 7014002 && body.is_lose === true) {
+                questAccomplished = true
+                battleFactsAccomplished = false
+            }
             let scoreAttackBorderTiers: ScoreAttackBorderTier[] = []
             if (isScoreAttackEvent) {
                 try {
@@ -416,6 +425,7 @@ const routes = async (fastify: FastifyInstance) => {
                     })
                 }
                 questAccomplished = body.score >= scoreAttackBorderTiers[0].score
+                battleFactsAccomplished = questAccomplished
             }
 
             const finishResponse = await measureSettlementPhaseAsync("single", "transaction", () => (
@@ -423,7 +433,7 @@ const routes = async (fastify: FastifyInstance) => {
                     SINGLE_SETTLE_FINISH,
                     {
                         playerId, viewerId, questCategory, questId, questData, activeQuestData, body,
-                        clearTime, clearRank, questAccomplished,
+                        clearTime, clearRank, questAccomplished, battleFactsAccomplished,
                         // The patched client may skip /start; a rebuilt active quest must
                         // not seed Abyss records as a registered run.
                         fiveBossSoloQuest, registered,
@@ -921,6 +931,7 @@ const routes = async (fastify: FastifyInstance) => {
         const questId = Number(raw.quest_id)
         const category = Number(raw.category)
         const playId = raw.play_id ?? raw.paly_id
+        const expectedContinueCount = parseSingleContinueExpectedCount(raw.statistics)
         if (
             !Number.isSafeInteger(viewerId)
             || !Number.isSafeInteger(questId)
@@ -933,7 +944,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (!sessionResult) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid viewer id."
         })
-        const { playerId, playerData: player } = sessionResult
+        const { playerId } = sessionResult
 
         if (isFiveBossContinueRequest(playerId, category, questId, playId)) {
             try {
@@ -962,6 +973,10 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
+        if (expectedContinueCount === null) return reply.status(400).send({
+            error: "Bad Request", message: "Invalid continue statistics.",
+        })
+
         // Continue may recover a persisted battle after a restart, but never
         // rebuild one from request data: doing so would create a new revive path.
         const resolvedContinueQuest = resolveActiveQuest({
@@ -987,6 +1002,21 @@ const routes = async (fastify: FastifyInstance) => {
                 || current.playId !== activeQuestData.playId || (playId && playId !== current.playId)
                 || current.questId !== questId || current.category !== category) {
                 return { ok: false as const, message: "No matching active quest to continue." }
+            }
+            if (!Number.isSafeInteger(current.continueCount) || current.continueCount < 0
+                || !Number.isSafeInteger(freshPlayer.freeVmoney) || freshPlayer.freeVmoney < 0
+                || !Number.isSafeInteger(freshPlayer.vmoney) || freshPlayer.vmoney < 0) {
+                return { ok: false as const, message: "Invalid continue state." }
+            }
+            if (current.continueCount !== expectedContinueCount) {
+                if (current.continueCount === expectedContinueCount + 1) {
+                    return { ok: true as const, newFreeVmoney: freshPlayer.freeVmoney,
+                        newVmoney: freshPlayer.vmoney, continueCount: current.continueCount }
+                }
+                return { ok: false as const, message: "Continue count does not match the active quest." }
+            }
+            if (current.continueCount === Number.MAX_SAFE_INTEGER) {
+                return { ok: false as const, message: "Continue count cannot be incremented." }
             }
             const freeCost = Math.min(freshPlayer.freeVmoney, continueVmoneyCost)
             const paidCost = continueVmoneyCost - freeCost
