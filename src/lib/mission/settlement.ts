@@ -16,6 +16,13 @@ import { runPersistenceTransaction, runPersistenceTransactionSync, runWriterComm
 import { MISSION_SETTLE_CATEGORIES, type MissionSettleCategoriesArgs } from "../persistence/command-names"
 import { MissionEvaluationReadContext } from "./evaluation-context"
 import { contentMissionDecision } from "../content-operations"
+import { getDegreeMissionIdsForConditionTypes } from "./computer-degree"
+import { getEventItemMissionIdsForItems } from "./computer-event-safe"
+import { getMissionsByPattern } from "./patterns"
+
+// A claimed reward can satisfy another mission in the same HTTP request.
+// Keep the whole chain inside the caller's transaction and bound cycles.
+const MAX_SETTLEMENT_CASCADE_ROUNDS = 5
 
 export interface MissionSettlementInfo {
     mission_category_id: number
@@ -277,6 +284,65 @@ function evaluatedProgressOf(evaluatedMissions: readonly EvaluatedMission[]): Mi
     }))
 }
 
+export function mergeSettlementResults(first: MissionSettlementResult, next: MissionSettlementResult): MissionSettlementResult {
+    const mergeEntities = (left: Object[], right: Object[], key: string): Object[] => {
+        const entities = new Map<number, Object>()
+        for (const entity of [...left, ...right]) {
+            const id = Number((entity as Record<string, unknown>)[key])
+            if (Number.isSafeInteger(id)) entities.set(id, { ...(entities.get(id) ?? {}), ...entity })
+        }
+        return [...entities.values()]
+    }
+    return {
+        missionInfo: [...first.missionInfo, ...next.missionInfo],
+        itemList: { ...first.itemList, ...next.itemList },
+        characterList: mergeEntities(first.characterList, next.characterList, "character_id"),
+        equipmentList: mergeEntities(first.equipmentList, next.equipmentList, "equipment_id"),
+        degreeIds: [...new Set([...first.degreeIds, ...next.degreeIds])],
+        passCardPoints: { ...first.passCardPoints, ...next.passCardPoints },
+        ...(first.userInfo || next.userInfo ? { userInfo: { ...first.userInfo, ...next.userInfo } } : {}),
+    }
+}
+
+function cascadeScopes(
+    original: readonly (number | MissionSettlementScope)[],
+    granted: MissionSettlementResult,
+): (number | MissionSettlementScope)[] {
+    const itemIds = Object.keys(granted.itemList).map(Number).filter(Number.isSafeInteger)
+    const characterIds = granted.characterList.map(row => Number((row as Record<string, unknown>).character_id))
+        .filter(Number.isSafeInteger)
+    const degreeIds = getDegreeMissionIdsForConditionTypes([
+        ...(itemIds.length > 0 ? [37] : []),
+        ...(characterIds.length > 0 ? [4] : []),
+    ], characterIds, itemIds)
+    const regularPatterns = [
+        ...(itemIds.includes(100000) ? ["total_craft_point_addition_count"] : []),
+        ...(characterIds.length > 0 ? ["characters_count"] : []),
+        ...(granted.equipmentList.length > 0 ? ["got_equip_kind_count"] : []),
+        ...(granted.userInfo !== undefined ? ["total_mana_addition_count"] : []),
+    ]
+    const regularIds = [...new Set(regularPatterns.flatMap(pattern => getMissionsByPattern(pattern)
+        .filter(match => match.category === 1).map(match => match.missionId)))]
+    const eventItemIds = getEventItemMissionIdsForItems(itemIds)
+    const entries: (number | MissionSettlementScope)[] = [
+        ...original,
+        ...(regularIds.length > 0 ? [{ category: 1, missionIds: regularIds }] : []),
+        ...(eventItemIds.length > 0 ? [{ category: 3, missionIds: eventItemIds }] : []),
+        ...(degreeIds.length > 0 ? [{ category: 5, missionIds: degreeIds }] : []),
+    ]
+    // Preserve caller event scopes and combine duplicate restricted scopes.
+    const scopes = new Map<string, MissionSettlementScope>()
+    for (const entry of entries) {
+        const scope = typeof entry === "number" ? { category: entry } : entry
+        const key = `${scope.category}:${scope.eventId ?? ""}`
+        const prior = scopes.get(key)
+        if (!prior) scopes.set(key, scope)
+        else scopes.set(key, { ...scope, missionIds: prior.missionIds === undefined || scope.missionIds === undefined
+            ? undefined : [...new Set([...prior.missionIds, ...scope.missionIds])] })
+    }
+    return [...scopes.values()]
+}
+
 export function settleMissionCategoriesWithProgress(
     playerId: number,
     categories: readonly (number | MissionSettlementScope)[],
@@ -286,11 +352,27 @@ export function settleMissionCategoriesWithProgress(
     return runPersistenceTransactionSync({
             domain: "mission", playerId, operation: "settle_categories_sync",
         }, () => {
-            const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
-            const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
-            const settlement = prepared.progressUpdates.length === 0 && prepared.pendingRewards.length === 0 && prepared.missingLegacyDegreeIds.length === 0
-                ? emptyMissionSettlementResult() : persistMissionEvaluation(playerId, evaluation.player, prepared)
-            return { settlement, evaluatedProgress: evaluatedProgressOf(evaluation.evaluatedMissions) }
+            let scopes = [...categories]
+            let settlement = emptyMissionSettlementResult()
+            const progress = new Map<string, MissionSettlementProgress>()
+            for (let round = 0; round < MAX_SETTLEMENT_CASCADE_ROUNDS; round++) {
+                const evaluation = evaluateMissionCategories(playerId, scopes, evaluationTime)
+                for (const row of evaluatedProgressOf(evaluation.evaluatedMissions)) {
+                    progress.set(`${row.category}:${row.missionId}`, row)
+                }
+                const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
+                const current = prepared.progressUpdates.length === 0 && prepared.pendingRewards.length === 0
+                    && prepared.missingLegacyDegreeIds.length === 0
+                    ? emptyMissionSettlementResult() : persistMissionEvaluation(playerId, evaluation.player, prepared)
+                settlement = mergeSettlementResults(settlement, current)
+                if (prepared.pendingRewards.length === 0) break
+                if (round === MAX_SETTLEMENT_CASCADE_ROUNDS - 1) {
+                    console.warn(`[MISSION] reward cascade reached ${MAX_SETTLEMENT_CASCADE_ROUNDS} rounds (player=${playerId})`)
+                    break
+                }
+                scopes = cascadeScopes(categories, current)
+            }
+            return { settlement, evaluatedProgress: [...progress.values()] }
         })
 }
 
