@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "platform": "android",
+  "status": "offline_candidate_after_final_apk_verification",
+  "intersectWithServerCapabilities": true,
+  "types": {
+    "daily_week_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "advent_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "story_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "ranking_event": [
+      "visible",
+      "enter",
+      "claim"
+    ],
+    "challenge_dungeon_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "daily_exp_mana_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "world_story_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "tower_dungeon_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "expert_single_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "carnival_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "raid_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "rush_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "solo_time_attack_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "hard_multi_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "score_attack_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "active_mission_event": [
+      "visible",
+      "enter",
+      "claim"
+    ],
+    "pass_card_event": [
+      "visible",
+      "enter"
+    ],
+    "box_gacha": [
+      "visible",
+      "enter"
+    ],
+    "mission_regular": [
+      "visible",
+      "enter"
+    ],
+    "mission_daily": [
+      "visible",
+      "enter"
+    ],
+    "mission_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "gacha": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "collect_item_event": [
+      "visible",
+      "enter",
+      "exchange"
+    ],
+    "general_shop": [
+      "visible",
+      "exchange"
+    ],
+    "treasure_shop": [
+      "visible",
+      "exchange"
+    ],
+    "star_grain_shop": [
+      "visible",
+      "exchange"
+    ],
+    "boss_coin_shop": [
+      "visible",
+      "exchange"
+    ],
+    "event_item_shop": [
+      "visible",
+      "exchange"
+    ],
+    "multi_special_exchange_campaign": [
+      "visible",
+      "exchange"
+    ],
+    "special_exchange_campaign": [
+      "exchange"
+    ],
+    "start_dash_exchange_campaign": [
+      "exchange"
+    ]
+  },
+  "notAdvertised": [
+    "universal claim button synchronization",
+    "special and StartDash new qualification or ticket purchase",
+    "iOS integration"
+  ],
+  "deviceTested": false
+}
