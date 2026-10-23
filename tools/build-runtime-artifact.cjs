@@ -20,6 +20,8 @@ function safeName(name) {
 }
 function selected(name) {
     return ['package.json', 'package-lock.json', 'tsconfig.json', POLICY, 'docs/generated/character_table.json'].includes(name) || /^src\/.*\.(?:tsx?|json)$/.test(name) || (/^assets\/.*\.json$/.test(name) && !name.startsWith('assets/asset-patch/'))
+        || ['admin/package.json', 'admin/package-lock.json', 'admin/index.html', 'admin/tsconfig.json', 'admin/vite.config.ts'].includes(name)
+        || /^admin\/(?:src|public)\/[A-Za-z0-9_./-]+\.(?:tsx?|css|html|json|svg|png|jpe?g|webp|gif|ico|woff2?|ttf)$/.test(name)
 }
 function git(repo, args, encoding = 'utf8') {
     return execFileSync('git', args, { cwd: repo, encoding, maxBuffer: 512 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -37,6 +39,24 @@ function inputEntries(repo, source, mode) {
         if (!['100644', '100755'].includes(fields[0])) throw new Error(`Build input must be a regular Git blob: ${name}`)
         return { name, oid: fields[mode === 'index' ? 1 : 2] }
     }).filter(Boolean)
+}
+function resolveBuildInput(options) {
+    const repo = path.resolve(options.repo || '.')
+    const mode = options.inputMode || 'commit'
+    if (!['commit', 'index', 'worktree'].includes(mode)) throw new Error('Unknown build input mode')
+    const hasTree = options.sourceTree !== undefined
+    if (hasTree && mode !== 'commit') throw new Error('--source-tree is only supported in commit input mode')
+    if (hasTree && (typeof options.sourceTree !== 'string' || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(options.sourceTree))) throw new Error('--source-tree requires a full Git tree object ID')
+    const source = mode === 'commit' ? git(repo, ['rev-parse', '--verify', `${options.source}^{commit}`]).trim() : null
+    const sourceTree = hasTree ? options.sourceTree : null
+    // Do not peel commits/tags here: the recipe must supply an existing tree.
+    if (sourceTree && git(repo, ['cat-file', '-t', sourceTree]).trim() !== 'tree') throw new Error('--source-tree must identify a Git tree object')
+    return { repo, mode, source, sourceTree, entries: inputEntries(repo, sourceTree || source, mode) }
+}
+function buildInputIdentity(input, scratch) {
+    const { source, sourceTree, mode, entries } = input
+    const sourceCommit = source || `${mode}:${sha256(Buffer.from(entries.map(e => `${e.name}\0${e.oid || sha256(fs.readFileSync(path.join(scratch, e.name)))}`).sort().join('\n')))}`
+    return { source_commit: sourceCommit, ...(sourceTree ? { source_tree: sourceTree } : {}) }
 }
 function readBlobs(repo, entries) {
     const oids = [...new Set(entries.map(entry => entry.oid))]
@@ -127,17 +147,46 @@ function walk(root) {
         return entry.isDirectory() ? walk(file) : [file]
     })
 }
+function buildAdminArtifact(scratch, output, entries) {
+    if (!entries.some(entry => entry.name.startsWith('admin/'))) return []
+    const required = ['admin/package.json', 'admin/package-lock.json', 'admin/index.html', 'admin/tsconfig.json', 'admin/vite.config.ts']
+    if (required.some(name => !entries.some(entry => entry.name === name))) throw new Error('Incomplete committed admin build inputs')
+    const adminRoot = path.join(scratch, 'admin')
+    const sourcePackage = json(path.join(adminRoot, 'package.json'))
+    const lock = json(path.join(adminRoot, 'package-lock.json'))
+    if (sourcePackage.scripts?.build !== 'tsc -b && vite build'
+        || !lock.packages?.[''] || lock.packages[''].name !== sourcePackage.name)
+        throw new Error('Unexpected admin build script or package-lock identity')
+    npmCi(adminRoot)
+    const npmCli = path.join(path.dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js')
+    const command = fs.existsSync(npmCli) ? [process.execPath, [npmCli, 'run', 'build']]
+        : [process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build']]
+    const env = { ...process.env, NODE_ENV: 'production' }
+    for (const name of Object.keys(env)) if (name.startsWith('VITE_')) delete env[name]
+    execFileSync(command[0], command[1], { cwd: adminRoot, env, shell: !fs.existsSync(npmCli) && process.platform === 'win32',
+        stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 16 * 1024 * 1024 })
+    const dist = path.join(scratch, 'web', 'dist')
+    if (!fs.existsSync(path.join(dist, 'index.html'))) throw new Error('Admin build did not emit web/dist/index.html')
+    const files = walk(dist).map(filename => {
+        const relative = slash(path.relative(scratch, filename))
+        safeName(relative)
+        if (!relative.startsWith('web/dist/') || !fs.statSync(filename).isFile()) throw new Error('Unsafe admin output')
+        return relative
+    }).sort()
+    if (!files.length || files.length > 2048 || files.reduce((sum, name) => sum + fs.statSync(path.join(scratch, name)).size, 0) > 200 * 1024 * 1024)
+        throw new Error('Admin build output is empty or exceeds safety limits')
+    fs.mkdirSync(path.join(output, 'web'), { recursive: true })
+    fs.cpSync(dist, path.join(output, 'web', 'dist'), { recursive: true, errorOnExist: true, force: false })
+    return files
+}
 function buildRuntimeArtifact(options) {
-    const repo = path.resolve(options.repo || '.')
-    const mode = options.inputMode || 'commit'
-    if (!['commit', 'index', 'worktree'].includes(mode)) throw new Error('Unknown build input mode')
-    const source = mode === 'commit' ? git(repo, ['rev-parse', '--verify', `${options.source}^{commit}`]).trim() : null
+    const input = resolveBuildInput(options)
+    const { repo, mode, entries } = input
     const output = path.resolve(options.output)
     if (fs.existsSync(output) && (fs.lstatSync(output).isSymbolicLink() || !fs.statSync(output).isDirectory() || fs.readdirSync(output).length)) throw new Error('Output directory must be empty and must not be a symlink')
     fs.mkdirSync(output, { recursive: true })
     const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'runtime-build-'))
     try {
-        const entries = inputEntries(repo, source, mode)
         const blobs = mode === 'worktree' ? null : readBlobs(repo, entries)
         for (const entry of entries) {
             safeName(entry.name)
@@ -229,26 +278,30 @@ function buildRuntimeArtifact(options) {
             }
             visit(tree)
         }
-        const files = [...emitted].sort()
-        if (!files.length || walk(emitRoot).length !== files.length) throw new Error('Incomplete emitted output inventory')
+        const serverFiles = [...emitted].sort()
+        if (!serverFiles.length || walk(emitRoot).length !== serverFiles.length) throw new Error('Incomplete emitted output inventory')
         fs.cpSync(emitRoot, path.join(output, 'out'), { recursive: true, errorOnExist: true, force: false })
-        return { schema: 1, source_commit: source || `${mode}:${sha256(Buffer.from(entries.map(e => `${e.name}\0${e.oid || sha256(fs.readFileSync(path.join(scratch, e.name)))}`).sort().join('\n')))}`, node_version: node, npm_version: npm, typescript_version: ts.version, dependency_source: options.dependencyRoot ? 'trusted-local-install' : 'npm-ci', lockfile_sha256: sha256(lockBytes), root_dir: parsed.options.rootDir ? slash(path.relative(scratch, parsed.options.rootDir)) : null, files }
+        const adminFiles = buildAdminArtifact(scratch, output, entries)
+        const files = [...serverFiles, ...adminFiles].sort()
+        return { schema: 1, ...buildInputIdentity(input, scratch), node_version: node, npm_version: npm, typescript_version: ts.version, dependency_source: options.dependencyRoot ? 'trusted-local-install' : 'npm-ci', lockfile_sha256: sha256(lockBytes), root_dir: parsed.options.rootDir ? slash(path.relative(scratch, parsed.options.rootDir)) : null, files }
     } catch (error) {
         const emittedOutput = path.join(output, 'out')
         if (inside(output, emittedOutput)) fs.rmSync(emittedOutput, { recursive: true, force: true })
+        const adminOutput = path.join(output, 'web', 'dist')
+        if (inside(output, adminOutput)) fs.rmSync(adminOutput, { recursive: true, force: true })
         throw error
     } finally { fs.rmSync(scratch, { recursive: true, force: true }) }
 }
 function main(argv = process.argv.slice(2)) {
     const options = {}
-    const names = { '--repo': 'repo', '--source': 'source', '--output': 'output', '--dependency-root': 'dependencyRoot' }
+    const names = { '--repo': 'repo', '--source': 'source', '--source-tree': 'sourceTree', '--output': 'output', '--dependency-root': 'dependencyRoot' }
     for (let i = 0; i < argv.length; i++) {
-        if (argv[i] === '--help') { process.stdout.write('Usage: node tools/build-runtime-artifact.cjs --repo REPO --source SHA --output EMPTY_DIR [--dependency-root LOCKED_INSTALL_DIR]\nDefault: isolated npm ci --ignore-scripts. --dependency-root trusts local package bytes after checking source/install lock metadata and actual versions; it does not verify each installed byte against registry tarballs.\n'); return }
+        if (argv[i] === '--help') { process.stdout.write('Usage: node tools/build-runtime-artifact.cjs --repo REPO --source SHA --output EMPTY_DIR [--source-tree FULL_TREE_OID] [--dependency-root LOCKED_INSTALL_DIR]\n--source-tree selects an existing Git tree for commit-mode inputs while retaining --source as the source_commit anchor and recording source_tree.\nDefault: isolated npm ci --ignore-scripts. --dependency-root trusts local package bytes after checking source/install lock metadata and actual versions; it does not verify each installed byte against registry tarballs.\n'); return }
         if (!names[argv[i]] || !argv[i + 1]) throw new Error(`Unknown or incomplete argument: ${argv[i]}`)
         options[names[argv[i]]] = argv[++i]
     }
     if (!options.source || !options.output) throw new Error('--source and --output are required')
     process.stdout.write(`${JSON.stringify(buildRuntimeArtifact(options))}\n`)
 }
-module.exports = { buildRuntimeArtifact, validateDependencies, inputEntries, selected, sha256 }
+module.exports = { buildRuntimeArtifact, validateDependencies, inputEntries, resolveBuildInput, buildInputIdentity, selected, sha256 }
 if (require.main === module) { try { main() } catch (error) { process.stderr.write(`${error.message}\n`); process.exitCode = 1 } }

@@ -135,6 +135,54 @@ class SourceBuildOverlayTest(unittest.TestCase):
         self.assertIn("out/feature.js", payload)
         self.assertEqual(json.loads(payload["out/feature.json"]), {"name": "new payload"})
 
+    def test_generated_admin_files_are_packaged_from_fixed_build_not_ignored_worktree(self):
+        self.write("src/value.ts", "export const enum Budget { Value = 9 }\n")
+        head = self.commit("new source and admin build output")
+        self.write("web/dist/index.html", "untrusted local admin page")
+        baseline = {"out/runtime.js": b"old compiled code", "out/worker.js": b"worker"}
+        target = {**baseline, "out/runtime.js": b"new compiled code",
+                  "web/dist/index.html": b"<html>fixed commit admin page</html>",
+                  "web/dist/assets/admin-abcdefgh.js": b"const gifts = true;"}
+        with mock.patch.object(self.tool, "runtime_artifacts", side_effect=[
+            (baseline, {"mode": "source-build", "source_commit": self.base}),
+            (target, {"mode": "source-build", "source_commit": head}),
+        ]):
+            members, deleted, payloads, _ = self.tool.prepare_overlay(self.base, head, str(self.dependencies))
+        self.assertIn("web/dist/index.html", members)
+        self.assertIn("web/dist/assets/admin-abcdefgh.js", members)
+        self.assertEqual(payloads["web/dist/index.html"], target["web/dist/index.html"])
+        self.assertNotIn(b"untrusted local admin page", payloads.values())
+        self.assertEqual(deleted, [])
+        with mock.patch.object(self.tool, "runtime_artifacts", side_effect=[
+            (baseline, {"mode": "source-build", "source_commit": self.base}),
+            (target, {"mode": "source-build", "source_commit": head}),
+        ]):
+            result = self.invoke(batch="fixed-admin")
+        packaged = self.archive(result)
+        self.assertEqual(packaged["web/dist/index.html"], target["web/dist/index.html"])
+        self.assertEqual(packaged["web/dist/assets/admin-abcdefgh.js"], target["web/dist/assets/admin-abcdefgh.js"])
+
+    def test_exact_discovery_generators_are_delivery_members_without_general_tools_leak(self):
+        required = ["tools/build-content-discovery-gacha.py", "tools/build-content-discovery-rewards.cjs",
+                    "tools/build-content-discovery.cjs"]
+        for name in required:
+            self.write(name, "fixture reviewed source\n")
+        self.write("tools/unrelated-local-helper.cjs", "must remain out of cloud overlay\n")
+        head = self.commit("reviewed discovery inputs")
+        members = self.tool.runtime_members(self.base, head)
+        self.assertTrue(set(required).issubset(members))
+        self.assertNotIn("tools/unrelated-local-helper.cjs", members)
+        self.assertTrue(self.tool.is_runtime_path("docs/systems/time-content-deployment.md"))
+
+    def test_fixed_builder_selects_admin_inputs_but_not_local_dist(self):
+        helper = ROOT / "tools/build-runtime-artifact.cjs"
+        selected = subprocess.check_output([
+            "node", "-e", "const { selected } = require(process.argv[1]); process.stdout.write(JSON.stringify(process.argv.slice(2).map(selected)))",
+            str(helper), "admin/src/pages/Gifts.tsx", "admin/src/pages/Gifts.css", "admin/public/img/logo.png",
+            "admin/package-lock.json", "web/dist/index.html", "admin/.env",
+        ], text=True)
+        self.assertEqual(json.loads(selected), [True, True, True, True, False, False])
+
     def test_static_asset_json_and_cdn_zip_keep_original_bytes(self):
         self.write("assets/shared.json", '{"static":"exact original bytes"}')
         self.write("src/asset-reader.ts", "import data from '../assets/shared.json'; export const value = data.static;\n")

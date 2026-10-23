@@ -117,6 +117,52 @@ class CloudOverlayReleaseTest(unittest.TestCase):
         digest = hashlib.sha256(Path(result["zip"]).read_bytes()).hexdigest()
         self.assertEqual(digest, result["sha256"])
 
+    def test_content_migration_script_sets_delivery_migration_flag(self):
+        self.write("scripts/time-content-deployment.cjs", b"// fixture migration\n")
+        self.commit("include migration entry")
+        self.invoke("--batch", "migration-flag", "--base", self.base)
+        latest = json.loads(Path(self.tool.RECORD).read_text(encoding="utf-8"))["latest_delivery"]
+        self.assertTrue(latest["schema_migration_required"])
+
+    def test_box_reward_review_sets_delivery_migration_flag(self):
+        self.write("assets/content_box_exchange_review.json", b'{"fixture": true}\n')
+        self.commit("include reward box review")
+        self.invoke("--batch", "box-migration-flag", "--base", self.base)
+        latest = json.loads(Path(self.tool.RECORD).read_text(encoding="utf-8"))["latest_delivery"]
+        self.assertTrue(latest["schema_migration_required"])
+
+    def test_mixed_delivery_still_rejects_implicit_whole_repository_package(self):
+        Path(self.tool.RECORD).write_text(json.dumps({"latest_delivery": {
+            "batch": "selected-server-repairs", "scope_status": {"mixed": True},
+        }}), encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "延后范围"):
+            self.invoke("--batch", "unsafe-full-scope", "--base", self.base)
+        self.assertFalse((Path(self.tool.OUT_ROOT) / "unsafe-full-scope").exists())
+
+    def test_changed_discovery_index_requires_bound_generators_and_exact_source_hashes(self):
+        generators = ["tools/build-content-discovery-gacha.py", "tools/build-content-discovery-rewards.cjs",
+                      "tools/build-content-discovery.cjs"]
+        paths = generators + ["assets/gacha.json"]
+        for name in paths:
+            self.write(name, f"verified {name}\n".encode())
+        inputs = {name: hashlib.sha256((self.repo / name).read_bytes()).hexdigest() for name in paths}
+        index = {"schemaVersion": 2, "sourceInputs": inputs}
+        self.write("assets/content_discovery_runtime.json", json.dumps(index).encode())
+        self.commit("bound discovery inputs")
+        result = self.invoke("--batch", "discovery-closure", "--base", self.base)
+        with zipfile.ZipFile(result["zip"]) as archive:
+            self.assertTrue(set(paths).issubset(archive.namelist()))
+        self.write(generators[0], b"changed generator without index regeneration\n")
+        self.commit("stale discovery generator binding")
+        with self.assertRaisesRegex(SystemExit, "字节不符"):
+            self.invoke("--batch", "discovery-stale", "--base", self.base)
+        self.write(generators[0], f"verified {generators[0]}\n".encode())
+        inputs["assets/gacha.json"] = "0" * 64
+        self.write("assets/content_discovery_runtime.json", json.dumps(index).encode())
+        self.commit("incorrect discovery hash")
+        with self.assertRaisesRegex(SystemExit, "字节不符"):
+            self.invoke("--batch", "discovery-reject", "--base", self.base)
+
     def test_release_tag_defaults_batch_but_does_not_publish(self):
         tag = self.release_tag()
         result = self.invoke("--release-tag", tag, "--base", self.base)
