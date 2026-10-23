@@ -17,7 +17,7 @@ function readFacts(playerId: number, scope: PlayerFactsScope, viewerId = 0): Pla
     const partyId = scope.partyId ?? player.partySlot ?? 1
     if (!Number.isSafeInteger(partyId) || partyId < 1 || partyId > 120
         || !Number.isSafeInteger(scope.category) || !Number.isSafeInteger(scope.questId)) throw new Error("INVALID_FACTS_SCOPE")
-    const party = scope.wireParty ?? require("../party-snapshot").getRealPartySnapshot(playerId)
+    const party = scope.wireParty ?? require("../party-snapshot").getRealPartySnapshot(playerId, partyId)
     const mode = require("../../lib/mode15-optional") as typeof import("../../lib/mode15-optional")
     const exclusive = require("../npc/equipment-policy").exclusivePartyItems(party) as number[]
     const globalExclusive = mode.getMode15ExclusiveGlobalPartyItemsSync(playerId, 1, partyId)
@@ -72,7 +72,7 @@ export async function handleRealtimeBusiness(kind: string, input: unknown): Prom
             if (payload.expectedSavedPartyId !== undefined && currentPlayer?.partySlot !== payload.expectedSavedPartyId) {
                 return readFacts(playerId, { category: payload.category, questId: payload.questId })
             }
-            if (payload.party !== undefined) require("../party-snapshot").setRealPartySnapshot(playerId, payload.party)
+            if (payload.party !== undefined) require("../party-snapshot").setRealPartySnapshot(playerId, payload.party, payload.partyId ?? currentPlayer?.partySlot)
             if (payload.partyId !== undefined) await require("../../data/domains/player").updatePlayerPartySlotAsync(playerId, positive(payload.partyId))
             return readFacts(playerId, { ...payload, wireParty: payload.party })
         }

@@ -78,7 +78,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         const ctx = body.viewer_id && !isNaN(body.viewer_id) ? await resolveMultiPlayerContext(body.viewer_id) : null
         if (!ctx) return bad(reply)
         cacheMultiPlayerContext(body.viewer_id, ctx)
-        primeRealPartySnapshot(ctx.playerId)
+        primeRealPartySnapshot(ctx.playerId, undefined, body.party_id)
         if (!getQuestFromCategorySync(body.category, body.quest_id)
             || !isContentQuestOpenAt(body.category, body.quest_id)
             || (isMode15Quest(body.category, body.quest_id) && !canStartMode15QuestSync(ctx.playerId, body.category, body.quest_id).allowed)) {

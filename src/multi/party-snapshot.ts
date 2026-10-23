@@ -1,10 +1,12 @@
 import {
-    getPlayerCharacterManaNodesSync,
+    getPlayerCharacterManaNodeAwakeLevelsSync,
     getPlayerCharacterSync,
 } from "../data/domains/character"
 import { getPlayerEquipmentSync } from "../data/domains/equipment"
 import { getPlayerPartyGroupListSync } from "../data/domains/party"
+import { getPlayerSync } from "../data/domains/player"
 import { PartyCategory, PlayerParty } from "../data/types"
+import { parseGlobalPartyId } from "../lib/special-event-parties"
 import { registerMemoryCounters } from "../lib/memory-diagnostics"
 
 interface PartySnapshotEntry {
@@ -20,7 +22,7 @@ const CACHE_MAX_ENTRIES = Math.max(
     100,
     Number.parseInt(process.env.MULTI_PARTY_SNAPSHOT_MAX_ENTRIES ?? "1000", 10) || 1_000,
 )
-const snapshots = new Map<number, PartySnapshotEntry>()
+const snapshots = new Map<string, PartySnapshotEntry>()
 let cacheHits = 0
 let cacheMisses = 0
 let cacheWrites = 0
@@ -34,47 +36,52 @@ registerMemoryCounters("multiPartySnapshot", _detailed => ({
     maxEntries: CACHE_MAX_ENTRIES,
 }))
 
-function storeSnapshot(playerId: number, party: any): void {
-    if (!snapshots.has(playerId) && snapshots.size >= CACHE_MAX_ENTRIES) {
+function selectedPartyId(playerId: number, partyId?: number): number {
+    return partyId ?? getPlayerSync(playerId)?.partySlot ?? 1
+}
+
+function snapshotKey(playerId: number, partyId: number): string {
+    return `${playerId}:${partyId}`
+}
+
+function copyParty(party: any): any { return JSON.parse(JSON.stringify(party)) }
+
+function storeSnapshot(playerId: number, partyId: number, party: any): void {
+    const key = snapshotKey(playerId, partyId)
+    if (!snapshots.has(key) && snapshots.size >= CACHE_MAX_ENTRIES) {
         const oldest = snapshots.keys().next().value
-        if (Number.isSafeInteger(oldest)) snapshots.delete(oldest)
+        if (oldest !== undefined) snapshots.delete(oldest)
     }
-    snapshots.set(playerId, { party, expiresAt: Date.now() + CACHE_TTL_MS })
+    snapshots.set(key, { party: copyParty(party), expiresAt: Date.now() + CACHE_TTL_MS })
     cacheWrites++
 }
 
-function getLiveSnapshot(playerId: number): any | null {
-    const current = snapshots.get(playerId)
+function getLiveSnapshot(playerId: number, partyId: number): any | null {
+    const key = snapshotKey(playerId, partyId)
+    const current = snapshots.get(key)
     if (!current) return null
     if (current.expiresAt <= Date.now()) {
-        snapshots.delete(playerId)
+        snapshots.delete(key)
         return null
     }
-    return current.party
+    return copyParty(current.party)
 }
 
 /** Build the legacy wire party used by the lobby Welcome packet. */
-export function buildRealParty(playerId: number, targetParty?: PlayerParty): any {
+export function buildRealParty(playerId: number, targetParty?: PlayerParty, partyId?: number): any {
     const filledChars: any[] = []
     const filledUnison: any[] = []
     const filledEquips: any[] = []
     const filledSouls: any[] = []
 
-    // Search for an NPC-named party across NORMAL and EVENT categories.
+    // The player's normal SET and the NPC pool are separate sources. Explicit
+    // targetParty callers (including NPC builders) keep their chosen party.
     let selectedParty: PlayerParty | null = targetParty ?? null
     if (!selectedParty) {
-        for (const category of [PartyCategory.NORMAL, PartyCategory.EVENT]) {
-            const groups = getPlayerPartyGroupListSync(playerId, category)
-            for (const group of Object.values(groups)) {
-                for (const party of Object.values(group.list)) {
-                    if (party.name && party.name.includes("NPC")) {
-                        selectedParty = party
-                        break
-                    }
-                }
-                if (selectedParty) break
-            }
-            if (selectedParty) break
+        const parsed = parseGlobalPartyId(selectedPartyId(playerId, partyId))
+        if (parsed) {
+            selectedParty = getPlayerPartyGroupListSync(playerId, PartyCategory.NORMAL)
+                [String(parsed.groupId)]?.list[String(parsed.slot)] ?? null
         }
     }
 
@@ -87,9 +94,7 @@ export function buildRealParty(playerId: number, targetParty?: PlayerParty): any
             if (!dbChar) {
                 filledChars.push([1])
             } else {
-                const rawManaNodes = getPlayerCharacterManaNodesSync(playerId, charId)
-                const manaNodeMap: Record<string, number> = {}
-                for (const id of rawManaNodes) manaNodeMap[String(id)] = 0
+                const manaNodeMap = getPlayerCharacterManaNodeAwakeLevelsSync(playerId, charId)
 
                 const exBoost = dbChar.exBoost?.abilityIdList?.length
                     ? [0, { ability_id_list: dbChar.exBoost.abilityIdList, status_id: dbChar.exBoost.statusId }]
@@ -115,9 +120,7 @@ export function buildRealParty(playerId: number, targetParty?: PlayerParty): any
             if (!dbUnison) {
                 filledUnison.push([1])
             } else {
-                const rawNodes = getPlayerCharacterManaNodesSync(playerId, unisonId)
-                const nodeMap: Record<string, number> = {}
-                for (const id of rawNodes) nodeMap[String(id)] = 0
+                const nodeMap = getPlayerCharacterManaNodeAwakeLevelsSync(playerId, unisonId)
                 const unisonExBoost = dbUnison.exBoost?.abilityIdList?.length
                     ? [0, { ability_id_list: dbUnison.exBoost.abilityIdList, status_id: dbUnison.exBoost.statusId }]
                     : [1]
@@ -156,35 +159,39 @@ export function buildRealParty(playerId: number, targetParty?: PlayerParty): any
 }
 
 /** Prime the snapshot before the subsequent TCP handshake. */
-export function primeRealPartySnapshot(playerId: number, targetParty?: PlayerParty): any {
+export function primeRealPartySnapshot(playerId: number, targetParty?: PlayerParty, partyId?: number): any {
     if (targetParty) return buildRealParty(playerId, targetParty)
-    const cached = getLiveSnapshot(playerId)
+    const selectedId = selectedPartyId(playerId, partyId)
+    const cached = getLiveSnapshot(playerId, selectedId)
     if (cached !== null) {
         cacheHits++
         return cached
     }
-    const party = buildRealParty(playerId)
-    storeSnapshot(playerId, party)
+    const party = buildRealParty(playerId, undefined, selectedId)
+    storeSnapshot(playerId, selectedId, party)
     return party
 }
 
 /** Return a warmed party or build it once for backward-compatible direct TCP clients. */
-export function getRealPartySnapshot(playerId: number): any {
-    const cached = getLiveSnapshot(playerId)
+export function getRealPartySnapshot(playerId: number, partyId?: number): any {
+    const selectedId = selectedPartyId(playerId, partyId)
+    const cached = getLiveSnapshot(playerId, selectedId)
     if (cached !== null) {
         cacheHits++
         return cached
     }
     cacheMisses++
-    return primeRealPartySnapshot(playerId)
+    return primeRealPartySnapshot(playerId, undefined, selectedId)
 }
 
 /** Keep a client-selected party authoritative for reconnects in the same room. */
-export function setRealPartySnapshot(playerId: number, party: any): void {
+export function setRealPartySnapshot(playerId: number, party: any, partyId?: number): void {
     if (!Number.isSafeInteger(playerId) || playerId <= 0 || !party || typeof party !== "object") return
-    storeSnapshot(playerId, party)
+    const selectedId = selectedPartyId(playerId, partyId)
+    if (!parseGlobalPartyId(selectedId)) return
+    storeSnapshot(playerId, selectedId, party)
 }
 
 export function invalidateRealPartySnapshot(playerId: number): void {
-    snapshots.delete(playerId)
+    for (const key of snapshots.keys()) if (key.startsWith(`${playerId}:`)) snapshots.delete(key)
 }
