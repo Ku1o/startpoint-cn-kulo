@@ -8,12 +8,14 @@ import { getPlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
 import { getCharacterDataSync, getExBoostItemSync, getExStatusPoolSync } from "../../lib/assets"
 import { generateDataHeaders } from "../../utils"
-import { randomInt } from "crypto"
+import { randomInt, randomUUID } from "crypto"
 import { clientSerializeDate } from "../../data/utils"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { getCharacterMaxOverLimit } from "../../lib/character-overlimit"
-import orderedExAbility from "../../../assets/ex_ability.json"
+import { ALL_ABILITIES, type AbilityInfo } from "../../lib/ex-boost-abilities"
+import { completeExBoostDrawSync, reconcilePendingExBoostDrawSync, writePendingExBoostDrawSync, type PendingExBoostDraw } from "../../data/domains/ex-boost-pending"
+import { readExBoostRequest, rememberExBoostRequest } from "../../lib/ex-boost-request"
 
 interface ExBoostDrawBody {
     character_id: number,
@@ -33,35 +35,6 @@ interface ExBoostDrawResult {
     statusId: number,
     abilityIdList: number[]
 }
-
-// ---- A/B group classification from orderedmap ability names ----
-
-const A_PREFIXES = ['atk_self_', 'skilldamage_self_', 'directdamage_self_',
-    'abilitydamage_self_', 'abilitydagame_self_',
-    'atk_party_', 'skilldamage_party_', 'directdamage_party_',
-    'abilitydamage_party_', 'abilitydagame_party_',
-    'powerflipdamage_', 'hp_self_']
-
-// These match A_PREFIXES but are actually B-group (buff extend/duration)
-const B_OVERRIDES = ['powerflipdamage_buffextend_']
-
-interface AbilityInfo { id: number, name: string, group: 'A' | 'B', rarity: number }
-
-function classifyAbilities(data: Record<string, string[][]>): AbilityInfo[] {
-    const list: AbilityInfo[] = []
-    for (const [id, raw] of Object.entries(data)) {
-        const name = raw[0]?.[0] || ''
-        const isBOverride = B_OVERRIDES.some(p => name.startsWith(p))
-        const isA = !isBOverride && A_PREFIXES.some(p => name.startsWith(p))
-        let rarity = 1 // brown
-        if (name.endsWith('_r5')) rarity = 3
-        else if (name.endsWith('_r4')) rarity = 2
-        list.push({ id: Number(id), name, group: isA ? 'A' : 'B', rarity })
-    }
-    return list
-}
-
-const ALL_ABILITIES = classifyAbilities(orderedExAbility as Record<string, string[][]>)
 
 // 6 pools: A/B × gold(3)/silver(2)/brown(1)
 function poolCopy(abilities: AbilityInfo[], group: 'A' | 'B', rarity: number): number[] {
@@ -108,7 +81,6 @@ function freshPools(): { A: Record<number, number[]>, B: Record<number, number[]
     }
 }
 
-const playerDraws: Record<number, ExBoostDrawResult> = {}
 
 // ---- Draw logic ----
 
@@ -162,7 +134,7 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
     const viewerId = body.viewer_id
     const characterId = body.character_id
     const costItemId = body.cost_item_id
-    if (isNaN(viewerId) || isNaN(characterId) || isNaN(costItemId)) return reply.status(400).send({
+    if ([viewerId, characterId, costItemId].some(value => !Number.isSafeInteger(value) || value <= 0)) return reply.status(400).send({
         "error": "Bad Request", "message": "Invalid request body."
     })
 
@@ -195,43 +167,58 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
         domain: "player", playerId, operation: autoAccept ? "ex_boost_first_draw" : "ex_boost_draw",
     }, () => {
         const reject = (status: 400 | 500, message: string) => ({ ok: false as const, status, message })
-
+        const receipt = readExBoostRequest(playerId, viewerIdSession.accountId, request.headers["login_token"], body,
+            autoAccept ? "ex_boost_first_draw" : "ex_boost_draw", { characterId, costItemId })
         const characterData = getPlayerCharacterSync(playerId, characterId)
         if (characterData === null) return reject(400, "Player does not own character.")
-
         if (!costItemData) return reject(400, "Attempt to use invalid cost item.")
-
-        if ((costItemData.element !== undefined) && (costItemData.element !== characterAssetData.element)) {
+        if (costItemData.element !== undefined && costItemData.element !== characterAssetData.element) {
             return reject(400, "Attempt to use wrong item with different element from character.")
         }
-
-        const costItemAmount = getPlayerItemSync(playerId, costItemId)
-        if (costItemAmount === null) return reject(400, "You do not own item.")
-        const afterCostItemAmount = costItemAmount - costItemData.count
-        if (0 > afterCostItemAmount) return reject(400, "Not enough of item.")
-
-        // ensure max over limit step (aligned with client isMaxOverLimitStep)
-        const rarity = characterAssetData.rarity
-        const maxOver = getCharacterMaxOverLimit(characterId, rarity)
+        const pending = reconcilePendingExBoostDrawSync(playerId)
+        const amount = getPlayerItemSync(playerId, costItemId) ?? 0
+        if (receipt?.previous) {
+            if (!autoAccept && pending?.drawId !== receipt.previous.draw.drawId) {
+                return reject(400, "EX boost request belongs to an already resolved draw.")
+            }
+            if (autoAccept && !characterData.exBoost) return reject(400, "EX boost state has changed since this request.")
+            const drawResult = autoAccept && characterData.exBoost
+                ? { ...receipt.previous.draw, ...characterData.exBoost } : receipt.previous.draw
+            return { ok: true as const, characterData, drawResult, afterCostItemAmount: amount }
+        }
+        if (autoAccept && characterData.exBoost) {
+            const drawResult: PendingExBoostDraw = { drawId: randomUUID(), characterId, ...characterData.exBoost,
+                costItemId, costItemCount: costItemData.count }
+            rememberExBoostRequest(playerId, receipt, drawResult)
+            return { ok: true as const, characterData, drawResult, afterCostItemAmount: amount }
+        }
+        if (!autoAccept && pending?.characterId === characterId) {
+            if (pending.costItemId !== costItemId) return reject(400, "A different EX boost material is already pending.")
+            rememberExBoostRequest(playerId, receipt, pending)
+            return { ok: true as const, characterData, drawResult: pending, afterCostItemAmount: amount }
+        }
+        const afterCostItemAmount = amount - costItemData.count
+        if (afterCostItemAmount < 0) return reject(400, "Not enough of item.")
+        const maxOver = getCharacterMaxOverLimit(characterId, characterAssetData.rarity)
         if (maxOver === undefined || characterData.overLimitStep < maxOver) {
             return reject(400, "Character not at max over limit step.")
         }
-
-        const drawTier = costItemData.tier
-        const exStatusPool = getExStatusPoolSync(drawTier)
-        if (exStatusPool === null) return reject(500, "Status pool not found.")
-
-        const draw = drawExBoostAbilities(costItemId, exStatusPool)
-        const drawResult: ExBoostDrawResult = {
-            characterId, statusId: draw.statusId, abilityIdList: draw.abilityIdList
-        }
-
+        const exStatusPool = getExStatusPoolSync(costItemData.tier)
+        if (exStatusPool === null || exStatusPool.length === 0) return reject(500, "Status pool not found.")
+        const drawResult: PendingExBoostDraw = { drawId: randomUUID(), characterId,
+            ...drawExBoostAbilities(costItemId, exStatusPool), costItemId, costItemCount: costItemData.count }
         updatePlayerItemSync(playerId, costItemId, afterCostItemAmount)
+        // Switching characters deliberately abandons the previous paid candidate.
+        if (pending) completeExBoostDrawSync(playerId, pending, false)
         if (autoAccept) {
             updatePlayerCharacterSync(playerId, characterId, {
-                exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
+                exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList },
             })
+            completeExBoostDrawSync(playerId, drawResult, true)
+        } else {
+            writePendingExBoostDrawSync(playerId, drawResult)
         }
+        rememberExBoostRequest(playerId, receipt, drawResult)
         return { ok: true as const, characterData, drawResult, afterCostItemAmount }
     })
     if (!outcome.ok) return reply.status(outcome.status).send({
@@ -268,7 +255,6 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
             },
         })
     } else {
-        playerDraws[playerId] = drawResult
         return reply.status(200).send({
             data_headers: headers,
             data: {
@@ -286,7 +272,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as ExBoostSelectBody
         const viewerId = body.viewer_id
         const isConfirm = body.is_confirm
-        if (isNaN(viewerId)) return reply.status(400).send({
+        if (!Number.isSafeInteger(viewerId) || viewerId <= 0 || typeof isConfirm !== "boolean") return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         })
         const viewerIdSession = await getSession(viewerId.toString())
@@ -297,27 +283,36 @@ const routes = async (fastify: FastifyInstance) => {
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No players bound to account."
         })
-        const drawResult = playerDraws[playerId]
-        if (drawResult === undefined) return reply.status(400).send({
-            "error": "Bad Request", "message": "No draw result to select."
-        })
-        const headers = generateDataHeaders({ viewer_id: viewerId })
-        delete playerDraws[playerId]
-        if (!isConfirm) {
-            return reply.status(200).send({ data_headers: headers, data: { mail_arrived: false } })
-        }
-        const characterId = drawResult.characterId
-        const characterData = getPlayerCharacterSync(playerId, characterId)
-        if (characterData === null) return reply.status(400).send({
-            "error": "Bad Request", "message": "Player does not own character."
-        })
-        await runPersistenceTransaction({
+        const outcome = await runPersistenceTransaction({
             domain: "player", playerId, operation: "ex_boost_select",
         }, () => {
-            updatePlayerCharacterSync(playerId, characterId, {
-                exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
-            })
+            const receipt = readExBoostRequest(playerId, viewerIdSession.accountId, request.headers["login_token"], body,
+                "ex_boost_select", { isConfirm })
+            const pending = reconcilePendingExBoostDrawSync(playerId)
+            const drawResult = receipt?.previous?.draw ?? pending
+            if (!drawResult) return null
+            const characterData = getPlayerCharacterSync(playerId, drawResult.characterId)
+            if (!characterData) throw new Error("EX boost character is no longer owned.")
+            if (!receipt?.previous) {
+                if (isConfirm) updatePlayerCharacterSync(playerId, drawResult.characterId, {
+                    exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList },
+                })
+                completeExBoostDrawSync(playerId, drawResult, isConfirm)
+                rememberExBoostRequest(playerId, receipt, drawResult, isConfirm)
+            }
+            // A delayed replay acknowledges current state without reapplying an old ability.
+            const current = getPlayerCharacterSync(playerId, drawResult.characterId)!
+            return { characterData: current, drawResult: current.exBoost
+                ? { ...drawResult, ...current.exBoost } : drawResult }
         })
+        if (!outcome) return reply.status(400).send({
+            error: "Bad Request", message: "No draw result to select.",
+        })
+        reply.header("content-type", "application/x-msgpack")
+        const headers = generateDataHeaders({ viewer_id: viewerId })
+        if (!isConfirm) return reply.status(200).send({ data_headers: headers, data: { mail_arrived: false } })
+        const { characterData, drawResult } = outcome
+        const characterId = drawResult.characterId
         return reply.status(200).send({
             data_headers: headers,
             data: {
