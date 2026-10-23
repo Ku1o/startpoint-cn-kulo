@@ -120,6 +120,7 @@ export interface SingleFinishTransactionArgs {
     clearTime: number
     clearRank: number | null
     questAccomplished: boolean
+    battleFactsAccomplished: boolean
     /** Five-boss solo runs settle through this generic path with own rewards. */
     fiveBossSoloQuest: boolean
     /** False when the active quest was rebuilt from a patched-client hint. */
@@ -151,7 +152,7 @@ export function settleSingleQuestFinishInTransaction(
 ): SingleFinishTransactionResult {
     const {
         playerId, viewerId, questCategory, questId, questData, activeQuestData, body,
-        clearTime, clearRank, questAccomplished,
+        clearTime, clearRank, questAccomplished, battleFactsAccomplished,
         fiveBossSoloQuest, registered, scoreAttackBorderTiers,
         manaObtained, displayMode15ManaAsFieldDrop, finishCacheKey, receiptPlayId,
     } = args
@@ -392,7 +393,7 @@ export function settleSingleQuestFinishInTransaction(
         // Build finish context for mission trackers
         const finishCtx: FinishContext = {
             playerId, questCategory, questId,
-            questAccomplished,
+            questAccomplished: battleFactsAccomplished,
             clearTime: body.elapsed_time_ms,
             clearRank,
             party: body.statistics.party as any,
@@ -410,7 +411,7 @@ export function settleSingleQuestFinishInTransaction(
             playerId,
             questCategory,
             questId,
-            accomplished: questAccomplished,
+            accomplished: battleFactsAccomplished,
             mode: "single",
             clearRank,
             clearTimeMs: clearTime,
@@ -426,7 +427,7 @@ export function settleSingleQuestFinishInTransaction(
             playerId,
             questCategory,
             questId,
-            questAccomplished,
+            questAccomplished: battleFactsAccomplished,
             clearRank,
             statistics: finishCtx.statistics,
         })
