@@ -6,7 +6,7 @@ import { getPlayerSync, insertDefaultPlayerSync } from "../../data/domains/playe
 import { SessionType } from "../../data/types";
 import { saveAccountDefaultPlayer } from "../../data/activeAccount";
 import { readPlayerLoginSession, playerLoginProfile, verifiedPlayerLogin } from "../../lib/player-login";
-import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { accountCreationBudget, AccountCreationBudgetError, AccountCreationReservation } from "../../lib/account-creation-budget";
 import { createPlayerLoginRateLimiter } from "../../lib/player-login-rate-limit";
 import { getDb } from "../../data/db";
@@ -56,7 +56,7 @@ const routes = async (fastify: FastifyInstance) => {
         const signedIn = verifiedPlayerLogin(request) ?? readPlayerLoginSession(request.headers["x-sp-session"])
         if (signedIn) {
             const profile = playerLoginProfile(signedIn.account_id)
-            const loginToken = runPersistenceTransactionSync({ domain: "account", operation: "issue_gameplay_login" }, () =>
+            const loginToken = await runPersistenceTransaction({ domain: "account", operation: "issue_gameplay_login" }, () =>
                 issueGameplayLoginTokenSync(getDb(), { accountId: signedIn.account_id, viewerId: signedIn.viewer_id,
                     udid: signedIn.udid, parentToken: signedIn.token, expiresAt: signedIn.expires_at }))
             reply.type("application/x-msgpack")
@@ -159,7 +159,7 @@ const routes = async (fastify: FastifyInstance) => {
         accountId = signup.accountId
         const viewerId = signup.viewerId
         initializeGameplayRequestIdentitySchemaSync(getDb())
-        const loginToken = runPersistenceTransactionSync({ domain: "account", operation: "issue_legacy_gameplay_login" }, () =>
+        const loginToken = await runPersistenceTransaction({ domain: "account", operation: "issue_legacy_gameplay_login" }, () =>
             issueGameplayLoginTokenSync(getDb(), { accountId, viewerId, udid, expiresAt: Number.MAX_SAFE_INTEGER }))
         newAccount = signup.newAccount
         if (signup.createdPlayerId !== undefined) {

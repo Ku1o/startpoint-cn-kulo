@@ -1,15 +1,81 @@
 {
   "description": "可以直接调用 better-sqlite3 transaction() 的文件（基础设施、迁移、快照恢复、worker 本地数据库）。新增条目须经仓库所有者同意。",
   "transaction": [
-    { "path": "src/lib/persistence-coordinator.ts", "reason": "持久化协调器本身" },
-    { "path": "src/lib/sqlite-*", "reason": "SQLite 写入/检查点基础设施" },
-    { "path": "src/lib/storage-layout.ts", "reason": "存储布局迁移" },
-    { "path": "src/data/db.ts", "reason": "数据库连接与初始化" },
-    { "path": "src/data/schema.ts", "reason": "表结构迁移" },
-    { "path": "src/data/initializers/**", "reason": "初始化与数据迁移" },
-    { "path": "src/data/updaters/**", "reason": "数据迁移" },
-    { "path": "src/data/snapshots/**", "reason": "存档快照恢复" },
-    { "path": "src/data/readers/load-snapshot.ts", "reason": "存档快照读取" },
-    { "path": "src/workers/**", "reason": "worker 本地数据库" }
+    {
+      "path": "src/lib/persistence-coordinator.ts",
+      "reason": "持久化协调器本身"
+    },
+    {
+      "path": "src/lib/sqlite-*",
+      "reason": "SQLite 写入/检查点基础设施"
+    },
+    {
+      "path": "src/lib/storage-layout.ts",
+      "reason": "存储布局迁移"
+    },
+    {
+      "path": "src/data/db.ts",
+      "reason": "数据库连接与初始化"
+    },
+    {
+      "path": "src/data/schema.ts",
+      "reason": "表结构迁移"
+    },
+    {
+      "path": "src/data/initializers/**",
+      "reason": "初始化与数据迁移"
+    },
+    {
+      "path": "src/data/updaters/**",
+      "reason": "数据迁移"
+    },
+    {
+      "path": "src/data/snapshots/**",
+      "reason": "存档快照恢复"
+    },
+    {
+      "path": "src/data/readers/load-snapshot.ts",
+      "reason": "存档快照读取"
+    },
+    {
+      "path": "src/workers/**",
+      "reason": "worker 本地数据库"
+    },
+    {
+      "path": "src/lib/content-history-bootstrap.ts",
+      "reason": "受保护的显式离线数据库历史准备、核查与身份重绑定；四处本地事务不使用全局连接"
+    },
+    {
+      "path": "src/lib/content-operations-bootstrap.ts",
+      "reason": "受保护的显式离线数据库初始化与 July 升级；两处一次性迁移事务"
+    },
+    {
+      "path": "src/lib/server-clock-state.ts",
+      "reason": "离线时钟激活与回退；显式数据库、offlineGuard 和完整状态检查"
+    },
+    {
+      "path": "src/lib/time-cutover-rehearsal.ts",
+      "reason": "受保护的离线一致规划、应用与回退；显式数据库和摘要校验"
+    },
+    {
+      "path": "src/lib/content-operations-store.ts",
+      "reason": "四处一致读取快照及三处实例原子更新；线上写入口已有异步 admin 协调器，离线入口由受保护迁移持有事务"
+    },
+    {
+      "path": "src/lib/content-client-reload.ts",
+      "reason": "重登 epoch、审计与已接受战斗的实例原子更新；线上入口已有异步 admin 协调器"
+    },
+    {
+      "path": "src/lib/town-theme-store.ts",
+      "reason": "主城设置的实例更新保存点；线上入口已有异步 admin 协调器"
+    },
+    {
+      "path": "src/routes/web_api/content.ts",
+      "reason": "关联活动与箱池的发布、截止组合保存点；唯一线上入口在异步 admin 协调器内，异常整体回滚"
+    },
+    {
+      "path": "src/routes/web_api/town-theme.ts",
+      "reason": "注入的 deps.transaction 是返回 Promise 的 runPersistenceTransaction 包装，非 SQLite 直接事务"
+    }
   ]
 }

@@ -280,6 +280,7 @@ test('archived product HTTP proof preserves all 19 original source identities an
 sys.dont_write_bytecode=True
 s=importlib.util.spec_from_file_location('history','tools/build-content-history-readiness.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
 current=pathlib.Path.cwd();root=pathlib.Path(os.environ['CONTENT_REVIEW_FIXTURE_ROOT']).resolve()
+originals=pathlib.Path(os.environ.get('STARPOINT_PRODUCT_PROOF_ORIGINALS',current)).resolve()
 task=pathlib.Path(os.environ['STARPOINT_PRODUCT_PROOF_ARCHIVE']).resolve();rules=m.load(current/'assets/content_history_shop_rules.json')
 paths=[task/'root-event-shop-quota-audit.json',task/'server-event-shop-ownership-audit.json']
 # The old ownership proof predates the separately reviewed veteran receipt.
@@ -297,14 +298,19 @@ assert len(frozen_sources)==19
 for relative,expected in frozen_sources.items():
  destination=root/relative
  assert destination.resolve().is_relative_to(root)
- source=old_evidence if relative=='assets/content_history_definition_evidence.json' else current/relative
+ source=old_evidence if relative=='assets/content_history_definition_evidence.json' else originals/relative
  assert digest(source)==expected,relative+' frozen fixture source mismatch'
  destination.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,destination)
  assert digest(destination)==expected,relative+' frozen fixture copy mismatch'
 assert digest(current/'assets/content_history_definition_evidence.json')!=frozen_sources['assets/content_history_definition_evidence.json']
-try:m.product_runtime_reviews(paths,current,rules)
-except ValueError as error:assert str(error)=='product transaction proof source changed: assets/content_history_definition_evidence.json'
-else:raise AssertionError('old source-HTTP proof must reject the newer evidence file')
+fixture_evidence=root/'assets/content_history_definition_evidence.json'
+try:
+ shutil.copyfile(current/'assets/content_history_definition_evidence.json',fixture_evidence)
+ try:m.product_runtime_reviews(paths,root,rules)
+ except ValueError as error:assert str(error)=='product transaction proof source changed: assets/content_history_definition_evidence.json'
+ else:raise AssertionError('old source-HTTP proof must reject the newer evidence file')
+finally:shutil.copyfile(old_evidence,fixture_evidence)
+assert digest(fixture_evidence)==frozen_sources['assets/content_history_definition_evidence.json']
 coverage,receipts,frozen=m.product_runtime_reviews(paths,root,rules)
 assert len(coverage['daily_stock'])==92 and len(coverage['equipment_unique_possession'])==9
 proof=m.load(root/'assets/content_history_definition_evidence.json');audits=proof['effectiveShopDefinitionEvidence']['rows']
