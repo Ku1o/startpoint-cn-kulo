@@ -758,6 +758,8 @@ export interface ClientPlayerData {
 }
 
 export interface MergedPlayerData {
+    /** Optional in old V1 saves; permanent EX30 reward progress never resets on import. */
+    waterGeraldClaims?: import("./domains/water-gerald-claim").WaterGeraldClaim[],
     player: Player,
     /** Optional in historical V1 saves; IDs and acquisition times are portable progress. */
     degreeList?: { degreeId: number; acquiredAt: number }[],

@@ -29,6 +29,7 @@ import { getCarnivalSaveStateSync } from "../../lib/carnival-save-state"
 import { getContentSnapshot } from "../../content/runtime/content-snapshot"
 import { collectLinkedManaNodeAwakeUpdates } from "../../lib/character-awake-extension"
 import { getPlayerPortableDegreesSync } from "../domains/degree"
+import { getWaterGeraldClaimsSync } from "../domains/water-gerald-claim"
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 export interface ClientSerializedDataOptions extends SerializePlayerDataOptions {
@@ -256,6 +257,7 @@ export function getMergedPlayerDataSync(
     return {
         player: playerData,
         degreeList: getPlayerPortableDegreesSync(playerId),
+        waterGeraldClaims: getWaterGeraldClaimsSync(playerId),
         dailyChallengePointList: getPlayerDailyChallengePointListSync(playerId),
         triggeredTutorial: getPlayerTriggeredTutorialsSync(playerId),
         clearedRegularMissionList: getPlayerClearedRegularMissionListSync(playerId),

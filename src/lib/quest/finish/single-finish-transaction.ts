@@ -57,6 +57,7 @@ import { buildPracticeBattleHistoryRecord } from "../practice-battle-history"
 import { BattleHistoryPayloadValidationError } from "../battle-history"
 import { givePlayerRewardSync, givePlayerRewardsSync, givePlayerScoreRewardsSync } from "../../quest"
 import { handleRushEventFinish } from "./rush-handler"
+import { grantWaterGeraldEx30Sync, WATER_GERALD_CHARACTER_ID } from "./water-gerald-reward"
 import { handleRoguePerRoundDrops } from "./rogue-drops"
 import { handleRaidEventFinish } from "./raid-handler"
 import { handleCarnivalEventFinish } from "./carnival-handler"
@@ -528,6 +529,13 @@ export function settleSingleQuestFinishInTransaction(
                 return result
             },
         })
+        const waterGeraldReward = grantWaterGeraldEx30Sync({
+            playerId, questCategory, questId, questAccomplished, questData,
+        })
+        if (waterGeraldReward !== null) {
+            partyEvolutionImages = undefined
+            rushEventData?.rush_battle_reward_list.push({ kind: 5, kind_id: WATER_GERALD_CHARACTER_ID, number: 1 })
+        }
         const abyssEnduranceDegrees = finishLeaderboardQuestSync({
             playerId,
             quest: {
@@ -666,6 +674,7 @@ export function settleSingleQuestFinishInTransaction(
             ...(sPlusClearReward?.items ?? {}),
             ...scoreRewardsResult.items,
             ...(rushEventRewardsResult?.items ?? {}),
+            ...(waterGeraldReward?.items ?? {}),
             ...(rogueDrops?.rewardResult.items ?? {}),
             ...(carnivalRewardsResult?.items ?? {}),
             ...(mode15RewardsResult?.items ?? {})
@@ -675,6 +684,7 @@ export function settleSingleQuestFinishInTransaction(
             ...((clearReward?.character_list || []) as Record<string, unknown>[]),
             ...((sPlusClearReward?.character_list || []) as Record<string, unknown>[]),
             ...(scoreRewardsResult.character_list as Record<string, unknown>[]),
+            ...((waterGeraldReward?.character_list ?? []) as Record<string, unknown>[]),
             ...((rogueDrops?.rewardResult.character_list || []) as unknown as Record<string, unknown>[]),
             ...((rogueDrops?.expCharacterList || []) as unknown as Record<string, unknown>[]),
             ...((carnivalRewardsResult?.character_list || []) as Record<string, unknown>[]),
@@ -759,6 +769,7 @@ export function settleSingleQuestFinishInTransaction(
                     ...(clearReward?.joined_character_id_list || []),
                     ...(sPlusClearReward?.joined_character_id_list || []),
                     ...scoreRewardsResult.joined_character_id_list,
+                    ...(waterGeraldReward?.joined_character_id_list ?? []),
                     ...(carnivalRewardsResult?.joined_character_id_list || []),
                     ...(mode15RewardsResult?.joined_character_id_list || [])
                 ],

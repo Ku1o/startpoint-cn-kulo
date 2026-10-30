@@ -15,6 +15,7 @@ import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceSqlCommand, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { getExistingPlayerTimeStateSync, getPlayerBusinessDateSync, getPlayerBusinessOffsetSync } from "../../lib/player-time-compat";
 import { contentMissionDecision } from "../../lib/content-operations";
+import { assertWaterGeraldImportContinuitySync, importWaterGeraldClaimsSync, validateWaterGeraldClaims } from "./water-gerald-claim";
 
 type DailyChallengePointLookup = Record<string, { maxPoint: number, isRecovery: boolean, name: string }>
 
@@ -515,10 +516,14 @@ export function insertMergedPlayerDataSync(
     toInsert: MergedPlayerData
 ) {
     validateCategoryMissionList(toInsert.categoryMissionList)
+    validateWaterGeraldClaims(toInsert.waterGeraldClaims)
     const player = toInsert.player
     const playerId = player.id
     validatePortableDegreeList(toInsert.degreeList)
+    assertWaterGeraldImportContinuitySync(playerId, !!toInsert.waterGeraldClaims?.length,
+        toInsert.characterList?.["129989"] != null)
     insertPlayerSync(accountId, player)
+    importWaterGeraldClaimsSync(playerId, toInsert.waterGeraldClaims)
     for (const degree of toInsert.degreeList ?? []) {
         grantPlayerDegreeSync(playerId, degree.degreeId, degree.acquiredAt)
     }
@@ -1225,6 +1230,7 @@ export function adjustPlayerExpPoolSync(
 }
 
 const LEGACY_REPLACE_PRESERVED_RELATIONS = [
+    { table: "players_water_gerald_claims", where: "player_id = ?", parameters: (playerId: number) => [playerId] },
     // V1 has no representation for these paid draws or durable choices/quotas.
     ...["players_ex_boost_pending_draws", "players_shop_campaign_lineups", "players_bond_token_exchanges"].map(table => ({
         table, where: "player_id = ?", parameters: (playerId: number) => [playerId],
@@ -1413,6 +1419,7 @@ export function replacePlayerDataSync(
         replaceWith.categoryMissionList = getPlayerCategoryMissionListSync(playerId)
     }
     validateCategoryMissionList(replaceWith.categoryMissionList)
+    validateWaterGeraldClaims(replaceWith.waterGeraldClaims)
 
     // Import preserves the explicit EXP balance and starts regeneration in
     // the destination's existing clock mode. Source offsets and elapsed time
@@ -1440,6 +1447,8 @@ export function replacePlayerDataSync(
     }
 
     const replace = () => runPersistenceTransactionSync({ domain: "player", playerId, operation: "replace_player_data" }, () => {
+        assertWaterGeraldImportContinuitySync(playerId, !!replaceWith.waterGeraldClaims?.length,
+            replaceWith.characterList?.["129989"] != null)
         // V1 did not carry this newer lifetime statistic. Preserve an extreme
         // destination cell as stored, rather than round it through Player's Number.
         const legacyMana = getDb().prepare(`SELECT total_mana_obtained AS value,
@@ -1469,7 +1478,7 @@ export function replacePlayerDataSync(
             if (relation.rows.length === 0) continue
             const columns = Object.keys(relation.rows[0])
             const insert = getDb().prepare(`
-                INSERT INTO ${quotePlayerDataIdentifier(relation.table)}
+                INSERT ${relation.table === "players_water_gerald_claims" ? "OR IGNORE " : ""}INTO ${quotePlayerDataIdentifier(relation.table)}
                     (${columns.map(quotePlayerDataIdentifier).join(", ")})
                 VALUES (${columns.map(() => "?").join(", ")})
             `)

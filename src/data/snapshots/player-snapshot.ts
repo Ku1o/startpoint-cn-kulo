@@ -1,6 +1,7 @@
 import { createHash } from "crypto"
 import { parseCrazyGachaState } from "../domains/crazy_gacha"
 import { parseExBoostPendingRow } from "../domains/ex-boost-pending"
+import { assertWaterGeraldImportContinuitySync } from "../domains/water-gerald-claim"
 import { getExStatusPoolSync } from "../../lib/assets"
 import { ALL_ABILITIES } from "../../lib/ex-boost-abilities"
 import type { Database as BetterSqlite3Database } from "better-sqlite3"
@@ -172,6 +173,7 @@ export const PLAYER_SNAPSHOT_V2_TABLES = Object.freeze([
     "players_ex_boost_pending_draws",
     "players_shop_campaign_lineups",
     "players_bond_token_exchanges",
+    "players_water_gerald_claims",
 ] as const)
 
 // One additive schema generation. Older exact fingerprints retain destination
@@ -290,9 +292,11 @@ function getSchemaFingerprint(
     archiveTables?: PlayerSaveSnapshotV2["data"]["tables"],
     beforeCrazyGacha = false,
     beforeUpstreamBusiness = false,
+    beforeWaterGerald = false,
 ): string {
     const schema = PLAYER_SNAPSHOT_V2_TABLES.filter(table => !(beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)))
         .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha"))
+        .filter(table => !(beforeWaterGerald && table === "players_water_gerald_claims"))
         .filter(table => !(beforeUpstreamBusiness && UPSTREAM_BUSINESS_TABLES.has(table))).map(table => ({
         table,
         columns: (() => {
@@ -531,21 +535,24 @@ export function validatePlayerSaveSnapshotV2Sync(
         { beforeAbyssTowerRevision: true, beforeEconomyExtensions: true },
     ].flatMap(profile => [{ ...profile, beforeCrazyGacha: false }, { ...profile, beforeCrazyGacha: true }])
         .flatMap(profile => [{ ...profile, beforeUpstreamBusiness: false }, { ...profile, beforeUpstreamBusiness: true }])
+        .flatMap(profile => [{ ...profile, beforeWaterGerald: false }, { ...profile, beforeWaterGerald: true }])
         .find(profile => snapshot.schemaFingerprint === getSchemaFingerprint(
         db, profile.beforeAbyssTowerRevision, profile.beforeEconomyExtensions, snapshot.data?.tables,
         profile.beforeCrazyGacha,
         profile.beforeUpstreamBusiness,
+        profile.beforeWaterGerald,
     ))
     if (!schema) {
         throw new Error("存档数据库结构与当前服务器不一致，拒绝执行覆盖；请先使用匹配版本迁移")
     }
-    const { beforeAbyssTowerRevision, beforeEconomyExtensions, beforeCrazyGacha, beforeUpstreamBusiness } = schema
+    const { beforeAbyssTowerRevision, beforeEconomyExtensions, beforeCrazyGacha, beforeUpstreamBusiness, beforeWaterGerald } = schema
     if (!snapshot.data || typeof snapshot.data !== "object" || !snapshot.data.tables || typeof snapshot.data.tables !== "object") {
         throw new Error("存档缺少 data.tables")
     }
 
     const expectedTables = new Set<string>(PLAYER_SNAPSHOT_V2_TABLES.filter(table => !(beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)))
         .filter(table => !(beforeCrazyGacha && table === "players_crazy_gacha"))
+        .filter(table => !(beforeWaterGerald && table === "players_water_gerald_claims"))
         .filter(table => !(beforeUpstreamBusiness && UPSTREAM_BUSINESS_TABLES.has(table))))
     const actualTables = Object.keys(snapshot.data.tables)
     const missing = [...expectedTables].filter(table => !Object.prototype.hasOwnProperty.call(snapshot.data.tables, table))
@@ -556,6 +563,7 @@ export function validatePlayerSaveSnapshotV2Sync(
 
     let totalRows = 0
     for (const table of PLAYER_SNAPSHOT_V2_TABLES) {
+        if (beforeWaterGerald && table === "players_water_gerald_claims") continue
         if (beforeUpstreamBusiness && UPSTREAM_BUSINESS_TABLES.has(table)) continue
         if (beforeCrazyGacha && table === "players_crazy_gacha") continue
         if (beforeEconomyExtensions && ["players_special_exchange_campaigns", "players_exchange_campaign_receipts", "players_shop_quotas"].includes(table)) continue
@@ -595,6 +603,12 @@ export function validatePlayerSaveSnapshotV2Sync(
                 const sessionNumber = row[expectedColumns.indexOf("session_number")]
                 if (gachaId !== 100 || !Number.isSafeInteger(sessionNumber) || Number(sessionNumber) < 1) throw new Error("Invalid crazy gacha archive identity")
                 parseCrazyGachaState(row[expectedColumns.indexOf("state_json")] as string)
+            }
+            if (table === "players_water_gerald_claims") {
+                const claimedAt = row[expectedColumns.indexOf("claimed_at")]
+                if (tableData.rows.length > 1 || !Number.isSafeInteger(claimedAt) || Number(claimedAt) < 0) {
+                    throw new Error("Invalid permanent water Gerald reward progress")
+                }
             }
             if (table === "players_ex_boost_pending_draws") {
                 const pending = parseExBoostPendingRow(Object.fromEntries(expectedColumns.map((name, index) => [name, row[index]])))
@@ -700,6 +714,19 @@ export function restorePlayerSaveSnapshotV2Sync(
         // Check against the destination while holding the restore transaction,
         // before deleting any character, inventory, or pending selection rows.
         assertExBoostImportContinuity(snapshot, targetPlayerId, db)
+        const sourceCharacters = snapshot.data.tables.players_characters
+        assertWaterGeraldImportContinuitySync(targetPlayerId,
+            !!snapshot.data.tables.players_water_gerald_claims?.rows.length,
+            sourceCharacters.rows.some(row => row[sourceCharacters.columns.indexOf("id")] === 129989), db)
+        // A portable permanent claim is monotonic across imports. Preserve a
+        // destination claim even when importing an empty newer archive; old
+        // exact schemas omit the table and already preserve it by policy.
+        const incomingWaterClaim = snapshot.data.tables.players_water_gerald_claims
+        const targetWaterClaim = readSnapshotTable(db, "players_water_gerald_claims", targetPlayerId)
+        const mergedWaterClaim = incomingWaterClaim && targetWaterClaim.rows.length
+            ? { columns: incomingWaterClaim.columns, rows: [incomingWaterClaim.columns.map(column =>
+                targetWaterClaim.rows[0][targetWaterClaim.columns.indexOf(column)])] }
+            : incomingWaterClaim
         // Grants are target-local. Preserve their exact mail payload and claim
         // status while remapping IDs after the source mailbox is restored.
         const targetDailyMails = includeArchiveHistory
@@ -739,7 +766,8 @@ export function restorePlayerSaveSnapshotV2Sync(
         if (playerUpdate.changes !== 1) throw new Error("目标玩家主记录更新失败")
 
         for (const table of restoredTables) {
-            const tableData = table === "players_mails" ? portableMails : snapshot.data.tables[table]
+            const tableData = table === "players_mails" ? portableMails
+                : table === "players_water_gerald_claims" ? mergedWaterClaim! : snapshot.data.tables[table]
             const omitted = REMAPPED_AUTOINCREMENT_IDS.get(table) ?? new Set<string>()
             const insertColumns = tableData.columns.filter(column => !omitted.has(column))
             if (tableData.rows.length === 0) continue
@@ -793,7 +821,7 @@ export function restorePlayerSaveSnapshotV2Sync(
             const expected = table === "players_mails"
                 ? { columns: portableMails.columns, rows: [...portableMails.rows,
                     ...targetDailyMails.map(mail => portableMails.columns.map(column => mail[column]))] }
-                : snapshot.data.tables[table]
+                : table === "players_water_gerald_claims" ? mergedWaterClaim! : snapshot.data.tables[table]
             assertRestoredTable(db, table, expected, targetPlayerId)
         }
         if (targetTimeState) {

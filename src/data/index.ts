@@ -18,6 +18,7 @@ import { initializeBondTokenExchange } from "./initializers/bond-token-exchange"
 import { initializeGiftCodes } from "./initializers/gift-codes";
 import { initializeExBoostPendingSchema } from "./initializers/ex-boost-pending";
 import { initializeShopCampaignLineups } from "./initializers/shop-campaign-lineups";
+import { initializeWaterGeraldClaim } from "./initializers/water-gerald-claim";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
@@ -136,6 +137,7 @@ export default function getDatabase(
             initializeGiftCodes(db)
             initializeExBoostPendingSchema(db)
             initializeShopCampaignLineups(db)
+            initializeWaterGeraldClaim(db)
             console.log("[DB] init done")
 
             // try to update after initialization

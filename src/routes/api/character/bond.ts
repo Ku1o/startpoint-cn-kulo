@@ -10,6 +10,7 @@ import { clientSerializeDate } from "../../../data/utils";
 import { resolvePlayerIdSync } from "../../../data/activeAccount";
 import { validateSessionAndPlayer, buildCharacterListEntry, sendCharacterResponse, type CharacterResponseData } from "../../../lib/character-helpers";
 import { characterExpCaps } from "../../../lib/character";
+import { getCharacterExpCap } from "../../../lib/character-overlimit";
 import { reconcileAwakeUnlockCharacterList } from "../../../lib/mission";
 import { gameVerboseLog } from "../../../lib/game-logging";
 import { runPersistenceTransaction } from "../../../lib/persistence-coordinator";
@@ -120,6 +121,13 @@ const routes = async (fastify: FastifyInstance) => {
             }
             if (openManaBoardRequiredUncaps[characterAssetData.rarity] > character.overLimitStep) {
                 return { error: "Character is not uncapped enough to unlock mana board." }
+            }
+            // Water Gerald's second and later boards require level 120.
+            if (manaBoardIndex >= 2 && characterId === 129989) {
+                const level120Exp = getCharacterExpCap(characterId, characterAssetData.rarity, 8)
+                if (level120Exp === undefined || character.exp < level120Exp) {
+                    return { error: "Character level is too low to unlock mana board." }
+                }
             }
             const previous = character.bondTokenList.find(token => token.manaBoardIndex === manaBoardIndex - 1)
             if (manaBoardIndex > 1 && (previous?.status ?? 0) < 1) {

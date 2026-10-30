@@ -37,6 +37,7 @@ import { hijackUnavailableReply } from "../../lib/http-reply";
 import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { ServerClosingError } from "../../lib/shutdown-state";
 import { isPersistenceAdmissionError } from "../../lib/persistence-admission";
+import { WaterGeraldImportConflictError } from "../../data/domains/water-gerald-claim";
 
 interface SaveQuery {
     id: string | undefined
@@ -281,7 +282,7 @@ const routes = async (fastify: FastifyInstance) => {
                 ? `；旧回滚备份清理失败：${backupCleanup.backupCleanupError}`
                 : ""
             return fail(`恢复失败：${error?.message ?? error}${backupHint}${cleanupHint}`,
-                error instanceof ExBoostImportConflictError ? 400 : 500)
+                error instanceof ExBoostImportConflictError || error instanceof WaterGeraldImportConflictError ? 400 : 500)
         }
     })
 
