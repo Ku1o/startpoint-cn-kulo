@@ -29,6 +29,31 @@ function api() {
         ...require('../out/lib/content-operations-store'),
     }
 }
+function releaseApi() { return require('../out/lib/content-release-supplement') }
+function supplementCapture(options, p, plan) {
+    if (!plan.bindings.length) return undefined
+    if (!options.previousSource) throw Error('身份重绑定需要固定旧源目录；声明JSON不能代替实际捕获')
+    return require('../tools/content-release-capture.cjs').createReleaseCaptureSession({ previousSource: options.previousSource, currentSource: p.root })
+}
+function loadSupplement(options, p) {
+    if (!options.supplement) {
+        if (options.planDigest) throw Error('--plan-digest requires --supplement')
+        return null
+    }
+    if (!/^[a-f0-9]{64}$/.test(options.planDigest || '')) throw Error('补充应用需要明确的 --plan-digest')
+    if (fs.statSync(options.supplement).size > 32 * 1024 * 1024) throw Error('补充计划超过32MiB')
+    const value = readJson(options.supplement)
+    const same = (a, b) => process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b
+    const modulePath = path.join(p.root, 'out/lib/content-release-supplement.js')
+    const producer = require('../tools/content-release-capture.cjs')
+    if (value.format !== 1 || value.kind !== 'reviewed-content-release-supplement'
+        || typeof value.targetDatabase !== 'string' || !same(path.resolve(value.targetDatabase), p.database)
+        || value.sourceModuleSha256 !== sha(fs.readFileSync(modulePath)) || value.plan?.digest !== options.planDigest
+        || value.captureProducerSha256 !== producer.PRODUCER_SHA256)
+        throw Error('补充计划目标、程序或审阅摘要不匹配')
+    options.previousSource = value.previousSource
+    return value.plan
+}
 function assertVersion(p) {
     if (Number(fs.readFileSync(p.database + '.version', 'utf8').trim()) !== require('../out/lib/storage-layout').WDFP_DATA_VERSION)
         throw Error('数据库版本不匹配；先使用对应版本的基础升级流程')
@@ -59,14 +84,32 @@ function validateInputs(p) {
 function inspectDatabase(db, a) {
     const clock = a.readServerClockStateSync(db)
     const hasContent = !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='content_operations_meta'").get()
-    const content = hasContent ? a.inspectContentDeploymentSync(a.createContentOperationsStore(db)) : { ready: false, reasons: ['尚未初始化内容运营表'] }
+    // A supplemental receipt authenticates the new catalog without rewriting or
+    // replaying the original fixed-July deployment/box markers.
+    const supplemented = !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='content_release_supplements'").get()
+    const content = hasContent ? (supplemented
+        ? releaseApi().inspectContentReleaseSupplementSync(a.createContentOperationsStore(db))
+        : a.inspectContentDeploymentSync(a.createContentOperationsStore(db))) : { ready: false, reasons: ['尚未初始化内容运营表'] }
     return { ready: clock?.snapshot.mode === 'real' && content.ready, timeMode: clock?.snapshot.mode ?? 'legacy',
         clockPlanDigest: clock?.planDigest ?? null, content }
 }
 function inspect(options) {
     const p = paths(options.project); assertVersion(p)
     const inputs = validateInputs(p), a = api(), db = new Sqlite(p.database, { readonly: true, fileMustExist: true })
-    try { return { database: p.database, ...inspectDatabase(db, a), inputs, maintenanceLocked: p.locks.some(file => fs.existsSync(file)) } }
+    try {
+        const plan = loadSupplement(options, p)
+        if (plan) {
+            const store = a.createContentOperationsStore(db), clock = a.readServerClockStateSync(db)
+            releaseApi().validateContentReleasePlanSync(store, plan, options.planDigest)
+            const content = releaseApi().inspectContentReleaseSupplementSync(store)
+            if (!content.ready) releaseApi().validateContentReleaseIdentityCaptureSync(store, plan, supplementCapture(options, p, plan))
+            if (!content.ready && a.getDeploymentDatabaseFingerprintSync(db) !== plan.databaseFingerprint) throw Error('预览目标已经变化')
+            return { database: p.database, ready: clock?.snapshot.mode === 'real' && content.ready,
+                canApply: clock?.snapshot.mode === 'real' && !content.ready, content, inputs,
+                preservedKeys: plan.preservedKeys, maintenanceLocked: p.locks.some(file => fs.existsSync(file)) }
+        }
+        return { database: p.database, ...inspectDatabase(db, a), inputs, maintenanceLocked: p.locks.some(file => fs.existsSync(file)) }
+    }
     finally { db.close() }
 }
 function processAlive(pid) { if (!Number.isSafeInteger(pid) || pid <= 0) throw Error('服务进程记录无效'); try { process.kill(pid, 0); return true } catch (error) { if (error.code === 'ESRCH') return false; throw error } }
@@ -122,11 +165,12 @@ function loadState(p) {
 }
 async function apply(options) {
     const p = paths(options.project); assertVersion(p)
-    const inputs = validateInputs(p), a = api(); await assertStopped(p)
+    const inputs = validateInputs(p), a = api(), supplement = loadSupplement(options, p); await assertStopped(p)
     fs.mkdirSync(p.maintenance, { recursive: true })
     const runId = crypto.randomUUID(), backupDir = path.join(p.data, 'time-content-backups', runId)
     const state = { format: 1, kind: 'time-content-deployment', runId, database: p.database, phase: 'locking',
         createdAt: new Date().toISOString(), backup: path.join(backupDir, 'wdfp_data.db'), inputs }
+    if (supplement) state.supplementPlanDigest = supplement.digest
     const acquired = []
     try {
         for (const file of p.locks) { fs.writeFileSync(file, JSON.stringify(state), { flag: 'wx' }); acquired.push(file) }
@@ -137,7 +181,14 @@ async function apply(options) {
         await assertStopped(p)
         db = new Sqlite(p.database, { fileMustExist: true, timeout: 1000 })
         db.pragma('locking_mode=EXCLUSIVE'); db.exec('BEGIN EXCLUSIVE; COMMIT')
-        const before = inspectDatabase(db, a)
+        const before = supplement ? (() => {
+            const store = a.createContentOperationsStore(db)
+            releaseApi().validateContentReleasePlanSync(store, supplement, options.planDigest)
+            if (a.readServerClockStateSync(db)?.snapshot.mode !== 'real') throw Error('补充计划要求已经迁移的真实时间；不能重放旧切换')
+            const content = releaseApi().inspectContentReleaseSupplementSync(store)
+            if (content.ready && content.planDigest !== supplement.digest) throw Error('本批已有不同回执，禁止重放')
+            return { ready: content.ready, content }
+        })() : inspectDatabase(db, a)
         // A repeat after later player progress or operator changes performs no writes.
         if (before.ready) {
             state.phase = 'already-ready'; state.result = before; saveJson(p.state, state)
@@ -161,10 +212,14 @@ async function apply(options) {
         state.result = a.withDeploymentMaintenanceTransactionSync(db, guard, context => {
             a.initializeContentOperationsSchema(db)
             const store = a.createContentOperationsStore(db)
-            const content = a.applyContentDeploymentMaintenanceSync(store, context, { nowMs: state.cutoverRealMs })
+            const content = supplement
+                ? releaseApi().applyContentReleaseSupplementSync(store, supplement, options.planDigest, context, state.cutoverRealMs,
+                    undefined, undefined, supplementCapture(options, p, supplement))
+                : a.applyContentDeploymentMaintenanceSync(store, context, { nowMs: state.cutoverRealMs })
             if (options.faultAt === 'after-content') throw Error('Injected failure after content')
             let clock = a.readServerClockStateSync(db)
             if (!clock) {
+                if (supplement) throw Error('补充维护不得初始化或改写服务器时钟')
                 const coordinate = { cutoverRealMs: state.cutoverRealMs, legacyOffsetMs: state.legacyOffsetMs }
                 const plan = a.planRealServerClockMaintenanceSync(db, coordinate, context)
                 clock = a.activateRealServerClockMaintenanceSync(db, { ...coordinate, expectedPlanDigest: plan.digest }, context)
@@ -265,7 +320,17 @@ async function rollback(options) {
 }
 async function main(args) {
     const command = args.shift(), options = { project: path.resolve(__dirname, '..') }
-    while (args.length) { const key = args.shift(); if (key !== '--project' || !args[0]) throw Error('仅支持 --project <服务目录>'); options.project = path.resolve(args.shift()) }
+    const seen = new Set()
+    while (args.length) {
+        const key = args.shift()
+        if (!['--project', '--supplement', '--plan-digest'].includes(key) || seen.has(key) || !args[0] || args[0].startsWith('--')) throw Error('无效或重复的迁移参数')
+        seen.add(key)
+        const value = args.shift()
+        if (key === '--project') options.project = path.resolve(value)
+        else if (key === '--supplement') options.supplement = path.resolve(value)
+        else options.planDigest = value
+    }
+    if ((options.supplement || options.planDigest) && !['preview', 'verify', 'apply'].includes(command)) throw Error('补充计划参数仅用于 preview、verify、apply')
     let result
     if (command === 'preview' || command === 'verify') { result = inspect(options); if (command === 'verify' && !result.ready) throw Error('时间或内容设置尚未迁移；请执行迁移工具，不要直接开服') }
     else if (command === 'apply') result = await apply(options)
@@ -275,5 +340,5 @@ async function main(args) {
     else throw Error('用法：node --env-file=.env scripts/time-content-deployment.cjs preview|apply|verify|release|rollback|recover')
     console.log(JSON.stringify(result, null, 2))
 }
-module.exports = { paths, inspect, apply, release, rollback, recover, validateInputs, assertStopped, main }
+module.exports = { paths, inspect, apply, release, rollback, recover, validateInputs, assertStopped, main, loadSupplement, inspectDatabase }
 if (require.main === module) main(process.argv.slice(2)).catch(error => { console.error(error.message); process.exitCode = 1 })

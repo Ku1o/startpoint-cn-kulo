@@ -44,6 +44,8 @@ RUNTIME_EXACT_PATHS = {
     "tools/build-content-discovery-gacha.py",
     "tools/build-content-discovery-rewards.cjs",
     "tools/build-content-discovery.cjs",
+    "tools/content-release-capture.cjs",
+    "tools/prepare-content-release.cjs",
 }
 DISCOVERY_GENERATORS = {
     "tools/build-content-discovery-gacha.py",
@@ -57,6 +59,7 @@ RUNTIME_PREFIXES = ("src/", "out/", "assets/", "scripts/", "package.json", "pack
 EXCLUDED_PATTERNS = (
     "assets/asset-patch/audit/",
     "assets/asset-patch/artwork/",
+    "assets/asset-patch/specs/",
     "assets/asset-patch/production/",
     "production/",
     "config/",

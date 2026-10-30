@@ -214,6 +214,21 @@ class CloudOverlayReleaseTest(unittest.TestCase):
         self.assertEqual(destination.read_bytes(), b"independently published archive")
         self.assertEqual(list(folder.iterdir()), [destination])
 
+    def test_release_supplement_tools_ship_without_resource_recipe_inputs(self):
+        required = ["tools/content-release-capture.cjs", "tools/prepare-content-release.cjs"]
+        excluded = ["tools/rebuild_production_20261031_cdn.py",
+                    "assets/asset-patch/specs/production-20261031/release344.json",
+                    "assets/asset-patch/specs/production-20261031/inputs/ticket.png"]
+        for name in required + excluded:
+            self.write(name, ("fixture " + name + "\n").encode())
+        self.commit("release supplement runtime dependencies")
+        result = self.invoke("--batch", "supplement-tools", "--base", self.base)
+        with zipfile.ZipFile(result["zip"]) as archive:
+            self.assertEqual(set(archive.namelist()), {
+                "src/runtime.txt", "out/runtime.js", "src/new-runtime.txt", *required})
+            for name in required:
+                self.assertEqual(archive.read(name), ("fixture " + name + "\n").encode())
+
     def test_cdn_zip_bytes_and_inner_production_are_preserved(self):
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w") as archive:

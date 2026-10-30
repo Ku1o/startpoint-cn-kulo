@@ -48,6 +48,84 @@ Administrative reads use bounded shared work, scoped captures and compact card p
 
 The wider panel loads pages/lists on demand, paginates accounts/seeds, separates player-detail sections and caches suitable static status/lookups. Authentication recovery and edit guards preserve drafts/pending actions. News HTML checks run on the server as well as in the editor. Frontend builds include gzip/Brotli sidecars; player data is not public cache content.
 
+## Explicit 350 release supplement
+
+The Halloween supplement is separate from the original fixed-July initialization.
+It does not rewrite initialization, deployment or reward-box markers, and does not
+replay the old migration. Persistent real time must already be active. The terminal
+`assets/asset-patch/manifest.json` must be 1.4.350; the catalog's original master
+export is a separate identity and can remain older.
+The original reviewed 9599-key set must remain complete before preview/application
+and during later verification; a new receipt cannot absorb missing old controls.
+
+The exact new scope is `advent_event:300097`, its 31 reviewed products
+`9730001, 9730007, 9730008, 9730010, 9730011, 9730101–9730126`, the parent entry's
+ten quest members `7/8:300097001–300097005`, and `gacha:990005`. Quest members are
+scopes, not additional control rows. Omitted products and other events are not
+added. New products receive reviewed visible/exchange actions, with no `published`
+field. The new pool receives visible/enter and an explicit disabled exchange;
+existing pool rights are preserved. No claim action, inventory, stock, player
+progress, town or clock change belongs to this supplement.
+
+Every existing control takes precedence, including unverified/disabled actions,
+manual publication closes, finite or expired deadlines, instances and custom
+member scopes. Preview lists their saved settings and observed effective flags,
+even when closed. Application does not promise that all content is open. A receipt
+means the migration was applied and identities match; later operator changes
+remain authoritative. Existing unsupported publication markers require a separate
+reviewed repair and are not silently removed here.
+
+Build the final source and dependent indexes before preparing a target plan:
+
+```powershell
+node tools/prepare-content-release.cjs --database <physical-target-file> --output <new-local-plan.json> --evidence <review-sha256> --previous-source <pinned-old-source-root>
+node scripts/time-content-deployment.cjs preview --project <service-root> --supplement <local-plan.json> --plan-digest <reviewed-plan-digest>
+node scripts/time-content-deployment.cjs apply --project <service-root> --supplement <local-plan.json> --plan-digest <reviewed-plan-digest>
+node scripts/time-content-deployment.cjs verify --project <service-root>
+node scripts/time-content-deployment.cjs release --project <service-root>
+```
+
+Preview opens only the explicit database read-only. Apply reuses strict stopped
+process/port checks, maintenance locks, SQLite backup verification, the exclusive
+transaction and recovery journal. It keeps the service stopped until normal
+verify/release completes. A changed target requires a fresh preview. Do not invoke
+the ordinary initialization Apply as a substitute for explicit supplement args.
+
+When persisted identities are old, `--previous-source` must name a fixed read-only
+old program/resource tree whose computed identities match the saved controls.
+`tools/content-release-capture.cjs` is the actual producer. It loads old/current
+programs with separate module caches, blocks database/process/write access, and
+calls their real effective shop, quest/clear/score/rare reward, gacha/payment,
+mission, pass, box and exchange accessors. Parent shop-definition evidence is
+always augmented with actual quest/reward closure. Captures include the complete
+exported payment/execution matrix plus actual gacha
+campaign assignment, including null. Missing payment support is a pending review,
+not an assumed fallback. The preview domain import blocks the default database
+module/initializer so it cannot implicitly create a default data directory.
+The producer hashes itself
+and the source inputs read; archives use the existing bounded member parser and
+change detection, never whole-archive reads. Compiled `out/` accessors are used
+when present. Source-only archives additionally need the existing TypeScript
+toolchain; this does not authorize installing it on a target.
+
+The plan embeds the produced old/current captures. Application re-captures both
+program trees inside the maintenance transaction and compares them with the plan
+and current store. External capture JSON is not an accepted input. Equal declared
+hashes, omitted prices/rewards or an arbitrary capture-engine SHA cannot replace
+actual accessors. Unsupported types or unresolved source/resource differences
+are rejected and listed for review. Business fields, dependencies, capabilities
+and members must compare exactly. Keep the fixed old program/resources available
+through application; a successful receipt allows later verify/idempotent no-op
+without reopening the old tree. Local plans are bounded to 32 MiB.
+
+Identity-only writes change just catalog/content identities and revision, append
+audits, and preserve all other saved fields. Player tables and old audits are
+checked before and after. The durable receipt prevents replay: repeating the same
+plan after player progress or later operator closes performs no business writes.
+Target plans, backups, captures and logs remain private local maintenance material
+and must not enter Git or player downloads. Synthetic tests do not establish
+cloud adaptation or device acceptance.
+
 ## Build, verification and release
 
 Build from the final integrated source and regenerate dependent indexes with the committed generators. Definition/native/runtime-index tools provide deterministic checks. Discovery fragments/merge bind the actual source tools. Offline image export/thumbnail generation preserve originals and reject protected source/CDN outputs.
