@@ -68,6 +68,7 @@ import { isValidNormalPartySlotSync } from "../../data/domains/party";
 import { usesNormalCurrentPartySlot } from "../../lib/party-current-slot";
 
 import { isContentQuestOpenAt } from "../../lib/content-operations";
+import { isQuestContinueForbidden } from "../../lib/quest-continue-policy";
 import { registerAcceptedRescueBattleSync } from "../../lib/mission/rescue-battle-facts";
 
 async function buildFinishFollowInfo(
@@ -889,7 +890,11 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         const { playerId } = ctx;
 
-        if (isFiveBossContinueRequest(playerId, Number(body.category), Number(body.quest_id), body.play_id)) {
+        const persisted = getPlayerActiveQuestSync(playerId)
+        const matchingMultiPlay = persisted?.isMulti && persisted.playId === body.play_id
+        const continueCategory = matchingMultiPlay ? persisted.category : Number(body.category)
+        const continueQuestId = matchingMultiPlay ? persisted.questId : Number(body.quest_id)
+        if (isFiveBossContinueRequest(playerId, continueCategory, continueQuestId, body.play_id)) {
             try {
                 const data = await continueFiveBoss({ playerId, category: Number(body.category), questId: Number(body.quest_id),
                     playId: body.play_id, isMulti: true, apiCount: body.api_count, statistics: body.statistics })
@@ -917,7 +922,6 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             }
         }
 
-        const persisted = getPlayerActiveQuestSync(playerId)
         let activeData: ActiveQuest | undefined = persisted?.isMulti
             && persisted.playId === body.play_id
             ? activeQuests[playerId]?.playId === body.play_id
@@ -934,14 +938,24 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 data: { continue_count: 0 },
             })
         }
-        const nextContinueCount = activeData.continueCount + 1;
+        let nextContinueCount = 0, continueForbidden = false;
         const updated = await runPersistenceTransaction({
             domain: "multi-settlement", playerId, operation: "continue",
-        }, () => updatePlayerActiveQuestContinueCountIfPlayIdSync(
-            playerId,
-            activeData!.playId,
-            nextContinueCount,
-        ));
+        }, () => {
+            // The queue may have advanced since the HTTP preflight. Only the
+            // persisted current play decides identity, policy and count.
+            const current = getPlayerActiveQuestSync(playerId)
+            if (!current?.isMulti || current.playId !== body.play_id) return false
+            if (isQuestContinueForbidden(current.category, current.questId)) {
+                continueForbidden = true
+                return false
+            }
+            nextContinueCount = current.continueCount + 1
+            return updatePlayerActiveQuestContinueCountIfPlayIdSync(playerId, current.playId, nextContinueCount)
+        });
+        if (continueForbidden) {
+            return reply.status(400).send({ error: "Bad Request", message: "Continue is unavailable for this difficulty." })
+        }
         if (!updated) {
             if (activeQuests[playerId]?.playId === body.play_id) {
                 delete activeQuests[playerId]

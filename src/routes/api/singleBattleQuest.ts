@@ -1,5 +1,6 @@
 import { recordContentActionFactsSync } from "../../lib/mission/content-action-facts";
 import { parseSingleContinueExpectedCount } from "../../lib/quest/single-continue-request";
+import { isQuestContinueForbidden } from "../../lib/quest-continue-policy";
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
 import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueError,
     isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
@@ -1071,6 +1072,9 @@ const routes = async (fastify: FastifyInstance) => {
             }
             if (current.continueCount === Number.MAX_SAFE_INTEGER) {
                 return { ok: false as const, message: "Continue count cannot be incremented." }
+            }
+            if (isQuestContinueForbidden(current.category, current.questId)) {
+                return { ok: false as const, message: "Continue is unavailable for this quest difficulty." }
             }
             const freeCost = Math.min(freshPlayer.freeVmoney, continueVmoneyCost)
             const paidCost = continueVmoneyCost - freeCost
