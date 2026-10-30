@@ -3,6 +3,7 @@ export type BossRewardMode = "solo" | "multi"
 export interface BossRewardContext {
     readonly questId?: number
     readonly mode: BossRewardMode
+    readonly accomplished?: boolean
 }
 
 export interface BossRewardProfile {

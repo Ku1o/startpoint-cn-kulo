@@ -1,0 +1,12 @@
+'use strict';
+require('ts-node/register/transpile-only');
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {getGachaTicketCost}=require('../src/lib/gacha-ticket');
+const {buildGachaExecPlan}=require('../src/lib/gacha-exec-plan');
+const {defaultContentDecision}=require('../src/lib/content-operations-defaults');
+const gacha=require('../assets/gacha_halloween_2026.json')['990005'];
+const input=(paymentType,execType,count=1,balance=1)=>({gacha,paymentType,execType,numberOfExec:count,playerFunds:{freeVmoney:10000,paidVmoney:10000},playerGachaData:{isAccountFirst:true,isDailyFirst:true,gachaExchangePoint:0},getTicketCount:id=>id===999023?balance:999});
+test('a configured Halloween coupon plans ten draws and one coupon debit while preserving both stone balances',()=>{assert.deepEqual(getGachaTicketCost(4,1,gacha),{itemId:999023,useTicketCount:1,pullCount:10});const r=buildGachaExecPlan(input(3,4));assert.equal(r.ok,true);assert.equal(r.plan.pullCount,10);assert.deepEqual(r.plan.ticket,{itemId:999023,beforeCount:1,afterCount:0,useTicketCount:1});assert.equal(r.plan.freeVmoney,10000);assert.equal(r.plan.paidVmoney,10000);});
+test('single, wildcard, stone and campaign payments cannot substitute for the dedicated ten-draw coupon',()=>{for(const[payment,type]of[[1,1],[1,2],[2,5],[3,3],[3,9],[3,10],[3,12],[3,13],[4,7],[4,8]])assert.equal(buildGachaExecPlan(input(payment,type)).ok,false,`${payment}/${type}`);});
+test('a missing coupon or insufficient coupons cannot produce a draw plan',()=>{assert.equal(buildGachaExecPlan(input(3,4,1,0)).ok,false);assert.equal(buildGachaExecPlan(input(3,4,2,1)).ok,false);assert.equal(getGachaTicketCost(3,1,gacha),null);assert.equal(getGachaTicketCost(9,1,gacha),null);});
+test('a new uncontrolled pool closes draw and point exchange while legacy accrued-point exchange retains its rule',()=>{const row={type:'gacha',id:990005,key:'gacha:990005',uncontrolledExchangeAllowed:false};for(const action of['visible','enter','exchange'])assert.equal(defaultContentDecision(row,action),false);assert.equal(defaultContentDecision({...row,uncontrolledExchangeAllowed:undefined},'exchange'),true);});

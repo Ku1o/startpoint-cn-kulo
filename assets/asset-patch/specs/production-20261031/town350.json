@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "module": "tools/production_20261031_cdn/town350.py",
+  "baseVersion": "1.4.349",
+  "targetVersion": "1.4.350",
+  "baselineManifestSha256": "3ef0092cd89ddc6119d2e924244b40df414bebfa6d0ae4cff63dcdf30e03b526",
+  "input": {
+    "relative": "inputs/town-halloween-twilight-700x900.png",
+    "sha256": "2d9a3d8efb8d0495db35ef50e5b22be27214b06bb69d00078ce67cd95db29170",
+    "bytes": 498509,
+    "size": [
+      700,
+      900
+    ],
+    "mode": "RGBA"
+  },
+  "baselineResources": [
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background.png",
+      "bytes": 1010318,
+      "sha256": "e2f7a926934b427dac579380dd18952696e5ab518899a25407e9fe0892d53fcd"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_blur.png",
+      "bytes": 248913,
+      "sha256": "26529323ad0daa6872130df02498933d945f988a205f4a75f5e5c706743c1a95"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_mask.png",
+      "bytes": 1116881,
+      "sha256": "9f8dc048bafcf1e9f7f6da73918d71eb6660bb681e5bdc5409f09b46c3b0a267"
+    }
+  ],
+  "outputResources": [
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background.png",
+      "bytes": 498509,
+      "sha256": "7711c9a4bb235cbb6aecbbfa5541be12c9a19f72f3f3246695e49f0dcde93c30"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_blur.png",
+      "bytes": 157530,
+      "sha256": "8aa44bc1f7d514c48b4a32d37eb4bb4eed19a9d512513e6465134593723987bb"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_mask.png",
+      "bytes": 498739,
+      "sha256": "eb263d4f2dfce2fe261b962452d140616fd87946ca7dc358b31b294673dc8c75"
+    }
+  ],
+  "constraints": {
+    "background": "town/background/halloween2026/background.png",
+    "mask": "town/background/halloween2026/background_mask.png",
+    "blur": "town/background/halloween2026/background_blur.png",
+    "inheritedMaskAlphaSha256": "cd6e70f662d3ddf3d164ee4f78253a7275e3c860ed672166d480998d2121084b",
+    "blurRecipe": {
+      "size": [
+        350,
+        450
+      ],
+      "resample": "LANCZOS",
+      "gaussianRadius": 1.25,
+      "pngOptimize": true
+    },
+    "mainOrdinaryPngByteExactAfterStoredHeader": true,
+    "mainResizedOrReencoded": false,
+    "maskNewRgbAnd349AlphaExact": true,
+    "oldLayoutsParticlesAudioDatesMasterLichUnchanged": true
+  },
+  "provenance": {
+    "originalPixelSourceSha256": "e8011b1197a3c1790ff261408509c13184c2f5dc3655599f8a5541361845acee",
+    "sourcePixelsResampled": false,
+    "sourceGeometryRegenerated": false
+  },
+  "determinism": "Encoded targets must match all recorded SHA256 values; incompatible PNG codec output fails instead of being accepted silently.",
+  "verificationScope": "Native resource bytes and pixel preservation; camera, occlusion and device rendering acceptance are separate.",
+  "externalInputs": []
+}

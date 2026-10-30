@@ -18,6 +18,7 @@ import baseGachas from "../../assets/gacha.json"
 import cnmodGachas from "../../assets/gacha_cnmod.json"
 import rankP5bGachas from "../../assets/gacha_rank_p5b.json"
 import midautumnGachas from "../../assets/gacha_midautumn_2026.json"
+import halloweenGachas from "../../assets/gacha_halloween_2026.json"
 import baseItemIds from "../../assets/item_ids.json"
 import rankP5bItemIds from "../../assets/item_ids_rank_p5b.json"
 import baseManaNodes from "../../assets/mana_node.json"
@@ -28,7 +29,7 @@ export const serverCharacters = { ...baseCharacters, ...rankP5bCharacters }
 export const cdnCharacters = { ...baseCdnCharacters, ...rankP5bCdnCharacters }
 export const cdnCharacterTexts = { ...baseCdnCharacterTexts, ...rankP5bCdnCharacterTexts }
 export const degreeDefinitions = { ...baseDegrees, ...rankP5bDegrees, ...sponsorDegrees, ...characterDegrees, ...exclusiveDegrees, ...seasonalDegrees }
-export const serverGachas = { ...baseGachas, ...cnmodGachas, ...rankP5bGachas, ...midautumnGachas }
+export const serverGachas = { ...baseGachas, ...cnmodGachas, ...rankP5bGachas, ...midautumnGachas, ...halloweenGachas }
 export const serverManaNodes = { ...baseManaNodes, ...cnmodManaNodes, ...rankP5bManaNodes }
 export const serverItemIds = [...new Set([...baseItemIds, ...rankP5bItemIds])]
 

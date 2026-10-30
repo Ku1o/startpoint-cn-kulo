@@ -348,7 +348,7 @@ export function settleSingleQuestFinishInTransaction(
             effectiveScoreRewardGroup,
             useBoostPoint,
             questData.element,
-            { questId, mode: "solo" },
+            { questId, mode: "solo", accomplished: questAccomplished },
         )
         let scoreAttackEventData: { reward_ids: number[], main_character_ids: Record<string, number> } | null = null
         if (isScoreAttackEvent) {

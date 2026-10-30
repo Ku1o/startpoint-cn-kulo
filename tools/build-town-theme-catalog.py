@@ -43,6 +43,31 @@ def inside(path, root):
     return path == root or root in path.parents
 
 
+def resolve_trusted_cdn_root(resource_root, declared):
+    if declared is None:
+        return None
+    target = Path(declared).resolve(strict=True)
+    if not target.is_dir() or (resource_root / '.cdn').resolve(strict=True) != target:
+        raise ValueError('trusted CDN root must equal the resource-root/.cdn physical target')
+    return target
+
+
+def archive_path(resource_root, relative, trusted_cdn_root=None):
+    relative = safe_relative(relative, archive=True)
+    resolved = (resource_root / relative).resolve(strict=True)
+    if trusted_cdn_root is not None:
+        # Recheck the alias on every access, not only when arguments are parsed.
+        if (resource_root / '.cdn').resolve(strict=True) != trusted_cdn_root:
+            raise ValueError('trusted CDN alias changed during capture')
+        if Path(relative).parts[0] == '.cdn':
+            if not inside(resolved, trusted_cdn_root):
+                raise ValueError('archive escapes the trusted CDN root')
+            return resolved
+    if not inside(resolved, resource_root):
+        raise ValueError('archive escapes the read-only resource root')
+    return resolved
+
+
 def text(value, limit):
     return isinstance(value, str) and bool(value.strip()) and len(value) <= limit and not re.search(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', value)
 
@@ -165,20 +190,20 @@ def required_resources(row):
     return list(dict.fromkeys(wanted))
 
 
-def verify_identity(root, logical, raw, identity, exporter):
+def verify_identity(root, logical, raw, identity, exporter, trusted_cdn_root=None):
     if not isinstance(raw, bytes) or not 1 <= len(raw) <= MAX_RESOURCE:
         raise ValueError('missing/oversize resource: ' + logical)
     if not isinstance(identity, dict) or identity.get('sha256') != sha(raw):
         raise ValueError('resource digest mismatch: ' + logical)
     archive = safe_relative(identity.get('archive'), archive=True)
-    archive_path = (root / archive).resolve(strict=True)
-    if not inside(archive_path, root) or not archive_path.is_file():
-        raise ValueError('archive escapes the read-only resource root')
+    archive_file = archive_path(root, archive, trusted_cdn_root)
+    if not archive_file.is_file():
+        raise ValueError('archive is not a file')
     member = exporter.member(logical)
     safe_relative(member)
     if identity.get('member', member) != member:
         raise ValueError('member does not match native logical hash: ' + logical)
-    with zipfile.ZipFile(archive_path) as source:
+    with zipfile.ZipFile(archive_file) as source:
         members = [info for info in source.infolist() if info.filename == member]
         if len(members) != 1 or members[0].is_dir() or members[0].file_size != len(raw):
             raise ValueError('missing/ambiguous archive member: ' + logical)
@@ -282,7 +307,7 @@ def verify_particle(row, resources, decoded, extras):
             walk(value)
 
 
-def verify_snapshot(source, manifest, version, resource_root):
+def verify_snapshot(source, manifest, version, resource_root, trusted_cdn_root=None):
     if not isinstance(source, dict) or source.get('manifestSha256') != sha(manifest) or source.get('assetVersion') != version:
         raise ValueError('exporter version/manifest does not match the requested snapshot')
     archives = source.get('actualChain')
@@ -294,9 +319,7 @@ def verify_snapshot(source, manifest, version, resource_root):
         if relative in seen:
             raise ValueError('duplicate archive in source chain')
         seen.add(relative)
-        path = (resource_root / relative).resolve(strict=True)
-        if not inside(path, resource_root):
-            raise ValueError('source archive escapes resource root')
+        path = archive_path(resource_root, relative, trusted_cdn_root)
         state = path.stat()
         if state.st_size != identity.get('size') or str(state.st_mtime_ns) != str(identity.get('mtimeNs')):
             raise ValueError('source archive changed during capture')
@@ -316,6 +339,9 @@ def build(args):
     repo, resource_root = Path(args.repo).resolve(strict=True), Path(args.resource_root).resolve(strict=True)
     if repo == resource_root or inside(repo, resource_root) or any(part.lower() == '.cdn' for part in repo.parts):
         raise ValueError('target checkout must be separate from the read-only source/CDN')
+    trusted_cdn_root = resolve_trusted_cdn_root(resource_root, getattr(args, 'trusted_cdn_root', None))
+    if trusted_cdn_root is not None and inside(repo, trusted_cdn_root):
+        raise ValueError('target checkout reaches the read-only trusted CDN root')
     spec = load_spec(Path(args.spec))
     manifest_path = Path('assets/asset-patch/manifest.json')
     manifest = (resource_root / manifest_path).read_bytes()
@@ -330,9 +356,9 @@ def build(args):
     masters, master_source = exporter.resolve(resource_root, [MASTER])
     if MASTER not in masters:
         raise ValueError('authoritative town_content master is missing')
-    chain_archives = verify_snapshot(master_source, manifest, spec['resourceVersion'], resource_root)
+    chain_archives = verify_snapshot(master_source, manifest, spec['resourceVersion'], resource_root, trusted_cdn_root)
     master_raw, master_identity = masters[MASTER]
-    master_receipt = verify_identity(resource_root, MASTER, master_raw, master_identity, exporter)
+    master_receipt = verify_identity(resource_root, MASTER, master_raw, master_identity, exporter, trusted_cdn_root)
     if master_receipt['archive'] not in chain_archives:
         raise ValueError('master identity is outside the effective archive chain')
     parsed = exporter.parse_rows(master_raw, MASTER)
@@ -348,7 +374,7 @@ def build(args):
         for extra in theme.get('extraDependencies', []):
             wanted.update(identity['path'] for identity in extra['resources'])
     resources, resource_source = exporter.resolve(resource_root, sorted(wanted))
-    resource_archives = verify_snapshot(resource_source, manifest, spec['resourceVersion'], resource_root)
+    resource_archives = verify_snapshot(resource_source, manifest, spec['resourceVersion'], resource_root, trusted_cdn_root)
     if resource_source['actualChain'] != master_source['actualChain']:
         raise ValueError('resource chain changed between master and resource reads')
     if set(resources) != wanted:
@@ -358,7 +384,7 @@ def build(args):
         total += len(raw)
         if total > MAX_TOTAL:
             raise ValueError('sparse resource read exceeds 512 MiB budget')
-        identities[logical] = verify_identity(resource_root, logical, raw, identity, exporter)
+        identities[logical] = verify_identity(resource_root, logical, raw, identity, exporter, trusted_cdn_root)
         if identities[logical]['archive'] not in resource_archives:
             raise ValueError('resource identity is outside effective chain')
         value = validate_resource(raw, logical, exporter)
@@ -414,7 +440,7 @@ def build(args):
         previous_ids = {theme['id'] for theme in previous['themes']}
         if not previous_ids.issubset({theme['id'] for theme in spec['themes']}):
             raise ValueError('spec would remove registered themes; include the complete existing catalog')
-    verify_snapshot(resource_source, manifest, spec['resourceVersion'], resource_root)
+    verify_snapshot(resource_source, manifest, spec['resourceVersion'], resource_root, trusted_cdn_root)
     if (repo / manifest_path).read_bytes() != manifest or (resource_root / manifest_path).read_bytes() != manifest:
         raise ValueError('manifest changed before output')
     if args.write:
@@ -442,6 +468,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', required=True, help='Separate target checkout; receives assets only with --write')
     parser.add_argument('--resource-root', required=True, help='Read-only authoritative resource checkout')
+    parser.add_argument('--trusted-cdn-root', help='Explicit physical target of resource-root/.cdn; only that archive alias may cross the resource root')
     parser.add_argument('--exporter', required=True, help='Trusted sparse native exporter with resolve/parse_rows/member')
     parser.add_argument('--spec', required=True, help='Complete theme metadata JSON, not predeclared native rows')
     parser.add_argument('--write', action='store_true', help='Explicitly write verified catalog, receipt and thumbnails')

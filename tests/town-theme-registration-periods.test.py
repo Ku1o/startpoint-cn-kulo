@@ -5,6 +5,7 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -125,6 +126,106 @@ def resolve(root,logicals):
                 self.assertEqual(theme['originalPeriods'][1]['kind'], 'event')
                 self.assertEqual(theme['originalPeriods'][1]['start'], '2024-01-01 00:00:00')
                 self.assertEqual(theme['originalPeriods'][0]['start'], '12-20 12:00:00')
+
+
+class TrustedArchiveAliases(unittest.TestCase):
+    def setUp(self):
+        self.scratch = tempfile.TemporaryDirectory(prefix='town-alias-', dir=os.environ.get('TOWN_REGISTRATION_TEST_ROOT'))
+        self.addCleanup(self.scratch.cleanup)
+        self.root = Path(self.scratch.name)
+        self.source, self.cdn, self.other = (self.root / name for name in ('source', 'cdn', 'other'))
+        for directory in (self.source, self.cdn, self.other):
+            directory.mkdir()
+        self.logical, self.raw = 'bgm/example.mp3', b'ID3synthetic'
+        self.exporter = SimpleNamespace(member=lambda logical: 'production/upload/example')
+        for directory in (self.source, self.cdn, self.other):
+            with zipfile.ZipFile(directory / 'fixture.zip', 'w') as archive:
+                archive.writestr(self.exporter.member(self.logical), self.raw)
+        self.link(self.source / '.cdn', self.cdn)
+        self.trusted = tool.resolve_trusted_cdn_root(self.source, str(self.cdn))
+
+    @staticmethod
+    def link(alias, target):
+        if os.name == 'nt':
+            subprocess.run(['cmd', '/c', 'mklink', '/J', str(alias), str(target)], check=True, capture_output=True)
+        else:
+            alias.symlink_to(target, target_is_directory=True)
+
+    def check_archive(self, relative, trusted=None):
+        physical = (self.source / relative).resolve(strict=True)
+        state = physical.stat()
+        identity = {'archive': relative, 'sha256': tool.sha(self.raw)}
+        source = {'manifestSha256': tool.sha(b'manifest'), 'assetVersion': '1.4.999',
+                  'actualChain': [{'archive': relative, 'size': state.st_size, 'mtimeNs': str(state.st_mtime_ns)}]}
+        return (
+            lambda: tool.verify_snapshot(source, b'manifest', '1.4.999', self.source, trusted),
+            lambda: tool.verify_identity(self.source, self.logical, self.raw, identity, self.exporter, trusted),
+        )
+
+    def test_explicit_exact_alias_and_default_local_archive(self):
+        for check in self.check_archive('.cdn/fixture.zip', self.trusted):
+            self.assertTrue(check())
+        for check in self.check_archive('fixture.zip'):
+            self.assertTrue(check())
+
+    def test_undeclared_external_alias_stays_rejected(self):
+        for check in self.check_archive('.cdn/fixture.zip'):
+            with self.assertRaisesRegex(ValueError, 'escapes'):
+                check()
+
+    def test_declared_target_must_match_exact_cdn_directory(self):
+        for declared in (self.other, self.cdn / 'fixture.zip'):
+            with self.subTest(declared=declared), self.assertRaises(ValueError):
+                tool.resolve_trusted_cdn_root(self.source, str(declared))
+
+    def test_other_alias_cannot_borrow_cdn_trust(self):
+        for name in ('other_alias', '.cdn-extra'):
+            self.link(self.source / name, self.cdn)
+            for check in self.check_archive(name + '/fixture.zip', self.trusted):
+                with self.subTest(alias=name), self.assertRaisesRegex(ValueError, 'escapes'):
+                    check()
+
+    def test_nested_links_cannot_escape_trusted_root(self):
+        # Even returning inside resource-root must not authorize a .cdn escape.
+        for name, target in (('outside', self.other), ('back_to_source', self.source)):
+            self.link(self.cdn / name, target)
+            for check in self.check_archive('.cdn/' + name + '/fixture.zip', self.trusted):
+                with self.subTest(target=target), self.assertRaisesRegex(ValueError, 'trusted CDN root'):
+                    check()
+
+    def test_alias_retargeted_after_capture_is_rejected(self):
+        alias = self.source / '.cdn'
+        if os.name == 'nt':
+            os.rmdir(alias)
+        else:
+            alias.unlink()
+        self.link(alias, self.other)
+        for check in self.check_archive('.cdn/fixture.zip', self.trusted):
+            with self.assertRaisesRegex(ValueError, 'alias changed'):
+                check()
+
+    def test_alias_does_not_relax_digest_or_member_checks(self):
+        for identity in (
+            {'archive': '.cdn/fixture.zip', 'sha256': '0' * 64},
+            {'archive': '.cdn/fixture.zip', 'sha256': tool.sha(self.raw), 'member': 'wrong/member'},
+        ):
+            with self.subTest(identity=identity), self.assertRaises(ValueError):
+                tool.verify_identity(self.source, self.logical, self.raw, identity, self.exporter, self.trusted)
+        for relative in ('../cdn/fixture.zip', '.cdn/../fixture.zip', '/fixture.zip'):
+            with self.subTest(relative=relative), self.assertRaises(ValueError):
+                tool.archive_path(self.source, relative, self.trusted)
+
+    def test_trust_does_not_allow_writes_to_source_assets(self):
+        target = self.root / 'target'
+        target.mkdir()
+        self.link(target / 'assets', self.cdn)
+        with self.assertRaises(ValueError):
+            tool.output_path(target, self.source, 'assets/forbidden.json')
+        nested_target = self.cdn / 'target'
+        nested_target.mkdir()
+        with self.assertRaisesRegex(ValueError, 'read-only trusted CDN root'):
+            tool.build(SimpleNamespace(repo=str(nested_target), resource_root=str(self.source),
+                                       trusted_cdn_root=str(self.cdn)))
 
 
 if __name__ == '__main__':

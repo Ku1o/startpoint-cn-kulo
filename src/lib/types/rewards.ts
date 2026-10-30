@@ -61,6 +61,8 @@ export type ClearRewards = Record<string, Reward>
 export interface ScoreReward {
     name: string,
     type: ScoreRewardType,
+    /** Newly introduced clear-only rewards must not be paid on a failed finish. */
+    requires_clear?: boolean,
     position?: number, // orderedmap position (preserved from CDN), used as drop_score_reward_ids index
 }
 
@@ -87,6 +89,8 @@ export interface ItemScoreReward extends CommonScoreReward {
 export interface RareScoreRewardGroup extends ScoreReward {
     id: number,
     rarity: number
+    /** Optional exact server-side probability; omitted masters retain their legacy behavior. */
+    chance_basis_points?: number
 }
 
 

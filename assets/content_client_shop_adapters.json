@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "catalogSha256": "07d9b337bd5e880f7fa5ec9557359868b754c6cbfa833807f533e1816c412016",
+    "manifestSha256": "4da846aba4d201a14eb8b4871e8d386b0ad45e3ae4caf29d155dc17357034ef8",
+    "assetVersion": "1.4.348"
+  },
+  "scopeRevision": 6,
+  "reviewIntroducedScopeRevision": 3,
+  "scope": "Exact three EventItem products; original native PassCardPoint presentation accepted",
+  "clientPatchRequired": false,
+  "nativeKind": 6,
+  "nativeKindMeaning": "PassCardPoint carrier only; enum unchanged",
+  "serverRewardType": 5,
+  "serverRewardMeaning": "Degree",
+  "rawRewardsEqual": false,
+  "knownPresentation": {
+    "detail": "Original PassCardPoint detail, including its point description",
+    "confirmation": "Original current to current+1 point preview; native product title, icon, description and price retained"
+  },
+  "transaction": "Existing authoritative server Degree grant and stock/stone transaction; no new item, exchange or inventory cost",
+  "serverPointGrant": false,
+  "purchasesRpcChanged": false,
+  "newFakeItem": false,
+  "newEnum": false,
+  "newStorageSlots": 0,
+  "deviceTested": false,
+  "mapping": {
+    "9700130": 9911401,
+    "9700131": 9911403,
+    "9700132": 9911404
+  },
+  "nativeRowIdentities": {
+    "9700130": "ede0d2d80d1dc37e324478e19e54ad327d235744743c561202f5afe7d576c4d6",
+    "9700131": "7b5fd12e47708a752b336364ada3bfe5daa85545aea92634261dcac251c7e3b2",
+    "9700132": "fd35b81b9eefc70dc4c30a43fff9e590452d2fc666ed5f941933cbfd42b6daf1"
+  },
+  "products": [
+    {
+      "id": 9700130,
+      "rawNativeReward": [
+        {
+          "type": 6,
+          "count": 1
+        }
+      ],
+      "actualServerReward": [
+        {
+          "type": 5,
+          "id": 9911401,
+          "count": 1
+        }
+      ],
+      "rawRewardsEqual": false,
+      "clientPatchRequired": false,
+      "status": "reviewed_original_pass_card_point_carrier"
+    },
+    {
+      "id": 9700131,
+      "rawNativeReward": [
+        {
+          "type": 6,
+          "count": 1
+        }
+      ],
+      "actualServerReward": [
+        {
+          "type": 5,
+          "id": 9911403,
+          "count": 1
+        }
+      ],
+      "rawRewardsEqual": false,
+      "clientPatchRequired": false,
+      "status": "reviewed_original_pass_card_point_carrier"
+    },
+    {
+      "id": 9700132,
+      "rawNativeReward": [
+        {
+          "type": 6,
+          "count": 1
+        }
+      ],
+      "actualServerReward": [
+        {
+          "type": 5,
+          "id": 9911404,
+          "count": 1
+        }
+      ],
+      "rawRewardsEqual": false,
+      "clientPatchRequired": false,
+      "status": "reviewed_original_pass_card_point_carrier"
+    }
+  ]
+}

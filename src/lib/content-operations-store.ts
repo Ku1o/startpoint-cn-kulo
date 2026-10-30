@@ -5,11 +5,17 @@ import { isFixedJulyCandidate } from "./content-july-reference"
 export const CONTENT_ACTIONS = ["visible", "enter", "claim", "exchange"] as const
 export type ContentAction = typeof CONTENT_ACTIONS[number]
 export type ContentReadiness = "unverified" | "current_baseline" | "verified" | "blocked"
+export interface ContentOperationsSnapshot {
+    schema_version: number; full_snapshot: boolean; revision: number; catalog_digest: string; server_time_ms: number
+    states: Array<Record<string, unknown>>; catalog: Array<Record<string, unknown>>; default_policy?: unknown
+}
 export interface ContentCatalogRow {
     key: string; type: string; id: number; name: string
     originalStartMs: number | null; originalEndMs: number | null; originalExchangeEndMs: number | null
     windowCandidate: boolean; browseCandidate: boolean; source: string
     personalWindow?: boolean
+    /** New pools have no accrued exchange rights before explicit control. */
+    uncontrolledExchangeAllowed?: boolean
     definitionDigest?: string
     questSources?: string[]
     definitionSources?: string[]
@@ -130,7 +136,8 @@ export class ContentOperationsStore {
         readonly clientCapabilities?: (row: ContentCatalogRow) => readonly ContentAction[],
         readonly clientIntegration = { android: "pending", ios: "pending" },
         readonly defaultPolicy?: (row: ContentCatalogRow, action: ContentAction) => boolean | null,
-        readonly boxLifecycle?: ContentBoxLifecycle) {
+        readonly boxLifecycle?: ContentBoxLifecycle,
+        readonly snapshotProjection?: (snapshot: ContentOperationsSnapshot) => ContentOperationsSnapshot) {
         this.digest = createHash("sha256").update(JSON.stringify(catalog)).digest("hex")
         this.rows = new Map(catalog.rows.map(row => [row.key, row]))
         this.catalogTypes = Object.freeze([...new Set(catalog.rows.map(row => row.type))])
@@ -423,7 +430,7 @@ export class ContentOperationsStore {
         }
         return Object.keys(flags).length ? flags : null
     }
-    snapshot(nowMs: number): { schema_version: number; full_snapshot: boolean; revision: number; catalog_digest: string; server_time_ms: number; states: Array<Record<string, unknown>>; catalog: Array<Record<string, unknown>>; default_policy?: unknown } {
+    snapshot(nowMs: number): ContentOperationsSnapshot {
         if (!this.db.inTransaction) return this.db.transaction(() => this.snapshot(nowMs))()
         // Explicit full snapshot. Includes closed states, not just currently visible rows.
         const states = this.db.prepare("SELECT content_key,value_json FROM content_operations_state ORDER BY content_key").all() as Array<{ content_key: string; value_json: string }>
@@ -442,7 +449,7 @@ export class ContentOperationsStore {
             }
             return [action, { closed_keys: closed, qualified_rights_keys: qualifiedRights, legacy_keys: legacy }]
         })) : undefined
-        return { schema_version: 2, full_snapshot: true, revision: this.revision(), catalog_digest: this.digest,
+        const snapshot: ContentOperationsSnapshot = { schema_version: 2, full_snapshot: true, revision: this.revision(), catalog_digest: this.digest,
             ...(defaults ? { default_policy: { version: 1, explicit_actions_override_defaults: true, actions: defaults } } : {}),
             server_time_ms: nowMs, states: controlled.map(s => {
                 const reportedActions = CONTENT_ACTIONS.filter(action => this.actionControl(s, action) || this.suspended(s, action))
@@ -460,6 +467,7 @@ export class ContentOperationsStore {
                     server_actions: this.capabilities(row), client_actions: this.clientCapabilities?.(row) ?? [], parent_key: row.parentKey ?? null,
                     quest_keys: [...this.questMembers.get(row.key) ?? []], mission_keys: [...this.missionMembers.get(row.key) ?? []] }
             }) }
+        return this.snapshotProjection?.(snapshot) ?? snapshot
     }
     audit(query: { key?: string; beforeRevision?: number; limit?: number } = {}): {
         revision: number; rows: Array<{ revision: number; key: string; changedAtMs: number; before: ContentControl | null; after: ContentControl; reason: string }>

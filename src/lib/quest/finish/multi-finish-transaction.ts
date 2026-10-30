@@ -212,7 +212,7 @@ export function settleMultiQuestFinishInTransaction(args: MultiFinishTransaction
         (questData as any).scoreRewardGroup,
         useBoostPoint,
         (questData as any).element,
-        { questId, mode: "multi" },
+        { questId, mode: "multi", accomplished: questAccomplished },
     );
     if (eligibleRescueFragmentReward !== null) {
         rescueFragmentReward = givePlayerRewardSync(playerId, eligibleRescueFragmentReward)

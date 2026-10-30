@@ -33,6 +33,7 @@ export function defaultContentDecision(row: ContentCatalogRow, action: ContentAc
     if (action === "visible" || action === "enter") return false
     if (action === "claim" && (row.type === "pass_card_event" || row.type.startsWith("mission_")
         || row.type === "active_mission_event")) return true
+    if (action === "exchange" && row.type === "gacha" && row.uncontrolledExchangeAllowed === false) return false
     if (action === "exchange" && ["gacha", "multi_special_exchange_campaign", "special_exchange_campaign",
         "start_dash_exchange_campaign"].includes(row.type)) return true
     // Shop exchange spends currency to create a new purchase; it is a participation action.

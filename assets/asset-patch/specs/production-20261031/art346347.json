@@ -1,0 +1,4407 @@
+{
+  "schemaVersion": 1,
+  "module": "art346347",
+  "status": "source-candidate-awaiting-bounded-rebuild",
+  "phase": "346",
+  "source": {
+    "saveImpact": "Art and visual resource string changes only; no persisted identifier, inventory, character progress or schema changes.",
+    "limitations": [
+      "Not self-contained: the hash-locked original author archives and Character Studio compiler source directory must be supplied explicitly.",
+      "No APK/IPA, cloud deployment or device acceptance is established by these recipes.",
+      "Only offline resource generation is implemented; no archives or manifests are modified."
+    ],
+    "description": "Adopted Halloween character portrait, UI, native motion and visual-only FX recipes for resource edges 346 and 347.",
+    "origins": [
+      "Native character UI crop recipes and canonical panel masks",
+      "Author original wfchar projects",
+      "Character Studio offline native compilation and lossless atlas repacking"
+    ]
+  },
+  "authors": [
+    {
+      "id": 139985,
+      "alias": "author_139985",
+      "bytes": 16482082,
+      "sha256": "b5e16f962418d7de946cf91a6f60ab1d528234ceb970d9759ee5ad5b88f48bec"
+    },
+    {
+      "id": 149985,
+      "alias": "author_149985",
+      "bytes": 11999307,
+      "sha256": "05ac6dfeb028022b37d06ff3518a05d2d83c671dfab437881bf9baa7400f5168"
+    },
+    {
+      "id": 169985,
+      "alias": "author_169985",
+      "bytes": 18986776,
+      "sha256": "b1cef1910879b3c897fd0e9ad0dde4b646ce55e9ccc890bf6d63f30bf064e6da"
+    },
+    {
+      "id": 159985,
+      "alias": "author_159985",
+      "bytes": 17120175,
+      "sha256": "c524adc84edd410c9b693744243fc9b4c6d4c739e79af934ce514c31b04001d9"
+    }
+  ],
+  "externalInputs": [
+    {
+      "alias": "author_139985",
+      "kind": "file",
+      "bytes": 16482082,
+      "sha256": "b5e16f962418d7de946cf91a6f60ab1d528234ceb970d9759ee5ad5b88f48bec",
+      "source": {
+        "kind": "original-author-wfchar",
+        "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+        "characterId": 139985
+      }
+    },
+    {
+      "alias": "author_149985",
+      "kind": "file",
+      "bytes": 11999307,
+      "sha256": "05ac6dfeb028022b37d06ff3518a05d2d83c671dfab437881bf9baa7400f5168",
+      "source": {
+        "kind": "original-author-wfchar",
+        "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+        "characterId": 149985
+      }
+    },
+    {
+      "alias": "author_169985",
+      "kind": "file",
+      "bytes": 18986776,
+      "sha256": "b1cef1910879b3c897fd0e9ad0dde4b646ce55e9ccc890bf6d63f30bf064e6da",
+      "source": {
+        "kind": "original-author-wfchar",
+        "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+        "characterId": 169985
+      }
+    },
+    {
+      "alias": "author_159985",
+      "kind": "file",
+      "bytes": 17120175,
+      "sha256": "c524adc84edd410c9b693744243fc9b4c6d4c739e79af934ce514c31b04001d9",
+      "source": {
+        "kind": "original-author-wfchar",
+        "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+        "characterId": 159985
+      }
+    },
+    {
+      "alias": "character_studio",
+      "kind": "directory",
+      "files": [
+        {
+          "path": "studio_compile.py",
+          "sha256": "555353dd2b3c94a9ae5d43e2ad4fb984a9e9be32ad1d599f3921651e5894b6e2",
+          "bytes": 39342
+        },
+        {
+          "path": "effect_channels.py",
+          "sha256": "f986501423ba76f1a0ba4e91bdb6990f6ced16d34448767dfdd1604f35c4e28e",
+          "bytes": 10770
+        },
+        {
+          "path": "atlas_optimizer.py",
+          "sha256": "df9d16a94ae151b70f2bd8fb9e9fa421fd3a4d97cb6ec42895789b070e5495f3",
+          "bytes": 31155
+        },
+        {
+          "path": "studio_core.py",
+          "sha256": "4b786b85f9c24315c2b5ff21adced2ca5836fa485832ea27de9c0e8fb3695d69",
+          "bytes": 70444
+        },
+        {
+          "path": "bridge.py",
+          "sha256": "baff5eb11d01a044129b76778809d702db2071465b6647f78bae62fe03ec3881",
+          "bytes": 587
+        },
+        {
+          "path": "asset_rules.py",
+          "sha256": "3a9bc244a803c9af4ec8e0e01125e507fae90253e31dcdfb88092a4864df85cd",
+          "bytes": 384
+        },
+        {
+          "path": "audio_compile.py",
+          "sha256": "026e915244aaecb2bbfafe49932121ad301141844e40e68e579fed8d5ea3303e",
+          "bytes": 1756
+        },
+        {
+          "path": "audio_rules.py",
+          "sha256": "18f78bd7ab3855f202760e9d17eab69beea4a0a176c3b4c352ab74703b2dc680",
+          "bytes": 1419
+        },
+        {
+          "path": "character_contract.py",
+          "sha256": "50980092509261558c5e498e4153f100f41fd5264ed73dbd110dfe70376ea4fe",
+          "bytes": 16808
+        },
+        {
+          "path": "action_presets.py",
+          "sha256": "889de6bdb5d6d32e56e8a05f9c21b9b600f6ff905503b7eb9f78a60b056ea183",
+          "bytes": 10571
+        },
+        {
+          "path": "production_brief.py",
+          "sha256": "169e0b4a3ccf3d9c241da96f2e05f8f677c0f414e9f4f36352fa7a6b32cccb4e",
+          "bytes": 55986
+        }
+      ],
+      "source": {
+        "kind": "maintained-offline-compiler",
+        "description": "Character Studio compile_channels, transformed_cell and lossless atlas optimizer with their immediate import closure. Codec bridge resolves preloaded repository wf tools. No old compiled candidate or preview input."
+      }
+    }
+  ],
+  "characters": {
+    "139985": "lady_android_halloween",
+    "149985": "lich_halloween",
+    "169985": "blade_witch_halloween",
+    "159985": "crystal_swordman_halloween"
+  },
+  "phases": {
+    "347": {
+      "baseVersion": "1.4.346",
+      "dslEdits": [
+        {
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_1.action.dsl.amf3.deflate",
+          "edits": [
+            {
+              "before": "battle/effect/skill_unique/lady_android_halloween/concert/sing_android_hw20",
+              "path": [
+                11,
+                1,
+                1,
+                1,
+                2,
+                1
+              ],
+              "after": "battle/effect/skill_unique/cnmod_halloween_r6/mech/effect"
+            }
+          ]
+        },
+        {
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_2.action.dsl.amf3.deflate",
+          "edits": [
+            {
+              "before": "battle/effect/skill_unique/lady_android_halloween/concert/sing_android_hw20",
+              "path": [
+                11,
+                1,
+                1,
+                1,
+                2,
+                1
+              ],
+              "after": "battle/effect/skill_unique/cnmod_halloween_r6/mech/effect"
+            }
+          ]
+        },
+        {
+          "logical": "battle/action/skill/action/rare5/lich_halloween$lich_halloween_1.action.dsl.amf3.deflate",
+          "edits": [
+            {
+              "path": [
+                11,
+                1,
+                2,
+                1,
+                2,
+                1
+              ],
+              "before": "battle/effect/skill_unique/lich_halloween/vine/psychic_tomboygirl_hw22_wire",
+              "after": "battle/effect/skill_unique/cnmod_halloween_r6/lich/effect"
+            }
+          ]
+        },
+        {
+          "logical": "battle/action/skill/action/rare5/lich_halloween$lich_halloween_2.action.dsl.amf3.deflate",
+          "edits": [
+            {
+              "path": [
+                11,
+                1,
+                2,
+                1,
+                2,
+                1
+              ],
+              "before": "battle/effect/skill_unique/lich_halloween/vine/psychic_tomboygirl_hw22_wire",
+              "after": "battle/effect/skill_unique/cnmod_halloween_r6/lich/effect"
+            }
+          ]
+        }
+      ],
+      "targetVersion": "1.4.347",
+      "resources": [
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/mech/mech.png",
+          "bytes": 3375,
+          "sha256": "0c216a5c037fc834b45e4b7bd3b92127892bb7824478273010aecacd13165d43",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/mech/mech.atlas.amf3.deflate",
+          "bytes": 239,
+          "sha256": "710a728e4dbd886367318cf9211974a1518927ce47c665963f78b6e40eb35b03",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/mech/effect.parts.amf3.deflate",
+          "bytes": 61953,
+          "sha256": "2410730a72459c1a474ffc1229b5be203a16b20c8605fe48f6d5edb01f6a537e",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/mech/effect.timeline.amf3.deflate",
+          "bytes": 185,
+          "sha256": "0fab0ae671a0a7c38f0e2a6589b67d176438ad27a732fa7e886d3f8400f41b87",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/action/skill/action/rare5/lich_halloween$lich_halloween_1.action.dsl.amf3.deflate",
+          "bytes": 933,
+          "sha256": "579801891ff0a57880e7be670775af62bf25c7a0dbd3c815a0faccb779fddba3",
+          "beforeSha256": "53555d2b3b2df7efbf5106004fd8829ba7bf9c8c0a6eb22619b1202444eb5391"
+        },
+        {
+          "root": "common",
+          "logical": "battle/action/skill/action/rare5/lich_halloween$lich_halloween_2.action.dsl.amf3.deflate",
+          "bytes": 941,
+          "sha256": "24667dfbab08303c024863173814914254e6540d6d490cb4f66f27b84431b05c",
+          "beforeSha256": "6b231c47f0e80297fd74e57e0ce8e292072d451985e2783fa7f2b08641663b10"
+        },
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/lich/effect.parts.amf3.deflate",
+          "bytes": 6709,
+          "sha256": "2460e1bb34b6f5f1024ff7465e20be6a2c564ae39d69de2aefbd880d3c112108",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/lich/effect.timeline.amf3.deflate",
+          "bytes": 208,
+          "sha256": "5e4dfbe56b02409fe4dfe6d5298b705e26b5411a6748de7a235eeb90b24cfc89",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/lich/lich.atlas.amf3.deflate",
+          "bytes": 4396,
+          "sha256": "e22fdf1cac7a1635c20f7055e29401856fa412bc47cf4ff235702987842ef476",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/effect/skill_unique/cnmod_halloween_r6/lich/lich.png",
+          "bytes": 1336571,
+          "sha256": "4a09f8add9608412752810e4b07e197352eb71888ef9ac33d3e59be30e030f2c",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_1.action.dsl.amf3.deflate",
+          "bytes": 965,
+          "sha256": "9605a5f1a71596ab21dcaa9dffc1f08639a1f9c564f9c3e0fa3f9f625d141425",
+          "beforeSha256": "e638e1a19a8df43b18401d9191a4942cfd10db07cef769a9f1cb318b24732be2"
+        },
+        {
+          "root": "common",
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_2.action.dsl.amf3.deflate",
+          "bytes": 965,
+          "sha256": "990c37558ff6157e0862b572840bb3ed3681ace0975af7b56e0650004f2e697f",
+          "beforeSha256": "b9ea80ad45cdef6f4bb68d24f31a58d3b9c54d95c3e0437e5c16d2cd184993c1"
+        }
+      ]
+    },
+    "346": {
+      "baseVersion": "1.4.345",
+      "dslEdits": [
+        {
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_1.action.dsl.amf3.deflate",
+          "edits": [
+            {
+              "path": [
+                11,
+                1,
+                3,
+                1,
+                1,
+                1,
+                0,
+                1,
+                3,
+                1,
+                0,
+                1,
+                23,
+                1,
+                1,
+                1,
+                2,
+                1
+              ],
+              "before": "battle/effect/skill_unique/lady_android_halloween/candy_bolt/fox_scientist_hw20_hit",
+              "after": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/mech_hit/effect"
+            },
+            {
+              "path": [
+                11,
+                1,
+                3,
+                1,
+                2,
+                1,
+                0,
+                1,
+                23,
+                1,
+                4,
+                1,
+                2,
+                1
+              ],
+              "before": "battle/effect/skill_unique/lady_android_halloween/candy_bolt/fox_scientist_hw20_hit",
+              "after": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/mech_hit/effect"
+            }
+          ]
+        },
+        {
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_2.action.dsl.amf3.deflate",
+          "edits": [
+            {
+              "path": [
+                11,
+                1,
+                3,
+                1,
+                1,
+                1,
+                0,
+                1,
+                3,
+                1,
+                0,
+                1,
+                23,
+                1,
+                1,
+                1,
+                2,
+                1
+              ],
+              "before": "battle/effect/skill_unique/lady_android_halloween/candy_bolt/fox_scientist_hw20_hit",
+              "after": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/mech_hit/effect"
+            },
+            {
+              "path": [
+                11,
+                1,
+                3,
+                1,
+                2,
+                1,
+                0,
+                1,
+                23,
+                1,
+                4,
+                1,
+                2,
+                1
+              ],
+              "before": "battle/effect/skill_unique/lady_android_halloween/candy_bolt/fox_scientist_hw20_hit",
+              "after": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/mech_hit/effect"
+            }
+          ]
+        }
+      ],
+      "targetVersion": "1.4.346",
+      "resources": [
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/pixelart/sprite_sheet.png",
+          "bytes": 452542,
+          "sha256": "37aea17e892b7a8fcbdcd9d167131c16373572fe5a42390ab5d87cf34512df21",
+          "beforeSha256": "c4ab608ed31d3d5bca8ab094f96fb94c6f3eab2d03e6e2ada1e21bf66d00eb4c"
+        },
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/pixelart/sprite_sheet.atlas.amf3.deflate",
+          "bytes": 1751,
+          "sha256": "6a6ba1f617519ab6d797ee2611d205b9f0262d9ef7c428224afb265669002050",
+          "beforeSha256": "b4de2fa5b2c3426177646cf816b79cf968d34d52938ab5343a77c7a4586dbfa1"
+        },
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/pixelart/pixelart.timeline.amf3.deflate",
+          "bytes": 335,
+          "sha256": "bd698685de00d5470a2a34dfc119fcccb969ec2fede7a7ab188f35d44845a9df",
+          "beforeSha256": "fba5025c54e1141d18f27b5552374edac4d8ba06afd8a87b6b90e0bf2ce8b879"
+        },
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/pixelart/special_sprite_sheet.png",
+          "bytes": 1428082,
+          "sha256": "733d84bd7ad798d229538670e8c051bac1c70356fd2ee46759ba41eabf6c6e4e",
+          "beforeSha256": "c4ab608ed31d3d5bca8ab094f96fb94c6f3eab2d03e6e2ada1e21bf66d00eb4c"
+        },
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+          "bytes": 2465,
+          "sha256": "dec27824ccf7e4fe18a816d91c449e9f82f9f10f0ec738d0e0bb6f991326a549",
+          "beforeSha256": "651489d772327126659b6f05799104dc540ce373b4270a648a13c6e55f37b4f9"
+        },
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/pixelart/special.timeline.amf3.deflate",
+          "bytes": 229,
+          "sha256": "059dd11d1f06400bc86d94e1e4ac76f42f3df8f716af914128a91270fdf1507f",
+          "beforeSha256": "8d8b9a1ef3cbad7acb0ac36439fa2efe524c6409633cf0d9909b71bfaec07964"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_0.png",
+          "bytes": 76389,
+          "sha256": "8648f23629e6c013ca41121799cf93a4bc68ca735e5edc183172ce1d8f400f2b",
+          "beforeSha256": "ccf0399e49e073f4c116fd2334dd826c7b26ab68150dac5c74cc540eec97ef0f"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_0.png",
+          "bytes": 43692,
+          "sha256": "d9f0c85c392f4a0a298382c7d7a9dc1407a8f18e8bcb0dddd781474db03b254b",
+          "beforeSha256": "4ba8b1ce0802036488b69180786d3180b73cfc5598902e66bd3f3f4ffdf4da64"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_132_132_0.png",
+          "bytes": 35231,
+          "sha256": "4efbf2f47361be3c25ea0743a65d9dbc62a01ba4068d4f042abbe1ebe1c2b689",
+          "beforeSha256": "2c1f8013f1897e8ffccf7b700edfdda21a276a56a3db17970603d6e91f98d0c8"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_132_132_0.png",
+          "bytes": 19927,
+          "sha256": "df2dd9e76f81ea5d4baa80574a7abcc436080ad55c72c85604f0d42ec04b06b6",
+          "beforeSha256": "76e5cb39c0e7fc66cdc01f23c8571654abe2f2c00f076e9296682345708f38f0"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_round_95_95_0.png",
+          "bytes": 21026,
+          "sha256": "cc749a3d640534c84a5c7142c2b4b5a90f9c7608b172b7e07f6e19453c40ec09",
+          "beforeSha256": "ad834b6d9ad7325270d361b8a59f10c1c00f46084a7ea807004764409f856273"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_round_95_95_0.png",
+          "bytes": 11707,
+          "sha256": "719adb13f38e5dd3aefaaa7a05bba58b58f4bde8de5332557b2e56d3e015c124",
+          "beforeSha256": "4b7e2d0b653856fe9932a6e4d2ad0b9272e92260f82030db27b1a25f85f64dcf"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_round_136_136_0.png",
+          "bytes": 37538,
+          "sha256": "f37d7c5d501b563813126dfd83f7212fa92db4558016c71692c1cd8e710a7388",
+          "beforeSha256": "b77b84c50b6b81430da532a4e2ea113af6786bb47b1a2f35e4b8423d14fc4d4b"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_round_136_136_0.png",
+          "bytes": 21237,
+          "sha256": "84834a677b406b44fd3850d6c834e0d2e84cc0f5a4256912525ac794a1e835d4",
+          "beforeSha256": "0e4aed4132cc16fca681a4add7fb49dbc1de5aaf096ed7e84c41b863fc7664d8"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/thumb_level_up_0.png",
+          "bytes": 150863,
+          "sha256": "23971b2cbba1a57025baa07d1abbf3f610487f2b1049a489c4dc19bcfc1447b1",
+          "beforeSha256": "d113dc4884462a4cde075571e5009b48300dcf2ca414b98ba381e9e4a20592a8"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/thumb_level_up_0.png",
+          "bytes": 85373,
+          "sha256": "f8ae1756c083c6904628a49b41e29e875cd42a793b577d73bc72309bbf9b111e",
+          "beforeSha256": "c609f567950159b06f433307efddb737148a23f93b41603fa7c6b5ce64a59752"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/thumb_party_main_0.png",
+          "bytes": 138981,
+          "sha256": "fb816a0be9c757e3b459980ea4b300ae01a1459b20b6355a8afad17297cfc5d4",
+          "beforeSha256": "29460cd42679392f171a97e6b183a3811913c59c9cb6a1bb8e93e10a2fad2472"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/thumb_party_main_0.png",
+          "bytes": 78945,
+          "sha256": "10c42e7ae64d5643bd5e1f5450dab30df507d5c0c4d88b2b42246dd688b70bb8",
+          "beforeSha256": "f2964f4acee4eb3b9d59ca51dd2a13f9f473ccea543053345384e24298885ff4"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 60117,
+          "sha256": "ed670ae5452f697d3b88ba861dd20d7a2ab273951119a5e2d7549c99e4e2a75f",
+          "beforeSha256": "1d8ecebd7308649458ac761410d2496a7ca70ef35bb3121e926a10d5f75ebe64"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 33866,
+          "sha256": "000c5c7867c56a991cbe674f34f165e177c04cccaffa88edc45792be135ba3b9",
+          "beforeSha256": "4e9ea3ecc0f48b2c0b13f8909b58dc193964dd1fe982e47ac7bf9abc0183cff8"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/battle_control_board_0.png",
+          "bytes": 63231,
+          "sha256": "e0d61fa846dd5690b2210f9fb807aefdd878d7da7e6ca627a7716ad0a09450de",
+          "beforeSha256": "62b5ebd868932e6d86fd472403a49ab11b03ec99a51f05032baa46a2b48b36de"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/battle_control_board_0.png",
+          "bytes": 28417,
+          "sha256": "5b4f8cf7b6adc81cf0e411a706d9634c2c44ef5547efd6faaf125ed0f553367a",
+          "beforeSha256": "e72af2550b55c9c2c0a5a3af73b72921108f24632cab316036d87aac77a407ad"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/battle_member_status_0.png",
+          "bytes": 9314,
+          "sha256": "cad32d336a1510cadf961e93ccb6a8006738183a02da5be7d8eecb3a639c1b5f",
+          "beforeSha256": "997560219795ffb7ff0fda30316174a385a4a3a3df3e8cbbf4e28c01659431c3"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/battle_member_status_0.png",
+          "bytes": 4572,
+          "sha256": "6a3a3ac18dc2886ad19bef098ccba646fd9cb88e8ee9e05bee595019b3f0f26d",
+          "beforeSha256": "44f4d7daeb6f8819f15feff1842b156251df2a9f982626d4aa78449e93daf75e"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 148262,
+          "sha256": "54be349831d673cb4686ac7f37ccd59c6b2993bc376bb46ef86384e0e8d8dc04",
+          "beforeSha256": "1a8898475040347d1ce1c67f45dcc4ab9849d2b522b3c9b62bcbdc9fc96f71c1"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 71549,
+          "sha256": "414272f9729a516a8fa36e142c1adf7f5660fa11badf0d55587ec9eb067bc328",
+          "beforeSha256": "3ac0611e3ea4399656e756dba7c66218371189a9de5ad9d131c73dc6fa061894"
+        },
+        {
+          "root": "common",
+          "logical": "character/lady_android_halloween/ui/skill_cutin_0.png",
+          "bytes": 514124,
+          "sha256": "80f1b8105e555668e2a8f70165e70d6280d77647184c59a398c16cee21c237c4",
+          "beforeSha256": null
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/full_shot_1440_1920_1.png",
+          "bytes": 2661618,
+          "sha256": "eac5e9fa2edb95b340119a3cecf162dcc8b0a256ea5ccbdced014ca2bafdb827",
+          "beforeSha256": "05fde9485ff0c75251f550356c8b30b30a2bd74a707d8fe535c48fa189510a9d"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_1.png",
+          "bytes": 86459,
+          "sha256": "63e5965f6d1103fa22cc0ab1a0d384a60f68b1315638ee72c8fb570b13be0542",
+          "beforeSha256": "763c003d7acd687a687d5a243c986ebde16710df8e8d23cb302dc21b41d58b59"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_1.png",
+          "bytes": 46727,
+          "sha256": "61947ab229879ee5387c9657d4bb96b13804314cea71dbf3d0057316d2951d5b",
+          "beforeSha256": "d6b5d5a3656594e7565be15a431ee35fb0c0a02e8302ca490753cb7a552cdf3f"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_132_132_1.png",
+          "bytes": 37433,
+          "sha256": "184cec583614bee9b998916256fd486c2db4f8f1e01bfcea16821c10a8d2a096",
+          "beforeSha256": "6aeb5994f9d227fcad801cf57baa49d62372b95a2bcb3c53ccc6992847f30031"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_132_132_1.png",
+          "bytes": 20306,
+          "sha256": "8aaf18999c5ef08b1a41f3b1574a60cb86d67cd3b5170abd24cae4e643e8b3e8",
+          "beforeSha256": "cfdc5a0577568d4af42ac5024bdb4b0d9c72ded411573d22ef8e8d676fd7306d"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_round_95_95_1.png",
+          "bytes": 21335,
+          "sha256": "2de0540964314aa4a5ce20f080104e04ef26db76461279404a19a6b853807309",
+          "beforeSha256": "144c1bbbd3d33260c4f7f2e6c81e9e668a6c81c6fa6f2bed6b82c7fdf6f4d36d"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_round_95_95_1.png",
+          "bytes": 11520,
+          "sha256": "4edd78ff3670f8be992ac42ec221d7f10df69bb8f0d01f812ccfc7ca6759eecb",
+          "beforeSha256": "6e1e15f85764aa85c458d0cf3b14b36851159b338007bf221abbabdfa9f63aba"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/square_round_136_136_1.png",
+          "bytes": 39876,
+          "sha256": "60e947318a48af63b454eecc680445651774372b45c518d880274bd5ec3e7251",
+          "beforeSha256": "a20341b99acd1d5159770f70dea790b084217b984a1f00f4924cafc66ebc5077"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/square_round_136_136_1.png",
+          "bytes": 21685,
+          "sha256": "83274f4b5c6ab458c1a0db8a5e4247e0e4781f0bc15368c23662ea330caec389",
+          "beforeSha256": "9cad3026ce65d676de3782a9630dc36b2a3e3c2bb07251691f1c450ce3a5b4a8"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/thumb_level_up_1.png",
+          "bytes": 169569,
+          "sha256": "19e1c872f54d5f54ab54bf6a935e0180b2ca8337a0d957632f09d4dfd1906e11",
+          "beforeSha256": "93b91b8dbb3936e8e0cdb36abd1418202ec38ff501e496a6cd96f4bd71dc7d6e"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/thumb_level_up_1.png",
+          "bytes": 92188,
+          "sha256": "a2369eb5caaec1a259e0635ca4270a3c623aac0a6a4a3d5efe7d1ecfb5fc7c8e",
+          "beforeSha256": "81939184c20b2e786a288b939d0c11277127fa60d9d86ba9bda7f29ebbb2e843"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/thumb_party_main_1.png",
+          "bytes": 147874,
+          "sha256": "c837777717336d5f5f9d01429c83e62d0e91c0e21a24da0f5fb118837bb0ff3c",
+          "beforeSha256": "21422918fe04280f5b853be15999db05f0ee54bf94ebc52e3d299af614e7067b"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/thumb_party_main_1.png",
+          "bytes": 81466,
+          "sha256": "b6bc4477254a8070ca25ecfa1e039d2c61165ca8bd6eff5f0092524fedc27d41",
+          "beforeSha256": "2f362877ba1b84eee91278637e9c2a7fe9c1c7f84eb27a5ac3cfdfd52c11be4b"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 63532,
+          "sha256": "c506af783b790e59ba2256e1235dffe051afed8c5b3dc6a08aaffae8a39fd55f",
+          "beforeSha256": "4ae02fbb6a07768688c351438973415ff7cde184503162f0bc0d2807fcecac98"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 34333,
+          "sha256": "d9c90ac9e288839290d8bdb1f70b04350540b4179e81c36ca5dbd8b0012f76e8",
+          "beforeSha256": "631b7cff0c04130cc2104d5878ff04be28d7bce425dccbb962d075fcdc0c8f92"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/battle_control_board_1.png",
+          "bytes": 64246,
+          "sha256": "0432b2b79f893b13dc52e4605ec75b96fbda22d0e4a887281464b8beaecb31c8",
+          "beforeSha256": "8695d0cec858f845a727f1a28c2265d8418bdf723d428950ed8f523e996f3c13"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/battle_control_board_1.png",
+          "bytes": 27949,
+          "sha256": "c30eb353cc7134afeb98fcd06b957e2fc84aa5c359a4ef00e8dd849df91b73b8",
+          "beforeSha256": "2bda1f37b94659831d539423f253e415f888f48ae22982f5d111fb63a7f5fbee"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/battle_member_status_1.png",
+          "bytes": 9147,
+          "sha256": "8559bef08bec966fcd8007721d6bab006e312e20711085686257e9588207aef2",
+          "beforeSha256": "e0dd4c1e033943e7aafc257093a0ed001648743aa38617b72c45691b538abcdc"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/battle_member_status_1.png",
+          "bytes": 4590,
+          "sha256": "c622b7bcff9db6be2c116959737291591e5f431d324c3f5a308be14d7d370759",
+          "beforeSha256": "c6962e993cec38ff36dfbbbaec9b1a913aaca6733811feeeaa9e02c58109e49d"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 177898,
+          "sha256": "c7e98326320a2e783f7a374e616d8af2dea4e37ac64799af04ee6a7171de5788",
+          "beforeSha256": "49d52747f1c21cd402cfe1df7e8b462ecd6de6d3ee2c5c76911b090e508b56f0"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 79753,
+          "sha256": "9dde14606a89c126cd93d3d94c0b7128d6e9eb49db3e59ee60ad297adac4f627",
+          "beforeSha256": "0b58e39ff24ff44f57d1081f1572614bbd4bbb6008aa870d43c1b9ae60a583c7"
+        },
+        {
+          "root": "common",
+          "logical": "character/lady_android_halloween/ui/skill_cutin_1.png",
+          "bytes": 792106,
+          "sha256": "d343445ba756a32d2944023d70220a3be67a34ae990fcc511d8b11a3e0351ab2",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lady_android_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 318930,
+          "sha256": "a32ae2c06cde0c6e438ba4580868e13c9179edd04b30e25710dffd04e68caffc",
+          "beforeSha256": "f8c70bcba94e8e32c2530cacfe2cff6f9f7130906b84eeace65a9c8c1de389b5"
+        },
+        {
+          "root": "small",
+          "logical": "character/lady_android_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 180546,
+          "sha256": "5d9694e43224e77aaceb6d5f241ed093bfb764254878efb58802593ddb97bec8",
+          "beforeSha256": "258c9e1508e33b855c6516d0ff31e04ab5e43fb41cc4e25eb79562422a49f0a7"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/full_shot_1440_1920_0.png",
+          "bytes": 1715498,
+          "sha256": "bca586ee8f38cff2abeebd81cdf196f80faea24d7cbfcf477752bd575ed06c07",
+          "beforeSha256": "7bd1de4518213189df989cd674dea0bfbca4c4c94540c895373616b6a9d952cb"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/full_shot_1440_1920_0.png",
+          "bytes": 960667,
+          "sha256": "8490fe8717233f888aaeaab1657eb852a17431648a83b42aae0b54a26c3b104d",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_0.png",
+          "bytes": 92227,
+          "sha256": "b1f8a583d59d3816dcfad7f94028c878fea284385c7928bc09f0c7086a2611b4",
+          "beforeSha256": "7c742b5106c57855963dd27ce2ca8146cdf03e0da01cf68088bb6a7a23e78b60"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_0.png",
+          "bytes": 49092,
+          "sha256": "35bc967bbd11cb40ceb5f581349f4962d70d8d3e90ca3a0bc080364e013864a1",
+          "beforeSha256": "d2b883a58314fad59f24ece3b41b49a81bb42cfe5ae4df00c9e2b879cc922879"
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_132_132_0.png",
+          "bytes": 39681,
+          "sha256": "f43894433cd63e29b405d8428a6191147f770bcb8bada508f94bd92951bbfe2a",
+          "beforeSha256": "970b932d538f84de71be360c74a684773a4e38c5eab09bacda70bef61c903b61"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_132_132_0.png",
+          "bytes": 21008,
+          "sha256": "1d5b80d739a14664902527a207576b259c4351657093f34e8cb1cd191fdc1d4d",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_round_95_95_0.png",
+          "bytes": 22121,
+          "sha256": "ad146829e3ea77d31fdc9b743f819b4a07c7ac0292d2f938e109527df9d800bb",
+          "beforeSha256": "fe3944b8795ed685901d978dc7d06e2c3c932b2ae10f147c74e522da5398aab6"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_round_95_95_0.png",
+          "bytes": 11624,
+          "sha256": "e9fcc124dfb344d6cd813905d75d1ea075b24aa1336923b17889a0f040dad41d",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_round_136_136_0.png",
+          "bytes": 42169,
+          "sha256": "905ea12d651e1720a4396e3ec6447910d695150745e95dd076af4baa6deb7eb7",
+          "beforeSha256": "d426a9b513044021ca45fd894c787f4d8cb51dddeb23117a5f9086573aba4c70"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_round_136_136_0.png",
+          "bytes": 22256,
+          "sha256": "34e49a56371b3b4702c3811c73da40d4801bf82a2bb5a738f2c66e3d9b3c3501",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/thumb_level_up_0.png",
+          "bytes": 159984,
+          "sha256": "6aaff09d382cf65613df68e252728d42b8f0a62883b409fa3f8000e00f365a46",
+          "beforeSha256": "8c6436b9b31d11d86e38a8e4603ed1a0b439fb624bb74783a9495e61005cd816"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/thumb_level_up_0.png",
+          "bytes": 87519,
+          "sha256": "25421ce3ef2069015ae6f3c8e2218caceabd5318ef69a086aed4c78d099fcf9e",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/thumb_party_main_0.png",
+          "bytes": 142881,
+          "sha256": "0cfb289bd0c9d8c718e4331f3fa4c8fbdcfeaff26a1a5dce84421545d49e6465",
+          "beforeSha256": "25dc80e4737c1205394a7d0dee8aa2a273cb640a6aa41485adb638f5987c7eb9"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/thumb_party_main_0.png",
+          "bytes": 77899,
+          "sha256": "6c46a67160a438fbe20074323e895662b91fc3ddbef1918a662904a172a1ccd0",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 61184,
+          "sha256": "fa045e77429609685c5335698a5617bf076bd145f616bfebb7cdb906e967834c",
+          "beforeSha256": "e5eb7a420011629ac62472aa43a9e3c31746bef51ba7bade3321131b9f89a2eb"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 33005,
+          "sha256": "a745e600b59f6fa0a01d3351aefee367a86a3099fed6ae1eac93dce24f53a2f1",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/battle_control_board_0.png",
+          "bytes": 61764,
+          "sha256": "e0168a50350288267f7dc13829b8627432ed4057d46f015aa9a1178ca2f8a624",
+          "beforeSha256": "78f902340ba58416d0e43e31e876751760e7831f42900f50b291ce8cca6a35d9"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/battle_control_board_0.png",
+          "bytes": 26151,
+          "sha256": "011c626f864cec210e5aa364c085a38ed00feba5600bae593e840486b951d732",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/battle_member_status_0.png",
+          "bytes": 9205,
+          "sha256": "c3127804f806b3883b43fc44d308b88af482f3ca0d9c941a35f5b103ce624220",
+          "beforeSha256": "51314b393b8fe7e9bae2b1f371fa6b10c180a45c6cd31b77b7f03d8d883c71f0"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/battle_member_status_0.png",
+          "bytes": 4509,
+          "sha256": "94e409922c45384902badb849f872b27961dc430d38690cbcb09fb5d7f71f75e",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 165822,
+          "sha256": "79815fa85534f754d865408d15d7bd385886488b08bce5f16387f85b2746b918",
+          "beforeSha256": "a9fe5040ae8506dff27de8c70aaae59e9e1c3129b6d2a9d29f242b94503bbcab"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 76603,
+          "sha256": "f6f83135b46608a4dc012c46916bd1357c90a304781cd55c155b761f5324238c",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/ui/skill_cutin_0.png",
+          "bytes": 493743,
+          "sha256": "301162570c8b2e6e6093e89cde3c92f6db1d95925790a134bc150207f6c524bb",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/full_shot_1440_1920_1.png",
+          "bytes": 1641958,
+          "sha256": "8d2720193a29948417a553b9e6ae10767243a91f31a7abfe0a51a96dc74f5c6b",
+          "beforeSha256": "7d1cae82e8772209160206db31e82eda83f990f4703d4b3bdd8ba296e04d9167"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/full_shot_1440_1920_1.png",
+          "bytes": 911769,
+          "sha256": "67a64ef71631641c16e11f7d9213b871510f6342b1a7348d8cfd4d95ad90a7d1",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_1.png",
+          "bytes": 92425,
+          "sha256": "267b1d559034ae03ddc0a2d55dd2b1a9b08cc01adc2934acc0867c2cf53f6fe0",
+          "beforeSha256": "f616a89195000a5c63cadbb5e0b6f8bc72baf96134b5cab9270a955606aaf289"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_1.png",
+          "bytes": 48231,
+          "sha256": "eb711445bc42a1b73d2bfda6633d52b2adbe95c812c6c166853e403dbf485559",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_132_132_1.png",
+          "bytes": 38870,
+          "sha256": "cd1488ed63fc54b8b2b026341bd9393ddd8075101af3b072d07ca5ac168a9d3d",
+          "beforeSha256": "f33d5444fd1a14434f229725cddfa3702e4c699169942028cad2b7f8a42a39e6"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_132_132_1.png",
+          "bytes": 20236,
+          "sha256": "13ed8e0b92f6d066bf1fd63276eaac253b7e106db01f21d0053643fea311f1db",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_round_95_95_1.png",
+          "bytes": 21473,
+          "sha256": "9b3662bdce1e0d4af78e62fcfc698b8e9408a225a520a0a33cc7fc4959151d2b",
+          "beforeSha256": "f5f15e096b55b57b16e896b9ce01c37292ab6ca7598369d61422da8c390c5aec"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_round_95_95_1.png",
+          "bytes": 11185,
+          "sha256": "0569f70b3890884b1c13f94da43510f30340a9a0f82c713dd83024df2446c3ea",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/square_round_136_136_1.png",
+          "bytes": 41156,
+          "sha256": "c74b5fac604dc079e86f810d4f29c36b62e0acaff83c5fb79c4a1decf02649ee",
+          "beforeSha256": "2d32aa224bf7bb66c51a5dfb964e9afb1a9afb8eba8458a10d6c31ffc01bdc05"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/square_round_136_136_1.png",
+          "bytes": 21515,
+          "sha256": "676a6338b977a39437e425250217c439b29c9c965efe93f8b5ca53ea9b81d2d3",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/thumb_level_up_1.png",
+          "bytes": 157446,
+          "sha256": "1a9642b8e6ee920fbc5cbb92b6da0529e24fee43cb3fd928dc2bdbea0d494dd8",
+          "beforeSha256": "0c3b5bfdec91bfbee2487945c4793fdfe1bd4177626f48f10d1602332448fd2c"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/thumb_level_up_1.png",
+          "bytes": 85285,
+          "sha256": "39a75ba2c5ddaeba25b7e0b4f6bb8031f448dbfbb024efbf0779aadd7c47678e",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/thumb_party_main_1.png",
+          "bytes": 129002,
+          "sha256": "95bdc9ffb592089f7519f17e8cfa892043c6945bfa9683274607d8e74bc34c14",
+          "beforeSha256": "86515f61a42a5fd4037428f3c2f7fe365dd6c4d58732f69c021e09030af26dec"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/thumb_party_main_1.png",
+          "bytes": 69978,
+          "sha256": "d6577945295f2ca137c676d7111553833c4082a079198b370c695e7cae6e406e",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 59621,
+          "sha256": "1e60fd54f434bfaf0ac3bcd03749370a9c45e35ed1b60c28ea9226b7d3d9ef5f",
+          "beforeSha256": "5b948b3f2e603568b7b7b0b230bf02fa38310d16050b56e2b1d0946575bc85f2"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 31698,
+          "sha256": "0103046aa7c19b5a02e4265957fc93648a726cabbbe837026c8932a40e14b51b",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/battle_control_board_1.png",
+          "bytes": 54088,
+          "sha256": "6c7c3a88c93d498b5950af299e2b89e3c9e38f007a06ad23a086690f0405e416",
+          "beforeSha256": "799fff562e441b866256e849ee5aee1974e9e226b57680815ba853f9d5bd4df4"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/battle_control_board_1.png",
+          "bytes": 23407,
+          "sha256": "fa802643a1e46c87d3259838334ef224f9c9d7b51103a53dbef5f12a91a193a3",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/battle_member_status_1.png",
+          "bytes": 8836,
+          "sha256": "f8f07d1ac67bd5ca4b67befa611da21642fd51ccd0b212a720b3f0b0f675fdb5",
+          "beforeSha256": "b2c35b7c1637e275760d4c2d36f73929936101367199615352db012d9a0c1f66"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/battle_member_status_1.png",
+          "bytes": 4371,
+          "sha256": "fd106a009e1348ebaf29dcf813bdb2b06ce34281cc1c0594419c5c8ed7d6b2ea",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 157957,
+          "sha256": "83e243db1000bbc2d689da307001ded976ff363eb9bd9536cf23f62a19367f24",
+          "beforeSha256": "27cce4687e1c4c6782b1680ae7f01527df33381821ee5d0854ff14d34136c0b5"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 72903,
+          "sha256": "8faabf7a4081f01d1902406396cd49228360e73f91b144ed6291aa9d2d04bc06",
+          "beforeSha256": null
+        },
+        {
+          "root": "common",
+          "logical": "character/lich_halloween/ui/skill_cutin_1.png",
+          "bytes": 508535,
+          "sha256": "eea2e2f8af9e99e4ee46a27726ca60289c4d6397403aae39be7b0ab1b9aca6ee",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/lich_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 431703,
+          "sha256": "1a721c6d94a68b2d51b30006d9d22f3f2bf5984cd02760ff27f208beb566a96d",
+          "beforeSha256": "b28ccf5d6655ab243ec7eca85d537e6ed3dc4b5ce57d5e2b42dfe321bcfffc0c"
+        },
+        {
+          "root": "small",
+          "logical": "character/lich_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 242706,
+          "sha256": "9f0932e2f7c3d0ab05327f8fd26dc361a2a877a3a56c14d8dfdcc0ae7d47b945",
+          "beforeSha256": null
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/full_shot_1440_1920_0.png",
+          "bytes": 1731696,
+          "sha256": "636bcaab17d4730bdca8f239bcecff3ebfe7a87c1dba7fcdb6e919b4187e4832",
+          "beforeSha256": "85faa9b0a62ed0592fe10b87c6b70c8e34d8740c228021619c4833cf93437e40"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_0.png",
+          "bytes": 85053,
+          "sha256": "2babedcf62f1900de94330ce8a4001922cbc535e19407a023e2551efe593ecff",
+          "beforeSha256": "9ea4534478e606fb3292ddf3f55d6a7437cb25c28983fc55e9dfbe8a80894975"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_0.png",
+          "bytes": 47440,
+          "sha256": "71eeef291d100dfb53cb33b47904106a46d52697a8cbf47aeea90b505d5a2f9a",
+          "beforeSha256": "fa3d7eb6364f1042fed7798360eca49a4e3bbff1e398b86da1886bacac577b8d"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_132_132_0.png",
+          "bytes": 38557,
+          "sha256": "8bde2ada068a73b8296c1ade987c569da1c0236bec4175ba1ca93b7140d03acb",
+          "beforeSha256": "b72f8315a175325fb83d74180f1e59b2e7c1df2b89d2018e373341aaf5d4fbd1"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_132_132_0.png",
+          "bytes": 20933,
+          "sha256": "4823ff227d43919f5bbe4f7e4e997bbcad71eba4e92c76f7b3b47eb70f935e9e",
+          "beforeSha256": "646a7f386a6cc3e6bb7b3ccf8bd0aa943449d245aac134248d93465f4bfb28e9"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_round_95_95_0.png",
+          "bytes": 22273,
+          "sha256": "6d3062ce8227ab6a16abbec11b9d4a9f3d71e3b66c16e2945c25440933212bdd",
+          "beforeSha256": "5cc1602691aab46e4ddf2668947e0b132c2553bcdf9c73a9323d0c6765744700"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_round_95_95_0.png",
+          "bytes": 11866,
+          "sha256": "78352354d736e521459b535269cbf8a16249eb1eb220aa175de292a300d9016d",
+          "beforeSha256": "c9b371579b320899c805e8501f14467e3b9e9ba268d56ef630ae841a388c86c9"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_round_136_136_0.png",
+          "bytes": 41182,
+          "sha256": "5ae9769baa95e74ef8bb0998cd2789b29f73967f4c0ba4d98cfd03e46fcf1c13",
+          "beforeSha256": "612fc615dfbff95a0608ac7edfd686c28582b056045a2a39c2e937ab08464434"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_round_136_136_0.png",
+          "bytes": 22371,
+          "sha256": "9179079d597cab6c9e9698e05f7da0357241a90b8acd8e8af4dad6752aae22f0",
+          "beforeSha256": "ad383ca605bdf152934af9352649ff88f4d784923b39c0b527df390efbef4f73"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/thumb_level_up_0.png",
+          "bytes": 155915,
+          "sha256": "bd635686adcf8cb0f8427988532a85b88f00e275e1f5e30b1f91ed941feb68f9",
+          "beforeSha256": "87e200c0ac4d16292d0061403e367860ebb1f5b217659d5dac6607f2dad8d0ae"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/thumb_level_up_0.png",
+          "bytes": 86415,
+          "sha256": "421ee353504a1b759f03cf4d53bf8b9e59d99a2cc345947551730570599d942d",
+          "beforeSha256": "ba4de9db83908fce7571757946ee6851f8953411fb70bec5b90a36f6b523cb0f"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_main_0.png",
+          "bytes": 142622,
+          "sha256": "92029f8e1772d3b15af732a3fe922ab71630adaba2590678677234d56a52e6cf",
+          "beforeSha256": "c1af3ccf22e72668343bbcbd7424326c77e50068c232341fc5f831c5bdc88358"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_main_0.png",
+          "bytes": 78573,
+          "sha256": "19d57a2c32583a61d4c7c2e45a6f6b356efbfd43b940b18abac99943f8c1dfa7",
+          "beforeSha256": "bf81bdf429b6f0148f4c5b7aa342d1ed2a19235aebc27258cdede01c2a1023d1"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 60362,
+          "sha256": "2fb7e5fe776153d76a8769c68049be2629fcb74db3506719f118605dc6903900",
+          "beforeSha256": "90812dc0dc9c0dc89ebbdf887e4da9b267a510f180a4b329aef5ea210a6aff83"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 32811,
+          "sha256": "79bedb4dda11845d084d4a2c7be7f409c33e5ca5acea354f3bf3c6a6a87dfb28",
+          "beforeSha256": "b18f53fae7f19654a56726d43edb7e3be5c5a6a0867e42ee6f43a3c1244f2c03"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/battle_control_board_0.png",
+          "bytes": 61453,
+          "sha256": "08a2c3683195d1d25d8da04973aea48c47bdd0aa6308d2b62da911a2ffe90dbd",
+          "beforeSha256": "eda32f4cc1b5f3b7884b9e63371e7c654f2c50ca23d4e98385e2498c32d7d469"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/battle_control_board_0.png",
+          "bytes": 26678,
+          "sha256": "d62bb2c9004f7d62e78820576cb65064d13e742102c96eb0d4e439c16bbc874c",
+          "beforeSha256": "eb75343de88a6222c02b3dcba1f3678e38525aa58d6047451bf9c4b17fed5643"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/battle_member_status_0.png",
+          "bytes": 9420,
+          "sha256": "15b6a6078b489367a8f02f222a25818bf67d32474a47db45c29f7b4a84a91601",
+          "beforeSha256": "63b02f86063271fcacb427312851c97eae275d6ceaa59d3daa209648df06f510"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/battle_member_status_0.png",
+          "bytes": 4615,
+          "sha256": "965458b98d2236290133c7c515f7929fcde2acbf6b8c34bcd68439024a630b80",
+          "beforeSha256": "56c85ec3cfb0bd68f28918308ffc5c23898f95813c56b3ee55e786913b79b6d7"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 160457,
+          "sha256": "613b05edd3bd7f24a4791f236c7f89ba97f8a3856555cc2b4794d4b57873dcec",
+          "beforeSha256": "cd2386af03cc416b53ee995676d8620a24b162c895f37705b3972eca6b959865"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 71775,
+          "sha256": "e9aaf8b6e0b8c05545854f65ba873e37a4c1059e3f8325dc16835b42241c7d6b",
+          "beforeSha256": "153fcff68776718e46087ba79edcef0700914967cab115fe967744994ec8342b"
+        },
+        {
+          "root": "common",
+          "logical": "character/blade_witch_halloween/ui/skill_cutin_0.png",
+          "bytes": 574568,
+          "sha256": "68d1dcae591dd2cdc31354a85035302212b2b53d4ebae91580a9168ef9556aba",
+          "beforeSha256": null
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/full_shot_1440_1920_1.png",
+          "bytes": 2179450,
+          "sha256": "4a599d6e5ca711fb26759d5e0f38fcb7ce1ebb0a1373078cfec088f14391e6d2",
+          "beforeSha256": "312f412164d571782ab0f69bb91c0c6b2006adb3a45afb7ee8882e6c50e4b25b"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_1.png",
+          "bytes": 72350,
+          "sha256": "f868bf91bd398a4f4d1bcaa356d285a2720356fc5e6bfdda69682a01c6128f9a",
+          "beforeSha256": "022fd1e62e7687b12f3112002924c32aec57ebf60ece9260ac3977324df492d7"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_1.png",
+          "bytes": 41401,
+          "sha256": "b7099705e1618d18782f42d001a203f04e23319a4ba5c469308d2872a9f39439",
+          "beforeSha256": "b64a78b0d5d5db32fbdfe287b3826e910f2fadfb172b9b6d224bc8374d079a64"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_132_132_1.png",
+          "bytes": 33734,
+          "sha256": "ac3b6d61ced495f88f9a6f4300055a657973316ef2e82fd354db0efed382d21e",
+          "beforeSha256": "ef58fb6292269100b336144a18ed3996b2ee74953240b8cf876df4a4cf908049"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_132_132_1.png",
+          "bytes": 19022,
+          "sha256": "fc5e740c150ed34265c7ec9234be1482eb18e7de18a9cc259a475908de1ba033",
+          "beforeSha256": "b7605dce22630f8ed0498682d1a74a90481bd5ef461a7c5d3172d9c220e16142"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_round_95_95_1.png",
+          "bytes": 20127,
+          "sha256": "9a8572631db70d3869f4233d8e3c61276cb9b71537eebe989dbf12b3d41b6390",
+          "beforeSha256": "4b02fd6f36ef2ea844c949e8f3ae95d7ea4af9a2af521ada083fc70a7878457f"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_round_95_95_1.png",
+          "bytes": 11087,
+          "sha256": "818b5922f47b90d9122d8636f47e229fc355f09c26874f4d71710bcc8532ca2e",
+          "beforeSha256": "078691471cb44ff87457ccb2336004ecfda71bc809035436a7cd036b100d75c7"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/square_round_136_136_1.png",
+          "bytes": 35901,
+          "sha256": "176d66913168e567731783c153ef77ca8784fe109333e4afdadd97e3d8792429",
+          "beforeSha256": "3f174069e7a71bf8505069b905a102cd34e721eba98c1aed33f3aeb290c87610"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/square_round_136_136_1.png",
+          "bytes": 20302,
+          "sha256": "0097bd229cfbac20689387e94c4315cf566f795424ac4e0f401186078a19d668",
+          "beforeSha256": "15e7e74bc52aa5bd6fa87de45195509e1e18d25b13469532c9eb21546278f5e1"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/thumb_level_up_1.png",
+          "bytes": 141621,
+          "sha256": "96d7125086f989b3700f47f138a3021ee3eabdc0610a6d2e0145f21a45e77733",
+          "beforeSha256": "964d6542de439273586216a2f41406118484edb51ceb91d1c7f739f26b70bd82"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/thumb_level_up_1.png",
+          "bytes": 80979,
+          "sha256": "ab2a958a270235c657f26a4a9b22a39b4939ede28e60e52577b1c7fab2cf305c",
+          "beforeSha256": "86fa5c22522c8fd16240f7a41beb2726299c52093eac42ba3a298deb3319a788"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_main_1.png",
+          "bytes": 136890,
+          "sha256": "a2e704befc96a198d1eb52e05d95f7dc8e8636111598f52e72a4e740debd4465",
+          "beforeSha256": "3617ad33a39a8c26dab7e0c17779e49117ed8e133276d9d254314faa35f14c2e"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_main_1.png",
+          "bytes": 77412,
+          "sha256": "a37b2cf9e8ada7c1786de68cba8409ef418ea439f0196b750769207635d0184b",
+          "beforeSha256": "58e8165ef2de7e3642adfe0d2c34d0fa0617ff4d687d9abb19952acc6431cfdf"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 56947,
+          "sha256": "d3e3a0c637bb32cfea32113e24ee2403ad0c82e08b5edab95dfa595a34670daf",
+          "beforeSha256": "cc01b16e88ac45958bc73e739846a4403f2b5f71fbec7c342706756ff5b785a5"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 31610,
+          "sha256": "720d7ea4cdd8b4c00744e9f43681794f9a39f269a51bcddfbd276a19cc16351c",
+          "beforeSha256": "c70d7ef9f8c72d53f086bbfd1856e204f4282115bb7ce4f04198989298fec6ed"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/battle_control_board_1.png",
+          "bytes": 61281,
+          "sha256": "8a382983de1cb8e78c33bb9f604d82c9c428a04081b06fe877fbeb0ac74ce43a",
+          "beforeSha256": "6fc80fee619f72cd8e82378aae82153cb8e448fac11505378e99025d9e07a17a"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/battle_control_board_1.png",
+          "bytes": 26748,
+          "sha256": "d9ea355572cf1c5cda0068f2729965907522efb20dcf76026ca14c0a9bdd7ef2",
+          "beforeSha256": "9df1f1521b274d61ce9ae2e8842739be50d3ad0b1d324c62f6352623e46cfa50"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/battle_member_status_1.png",
+          "bytes": 8858,
+          "sha256": "84adcbaaba1fd4fcfd95049690920165ebee2920d071afe016abd60d44f4bc29",
+          "beforeSha256": "6b71a8c5ff9c801bd80d9e594e67c3466f153eb85c18392c02906621af3bc848"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/battle_member_status_1.png",
+          "bytes": 4402,
+          "sha256": "9f4c86be72bb0a4f043e5a40981d4719b104316f3b0871a7e5ae5517f1006366",
+          "beforeSha256": "4cb8c835070e19039cf451980f71cc04a9fde1bbd00b650fe7d153ec92db2eac"
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 144439,
+          "sha256": "ed7fefa199d66101bab09af2de851ccc0fc929b9d959dfc6084d36cf2e846571",
+          "beforeSha256": "7f5d7774f3778974e7773dfad399dcd0922a3eed448d49d169ab36f0bf015d54"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 66838,
+          "sha256": "b3418c8b16a7524f2091fe8af773cf7598ef97f5b6a343547f09f7de71de10d8",
+          "beforeSha256": "5ca4525cdd31b4d78b994369d42695e4aac5f2bcadc9497f69793916f22659f5"
+        },
+        {
+          "root": "common",
+          "logical": "character/blade_witch_halloween/ui/skill_cutin_1.png",
+          "bytes": 584738,
+          "sha256": "a172dff34ed9b9a3d8dba35b53ba66f98a7be6de264de5346c1f38b65a2ab216",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/blade_witch_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 444294,
+          "sha256": "ff4cad7ddd9a828d6c67d293ee59f156e83439b85a63bbec29bc4f0d39ed205c",
+          "beforeSha256": "feff36e639b03cd7f0f49d46158a688fb287d8df50dcc836af77472c5c90dbf0"
+        },
+        {
+          "root": "small",
+          "logical": "character/blade_witch_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 252267,
+          "sha256": "97d53459f2922ae05226e217d5086b18bc04ebe88e18a0a5491ca4e6c5fa392a",
+          "beforeSha256": "23a64db281cbc10ac46c05426e4f770d223c10fbbcab4dcacb9c1e42917cf874"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/full_shot_1440_1920_0.png",
+          "bytes": 926894,
+          "sha256": "e412c631d87307a1e47005bacce705cec20f1eea61c5a537e92266a8a13cec87",
+          "beforeSha256": "43b529f2d75e8e68166d23fb9bfccf1da66dd485644c0a3dbb72f65698715211"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_0.png",
+          "bytes": 85864,
+          "sha256": "b132440c2322f910e1d1b9300f6a92f5d0f28db0668e0a6f712a10dafc31ca7c",
+          "beforeSha256": "910fb0a2af4139703c803bdb5340c328bc94396b841f0da2bfb1a3d1ea8f07a7"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_0.png",
+          "bytes": 47466,
+          "sha256": "6cb9a679fc9ef1f0a19509532ad2b4d3b67027fb0f31cf906f345dc794aa4b1c",
+          "beforeSha256": "22709bd93ed1d46e09722967a981cf8ee91eb9b07b60283599a93df02269542a"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_132_132_0.png",
+          "bytes": 38610,
+          "sha256": "8abadc716e3aedb2cbb81feeaa5b34cd2d0465a2ed5a3f267063d44f2783579e",
+          "beforeSha256": "57ab4d12d5dba25e8bc141fdb6e059ddf67122c8b29b1aa03849246fa1b73726"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_132_132_0.png",
+          "bytes": 20927,
+          "sha256": "7e4a05228042f1ce4192347e930ea45f4e096a783254bb6460c190e0168c85ed",
+          "beforeSha256": "ed67b3dac67ad3f66178a0c5a1bdf1359e551eb0aee5176014e875494a52aaed"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_95_95_0.png",
+          "bytes": 21923,
+          "sha256": "228f5a9c211bc45878c8935a260f372920d47c27d3e5b20bb49fd6e83466fdf6",
+          "beforeSha256": "6be64acf93f708a43a395ac26400c2421abe380a797be1ed2d9ae26504813485"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_95_95_0.png",
+          "bytes": 11798,
+          "sha256": "8db1be72c4aa7a5d33a92cfa91a7078ecfc4f74ae55dddb32c92f611b5b6b4f4",
+          "beforeSha256": "17de24315c5f1fca2bd6afe089bb7b00899fd241f834f8f500e9812722456d95"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_136_136_0.png",
+          "bytes": 40716,
+          "sha256": "7fde3d03a0e3685a298aec27959b4daadd5d7037eddddd025ec786f60c9d6f23",
+          "beforeSha256": "bf86cc22184f73efddfc69eb3c58f4552a159190c3f67c67336606fa3cfca502"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_136_136_0.png",
+          "bytes": 22226,
+          "sha256": "770fdb5e668e41e976d09c5bb828fa633e9363d697fd54d2d8aed81cbc92ac65",
+          "beforeSha256": "624439d7e3acf210a94b03a558c4b8146dec06d28648feb0ee0c0bd5147f5c06"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_level_up_0.png",
+          "bytes": 130756,
+          "sha256": "0783409547bde99ec492c99250e8842288981cc5a794162a287f44b8e62c20cc",
+          "beforeSha256": "98dcca18a752509c864b83cb514cd6ba86369cbe514804725c0ddfdfa9d2950f"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_level_up_0.png",
+          "bytes": 72899,
+          "sha256": "f8f90cdd6df83780248491e020c9a2f799e923efc34139f7a9a8b7f87dbc4512",
+          "beforeSha256": "2658fc3a8e0e3f2fcfab6fac88b650f660d0cb42d9b253b998ec9c27f546a4a8"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_main_0.png",
+          "bytes": 119339,
+          "sha256": "742b82f530940a6ef7097f0896064d7a00e9361952753ba9e8d892bb02e607e2",
+          "beforeSha256": "7e4a0ac7c6cd04c7967a0544f7d485eefcba08350ce174859d472a495d500540"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_main_0.png",
+          "bytes": 66630,
+          "sha256": "397ddf0c0884eb2ed9b028969cd619dd3f136a1edbebd8fe21fcd56992088260",
+          "beforeSha256": "acf29a39cda6b0815d174f647d97629bb6faf518a361c52b7d121b6af886d0ec"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 50870,
+          "sha256": "a9127fa4a7feb59cca86f085c77d072b11367a96a0082056e05f00fa13bd2c2e",
+          "beforeSha256": "e71c55489cafc084ecc10a0f630ab4b6b688749aedcace518cc71435cfa041df"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_unison_0.png",
+          "bytes": 27966,
+          "sha256": "633f7652b49e6b61b6610d6f9b5d383dfeb50449480f812209e2b635621eea5d",
+          "beforeSha256": "88dc63c8cf47ef4e7fad5c2335c19e6560f6a5a1af5cfec96d4efac63507abd3"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/battle_control_board_0.png",
+          "bytes": 54585,
+          "sha256": "8425a2b4b05899481908f96888983bc55ad10f0700cbb5d3bec6af09c87f6da2",
+          "beforeSha256": "b86240187f6683f3dc250f2d5f21983e9ebc423d73f312a3688b7193f6384b5a"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/battle_control_board_0.png",
+          "bytes": 23996,
+          "sha256": "a08931f4529a02fd44b22a0a8241ea142b49bef7ced7a17ea80317cd37c7132e",
+          "beforeSha256": "8aa061d7c5ebe7e07944903ba33df8e571e9bc840200f1ada74c898e19e2cc05"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/battle_member_status_0.png",
+          "bytes": 9305,
+          "sha256": "b99b05af2da467417986f1570ee359c6548df1da136badaf05ec66dc3076e69a",
+          "beforeSha256": "d1806a297ce7e7dacf7247512c6aee7807beaef95f23d1bca7a7371f6a7de652"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/battle_member_status_0.png",
+          "bytes": 4552,
+          "sha256": "c1c2055b7c954dc7d9069895f5ed5d6203281f14c1a202c4aa7d810255ef2ef0",
+          "beforeSha256": "12aefcd5ae988af56a277141d236acab6c40833faddaa94c6661219bc1fbff6c"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 137065,
+          "sha256": "02fcc1624d312225e8f0c66e5404110523963bd413b4bac83b7dbd5aeacc1ea2",
+          "beforeSha256": "f045366e4a46f353e24284ee891424eb1c9859f82f06a385c934cfa5cf0ebbae"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/cutin_skill_chain_0.png",
+          "bytes": 64452,
+          "sha256": "5f6f9fff6324a998d5b1f469afa55d7771a095e2e79a5279a47546e52a97e385",
+          "beforeSha256": "242b33a028500830eac8b3e2049919459462d86e8f4ab9fd8223d7bf25d8023f"
+        },
+        {
+          "root": "common",
+          "logical": "character/crystal_swordman_halloween/ui/skill_cutin_0.png",
+          "bytes": 396375,
+          "sha256": "d768632ae42e786d70305bef4f7121857a3c87634f8de46e2b7ed4fa853d313e",
+          "beforeSha256": null
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/full_shot_1440_1920_1.png",
+          "bytes": 1013243,
+          "sha256": "02814a34952b1880b9ee001eb6190a2e18596e8b1826ed18a50cbdeb330c7d25",
+          "beforeSha256": "bb739a195f4c7ea39d9e2c850c31e9931db14cb0ebb47affa85abf9441557f96"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_1.png",
+          "bytes": 82583,
+          "sha256": "d10f5b1c689930deb3d01d53569da395ffa4da18c84c663dd3d0012ba36f0651",
+          "beforeSha256": "72a5c7a0f0f98301420c1edd2630920c0750f1637967d6e952e0cbda730312ec"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_1.png",
+          "bytes": 45922,
+          "sha256": "8c21c9764813c3518008cdeedd5c1613822b7dfd7637638f4d829906e1316789",
+          "beforeSha256": "1fe89571bdcb446cb717b4e383386f2126106108a7cb9fe3bfe3d2947dcc672d"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_132_132_1.png",
+          "bytes": 37282,
+          "sha256": "36eaf49aa1fb1b8f1759b22a80b06df7c35d1f7a15cacb80b0ba6f743709728c",
+          "beforeSha256": "b4629ce572e6ee05f95d311440e7d49c6caf9167a9b314b3fa439f02b92c19c2"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_132_132_1.png",
+          "bytes": 20377,
+          "sha256": "b88024dfd6550c544f20dc5c1856de1295da7b84c3b6513c4bc3ed5bd4a39dbd",
+          "beforeSha256": "757fd97769598ff97649ef02ebbd457a75b20ea55957fb27fe25d1e75a4d6d91"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_95_95_1.png",
+          "bytes": 21561,
+          "sha256": "9efd2f4f3b716d945eef41e68e92906781fdbf7271b8efc90bac38fd1d58433f",
+          "beforeSha256": "cc58d0c240183fb558eb9adce7d1d44b9d369ee82249c38f8b5c1e4a94b46435"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_95_95_1.png",
+          "bytes": 11398,
+          "sha256": "3abe302cd1e780e7eb28a3a7838f87e8363290b686e77fb8fa478d2e54146057",
+          "beforeSha256": "7a0268e524c3cf5cbeb0bdfa1ea57b2755e339838bf2b7c519c698c655b96504"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_136_136_1.png",
+          "bytes": 39717,
+          "sha256": "bf9cc995110ffd32e4ed383307a3a99829aead61526f2952599d4d6757131b5e",
+          "beforeSha256": "a7a318c5a5edfce46046771c458bcb62279c9ef1a0136d76c596d8988e7cb812"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/square_round_136_136_1.png",
+          "bytes": 21654,
+          "sha256": "e53dc05d73debb6117d7257dc55d9f0a83d1f7cc2593db2ca1255a1684ddd2c5",
+          "beforeSha256": "428cf53c10d61bf581fc222d5ecc88b132ae88218b65264c67f7f6388d746c29"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_level_up_1.png",
+          "bytes": 150040,
+          "sha256": "5d8bf3e428ec115fcb070251cd84894e7c7504d3ad27a040fcbf57fad1c53dfc",
+          "beforeSha256": "1642fa62bb9cf80cf13d6a7244c43cc2d3463feecb7e083ed293968b7ba9b3f0"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_level_up_1.png",
+          "bytes": 84911,
+          "sha256": "4e611fac30bcb9e45eae309ad22dc4d44698c1f0813cd3d9a1e365ae68be97dc",
+          "beforeSha256": "e8e530a109f56c466718b3aa2df99f5fb1a196569b5e9fdde62f6d55d8e1b670"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_main_1.png",
+          "bytes": 151883,
+          "sha256": "6886e89864c9c330d4ab36fa67bcde7815ceb8d976b158c4aeb091d966d7ead5",
+          "beforeSha256": "a9d7b2f7a3aedce9cc975bee8414e0ecb6a9a03db2d91dabfd1978d23555a7fc"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_main_1.png",
+          "bytes": 83845,
+          "sha256": "f48edf1afa8b336918868a9de294977e437ebfeadfe460be0cf85ec08c85c825",
+          "beforeSha256": "698a211262974d624dce7eb9f225d6a0b2b0c3e16ae49494da63b36900f48258"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 60102,
+          "sha256": "904c83139e640a9627046f8bf04f06cab9874e338c9adc65dc92b35e93e794c2",
+          "beforeSha256": "7c499053c738c857efaf3960ccb4576e96157778e96450e20cf77a16405f2aa3"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/thumb_party_unison_1.png",
+          "bytes": 33008,
+          "sha256": "2c0c396c2999b10e2c597fac33c676f2a0e855a8c71e8b3e58073615392e7e13",
+          "beforeSha256": "e2b56096ab0ede75819f30a76d88dd65a45717d6bcb116f971e22c6f454caee0"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/battle_control_board_1.png",
+          "bytes": 66185,
+          "sha256": "803196fc3813f87cb14ff8bda41e150279142aff0b5811b7d6fb1417ec5d6fb8",
+          "beforeSha256": "c777e7f32e1feb2da3b9dab4df42cdd4384185967e78510525a2d1295e03dc80"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/battle_control_board_1.png",
+          "bytes": 27344,
+          "sha256": "29638afa539ec9d5de5390278b69b655afb6c3aba4064ea4558ef1c991dc8f4d",
+          "beforeSha256": "e666e9b19e29c551bbe5d87cfee9e1824e45f5a0fbabc128576b5659e583c955"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/battle_member_status_1.png",
+          "bytes": 9039,
+          "sha256": "de6b904e53046b8132fd66db96305b6b7fb04d0b6233ba68311edb5f6b7290d1",
+          "beforeSha256": "44b802349dccf83aef7ee4581e3fc34f8d782bc58bac34e26fa6278cc68e7739"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/battle_member_status_1.png",
+          "bytes": 4496,
+          "sha256": "4cfbb06b3fc689ba0ca8d3fcb5ff71ec7e7e8f0fce6ea33f47865ec27a1ba970",
+          "beforeSha256": "d4ee012bc789d72dea30b3e5e538b8faf035020a86e42ff9a06492830d3e0aea"
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 148778,
+          "sha256": "5199b234e4a367c801876cce3c5b8f116685f3cbef580af4a296e3ece62f6fe8",
+          "beforeSha256": "5995aaf95f6924a24993821bc575c7f1f0e5aec24a77062bb7210e15f78a22b1"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/cutin_skill_chain_1.png",
+          "bytes": 70477,
+          "sha256": "4f78ec00032c24fffdccd232be965560da9324a297e4b99740f5ebd4d1bfc2ca",
+          "beforeSha256": "b7f9adafbefde3dfcc2bdaa1bdf98ffdd9286be6a45c2c3b76cfefa8cb35b647"
+        },
+        {
+          "root": "common",
+          "logical": "character/crystal_swordman_halloween/ui/skill_cutin_1.png",
+          "bytes": 555715,
+          "sha256": "9c2738206d128bfadb6412d33f43e047156e02483dee93c8cb47e7dcd0b3dd3a",
+          "beforeSha256": null
+        },
+        {
+          "root": "medium",
+          "logical": "character/crystal_swordman_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 429088,
+          "sha256": "85ce099ed3438e2b890e73667eea1929657135962c77203ec056dfeb9b8b205d",
+          "beforeSha256": "cffa2532cccce7f1d45d21dc36f8410437046115c76a4d0d57699fbe013b3696"
+        },
+        {
+          "root": "small",
+          "logical": "character/crystal_swordman_halloween/ui/illustration_setting_sprite_sheet.png",
+          "bytes": 243816,
+          "sha256": "98c3c3a6dc82c1d546fe6903ac97b32dd6faced28ddfdbfb224cc7469cf21207",
+          "beforeSha256": "2001e5b645e04189a7b7a4a7b5d81880802e1034236fab149c939d8eff1bc673"
+        },
+        {
+          "root": "common",
+          "logical": "master/generated/character_image.orderedmap",
+          "bytes": 51686,
+          "sha256": "73c97d236740c87597c9a9731b9fffdfaa2131bfdb57f0e568faf69cad42a5fc",
+          "beforeSha256": "9642e177d657b4bbc25bf12f6f01af1eacdcbe5865da47776356e218d666c158"
+        },
+        {
+          "root": "common",
+          "logical": "master/character/full_shot_image_attribute.orderedmap",
+          "bytes": 50577,
+          "sha256": "e89f23fe8c354b9d2da41c620ce1fd74ee8288d1343e31750fdd02764e6f4d6b",
+          "beforeSha256": "670abd8855ddded421855c4109162392bbe6ebf75ee2775cb7839009f955c43c"
+        },
+        {
+          "root": "common",
+          "logical": "master/generated/trimmed_image.orderedmap",
+          "bytes": 360919,
+          "sha256": "2b6b5d855befff8dbd4d4170c62f400b74e7e82b0e785dc5063916bb15815cef",
+          "beforeSha256": "60bcc13bcab1561cc72c5bc287e0a6f1816318d8f2ef49f6a1c7ca0185155729"
+        },
+        {
+          "root": "android",
+          "logical": "character/lady_android_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 145513,
+          "sha256": "85f316ce5af7e7cf3826dd3609acc17bf298cf8c0eaf8ab8d075b8af325a1c1d",
+          "beforeSha256": "d6fafe1a73681bb39a5f4e1fe38004a705f125e747e626546f7f07e7933aaf85"
+        },
+        {
+          "root": "ios",
+          "logical": "character/lady_android_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 167591,
+          "sha256": "43ca0208e945a87c0cb6d1db92320a752bdb1683458191839c32cf99941c009e",
+          "beforeSha256": "8b127e8c2ff6e4413686e47024add9fabc0bf8d99129d283032de2e5758a437c"
+        },
+        {
+          "root": "android",
+          "logical": "character/lady_android_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 210796,
+          "sha256": "fda1d9f777c66f6b5acae6d146e1786b85a7a3c667ab8b022cfe99a1c1d18410",
+          "beforeSha256": "58ffe4321979d6976d2ec6e0e6a9448cc152d94fce98d40349828064816ff670"
+        },
+        {
+          "root": "ios",
+          "logical": "character/lady_android_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 234313,
+          "sha256": "22b6a9ee31532658ca0a3f76357a8c33c21f1059b8292c01749ec15859d51d70",
+          "beforeSha256": "98b0eca2f146c99a8d0b7b2a1c60120e4ddab57f0ea6b437a758c27a2213a764"
+        },
+        {
+          "root": "android",
+          "logical": "character/lich_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 146844,
+          "sha256": "c20f758260a1fe1e76fd871595a33ceee404d9ead155bdb7d17a374a2f252b72",
+          "beforeSha256": "c2eda41019b5853e7854083f06eafa9e4fc314a25f3d9423eb99d674d6f3ebb1"
+        },
+        {
+          "root": "ios",
+          "logical": "character/lich_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 164349,
+          "sha256": "e617951300d647218065a7bcd8f00e89372bd9ec389d50c896584263f4ce2d65",
+          "beforeSha256": "4ab2c7b492bd94a319ff2758dc1d684b7766dc5e0c50e5cd2406d38bc8874beb"
+        },
+        {
+          "root": "android",
+          "logical": "character/lich_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 150476,
+          "sha256": "54787e2861c36591255a6adaaafe0bfebb54bf976b9af83c7c0e453158b4e432",
+          "beforeSha256": "8f02871c57c5b1d1ccd5671461b74f83c8afda68590a3af15c801ff142dbeb38"
+        },
+        {
+          "root": "ios",
+          "logical": "character/lich_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 167662,
+          "sha256": "cd1adac95613fc855686d13f4050d702c616711ef199bbef35c7d45ae2c5073b",
+          "beforeSha256": "ae56e9ae2071b18db144b55a4dfed008716b17604b8ca63fd15894c3e5fb7ee2"
+        },
+        {
+          "root": "android",
+          "logical": "character/blade_witch_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 174344,
+          "sha256": "88455ae9b78e7f3d52ff66b2ee402d9e280eb4a5b07ef858c60d6f5343b7cd89",
+          "beforeSha256": "076db8cf1d5734bad559e5bb08736ff70350e94b182335cb2dd0e574f1f17f1b"
+        },
+        {
+          "root": "ios",
+          "logical": "character/blade_witch_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 196985,
+          "sha256": "0991cdd13bc4752b75526f5d2d957437822e7de1ee013d9211e6fd4986302fc4",
+          "beforeSha256": "b07ce5eb3d865c5ba1ebaf5e7a3f1b1e784be9d38ba3559a773cbf0cdd3354e6"
+        },
+        {
+          "root": "android",
+          "logical": "character/blade_witch_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 169425,
+          "sha256": "59acd62c9dbde7abcdb7af60dadf92feeb3e27a58ae386a7613b02ded20a023a",
+          "beforeSha256": "4e3fd90d47c4ef1699d42a38212f39a4a798aa38356474df17f82d043ca7c98a"
+        },
+        {
+          "root": "ios",
+          "logical": "character/blade_witch_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 198099,
+          "sha256": "c9d7cb17f5695b0fc9ef8768cc305dc0f7bbfa6e2e81886ec187adfeb0428080",
+          "beforeSha256": "e3594f7b45ec65632839a8eb7c4a2e200b5cbc0b1c22185d4af230188c286e4a"
+        },
+        {
+          "root": "android",
+          "logical": "character/crystal_swordman_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 122727,
+          "sha256": "85f9bc7f09b343c40b109c20996a2be72a0068488c10562a88577a4903552bdb",
+          "beforeSha256": "831874cf0dadca111387f1c09f7980ad1c463871503e50a6656c6c4a5c7b0e1c"
+        },
+        {
+          "root": "ios",
+          "logical": "character/crystal_swordman_halloween/ui/skill_cutin_0.atf.deflate",
+          "bytes": 136571,
+          "sha256": "ff54bd731a48ef9af46f65ec312c8deeab1bd15dbd1584684f5ec2230868ec29",
+          "beforeSha256": "57e5d54f03e383b9d9edcbb818bf2796584bf4d624cdf757609a8b867a8bb02f"
+        },
+        {
+          "root": "android",
+          "logical": "character/crystal_swordman_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 177242,
+          "sha256": "1de5d5062984aeee6915504cb257b2d4ca66e981f84cdac467b518345404afa3",
+          "beforeSha256": "06ddd877d59ae0fa3ecd1b83a9f00a37d7cf2a5ba666dbc53b85293f338dafd7"
+        },
+        {
+          "root": "ios",
+          "logical": "character/crystal_swordman_halloween/ui/skill_cutin_1.atf.deflate",
+          "bytes": 198271,
+          "sha256": "0b91c40ed1c4267289b7f00a265a9ab5921bef717c86e32a00686ee4f91a39e9",
+          "beforeSha256": "7bf42f4f0efc595d034ef0ebee4ad1208a3931763cf93dab26c9bb5c16bff8e7"
+        },
+        {
+          "root": "common",
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_1.action.dsl.amf3.deflate",
+          "bytes": 960,
+          "sha256": "e638e1a19a8df43b18401d9191a4942cfd10db07cef769a9f1cb318b24732be2",
+          "beforeSha256": "56aaac709b707d64fbf1b4aa81b22e42de9bbf0a2f573cf69a1989acdefb9dff"
+        },
+        {
+          "root": "common",
+          "logical": "battle/action/skill/action/rare5/lady_android_halloween$lady_android_halloween_2.action.dsl.amf3.deflate",
+          "bytes": 960,
+          "sha256": "b9ea80ad45cdef6f4bb68d24f31a58d3b9c54d95c3e0437e5c16d2cd184993c1",
+          "beforeSha256": "6c9ccb5816a5d88a1ab8c19d20753a80dc0ad4173fff4df8fa971177ae105109"
+        }
+      ]
+    }
+  },
+  "ui": {
+    "tableEdits": [
+      {
+        "changes": [
+          {
+            "before": [
+              "416",
+              "178",
+              "1144",
+              "1570"
+            ],
+            "path": [
+              "149985",
+              "0"
+            ],
+            "after": [
+              "373",
+              "373",
+              "1254",
+              "1254"
+            ]
+          },
+          {
+            "before": [
+              "483",
+              "141",
+              "1156",
+              "1587"
+            ],
+            "path": [
+              "149985",
+              "1"
+            ],
+            "after": [
+              "373",
+              "373",
+              "1254",
+              "1254"
+            ]
+          }
+        ],
+        "logical": "master/generated/character_image.orderedmap"
+      },
+      {
+        "changes": [
+          {
+            "before": [
+              "1000",
+              "1000",
+              "1",
+              "1000",
+              "500"
+            ],
+            "path": [
+              "149985",
+              "0"
+            ],
+            "after": [
+              "1000",
+              "1000",
+              "1",
+              "1023",
+              "668"
+            ]
+          },
+          {
+            "before": [
+              "1000",
+              "1000",
+              "1",
+              "1000",
+              "500"
+            ],
+            "path": [
+              "149985",
+              "1"
+            ],
+            "after": [
+              "1000",
+              "1000",
+              "1",
+              "1053",
+              "773"
+            ]
+          }
+        ],
+        "logical": "master/character/full_shot_image_attribute.orderedmap"
+      },
+      {
+        "changes": [
+          {
+            "before": [
+              "416",
+              "178",
+              "2000",
+              "2000"
+            ],
+            "path": [
+              "character/lich_halloween/ui/full_shot_1440_1920_0"
+            ],
+            "after": [
+              "373",
+              "373",
+              "2000",
+              "2000"
+            ]
+          },
+          {
+            "before": [
+              "483",
+              "141",
+              "2000",
+              "2000"
+            ],
+            "path": [
+              "character/lich_halloween/ui/full_shot_1440_1920_1"
+            ],
+            "after": [
+              "373",
+              "373",
+              "2000",
+              "2000"
+            ]
+          }
+        ],
+        "logical": "master/generated/trimmed_image.orderedmap"
+      }
+    ],
+    "crops": [
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/square_0.png",
+        "sourceBox": [
+          507.0,
+          212.72000000000003,
+          793.0,
+          498.72
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/square_132_132_0.png",
+        "sourceBox": [
+          507.0,
+          212.72000000000003,
+          793.0,
+          498.72
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/square_round_95_95_0.png",
+        "sourceBox": [
+          507.0,
+          212.72000000000003,
+          793.0,
+          498.72
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/square_round_136_136_0.png",
+        "sourceBox": [
+          507.0,
+          212.72000000000003,
+          793.0,
+          498.72
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/thumb_level_up_0.png",
+        "sourceBox": [
+          379.4,
+          152.1613333333333,
+          920.6,
+          858.7280000000001
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/thumb_party_main_0.png",
+        "sourceBox": [
+          408.0,
+          115.3901075268817,
+          892.0,
+          1135.43311827957
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/thumb_party_unison_0.png",
+        "sourceBox": [
+          379.4,
+          152.1613333333333,
+          920.6,
+          858.7280000000001
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/battle_control_board_0.png",
+        "sourceBox": [
+          452.0,
+          135.70307692307694,
+          848.0,
+          1156.1646153846154
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/battle_member_status_0.png",
+        "sourceBox": [
+          507.0,
+          212.72000000000003,
+          793.0,
+          498.72
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/cutin_skill_chain_0.png",
+        "sourceBox": [
+          397.0,
+          174.55,
+          903.0,
+          759.3833333333332
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 0,
+        "logical": "character/lady_android_halloween/ui/skill_cutin_0.png",
+        "sourceBox": [
+          -32.0,
+          97.65999999999997,
+          1332.0,
+          779.66
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/square_1.png",
+        "sourceBox": [
+          848.75,
+          167.2,
+          1271.25,
+          589.7
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/square_132_132_1.png",
+        "sourceBox": [
+          848.75,
+          167.2,
+          1271.25,
+          589.7
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/square_round_95_95_1.png",
+        "sourceBox": [
+          848.75,
+          167.2,
+          1271.25,
+          589.7
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/square_round_136_136_1.png",
+        "sourceBox": [
+          848.75,
+          167.2,
+          1271.25,
+          589.7
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/thumb_level_up_1.png",
+        "sourceBox": [
+          660.25,
+          77.73833333333334,
+          1459.75,
+          1121.5300000000002
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/thumb_party_main_1.png",
+        "sourceBox": [
+          702.5,
+          23.41720430107523,
+          1417.5,
+          1530.298924731183
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/thumb_party_unison_1.png",
+        "sourceBox": [
+          660.25,
+          77.73833333333334,
+          1459.75,
+          1121.5300000000002
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/battle_control_board_1.png",
+        "sourceBox": [
+          767.5,
+          53.424999999999955,
+          1352.5,
+          1560.925
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/battle_member_status_1.png",
+        "sourceBox": [
+          848.75,
+          167.2,
+          1271.25,
+          589.7
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/cutin_skill_chain_1.png",
+        "sourceBox": [
+          686.25,
+          110.8125,
+          1433.75,
+          974.7708333333333
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 139985,
+        "form": 1,
+        "logical": "character/lady_android_halloween/ui/skill_cutin_1.png",
+        "sourceBox": [
+          52.5,
+          -2.7749999999999773,
+          2067.5,
+          1004.725
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/square_0.png",
+        "sourceBox": [
+          496.0,
+          147.16000000000003,
+          804.0,
+          455.16
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/square_132_132_0.png",
+        "sourceBox": [
+          496.0,
+          147.16000000000003,
+          804.0,
+          455.16
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/square_round_95_95_0.png",
+        "sourceBox": [
+          496.0,
+          147.16000000000003,
+          804.0,
+          455.16
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/square_round_136_136_0.png",
+        "sourceBox": [
+          496.0,
+          147.16000000000003,
+          804.0,
+          455.16
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/thumb_level_up_0.png",
+        "sourceBox": [
+          305.6,
+          43.20533333333333,
+          994.4,
+          942.472
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/thumb_party_main_0.png",
+        "sourceBox": [
+          342.0,
+          -3.5944086021505655,
+          958.0,
+          1294.6421505376343
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/thumb_party_unison_0.png",
+        "sourceBox": [
+          305.6,
+          43.20533333333333,
+          994.4,
+          942.472
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/battle_control_board_0.png",
+        "sourceBox": [
+          398.0,
+          22.258461538461574,
+          902.0,
+          1321.0276923076922
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/battle_member_status_0.png",
+        "sourceBox": [
+          496.0,
+          147.16000000000003,
+          804.0,
+          455.16
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/cutin_skill_chain_0.png",
+        "sourceBox": [
+          328.0,
+          71.69999999999999,
+          972.0,
+          816.0333333333333
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 0,
+        "logical": "character/lich_halloween/ui/skill_cutin_0.png",
+        "sourceBox": [
+          -218.0,
+          -26.159999999999968,
+          1518.0,
+          841.84
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/square_1.png",
+        "sourceBox": [
+          526.0,
+          252.16000000000003,
+          834.0,
+          560.1600000000001
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/square_132_132_1.png",
+        "sourceBox": [
+          526.0,
+          252.16000000000003,
+          834.0,
+          560.1600000000001
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/square_round_95_95_1.png",
+        "sourceBox": [
+          526.0,
+          252.16000000000003,
+          834.0,
+          560.1600000000001
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/square_round_136_136_1.png",
+        "sourceBox": [
+          526.0,
+          252.16000000000003,
+          834.0,
+          560.1600000000001
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/thumb_level_up_1.png",
+        "sourceBox": [
+          335.6,
+          148.20533333333333,
+          1024.4,
+          1047.472
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/thumb_party_main_1.png",
+        "sourceBox": [
+          372.0,
+          101.40559139784943,
+          988.0,
+          1399.6421505376343
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/thumb_party_unison_1.png",
+        "sourceBox": [
+          335.6,
+          148.20533333333333,
+          1024.4,
+          1047.472
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/battle_control_board_1.png",
+        "sourceBox": [
+          428.0,
+          127.25846153846157,
+          932.0,
+          1426.0276923076922
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/battle_member_status_1.png",
+        "sourceBox": [
+          526.0,
+          252.16000000000003,
+          834.0,
+          560.1600000000001
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/cutin_skill_chain_1.png",
+        "sourceBox": [
+          358.0,
+          176.7,
+          1002.0,
+          921.0333333333333
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 149985,
+        "form": 1,
+        "logical": "character/lich_halloween/ui/skill_cutin_1.png",
+        "sourceBox": [
+          -188.0,
+          78.84000000000003,
+          1548.0,
+          946.84
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/square_0.png",
+        "sourceBox": [
+          733.25,
+          190.92000000000002,
+          1116.75,
+          574.4200000000001
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/square_132_132_0.png",
+        "sourceBox": [
+          733.25,
+          190.92000000000002,
+          1116.75,
+          574.4200000000001
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/square_round_95_95_0.png",
+        "sourceBox": [
+          733.25,
+          190.92000000000002,
+          1116.75,
+          574.4200000000001
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/square_round_136_136_0.png",
+        "sourceBox": [
+          733.25,
+          190.92000000000002,
+          1116.75,
+          574.4200000000001
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/thumb_level_up_0.png",
+        "sourceBox": [
+          562.15,
+          109.71633333333335,
+          1287.85,
+          1057.1580000000001
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/thumb_party_main_0.png",
+        "sourceBox": [
+          600.5,
+          60.40946236559137,
+          1249.5,
+          1428.1944086021504
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/thumb_party_unison_0.png",
+        "sourceBox": [
+          562.15,
+          109.71633333333335,
+          1287.85,
+          1057.1580000000001
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/battle_control_board_0.png",
+        "sourceBox": [
+          659.5,
+          87.64730769230766,
+          1190.5,
+          1455.9934615384614
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/battle_member_status_0.png",
+        "sourceBox": [
+          733.25,
+          190.92000000000002,
+          1116.75,
+          574.4200000000001
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/cutin_skill_chain_0.png",
+        "sourceBox": [
+          585.75,
+          139.7375,
+          1264.25,
+          923.9458333333334
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 0,
+        "logical": "character/blade_witch_halloween/ui/skill_cutin_0.png",
+        "sourceBox": [
+          10.5,
+          36.63499999999999,
+          1839.5,
+          951.135
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/square_1.png",
+        "sourceBox": [
+          713.75,
+          517.2,
+          1136.25,
+          939.7
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/square_132_132_1.png",
+        "sourceBox": [
+          713.75,
+          517.2,
+          1136.25,
+          939.7
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/square_round_95_95_1.png",
+        "sourceBox": [
+          713.75,
+          517.2,
+          1136.25,
+          939.7
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/square_round_136_136_1.png",
+        "sourceBox": [
+          713.75,
+          517.2,
+          1136.25,
+          939.7
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/thumb_level_up_1.png",
+        "sourceBox": [
+          525.25,
+          427.73833333333334,
+          1324.75,
+          1471.5300000000002
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/thumb_party_main_1.png",
+        "sourceBox": [
+          567.5,
+          373.41720430107523,
+          1282.5,
+          1880.298924731183
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/thumb_party_unison_1.png",
+        "sourceBox": [
+          525.25,
+          427.73833333333334,
+          1324.75,
+          1471.5300000000002
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/battle_control_board_1.png",
+        "sourceBox": [
+          632.5,
+          403.42499999999995,
+          1217.5,
+          1910.925
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/battle_member_status_1.png",
+        "sourceBox": [
+          713.75,
+          517.2,
+          1136.25,
+          939.7
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/cutin_skill_chain_1.png",
+        "sourceBox": [
+          551.25,
+          460.8125,
+          1298.75,
+          1324.7708333333333
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 169985,
+        "form": 1,
+        "logical": "character/blade_witch_halloween/ui/skill_cutin_1.png",
+        "sourceBox": [
+          -82.5,
+          347.225,
+          1932.5,
+          1354.725
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/square_0.png",
+        "sourceBox": [
+          363.5,
+          98.96000000000001,
+          636.5,
+          371.96000000000004
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/square_132_132_0.png",
+        "sourceBox": [
+          363.5,
+          98.96000000000001,
+          636.5,
+          371.96000000000004
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/square_round_95_95_0.png",
+        "sourceBox": [
+          363.5,
+          98.96000000000001,
+          636.5,
+          371.96000000000004
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/square_round_136_136_0.png",
+        "sourceBox": [
+          363.5,
+          98.96000000000001,
+          636.5,
+          371.96000000000004
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/thumb_level_up_0.png",
+        "sourceBox": [
+          241.7,
+          41.15400000000005,
+          758.3,
+          715.604
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/thumb_party_main_0.png",
+        "sourceBox": [
+          269.0,
+          6.0541935483870475,
+          731.0,
+          979.7316129032259
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/thumb_party_unison_0.png",
+        "sourceBox": [
+          241.7,
+          41.153999999999996,
+          758.3,
+          715.604
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/battle_control_board_0.png",
+        "sourceBox": [
+          311.0,
+          25.443846153846152,
+          689.0,
+          999.5207692307692
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/battle_member_status_0.png",
+        "sourceBox": [
+          363.5,
+          98.96000000000001,
+          636.5,
+          371.96000000000004
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/cutin_skill_chain_0.png",
+        "sourceBox": [
+          258.5,
+          62.525000000000034,
+          741.5,
+          620.7749999999999
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 0,
+        "logical": "character/crystal_swordman_halloween/ui/skill_cutin_0.png",
+        "sourceBox": [
+          -151.0,
+          -10.870000000000005,
+          1151.0,
+          640.13
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/square_1.png",
+        "sourceBox": [
+          514.0,
+          170.24,
+          826.0,
+          482.24
+        ],
+        "size": [
+          212,
+          212
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/square_132_132_1.png",
+        "sourceBox": [
+          514.0,
+          170.24,
+          826.0,
+          482.24
+        ],
+        "size": [
+          132,
+          132
+        ],
+        "mask": null
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/square_round_95_95_1.png",
+        "sourceBox": [
+          514.0,
+          170.24,
+          826.0,
+          482.24
+        ],
+        "size": [
+          95,
+          95
+        ],
+        "mask": "square_round_95_95.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/square_round_136_136_1.png",
+        "sourceBox": [
+          514.0,
+          170.24,
+          826.0,
+          482.24
+        ],
+        "size": [
+          136,
+          136
+        ],
+        "mask": "square_round_136_136.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/thumb_level_up_1.png",
+        "sourceBox": [
+          374.8,
+          104.17599999999999,
+          965.2,
+          874.9760000000001
+        ],
+        "size": [
+          252,
+          329
+        ],
+        "mask": "thumb_level_up.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/thumb_party_main_1.png",
+        "sourceBox": [
+          406.0,
+          64.06193548387103,
+          934.0,
+          1176.8361290322582
+        ],
+        "size": [
+          186,
+          392
+        ],
+        "mask": "thumb_party_main.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/thumb_party_unison_1.png",
+        "sourceBox": [
+          374.8,
+          104.17600000000004,
+          965.2,
+          874.976
+        ],
+        "size": [
+          144,
+          188
+        ],
+        "mask": "thumb_party_unison.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/battle_control_board_1.png",
+        "sourceBox": [
+          454.0,
+          86.22153846153844,
+          886.0,
+          1199.4523076923078
+        ],
+        "size": [
+          104,
+          268
+        ],
+        "mask": "battle_control_board.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/battle_member_status_1.png",
+        "sourceBox": [
+          514.0,
+          170.24,
+          826.0,
+          482.24
+        ],
+        "size": [
+          58,
+          58
+        ],
+        "mask": "battle_member_status.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/cutin_skill_chain_1.png",
+        "sourceBox": [
+          394.0,
+          128.60000000000002,
+          946.0,
+          766.6
+        ],
+        "size": [
+          276,
+          319
+        ],
+        "mask": "cutin_skill_chain.png"
+      },
+      {
+        "characterId": 159985,
+        "form": 1,
+        "logical": "character/crystal_swordman_halloween/ui/skill_cutin_1.png",
+        "sourceBox": [
+          -74.0,
+          44.72000000000003,
+          1414.0,
+          788.72
+        ],
+        "size": [
+          1024,
+          512
+        ],
+        "mask": null
+      }
+    ],
+    "masks": {
+      "square_round_95_95.png": {
+        "sha256": "7b66efe7cef938ce288dd0a782514b80710e441a449c91550f3ffbd8e0e06d23",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAAF8AAABfCAAAAACrJ0QpAAACLElEQVR4nO2aT2/aMBjGX9tvQwIdKhPQAhtSRdRLy58bO22XffHtNG786aSJwqi6AgugIrEEAomTKVOlddLkC/bNvw/wxPnZlg/vQwAAqJEtXTWa9sUpo3AkEXd/jnr94XxziAAAAYBZhdrNjV1+bR0fDxSsImZLldvxcscBCABm3jbb9WrORMqOjgcAHoX++mHQ6f3wQkBgmct37+vlDNLkYxJgFI30WT7/6svE5UjNN+2PraLF5IQnEGCUnVhGHNzv0Ci2PrRKKSlm/kIwXYKDu51jttZunMuOBwCWOm+sHA/L9br01f+BpUr1yQqvrqvp5JDKB9PV6yk27RzK29qXEMzZDm1UzOMv1f+hZqVBvhWyavQAQLhZkrWZUqMHAOK9TwKi4vA8w2MSKVt9QkxiUApVGw86X4z2I0b7EaP9iNF+xGg/YrQfMdqPGO1HjPYjRvsRo/2I0X7EaD9itB8x2o8Y7UeM9iNG+xGj/YjRfsRQtfOFGLna+Qt1A3V/EAcudbZcWT7fOnjHLKrokEbB0x3tT/1kDq8k35/2aW+0DtXsQByuRz0cVmpn7ERFfrh9+DrE2eCyYMgpDvwL388Hgxluxp28qWCCzfdOvzPe4GHRPTVAan8AAGK+W3Q/dRcHjPzHDjnI7D9ADFHozQafO49+hMC9Sfhrpaa/wZP+Sejee873pH+SIRJuWhR4T7PR7XP/JJmN8+3cW07nTfuCHf/eRHy3eNGf+Q3BWs/Xc34oNAAAAABJRU5ErkJggg=="
+      },
+      "square_round_136_136.png": {
+        "sha256": "00556322e29e56270d1094fd512b154e31234480d2c7e8491779d8d4c45ac429",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAAIgAAACICAAAAAAZ0fyOAAACSElEQVR4nM3cvU5VQRiF4XfefWjU0saGEImFFgaBxAYLE++FSzmVnRdBQ3dKEgtpLIyGBC0MjQUV5cEY2GfGoFH5sWXv9dzArMzM/mm+VfhLKve2Xj57dP8et2t+8vXj2/35rxVvKB2svzlqgzl6sw5duZ5DWNttrdV+UW8/RF30F6vsrv1a+LKOyfRHq+eLNpjFeW0/phO6qzke7rfWt4H1re0/vJykY/O4nQ1wJNfVs3a8+S9Jx/q8nbdRnLf5+p8ksnI8/LH80bfjlYsbK6Us7Tzor1yZIXX9g52lcvEUd0zbWRvRWZvSUbr65KPeeK8MqNX67LPSpkttzByUtjRtFJ5+atfeboOrZe1Atst/vjzDqmWbcufLch19R/z22K3l0U8G2/KWr/73TzC0yis3GPWR+a2w4WpGkNUyv0uC09LIICEkhISQEBJCQkgICSEhJISEkBASQkJICAkhISSEhJAQEkJCSAgJISEkhISQEBJCQkgICSEhJISEkBASQkJICAkhISSEhJAQEkJCSAgJISEkhISQEBJCQkgICSEhJISEkBASQkJICAkhISSEhJAQEkJCSAgJISEkhISQEBJCQkgICSEhJISEkBASQkJICAkhISSEhJAQEkJCSAhPiXDqCQGjPo0TjzKCHPkhI8gH9xLuq+zljFB+n40/uliZfc8Zs+0OZvbj5uidHXQ5o9gLD193o25J370+dFEo+u55Pxkvx+T9i1pbTIFBUqUDMSUXxNR+EFOEQkw1DKOX5ZTLmzJmfdBPMGVlIDujTOYAAAAASUVORK5CYII="
+      },
+      "thumb_level_up.png": {
+        "sha256": "81fdec9a8e27b7b05546e6b32a42f3815da5accd67c285834e7c1772936c696c",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAAPwAAAFJCAAAAACasB/JAAAEtklEQVR4nO3Yv8pdVRrH8e/+nlNMICRiBG0UgyMo6SwU4zDaD2lEtFEmYa4goGDrFXgFgwlaidiE3EAYI6SwCwpGXtFCRd+AEkjAs/caTv7Nm2mmGgbOdz7V3rs6v/Ps9az17IkDnGZ4+qUXn33ykUPskpu/fPvl5599DauxHHg8HbhezTz62qvPH2Y33bjy6Sc/bUPe96/wjvHE2beOwTKm6eB/sgvGGJOw/+H7303TweLfsWJ6e3+M3zfL2FHL5vcx9t+eWN3LfK/E680f//5nNqtdK/mDxrzm0t+urTd3bu+GXW9OnXt416NvjXl9/fSFu+nvxF1vTn/AfP912GnzijPn7qS/HX69+eu5BWlY8PT52+m34VfzXy7MgVf+njGvTl3cbnkTuBz/4uio1H1rmX59bs/b7/o0ffTQUsqOy0MfbY8ysprPntw0et19q83Js/OKyfHYV4d37kT3n4xx45kfJx3vHllq2ZmWI+8OJ459c+SB8aZh8NtT+/LG0bmXnWk++gby+ghmh2m8znT86qFk+jHdPOHLh3rtbmtaDr3sSQZJg5OeCLb62yZO+Hg3/OPTzT9QdWuKrvjbUtPcv5MwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZMwCZOw/4evkjAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJkzAJ8xZZt/yZQdLgZ7/vhv/eq93wV73MRNLE5en41UOjGH9MN0+4d2UsBC3jyp58PCUX/Zg+ZuLYN0eCy37w21P7rvfPTzM583R+fz05Hvvq8FQr/Rg3nvlxcvGH98yVfva9H1wmWC3/ODmvKJlXl//kvG11Lse/ODpK490y/frcnst2pF1We2+yhPa7sfDm3mq5M8/P64tn1p2jzjLWZy6ut21uvb3drM9PHxBZ9/OKM+fXm+3l3T1uvTl17uHNavd3vDGvr5++cCf7vc9Ym/WFFy6tp82Or/yxmdaXXriX/f43vM3q2ivvXF9Pm3ln8495M62vv/PKtdXd7AdO9Y7xxNm3jm0bwrRzJ74xxiTsf/j+d9N0v7UfTLmaefS1V58/zG66ceXTT37ahrzvgRK7HXGefunFZ5985ND/4Nf999z85dsvP//sa1g9sKP/Eyvh6fJk8DhmAAAAAElFTkSuQmCC"
+      },
+      "thumb_party_main.png": {
+        "sha256": "74db02d68219d993ce74880646373d2cc7528ea1cf0423088e345830a746b506",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAALoAAAGICAAAAADToKU/AAAE2UlEQVR4nO3WsapdZR5A8bXXOcVcCImgoI3BYAQlnYVgHPABhtuIaCMYH0FIYesT5BkEKxGbIQ8QGCOksAsKIlewUPGeQgkkcM/e33AM6k3MNNPkLPBXHU619sf+/vs/cYrTDC+89upLzz11wP64e/zdV198/g2sxnLq7+nU79XM02++8coZ9tGdW599+tMu8RGcOH/teIwxb+dl7JVl3s5jjONr55n8a/mK6epmjJPtnmX/btmejLG5OrF6uHzNxRtjnOxp933LyRg3LrJ+uPxws+fhO8vJ2Bw+2L7myhjbEbAd48rp9jXvjnl3EQLmebx7v303HFfzv/49r06PyX025tXh9d2QnMDlwpfnxiOGzp5apl9ePnJBmKaPn1g65bg88fG0O3JW8/uXt38Zlvtstb38/rxicjzz9ZndQ4SMcefFHycdH5xdWuVMy9kPhhNPfnv2gSWsYPDr8xt5+9xcK2eaz72NvDVy5TCNt5gu3D4Ito/p7iVfP6hd0p1pOXjdywyCBpe9lBsvv5m45LPV9Genu/+g6d6UfNN/E9oYH/Z3+uMgWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZIlWZLl4w74//2d/jhIlmRJlmRJlmRJlmRJlmRJlmRJlmRJlmRJlveIuufPDIIGP/t9Nf17b1fTb3uTiaCJm9OF2wejFz+mu5c8ujUWcpZx60g+mYIv+5g+YeLJb8/mXvfBr89vXG8+mmZi5umjzXpyPPP1mal17GPcefHHycUfPjR27LMf/uAywWr5z+V5Rce8uvlP590Fdbnw5bnRWSGX6ZeXj1x2S++yOnqHJTMhx8I7R6vl/r4+r6+/t658mJaxfu/6+s/LuebKGNsRsB3jCuvTz7LmcDNOlrHnlpOxOXywfNd+8cbY8/jlZIwbFx8uhxXT1c0YJ9s9rV+2J2Nsrk48Yow7cf7a8Rhj3s57lr/M23mMcXztPNOfQ/z0BrCaefrNN145wz66c+uzT3/aJf7hgeXF3SL2wmuvvvTcUwePoe5/uXv83VdffP4NrB6Y4P8F3D7JwOtpyIUAAAAASUVORK5CYII="
+      },
+      "thumb_party_unison.png": {
+        "sha256": "0e166a60963fbabcb208e3f6d7aa0025cb0ac0d1f0584612bb5961ddc898e16c",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAAJAAAAC8CAAAAACyQ3gpAAACHUlEQVR4nM3dPZJPQRhG8dPnP/koK5AIBaQoX7FSYoEFWYYFCMSKKmSKwALMBjACkrn3tjK+lnDPL+zoqe63OnyfwS/O6Z37Ny9dZA9fTl4/f7mNsf07OcDjd3NX7x6fx/jtiMuv5pzLuu0TZluXOeeryxz9zXP78zxb567Ws/n59u9Ecuv7PJu7O5vfbyHDeenD8frv+Xa0Hr5dPRnC0+OlkIfDcvwU3B5dX/4M096OluuPtnF4f2VLXBCw+vHauPtiDirmuOdD/n+Qu9t46A06F8Tgxvh6IfVkp2PSIjESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzESIzGeEtrhPTn1pBXoxDetQG98VhojeZarNnB90tlMP8eTdThfV+oolqO3N0evQGQbnx78OCx7p4Hl8OPBp/OqnloJDbmaHlJFRuM8Uajq6ScbIvQKEz4u7QAAAABJRU5ErkJggg=="
+      },
+      "battle_control_board.png": {
+        "sha256": "b08732b47eed0dd4c327df933eb50b6338e0e893781e3c509d644b75272af801",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAAGgAAAEMCAAAAAANZayFAAAGO0lEQVR4nOXd3UtcRxQA8LNT0w9Ca2w0lFo2gRi2SRBMTEJLDSk1DyItBApF6GtDHvvc55JAnpv+K30qtNANJmpwdWaurt3gBxrXrN8ftemqU9w167ru3jsfZw7WnodExOvPc+bOzuzcO3djoB2nEolE4qPTp+ve/Wd9eX3jRTqdTi9rHx3T+7HEzY6O81W+/zyZ/CMNWHHr0bgKifFHtzCUlodZFRnZhy2OTOeA0oyB2w5MV0oZRKrLkumWyjBktwXT1qssorfN1LmrLOOuEXOt39ZRqv+avtOzY+8otdOj69xXjnFfi2lNujpKJVujnfYRd0epoD3KuTGL4Sj14kaEs4TjKLUUKrUj5bMbsyHVazV+0QmLkdpnBML5Vh7JWs4DhRwPqjs92I5SVV8jruM7Sl2vAmmPpSYxcNi558NR6l6lc8WPo9SVCuiJL+jJQafbl6NU94GZanARfMVo8Vezwr93/Dnw8Z2yjMYu+IMgc6GUUZdPB1r2Z3uDymsMvi5dYtRnQgBwcbRYOrM5n0V8t5fRyybP0HxTIaNO3w40dhagr307sEvEACbj3qGps8Ag4d+B+CVg8Ll/B+AmMOiggDqAwWc0UKzpJQUEZ5jGGwyMaGWXaaDLrNoKj4c4z87RQOdYMw3UzBppoEZ2igZqYHU0UF1M0UBQnNdRQKs0zhrbooHybIEGWmTv0EALbJ4GmmCcBhqjgtJU0GiseZoEqmczixQOX2VAUrskEEG/AYMUBfQ7UUZzOWAgCSC5Ox5tZPxDojDwcaKM4DhBggiaXilAf3qHRHEWtNPnG5J70y1OlBF4hwIqSBJB4xt7UC7rv4mgMPf2nJIsQaljlxH3C42UoMJX3iL9qgS92u1R3kKWvePj3s8FIIACKoiXXZuIT3qE3szvZzS14s/h+fK3/x5rFwARJKggSZxRrPhfvf79a6ZRt12e0Yq383tw++Ci05DnysFryFsjBVQQp4JkxT2QdcUXCvxg6mBGW54mKH2qcqnTU+04VELDfqDgEDTktxuB79LJw3feernsu9xweN2be60cHBdI0kOx0lcn1z1AZ3KHM9rAu2+7FLlctastHmrHgQgKqCBBBcmqN/+zvfkKYjQsV8sIf/FpZrn6Nb5hj00E5RD6kCRrQPw/C4laW06mka/Qv7dW44IvckrjZY5XKAAiiNeEhqkyCqgyyuPWLl0Twm2ksU0iSMJxg0QIhLr4JEMg1JEiHQYhdlmZD4O4ryYCf1AQClX8GS7BQ6G1caKMAK92GSIotR0OoXUkCeEQWkcSEVCGCtp+RlQ6wDobJoigPkUEBUAE8UgoO0eUEeD0JBENodRuZZoI4kAEBRoQygRcaECbGItPUgNCqZ3UgRCGpNycDoTQkSQQlU5oQZUv8BYRaEGq1xniWhBC7QIiaGaRCApAD3I+v4UmtDTlCElNyLl28rhBk2tEkABdyHE3qdSGHBefhDbkOCQF+tAwFcRdnMwmESRAH3LaeiANIKeUBBUkqaBRE8ihIwV5E8hh8UmCCeSw9UAYQQ6NJKkgQQU9J4KGtswg65NBghm03W8JcUPIekgKTCHbRhJU0AQRNLBjClluPRDmO3ztUpJUkDCH7IakwByy6kgrU+aQ1dYDCeaQ1dYDYQFZnQ0BFSSoIEkEzWdtIIvFJwk2kHpMBIF5lxV2EKfKiGNmFAs5zHjrweyHdhnVfoUE87cGYZBx7QJbKHVUM5JUkLB90rLh1oOps7YZGW49EGALGdZOHjtI2D92+4NZE+jkX9YZZffv146OTJgTARnVLgAiiMP/K6NY+MEmWw/eLuzktczIYPFpJNSJggyGJAlOkH4jCSpIHhEoFnG4/taDE1tOGWlvPeARz9WKgrRrx4EIkq6QbkcSVBkFzh9sobn14I1ay1q6GWmm9CzCQYMEEEHyyEDR8ZbWs4fj4B7DGs4quJdOq3aCCpJUkACEqNdoo3YMSOdh2SdQoE9Mn+hu2UbwNPInfgGciPzUhlYk6NMIZwjJiTwdutGgL0KdPjQH4Ef/nWgvntZ2vgXMuDpTy/kB1QG4OlTd+R7ZAYCfqzALX+E7AF9mbD6sB2zim/IOtfHTJYNDNT8ZrRTx2x1t8ff/nk8/Tv5qdOC/cp+HO6tAXwsAAAAASUVORK5CYII="
+      },
+      "battle_member_status.png": {
+        "sha256": "fb4fda66e3c1c3b2d46c4cc9d74ac3bd2ec3f92fd7879c951e74496471d77444",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAAAAADE0BX0AAABvklEQVR4nK3XS0sCURgG4HdOMEElNO4qiAwvQdI2+xlNLeoHiBS4FhT7K+2KjPbWNrpBupA2bVx1WbRQsRlI1C8qLS9nnDmfvet5ODPDN3Peo0EWfX0jvLI460O9+lR+uLprwFtm43mL+mLl44YHGD20SRL7MOoCl3ItckgrtzQC6mnpit3YGd1Jhu7JJcWQXG7W3CRRzZTJ/aa7JGruD8sseUx2UO55lUR7/dL0dLc/aW71ymCVFFIL/snJgookKk7+0rSaJMp0ZWBg2t1jBTr0SFUSHXfmT+HtdtMKAwJITUA5IgVo8L1Oq1NYc3UBkyMxbUJghyOBXWh6ZYpFbb+I8SSm1sUGTwIxscalEbHMp/NcuiC8/Nal8WkEZhqCKwFR58q6qPDpC5c+izKXPooSn95w6e04H13jkrfo5YfAGY+eATBGlgCn2AYEKjnOoqffo7TaVl+03alCJ+r0ZPztCvxNEmNszQh6qEzyQgBsq9SQ7f8qP8ABu3IBScc625tWUjZbJrteAqECt9QCeoZbpTGywLdzv9PnEPax4Sv+xPngYeUi4R++TpM/dCwWicwZM3ivvJVL17fSI9InxU5WcvphDG0AAAAASUVORK5CYII="
+      },
+      "cutin_skill_chain.png": {
+        "sha256": "488d4adb86dfec0682a025bf284694b49215f576e8ce78e8149606e3ef4aba7e",
+        "pngBase64": "iVBORw0KGgoAAAANSUhEUgAAARQAAAE/CAAAAACicGNQAAAIJ0lEQVR4nO3bf2jcdx3H8fcdtxvX3R8nO5jH5CjsLHoFSwqFow52RdFgQZcqjkBRm44N4jpJr86ywIpd1GKTFLuFQUf+mNK0bJiKohcmLtnQJvtBprKUSTq2OJaxZTMdCenSa/KR1tY2zSvNN9/7fr7fz+f7fT3+Wo/CjifH9ZPP6xsRQxSr1WLQ78Ewmc6aUrWuTNDvwyDx1il12VRrPOj3YoryqPq/0XLQ78YI+d+qJfrzEnXpjrmlTZSa60hLlMWa31PAZHNMIqs0rFYwXJJoyvUurNREqcXenERP8tEZdVMz7UmJmKZxtarxJomS4l+UIy9E5+Sf7ak5a6JUrScrUZBo/VitwX9aExJ6XxtTazT2dQm3Qr9yob8g4ZX+5bybJkrNHw7ryT/eMqlcm2wJ5aVC6TVVl9fCd/LP9y3W10Spxb5wXSqk2lc50zsz256S0PjuhPLIxH0SDg2DykODDWK/7LGbXBC4sfC07Sf/ZGVaeW66YvWlQuObSot/NYqtvlBV2lS/KDbKdLo80zsz32nfnBh/4Mrop8/Ug3F7Rz99rJoT888qnzyXt3f008eOOTHW/G/lq3fNnxO3rDj66TO8Rawd/fRZMHhOTD7iyQWBGzM/Sdo7+ulj5JxYfF4F7M+mzYm3Ox/99DFrTkxcfZAvaFPmzIlfWfPop8/YV8Xe0U8fA+bE9M+1XhC4Mf+LtL2jnz6BzomlEWWol4OaE++sf/TTZ7Hvc/aOfvrM+D8nftuz0U+fie9YPPrp4+OcmH0qkAsCNxae8ufkf4uO0U8fX+bERoPO9M6M6Z4TP69x9NOnusHe0c/GOTG+25ALAjem7o/bO/pZNSfmTyjrnfR2Tkz5OfrpM9exzrMksWYLzvTOTHg1JzYEMPrpM7zZ3tHP5DkxWTH8gsCNmX1Je0c/I+fEopVnemcG3M2JGRNGP31qPRl7R78g5sQV/tkuP7lRwu/MD4fg6/DHpEL/YBSaSHEQz4ngk5Lev+9WiYoLhw/Nrv63YruMHP30mWxZ9sG48YXSkfD9qt5qRtpGbvadkjt+OnpNpHS6L7fiJyW1d78NT+rqMHuo+zyM0tS9XqJrou3U8igN3TY9/a/D0N7Xl36nZHteiXoTKb969UHCy5+UxJ7H7PuNIh3OPX704pUojV2mPYEanDOVgUtRCr/6RoBvwjzVh8/GOvcY+lR7YC48EVPB/d+NZdnvJvqDUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGARgFYBSAUQBGYRRn+EkBGAWId11AL0fZha6YFA7fG/TbMMrvfnw2JiKNXcWg34kxzlQG/vedMrDpoXNBvxkznNuzaUBELn1SRCT70wcSEnUXjx346PJ/XIkisvHJskTb0J43bvwneWzbjrMSYWd3bLva5NonRURu3bc/LdE0e6jr02t/uj6KSO5nP1j6QjSoZx59//o/39igdKQkUTPSNnLzY/7I1p1LooXf+zu33tBk2SdFRNL796YkKs53H5pd9iL8Clnf3STRcKryNnh1he/VcneDhN/f24bW9PcTrVMq5KZa136Iz3TXVIjVjmTEjWJVhVbV/cXA9nEVSuPbXScRkWRlWoXOdCVZTxMRuaN3QYXKQu9npX4NL6oQecmjs0aseUKFxESzdz/wph6bUyEwd8Dbn1/yfYvKcot9efHal0eV1Ubv9jyJiMRbJpW1Jlt0baGZznllpflOd2d6Zwq/Vxb6Q0H0ahxTlhlr1JxERBIPW3Xyn/6RPytftseaS4VaT1b88qVBZYXBTeKnpreU8d7y/aY51T6jjDbTHsQmkfu1wSf/xd/kJBilYWWo4QB3ztj3jDz5T34/2EU83WHcpcJcR/DPTtzVr4zSr/tM70z5H8oY/zTmeayEKXOim9FPn8xRA07+taM6LwjsnBPrGP30+Wagc+L4t8RIycq5oJJ8Uvfop08umDlxoTeoM70zDX/1v8nfjH/AKOb3nOjl6KdP6qCPJ/+5g7Y8tJj3a07UMfrpc48vc+KoMWd6Z+ItH+hO8qG20U+fjN45Ue/op0/hj/qa/MmMCwKT5kQ/Rj99Em0a5sTpvSZdELiR7bnobZKLPo5++jR4OicOGn+md6jpHa+STITo10tS3syJwYx++uSO133yX+wz+4IgiDkxyNFPn9iuOubEyRYbLgjcSHe4PPnPGzD66VPot3j006e85pP/2DYJvcTa5kSzRj99Ms4fJKz1fEaiouhwThwwcfTTp8nBnDgeojO9M8nKKif/mX3mjn4BzYmmj376bF7x5D+8WSIrhudEO0Y/fdYtf5BwruM2ibr8iaVNTto0+ulTHrV39NMnvvvKyX/qfvtGP81zoq2jn2izoVrdEPR7uOq/t7f8xC6EYp8AAAAASUVORK5CYII="
+      }
+    },
+    "policy": "Use the final per-source crop boxes, one-pass LANCZOS and canonical masks; small is 70 percent. Preserve setting-atlas geometry and all master rows outside the explicit Lich leaves."
+  },
+  "motion": {
+    "retainedResources": [
+      {
+        "sha256": "713f226e503552c58b6190f570300d623aa966b3464b803351f8f0e4b2fddea8",
+        "logical": "character/lady_android_halloween/pixelart/sprite_sheet.png",
+        "root": "common"
+      },
+      {
+        "sha256": "391fe4017d46ea7ed23769bbd31c86e313764b6ec2e14e5c155085e147e7457c",
+        "logical": "character/lady_android_halloween/pixelart/sprite_sheet.atlas.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "7bb51ded97e895683ccc871ef84344d3a2b41cd9598cd5f83974c35cf42d1c90",
+        "logical": "character/lady_android_halloween/pixelart/pixelart.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "dcc8dcaac18cf5d0b3bed4f84fbe3d7dcf30e3027c837cbc0d0dc076a7d14c76",
+        "logical": "character/lady_android_halloween/pixelart/pixelart.timeline.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "1299d1627614513ef3ec54aaf04e02d9968f8324a021cf749b29da8e10b76ea7",
+        "logical": "character/lady_android_halloween/pixelart/special_sprite_sheet.png",
+        "root": "common"
+      },
+      {
+        "sha256": "42613e7a6bfe2d87ddf7efd3371f940f4f9b0d1f9eb76013f2fb5e3b09303ac9",
+        "logical": "character/lady_android_halloween/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "93c963cf1f0b98e0e7d59f3fd1de6c859e654208eb97dca5521c5a9a31834abf",
+        "logical": "character/lady_android_halloween/pixelart/special.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "1d86a33638e5a955ca089c77a4e66e100435d78a869e98432b9ed5c8d617663e",
+        "logical": "character/lady_android_halloween/pixelart/special.timeline.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "f81f4991267f5fff39f41c6b52401efbce29c7df6f65c3a147bbec13c28c0ae2",
+        "logical": "character/lich_halloween/pixelart/pixelart.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "890cb6baea1ae44c944f5528ba5fa15039af656861700792b4fa3b0970c81eb0",
+        "logical": "character/lich_halloween/pixelart/special.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "e72e7c5fbefc27369ba0219d91252a99ae3ff49c98f907412b9f435323fa4e25",
+        "logical": "character/blade_witch_halloween/pixelart/sprite_sheet.png",
+        "root": "common"
+      },
+      {
+        "sha256": "dd51afe2eb1f897a499f7888d94bb33dba2df8b213dc3427195fa6f31a4d5301",
+        "logical": "character/blade_witch_halloween/pixelart/sprite_sheet.atlas.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "680dc0bdc25ab3374c0906933176933f6ce9371c691ea442aded68cad49c09c3",
+        "logical": "character/blade_witch_halloween/pixelart/pixelart.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "44177ef1911388211448fd78d4d04609c37560de96d8d3521f47dc21777853c0",
+        "logical": "character/blade_witch_halloween/pixelart/pixelart.timeline.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "4f928cdf3629dc050abaa5b30840e953ff4e084ec16814a144eef4e52035bee2",
+        "logical": "character/blade_witch_halloween/pixelart/special_sprite_sheet.png",
+        "root": "common"
+      },
+      {
+        "sha256": "2f6f5828ce4511ba851e09b784fcb487d9608b54405ea7356694ebe21171b5aa",
+        "logical": "character/blade_witch_halloween/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "2e735fe11ff60cff2436442ac02c84d7d3328243bd2bd7c0e26de868c3a33219",
+        "logical": "character/blade_witch_halloween/pixelart/special.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "16d298a7e381854e247f969ddcb13d9a69440c6fd4b31273d238abc23e8e31a4",
+        "logical": "character/blade_witch_halloween/pixelart/special.timeline.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "846d3b50e07b160c59ee300ba5130f6998705481d86eac4ae9acd94d3188bebe",
+        "logical": "character/crystal_swordman_halloween/pixelart/sprite_sheet.png",
+        "root": "common"
+      },
+      {
+        "sha256": "81da5b73dc2c0ae0833d47dd2aac9a08c57713532efc4e5f4f19ea749765d642",
+        "logical": "character/crystal_swordman_halloween/pixelart/sprite_sheet.atlas.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "ecc3b52382d41a854a111bbc09eb8bb27ce48bc5dafacd63fdbe187fefe8c46a",
+        "logical": "character/crystal_swordman_halloween/pixelart/pixelart.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "dcc8dcaac18cf5d0b3bed4f84fbe3d7dcf30e3027c837cbc0d0dc076a7d14c76",
+        "logical": "character/crystal_swordman_halloween/pixelart/pixelart.timeline.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "041a68feec96a37c1b2d44519c2eb6c6aac6b14866b63c5b397cca5e64a4c9c5",
+        "logical": "character/crystal_swordman_halloween/pixelart/special_sprite_sheet.png",
+        "root": "common"
+      },
+      {
+        "sha256": "84b4597565ca2f05c9193d8e2d5588db2afaac34678156ee94904d1680a677bb",
+        "logical": "character/crystal_swordman_halloween/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "a1aa09697c2f00fe7966a968f33bf9849cbcd6d9d398951494155a73e0fcaec7",
+        "logical": "character/crystal_swordman_halloween/pixelart/special.frame.amf3.deflate",
+        "root": "common"
+      },
+      {
+        "sha256": "715d2ef34c4a42e5c887f0269e8d60595bb143b89ddaceffadb2a631dde935fc",
+        "logical": "character/crystal_swordman_halloween/pixelart/special.timeline.amf3.deflate",
+        "root": "common"
+      }
+    ],
+    "authoredCount": 45,
+    "nativeSelectorCount": 44,
+    "policy": "Three character motion bundles remain effective345 bytes; Lich is losslessly trimmed and packed from author clips. Source neutral_back is editor-only. Native special_land stays pass; author runtimeSpeed is not baked into holds. Preserve normal nonvisual event offsets and special nonvisual tracks.",
+    "mappings": [
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "408d916d5667",
+        "sourceSlot": "neutral",
+        "sourceTicks": 2,
+        "finalSelector": {
+          "name": "neutral",
+          "kind": "loop",
+          "begin": 1,
+          "end": 2
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "efd7c632a8ff",
+        "sourceSlot": "walk_back",
+        "sourceTicks": 24,
+        "finalSelector": {
+          "name": "walk_back",
+          "kind": "loop",
+          "begin": 3,
+          "end": 26
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "0bbe403b8de7",
+        "sourceSlot": "walk_front",
+        "sourceTicks": 24,
+        "finalSelector": {
+          "name": "walk_front",
+          "kind": "loop",
+          "begin": 27,
+          "end": 50
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "928466b01183",
+        "sourceSlot": "skill_ready",
+        "sourceTicks": 60,
+        "finalSelector": {
+          "name": "skill_ready",
+          "kind": "once",
+          "begin": 51,
+          "end": 110
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "18547dd4a9e9",
+        "sourceSlot": "kachidoki",
+        "sourceTicks": 48,
+        "finalSelector": {
+          "name": "kachidoki",
+          "kind": "loop",
+          "begin": 111,
+          "end": 158
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "22a28cecac41",
+        "sourceSlot": "into_coffin",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "into_coffin",
+          "kind": "pass",
+          "begin": 159,
+          "end": 200
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "ee05dc1b0e66",
+        "sourceSlot": "ghost_raise",
+        "sourceTicks": 25,
+        "finalSelector": {
+          "name": "ghost_raise",
+          "kind": "pass",
+          "begin": 201,
+          "end": 225
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "26fcda86005a",
+        "sourceSlot": "ghost_neutral",
+        "sourceTicks": 161,
+        "finalSelector": {
+          "name": "ghost_neutral",
+          "kind": "loop",
+          "begin": 226,
+          "end": 386
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "normal",
+        "sourceAnimationId": "c3de4f854ffa",
+        "sourceSlot": "revive",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "revive",
+          "kind": "once",
+          "begin": 387,
+          "end": 428
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "special",
+        "sourceAnimationId": "8fb7034ac0f9",
+        "sourceSlot": "special_land",
+        "sourceTicks": 119,
+        "finalSelector": {
+          "name": "special_land",
+          "kind": "pass",
+          "begin": 1,
+          "end": 119
+        }
+      },
+      {
+        "characterId": 139985,
+        "variant": "special",
+        "sourceAnimationId": "24a199181edb",
+        "sourceSlot": "special_pose",
+        "sourceTicks": 37,
+        "finalSelector": {
+          "name": "special_pose",
+          "kind": "once",
+          "begin": 120,
+          "end": 156
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "fcdccc538097",
+        "sourceSlot": "neutral",
+        "sourceTicks": 60,
+        "finalSelector": {
+          "name": "neutral",
+          "kind": "loop",
+          "begin": 1,
+          "end": 2
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "ed137c235dba",
+        "sourceSlot": "walk_back",
+        "sourceTicks": 29,
+        "finalSelector": {
+          "name": "walk_back",
+          "kind": "loop",
+          "begin": 3,
+          "end": 31
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "dac09415781b",
+        "sourceSlot": "walk_front",
+        "sourceTicks": 29,
+        "finalSelector": {
+          "name": "walk_front",
+          "kind": "loop",
+          "begin": 32,
+          "end": 60
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "bd52feafd61f",
+        "sourceSlot": "skill_ready",
+        "sourceTicks": 60,
+        "finalSelector": {
+          "name": "skill_ready",
+          "kind": "once",
+          "begin": 61,
+          "end": 120
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "dd630a9ebcfc",
+        "sourceSlot": "kachidoki",
+        "sourceTicks": 144,
+        "finalSelector": {
+          "name": "kachidoki",
+          "kind": "loop",
+          "begin": 121,
+          "end": 264
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "f179e8148862",
+        "sourceSlot": "into_coffin",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "into_coffin",
+          "kind": "pass",
+          "begin": 265,
+          "end": 306
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "f8e853500d9c",
+        "sourceSlot": "ghost_raise",
+        "sourceTicks": 25,
+        "finalSelector": {
+          "name": "ghost_raise",
+          "kind": "pass",
+          "begin": 307,
+          "end": 331
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "b1e1a7c5f085",
+        "sourceSlot": "ghost_neutral",
+        "sourceTicks": 161,
+        "finalSelector": {
+          "name": "ghost_neutral",
+          "kind": "loop",
+          "begin": 332,
+          "end": 492
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "c2ce00b01c15",
+        "sourceSlot": "revive",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "revive",
+          "kind": "once",
+          "begin": 493,
+          "end": 534
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "normal",
+        "sourceAnimationId": "7432cc255815",
+        "sourceSlot": "neutral_back",
+        "sourceTicks": 60,
+        "finalSelector": null
+      },
+      {
+        "characterId": 149985,
+        "variant": "special",
+        "sourceAnimationId": "d16c5377ac94",
+        "sourceSlot": "special_land",
+        "sourceTicks": 210,
+        "finalSelector": {
+          "name": "special_land",
+          "kind": "pass",
+          "begin": 75,
+          "end": 284
+        }
+      },
+      {
+        "characterId": 149985,
+        "variant": "special",
+        "sourceAnimationId": "51974ac8934b",
+        "sourceSlot": "special_pose",
+        "sourceTicks": 6,
+        "finalSelector": {
+          "name": "special_pose",
+          "kind": "once",
+          "begin": 285,
+          "end": 290
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "b5c8fb9507df",
+        "sourceSlot": "neutral",
+        "sourceTicks": 120,
+        "finalSelector": {
+          "name": "neutral",
+          "kind": "loop",
+          "begin": 1,
+          "end": 120
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "1a97306cd98c",
+        "sourceSlot": "walk_back",
+        "sourceTicks": 120,
+        "finalSelector": {
+          "name": "walk_back",
+          "kind": "loop",
+          "begin": 121,
+          "end": 240
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "1086923f09b2",
+        "sourceSlot": "walk_front",
+        "sourceTicks": 120,
+        "finalSelector": {
+          "name": "walk_front",
+          "kind": "loop",
+          "begin": 241,
+          "end": 360
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "f8616202eec7",
+        "sourceSlot": "skill_ready",
+        "sourceTicks": 60,
+        "finalSelector": {
+          "name": "skill_ready",
+          "kind": "once",
+          "begin": 361,
+          "end": 420
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "af1f9badb5d2",
+        "sourceSlot": "kachidoki",
+        "sourceTicks": 48,
+        "finalSelector": {
+          "name": "kachidoki",
+          "kind": "loop",
+          "begin": 421,
+          "end": 468
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "93e06b803a2c",
+        "sourceSlot": "into_coffin",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "into_coffin",
+          "kind": "pass",
+          "begin": 469,
+          "end": 510
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "ba80688e7440",
+        "sourceSlot": "ghost_raise",
+        "sourceTicks": 25,
+        "finalSelector": {
+          "name": "ghost_raise",
+          "kind": "pass",
+          "begin": 511,
+          "end": 535
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "24e946392f65",
+        "sourceSlot": "ghost_neutral",
+        "sourceTicks": 161,
+        "finalSelector": {
+          "name": "ghost_neutral",
+          "kind": "loop",
+          "begin": 536,
+          "end": 696
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "normal",
+        "sourceAnimationId": "e389f58d74c9",
+        "sourceSlot": "revive",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "revive",
+          "kind": "once",
+          "begin": 697,
+          "end": 738
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "special",
+        "sourceAnimationId": "72155aa9d352",
+        "sourceSlot": "special_land",
+        "sourceTicks": 299,
+        "finalSelector": {
+          "name": "special_land",
+          "kind": "pass",
+          "begin": 1,
+          "end": 299
+        }
+      },
+      {
+        "characterId": 169985,
+        "variant": "special",
+        "sourceAnimationId": "8415f6234540",
+        "sourceSlot": "special_pose",
+        "sourceTicks": 55,
+        "finalSelector": {
+          "name": "special_pose",
+          "kind": "once",
+          "begin": 300,
+          "end": 354
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "3e2fbddcfe92",
+        "sourceSlot": "neutral",
+        "sourceTicks": 2,
+        "finalSelector": {
+          "name": "neutral",
+          "kind": "loop",
+          "begin": 1,
+          "end": 2
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "2e1f9de7c16a",
+        "sourceSlot": "walk_back",
+        "sourceTicks": 24,
+        "finalSelector": {
+          "name": "walk_back",
+          "kind": "loop",
+          "begin": 3,
+          "end": 26
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "0b1926c366eb",
+        "sourceSlot": "walk_front",
+        "sourceTicks": 24,
+        "finalSelector": {
+          "name": "walk_front",
+          "kind": "loop",
+          "begin": 27,
+          "end": 50
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "e7cf046d737b",
+        "sourceSlot": "skill_ready",
+        "sourceTicks": 60,
+        "finalSelector": {
+          "name": "skill_ready",
+          "kind": "once",
+          "begin": 51,
+          "end": 110
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "8ed5797496c5",
+        "sourceSlot": "kachidoki",
+        "sourceTicks": 48,
+        "finalSelector": {
+          "name": "kachidoki",
+          "kind": "loop",
+          "begin": 111,
+          "end": 158
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "d915ef352f1b",
+        "sourceSlot": "into_coffin",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "into_coffin",
+          "kind": "pass",
+          "begin": 159,
+          "end": 200
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "b281f8252d46",
+        "sourceSlot": "ghost_raise",
+        "sourceTicks": 25,
+        "finalSelector": {
+          "name": "ghost_raise",
+          "kind": "pass",
+          "begin": 201,
+          "end": 225
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "a6b398457a57",
+        "sourceSlot": "ghost_neutral",
+        "sourceTicks": 161,
+        "finalSelector": {
+          "name": "ghost_neutral",
+          "kind": "loop",
+          "begin": 226,
+          "end": 386
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "normal",
+        "sourceAnimationId": "9907134a1aee",
+        "sourceSlot": "revive",
+        "sourceTicks": 42,
+        "finalSelector": {
+          "name": "revive",
+          "kind": "once",
+          "begin": 387,
+          "end": 428
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "special",
+        "sourceAnimationId": "af5ba2a0455d",
+        "sourceSlot": "special_land",
+        "sourceTicks": 77,
+        "finalSelector": {
+          "name": "special_land",
+          "kind": "pass",
+          "begin": 1,
+          "end": 77
+        }
+      },
+      {
+        "characterId": 159985,
+        "variant": "special",
+        "sourceAnimationId": "477518c34401",
+        "sourceSlot": "special_pose",
+        "sourceTicks": 31,
+        "finalSelector": {
+          "name": "special_pose",
+          "kind": "once",
+          "begin": 78,
+          "end": 108
+        }
+      }
+    ]
+  },
+  "fx": {
+    "darkWitchPolicy": "22 editable foreground/background layers are already composited into 11 author motion selectors; no duplicate FX overlay.",
+    "mech": {
+      "channelCount": 14,
+      "sourceTicks": 230,
+      "projection": 0.5,
+      "sourceFrameScale": 6,
+      "sourceOffset": [
+        0,
+        -80
+      ],
+      "nativeVisualTicks": 60,
+      "sourceEffectId": "5aca16f3cc31",
+      "policy": "Endpoint sampling round(i*229/59). Every channel remains visible; 170 intermediate states are not displayed separately. Retain current author y-80; do not adopt offset alternatives or s6 comparison. Direct60, Zone, member-back consumer and all coupled DSL fields remain unchanged.",
+      "sampleSourceTicks": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        19,
+        23,
+        27,
+        31,
+        35,
+        39,
+        43,
+        47,
+        50,
+        54,
+        58,
+        62,
+        66,
+        70,
+        74,
+        78,
+        82,
+        85,
+        89,
+        93,
+        97,
+        101,
+        105,
+        109,
+        113,
+        116,
+        120,
+        124,
+        128,
+        132,
+        136,
+        140,
+        144,
+        147,
+        151,
+        155,
+        159,
+        163,
+        167,
+        171,
+        175,
+        179,
+        182,
+        186,
+        190,
+        194,
+        198,
+        202,
+        206,
+        210,
+        213,
+        217,
+        221,
+        225,
+        229
+      ],
+      "selectedPartsScale": 3
+    },
+    "donorIdentities": [
+      {
+        "sha256": "e3f0ed1c902edfae16f168f70e413ea5edd775d76f13e47518ceb5969e8a22bf",
+        "logical": "battle/effect/skill_unique/lady_android_halloween/concert/sing_android_hw20.timeline.amf3.deflate"
+      },
+      {
+        "sha256": "c6d193d1c716c2b00bb1201380bdc22541264cf3e0720885cef0f522ef33265a",
+        "logical": "battle/effect/skill_unique/lich_halloween/vine/psychic_tomboygirl_hw22_wire.timeline.amf3.deflate"
+      }
+    ],
+    "referencedEffects": [
+      {
+        "sheetLogical": "battle/effect/skill_unique/blade_witch_halloween/fx/fx",
+        "logical": "battle/effect/skill_unique/blade_witch_halloween/fx/blade_witch_end",
+        "characterId": 169985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/blade_witch_halloween/fx/fx",
+        "logical": "battle/effect/skill_unique/blade_witch_halloween/fx/blade_witch_hit",
+        "characterId": 169985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/blade_witch_halloween/fx/fx",
+        "logical": "battle/effect/skill_unique/blade_witch_halloween/fx/blade_witch_start",
+        "characterId": 169985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/crystal_beam/crystal_beam",
+        "logical": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/crystal_beam/effect",
+        "characterId": 159985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/crystal_hit/crystal_hit",
+        "logical": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/crystal_hit/effect",
+        "characterId": 159985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/mech_hit/mech_hit",
+        "logical": "battle/effect/skill_unique/cnmod_halloween_gacha_v3/mech_hit/effect",
+        "characterId": 139985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/cnmod_halloween_r6/lich/lich",
+        "logical": "battle/effect/skill_unique/cnmod_halloween_r6/lich/effect",
+        "characterId": 149985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/cnmod_halloween_r6/mech/mech",
+        "logical": "battle/effect/skill_unique/cnmod_halloween_r6/mech/effect",
+        "characterId": 139985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/lady_android_halloween/candy_bolt/candy_bolt",
+        "logical": "battle/effect/skill_unique/lady_android_halloween/candy_bolt/fox_scientist_hw20_laser",
+        "characterId": 139985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/lady_android_halloween/concert/concert",
+        "logical": "battle/effect/skill_unique/lady_android_halloween/concert/sing_android_hw20_player_back",
+        "characterId": 139985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/lich_halloween/vine/vine",
+        "logical": "battle/effect/skill_unique/lich_halloween/vine/psychic_tomboygirl_hw22_snake",
+        "characterId": 149985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/lich_halloween/vine/vine",
+        "logical": "battle/effect/skill_unique/lich_halloween/vine/psychic_tomboygirl_hw22_string",
+        "characterId": 149985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call",
+        "logical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call_appear",
+        "characterId": 169985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call",
+        "logical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call_disappear",
+        "characterId": 169985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call",
+        "logical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call_ready_generation",
+        "characterId": 169985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call",
+        "logical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call_ready_left",
+        "characterId": 169985
+      },
+      {
+        "sheetLogical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call",
+        "logical": "battle/effect/skill_unique/ruin_girl_campus_dark_call/ruin_girl_campus_dark_call_ready_right",
+        "characterId": 169985
+      }
+    ],
+    "lich": {
+      "fieldCenter": [
+        144,
+        256
+      ],
+      "nativeStorageFrames": 110,
+      "policy": "Adopt fixed Zone-centered 10-FX scene; exclude actor. Preserve original Direct90, end32..50, nonvisual events, sound clock and removal tick110. Fixed geometry does not guarantee exact bounds for every runtime Zone or arbitrary caster position; member snake/per-enemy string are retained.",
+      "frameScale": 3.75,
+      "sourceEffectCount": 10,
+      "sourceSceneTicks": 101,
+      "fixedStage": [
+        1080,
+        1920
+      ]
+    }
+  },
+  "validationPlan": [
+    "Parse/compile module in the reserved bounded verification slot.",
+    "Resolve the declared baseline per phase and original external inputs through the common hash-checking context.",
+    "Run each phase in memory and compare every sparse resource byte with the adopted 212/12-resource identities; fail closed on divergence.",
+    "Read back all 44 native selectors, source RGBA/anchors/holds and retained nonvisual event tracks.",
+    "Read back 17 actual DSL-referenced FX roots and all image bindings, iOS cutin alpha/mips, strict string-leaf diffs and finite atlas bounds.",
+    "Offline rebuilding does not establish hardware, full-scene memory/performance or cloud acceptance."
+  ]
+}

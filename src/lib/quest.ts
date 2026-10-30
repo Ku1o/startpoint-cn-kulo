@@ -11,6 +11,7 @@ import rewardElementMap from "../../assets/reward_element_map.json";
 import { gameVerboseLog } from "./game-logging";
 import { calculateFreeManaGrant } from "./mana";
 import { BossRewardContext, getBossRewardProfile, resolveBossTokenCount } from "./boss/reward-profile";
+import { rollExactScoreRewardChance, selectScoreRewardRows } from "./score-reward-rolls";
 
 const ELEMENT_TO_ENEMY_MAP: Record<number, number> = {
     0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 4,
@@ -64,7 +65,8 @@ export function givePlayerScoreRewardsSync(
         const bossRewardProfile = getBossRewardProfile(bossRewardContext?.questId, groupId)
         gameVerboseLog(() => `[QUEST] givePlayerScoreRewards group=${groupId} items=${scoreRewards.length} pid=${playerId}`)
         let seqIndex = 0
-        for (const scoreReward of scoreRewards) {
+        for (const scoreReward of selectScoreRewardRows(groupId, scoreRewards, bossRewardContext?.questId,
+            undefined, bossRewardContext?.accomplished)) {
             seqIndex += 1;
             const rewardIndex = scoreReward.position ?? seqIndex;
             switch (scoreReward.type) {
@@ -147,7 +149,9 @@ export function givePlayerScoreRewardsSync(
                     const reward = scoreReward as RareScoreRewardGroup
                     const exactBossRarePool = bossRewardProfile !== null
                         && bossRewardProfile.rareGroupId === reward.id
-                    const rarePoolHit = exactBossRarePool
+                    const rarePoolHit = reward.chance_basis_points !== undefined
+                        ? rollExactScoreRewardChance(reward.chance_basis_points)
+                        : exactBossRarePool
                         ? randomInt(0, 10000) < bossRewardProfile.rareChanceBasisPoints
                         : reward.rarity >= randomInt(0, 100) / 100
                     if (rarePoolHit) {
@@ -162,6 +166,17 @@ export function givePlayerScoreRewardsSync(
                             const random_index = 1 >= group.length ? 0 : randomInt(group.length)
                             const reward = group[random_index]
                             const result = givePlayerRewardSync(playerId, reward)
+
+                            // Scope the presentation repair to the new exact character
+                            // drops. Legacy rewards and duplicate-copy animations retain
+                            // their original behavior.
+                            if (result && scoreReward.requires_clear && (scoreReward as RareScoreRewardGroup).chance_basis_points !== undefined
+                                && reward.type === RewardType.CHARACTER
+                                && result.character_list.some(character =>
+                                    (character as { character_id?: number; entry_count?: number }).character_id === reward.id
+                                    && (character as { entry_count?: number }).entry_count !== undefined)) {
+                                result.joined_character_id_list = [reward.id!]
+                            }
 
                             if (result) {
                                 // merge arrays

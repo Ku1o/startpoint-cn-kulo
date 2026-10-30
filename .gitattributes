@@ -21,3 +21,4 @@ src/lib/content-operations.ts -text whitespace=blank-at-eol,blank-at-eof,space-b
 src/lib/exchange-campaign-definitions.ts -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 src/routes/api/shop.ts -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 tools/build-content-discovery-gacha.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/quest_shop_availability_cnmod.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

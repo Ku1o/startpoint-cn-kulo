@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 1,
+  "manifestSha256": "fc28f55235f5a626fa169434a6e354972543b476b81855ea4631ca4804866188",
+  "resourceVersion": "1.4.258",
+  "master": {
+    "path": "master/town/town_content.orderedmap",
+    "sha256": "de20e0b356e3e0f5ac950560ef3364fd734041a77196526776cf1ea8d4dff1ec",
+    "size": 2700,
+    "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-256-48e36269.zip",
+    "member": "production/upload/ca/ed63444a39cf7bf4fad5de3304fbd20ff1d5d4"
+  },
+  "themes": [
+    {
+      "id": "normal",
+      "verified": true,
+      "nativeTownContentId": 1,
+      "nativeRowSha256": "85f8a4b5bf094bd2bb6e24f3d7432b0057918366e954e684aef0d1eee6209935",
+      "resourceVersion": "1.4.258",
+      "originalPeriodsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "resources": [
+        {
+          "path": "town/background/normal/normal_background.png",
+          "sha256": "1a33fa8300188178385426d1f607591b125d9ebf09a6d0a85e9dabf1524e5db7",
+          "size": 546759,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-228-02aedd79.zip",
+          "member": "production/upload/b2/882c0eb8f65548cdd3fdc30fea9685e910bc42"
+        },
+        {
+          "path": "town/background/normal/normal_background_blur.png",
+          "sha256": "80638854ce8b425ff83fe4ddf70a5b9f93c43fd581382772af2cc94fcd232c32",
+          "size": 192931,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-41-c1d7e5ed.zip",
+          "member": "production/upload/1d/ffbba8869e28f932c8f3a1b635678dd84556ae"
+        },
+        {
+          "path": "bgm/common/worldflipper_town_quest.mp3",
+          "sha256": "b53f907872f26b4d10d1ae1e5ba4e48acbacaf8ad9ab5f255c37621f753b014f",
+          "size": 1690226,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-219-981fc360.zip",
+          "member": "production/upload/ab/f24eac5956f417b7697108519f8e665da75105"
+        }
+      ],
+      "extraDependencyEvidence": []
+    },
+    {
+      "id": "christmas",
+      "verified": true,
+      "nativeTownContentId": 2,
+      "nativeRowSha256": "90af71ecb46d18f8b0f9aeb93611c8cebc36b9e6247dd427c798a30dd0416933",
+      "resourceVersion": "1.4.258",
+      "originalPeriodsSha256": "60e9ca75681665918765c68eb5b8541ab0843d1cd3e980247bd04419800449a3",
+      "resources": [
+        {
+          "path": "town/background/xmas/xmas_background.png",
+          "sha256": "6abf9da6d25f46893ebfbde27d6f395547cb447d4604bbcffe41f03f3f5c2ad4",
+          "size": 564226,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-52-a29636de.zip",
+          "member": "production/upload/27/2c5aa095f4311a4eed7c69f058e609a156988f"
+        },
+        {
+          "path": "town/background/xmas/xmas_background_blur.png",
+          "sha256": "beae07212cbb1ed1a0b63e924cf0839199a57ceb2c8e5a0204f94c0cf14a8b15",
+          "size": 153231,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-252-9d5a1ac1.zip",
+          "member": "production/upload/c7/34663fac322ef8c62b3cfa37d548a1630c1d2f"
+        },
+        {
+          "path": "town/background/xmas/xmas_mask.png",
+          "sha256": "d81c91caae2dff387a68a090724405bf9db6479b8aae0f619a02fb4d4fe158cd",
+          "size": 371326,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-200-1c3fddac.zip",
+          "member": "production/upload/9c/facae4043ac9efb5d00396763f4a82c7f20b98"
+        },
+        {
+          "path": "town/particle/snowfall.parts.amf3.deflate",
+          "sha256": "0de39845640e84d13adbe580d43a5eedd646c904f23e48ae678038211f1ae537",
+          "size": 261,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-285-7e50253a.zip",
+          "member": "production/upload/e2/bd7c227b60246d920e9d35aa7c7fe5092ef072"
+        },
+        {
+          "path": "town/particle/snowfall.timeline.amf3.deflate",
+          "sha256": "8fd5ede20e8c4ef0941db953bc92a371269e315bb11f90463f7f411ce137dd47",
+          "size": 89,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-205-a741ab10.zip",
+          "member": "production/upload/a1/860bcf04285dedb7c745dd38fa5bd0d8cca023"
+        },
+        {
+          "path": "town/particle/sprite_sheet.png",
+          "sha256": "21441a69fe0c750fcd229fe8fa3a72dc08e3d55e707bb6e10936334392dbc799",
+          "size": 587474,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-117-ed06c8b3.zip",
+          "member": "production/upload/5a/5dca2116ed19b3765f0db7cfb0d5d50543ff60"
+        },
+        {
+          "path": "town/particle/sprite_sheet.atlas.amf3.deflate",
+          "sha256": "e7bc9662da7d60c1afb920d6dcbbe4156ab1509107e994602a1f2f594ecf12ea",
+          "size": 1262,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-114-53a5c371.zip",
+          "member": "production/upload/58/b65321608d0e5d341cf2bf73170536917a1ca8"
+        },
+        {
+          "path": "bgm/common/worldflipper_town_quest_christmas.mp3",
+          "sha256": "6d9a1d7dd8d155ae28e6a367c5ef1cede253ec213d450f173dacee6ad549bb74",
+          "size": 3204074,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-167-fac454a9.zip",
+          "member": "production/upload/81/aeb14fdd6c6e490e306a955c34c378fe54bf1d"
+        }
+      ],
+      "extraDependencyEvidence": []
+    },
+    {
+      "id": "new_year",
+      "verified": true,
+      "nativeTownContentId": 3,
+      "nativeRowSha256": "8a96f4d89c03061d245e60b2f683ac0af6fc557a6257fdcf911bb895899a54ad",
+      "resourceVersion": "1.4.258",
+      "originalPeriodsSha256": "03dcf483628e7accc5559150a6fcb9a15abb19ddb70f4963a51f8c68813f9ec8",
+      "resources": [
+        {
+          "path": "town/background/ny2020/town_newyear2020_background.png",
+          "sha256": "9abf6e5fbd121da3c2b813f47b6e249df2580a02002906caa92622b4a6c94f6c",
+          "size": 549440,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-276-ea2e1b72.zip",
+          "member": "production/upload/da/fc981661f79d5b08de2ee5bc9bab36a5e175d1"
+        },
+        {
+          "path": "town/background/ny2020/town_newyear2020_background_blur.png",
+          "sha256": "ca27ae7c228fcdb1a7c50bbf34a43de493bb0b965bdf6d7a671bc741b5a82b17",
+          "size": 196135,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-192-6cf639f2.zip",
+          "member": "production/upload/96/3b933a9c1c81197c27cad116cc578dac836e45"
+        },
+        {
+          "path": "bgm/common/worldflipper_town_quest_new_year.mp3",
+          "sha256": "fafcb97c5cb0c7ba4304eb89717fb36bdd6baa885912c1e6fcbf74c559d78114",
+          "size": 2186343,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-232-24b24745.zip",
+          "member": "production/upload/b5/ef0dc99430659ae0902d599cf3f8b2ac99e565"
+        }
+      ],
+      "extraDependencyEvidence": []
+    },
+    {
+      "id": "spring",
+      "verified": true,
+      "nativeTownContentId": 4,
+      "nativeRowSha256": "eebd60190e42305c36ea1731881b1f4f82582e14fb855908e9ccf5fa81118f43",
+      "resourceVersion": "1.4.258",
+      "originalPeriodsSha256": "3f8237d87d4268c738493032ce8b70da4b6c4b7ca39b5fc1ab7e91f871de40b0",
+      "resources": [
+        {
+          "path": "town/background/sp2020/background.png",
+          "sha256": "685d72bacee8d78cd01f38c572c5ae8f3395ebcfad85555124507039a7e36705",
+          "size": 508952,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-15-9c7a2d39.zip",
+          "member": "production/upload/09/3e80aed7b8929f636757dd7e25557959fd0df2"
+        },
+        {
+          "path": "town/background/sp2020/background_blur.png",
+          "sha256": "65ab242913da20f1e1ee4a52c032eb61dd5f13b9f7577a3661a0246daa8c103e",
+          "size": 192142,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-95-f0b72361.zip",
+          "member": "production/upload/48/bd33bda5f5092d6b42f3863bfbbe631d30f6c6"
+        },
+        {
+          "path": "town/background/sp2020/background_mask.png",
+          "sha256": "cd3ab41b42ed7e578a7b3922645e529c5a7ac0dc13dcd1484154ce6e67163c8c",
+          "size": 345086,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-45-b2042079.zip",
+          "member": "production/upload/20/a202063e5408f62a59bbfdef838b43e146d29d"
+        },
+        {
+          "path": "town/particle/cherry_blossom_petals.parts.amf3.deflate",
+          "sha256": "bac2d50aa5496a6b310c8a5cef88eba544f63cff6678fca17ed222b17fbc2235",
+          "size": 1090,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-314-16509711.zip",
+          "member": "production/upload/fa/45a6e1011afa9c1fda42989f474425e9ca5b0a"
+        },
+        {
+          "path": "town/particle/cherry_blossom_petals.timeline.amf3.deflate",
+          "sha256": "8fd5ede20e8c4ef0941db953bc92a371269e315bb11f90463f7f411ce137dd47",
+          "size": 89,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-206-804b5007.zip",
+          "member": "production/upload/a2/4435442236e3507eb430cf5f1d58c88123e77a"
+        },
+        {
+          "path": "town/particle/sprite_sheet.png",
+          "sha256": "21441a69fe0c750fcd229fe8fa3a72dc08e3d55e707bb6e10936334392dbc799",
+          "size": 587474,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-117-ed06c8b3.zip",
+          "member": "production/upload/5a/5dca2116ed19b3765f0db7cfb0d5d50543ff60"
+        },
+        {
+          "path": "town/particle/sprite_sheet.atlas.amf3.deflate",
+          "sha256": "e7bc9662da7d60c1afb920d6dcbbe4156ab1509107e994602a1f2f594ecf12ea",
+          "size": 1262,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-114-53a5c371.zip",
+          "member": "production/upload/58/b65321608d0e5d341cf2bf73170536917a1ca8"
+        },
+        {
+          "path": "bgm/common/worldflipper_town_quest_spring.mp3",
+          "sha256": "cb893ead174388f2b2464b87cec20abffb6997d846e5795d2cf5e7690d0ffdfb",
+          "size": 2623110,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-97-780bd496.zip",
+          "member": "production/upload/4a/0b622706472e72b11b70ead0b17d45208f0ec4"
+        }
+      ],
+      "extraDependencyEvidence": []
+    },
+    {
+      "id": "anniversary",
+      "verified": true,
+      "nativeTownContentId": 5,
+      "nativeRowSha256": "f95d4112463ab2c70010f73f088da96b7757dfee482ff1eff7e40d669590e61b",
+      "resourceVersion": "1.4.258",
+      "originalPeriodsSha256": "cee8a0989da5f2588554a1f7531ea4a61dfc0b13bf3904aeb679af031b287cfb",
+      "resources": [
+        {
+          "path": "town/background/anv1/background.png",
+          "sha256": "4e587825be659176adf684edf550ad5146f7084d54ea2dd0baddd1d1ff50d74b",
+          "size": 802669,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-185-e35d15d7.zip",
+          "member": "production/upload/90/7f5084e5744a2ea777f88ddad1094fc1d332bb"
+        },
+        {
+          "path": "town/background/anv1/background_blur.png",
+          "sha256": "aa9edae23c791ef09af99e6c0dd09af3a464d1166a48432ddac847f359b2698f",
+          "size": 214262,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-61-cc592e56.zip",
+          "member": "production/upload/2d/3cc13afffaa51ab18637bf102fc3b33e921721"
+        },
+        {
+          "path": "town/background/anv1/background_mask.png",
+          "sha256": "521a39249f1c1ed31c316089394f0198ea54d14b89b61f0b64d73c1d365c55f8",
+          "size": 835873,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-306-6b004e8c.zip",
+          "member": "production/upload/f4/90214dca7b536849e09370831d18748e6d8110"
+        },
+        {
+          "path": "town/particle/firework.parts.amf3.deflate",
+          "sha256": "6ea96bdda12a33fe05f699366fe1915094ee216fb6b13fab7c42d46605446d37",
+          "size": 1650,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-106-f54528d8.zip",
+          "member": "production/upload/51/eb1ed50961241a54d81f8638021419e86582dd"
+        },
+        {
+          "path": "town/particle/firework.timeline.amf3.deflate",
+          "sha256": "81443c7c9020908843957fb940385d732a9d1eb265bbd69550cadb2279a2f5ed",
+          "size": 158,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-33-1b62ab6f.zip",
+          "member": "production/upload/17/8549de21eb56bf216b7fa2a0037ec5564afa75"
+        },
+        {
+          "path": "town/particle/sprite_sheet.png",
+          "sha256": "21441a69fe0c750fcd229fe8fa3a72dc08e3d55e707bb6e10936334392dbc799",
+          "size": 587474,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-117-ed06c8b3.zip",
+          "member": "production/upload/5a/5dca2116ed19b3765f0db7cfb0d5d50543ff60"
+        },
+        {
+          "path": "town/particle/sprite_sheet.atlas.amf3.deflate",
+          "sha256": "e7bc9662da7d60c1afb920d6dcbbe4156ab1509107e994602a1f2f594ecf12ea",
+          "size": 1262,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-114-53a5c371.zip",
+          "member": "production/upload/58/b65321608d0e5d341cf2bf73170536917a1ca8"
+        },
+        {
+          "path": "bgm/common/worldflipper_town_quest_anniversary_melody.mp3",
+          "sha256": "f00714ed7e5d4f99a3b31f92283e9ec33b35aa4f1f360edd0b5736907c7a5cf8",
+          "size": 1821047,
+          "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-158-e19ec256.zip",
+          "member": "production/upload/7a/80725ae14a02e48e55d05e77a44745f0c7df69"
+        }
+      ],
+      "extraDependencyEvidence": []
+    }
+  ]
+}

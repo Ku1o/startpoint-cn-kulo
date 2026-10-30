@@ -1,0 +1,94 @@
+{
+  "base_version": "1.4.258",
+  "version": "1.4.344",
+  "candidate_only": true,
+  "members": 1293,
+  "changed_leaf_rows": 3241,
+  "archives": [
+    {
+      "name": "pinball-1.4.258-1.4.344-1-production-20261031.zip",
+      "size": 6695143,
+      "sha256": "c8731ed71a2a1f20ec3395c042b3888bbf14f6dedf10f2ecb4c06a71f7fe70ac",
+      "members": 82
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-2-production-20261031.zip",
+      "size": 7694514,
+      "sha256": "15cc840684b2c31d24752a0dbb4fc7df7818799c4fcbbc0e3e07d03027b211e1",
+      "members": 101
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-3-production-20261031.zip",
+      "size": 8352314,
+      "sha256": "43df720226cbf428d0c2670a413e817ef3a174e8649fc8372c6e4e9c6287b5c8",
+      "members": 130
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-4-production-20261031.zip",
+      "size": 6722041,
+      "sha256": "7b6b144cb6e6eae808be87656232d2b800cd9f160ac8e3e5d8c624efc23e5339",
+      "members": 49
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-5-production-20261031.zip",
+      "size": 8197362,
+      "sha256": "32e078eaba117ce0833b9dd6bcf4cdff979eab50528588944cb958585e3fa4e4",
+      "members": 107
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-6-production-20261031.zip",
+      "size": 7894343,
+      "sha256": "9fbf096e5356d9ea345bc52a2d59840cde0168a53f7e4e9e284456dc330487eb",
+      "members": 137
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-7-production-20261031.zip",
+      "size": 7617287,
+      "sha256": "9465a16c5420e696c2363d1fabcf36fe59ef869380c13413a5da7f46ebc8edc3",
+      "members": 23
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-8-production-20261031.zip",
+      "size": 5578054,
+      "sha256": "d25fd327483882c211aaa9fed37ecd7777f1dd40dd7926cb4373e98d9acb730a",
+      "members": 59
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-9-production-20261031.zip",
+      "size": 8314024,
+      "sha256": "41f5804853b8ae547c26c05ded6371e802f51668897d4c48866aea38bb6f1655",
+      "members": 107
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-10-production-20261031.zip",
+      "size": 8301055,
+      "sha256": "06e08bae061da76dddd3f14967c17a5856f8eb05aab4b4152287bc589a57a98e",
+      "members": 143
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-11-production-20261031.zip",
+      "size": 8325293,
+      "sha256": "007026ebe78f19e1ddccf3b7447d6bff730c2aa6fe36a18d66134804a5617f0b",
+      "members": 78
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-12-production-20261031.zip",
+      "size": 6548704,
+      "sha256": "0607067a3252e5fe4ca8f2b2d5a9a1e2a1f7c78142b1bf4369223b025e14e240",
+      "members": 166
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-13-production-20261031.zip",
+      "size": 8331734,
+      "sha256": "519399cce7bd85ee2675abce2bdbb7aa18ac5620124feaf6ba9e47d1a1307965",
+      "members": 61
+    },
+    {
+      "name": "pinball-1.4.258-1.4.344-14-production-20261031.zip",
+      "size": 2249465,
+      "sha256": "96786a379aa12e091696440559c8b84573b9667b2f6d00603507e88f66abf4d8",
+      "members": 50
+    }
+  ],
+  "offline_validation": "zip readback and strict PNG decoding; full native/device acceptance pending"
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "version": "1.4.350",
+  "status": "frozen_local_offline_candidate",
+  "manifestSha256": "4cb3dd337ac062af6845591b85cf27d3bc203160923f74c2cf1c7a2883b76843",
+  "archive": {
+    "name": "pinball-1.4.349-1.4.350-1-town-original-pixel.zip",
+    "size": 1149146,
+    "sha256": "30442433cb45b885a1656cda8ef6115469824ad1cd153eb1293888f694e230a2",
+    "members": 3,
+    "files": [
+      "production/upload/0e/4e15585a6e53767791dd0a98299e6b4072704b",
+      "production/upload/7b/7ce0bd3b9f356439eda2acd0c9bae28fbb9081",
+      "production/upload/f1/45545165d8e23c0a8f393c1bfaac387573b6a8"
+    ]
+  },
+  "changedResources": [
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background.png",
+      "member": "production/upload/7b/7ce0bd3b9f356439eda2acd0c9bae28fbb9081",
+      "bytes": 498509,
+      "sha256": "7711c9a4bb235cbb6aecbbfa5541be12c9a19f72f3f3246695e49f0dcde93c30",
+      "beforeCurrentSha256": "e2f7a926934b427dac579380dd18952696e5ab518899a25407e9fe0892d53fcd"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_blur.png",
+      "member": "production/upload/0e/4e15585a6e53767791dd0a98299e6b4072704b",
+      "bytes": 157530,
+      "sha256": "8aa44bc1f7d514c48b4a32d37eb4bb4eed19a9d512513e6465134593723987bb",
+      "beforeCurrentSha256": "26529323ad0daa6872130df02498933d945f988a205f4a75f5e5c706743c1a95"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_mask.png",
+      "member": "production/upload/f1/45545165d8e23c0a8f393c1bfaac387573b6a8",
+      "bytes": 498739,
+      "sha256": "eb263d4f2dfce2fe261b962452d140616fd87946ca7dc358b31b294673dc8c75",
+      "beforeCurrentSha256": "9f8dc048bafcf1e9f7f6da73918d71eb6660bb681e5bdc5409f09b46c3b0a267"
+    }
+  ],
+  "rowChanges": [],
+  "masterAnimationsBgmLayoutLichUnchanged": true,
+  "mainResampledOrReencoded": false,
+  "deviceVerified": false
+}

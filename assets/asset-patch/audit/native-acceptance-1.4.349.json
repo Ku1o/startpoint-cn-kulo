@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "version": "1.4.349",
+  "status": "frozen_local_offline_candidate",
+  "purpose": "native_acceptance_candidate",
+  "manifestSha256": "3ef0092cd89ddc6119d2e924244b40df414bebfa6d0ae4cff63dcdf30e03b526",
+  "archive": {
+    "name": "pinball-1.4.348-1.4.349-1-lich-town05-visuals.zip",
+    "size": 2380895,
+    "sha256": "913c3dd4af49ba7ce4d7268406c6a6fac2278be2c286a68e10ad5f28c4554f64",
+    "members": 5,
+    "files": [
+      "production/upload/0e/4e15585a6e53767791dd0a98299e6b4072704b",
+      "production/upload/72/d3e8d454a05ef154744ea5396f5cd4fb426580",
+      "production/upload/7b/7ce0bd3b9f356439eda2acd0c9bae28fbb9081",
+      "production/upload/dc/1995127e807325723c1083eef3eeee5d210138",
+      "production/upload/f1/45545165d8e23c0a8f393c1bfaac387573b6a8"
+    ]
+  },
+  "changedResources": [
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background.png",
+      "member": "production/upload/7b/7ce0bd3b9f356439eda2acd0c9bae28fbb9081",
+      "bytes": 1010318,
+      "sha256": "e2f7a926934b427dac579380dd18952696e5ab518899a25407e9fe0892d53fcd",
+      "beforeSha256": "06d2774ddf23966d2597bba49f67becf05a6d44d21d2ca935211def83d983439"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_blur.png",
+      "member": "production/upload/0e/4e15585a6e53767791dd0a98299e6b4072704b",
+      "bytes": 248913,
+      "sha256": "26529323ad0daa6872130df02498933d945f988a205f4a75f5e5c706743c1a95",
+      "beforeSha256": "0abafca145dc4245ca16ac78981e41fed7cab0b56ffd75ddeae63ad9ee5a169b"
+    },
+    {
+      "root": "common",
+      "logical": "town/background/halloween2026/background_mask.png",
+      "member": "production/upload/f1/45545165d8e23c0a8f393c1bfaac387573b6a8",
+      "bytes": 1116881,
+      "sha256": "9f8dc048bafcf1e9f7f6da73918d71eb6660bb681e5bdc5409f09b46c3b0a267",
+      "beforeSha256": "c4e7d3b35f488e77de85dad331c5cc267b26a258373c481bf36f0160f92450c2"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/pixelart.parts.amf3.deflate",
+      "member": "production/upload/dc/1995127e807325723c1083eef3eeee5d210138",
+      "bytes": 1627,
+      "sha256": "8e6e98a7ea96c6088ea2fb2b287f60147ec210d48d396434a16c55d908adbf71",
+      "beforeSha256": null
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/special.parts.amf3.deflate",
+      "member": "production/upload/72/d3e8d454a05ef154744ea5396f5cd4fb426580",
+      "bytes": 1844,
+      "sha256": "4465109e7256e9ec4c06b5f88edcad477c9de1d150b69ac79488b0f6517000ea",
+      "beforeSha256": null
+    }
+  ],
+  "rowChanges": [],
+  "businessDataOrClientChanges": false,
+  "deviceVerified": false,
+  "runtimeGeometryVerified": false,
+  "finalArtAccepted": false
+}

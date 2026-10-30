@@ -1,0 +1,26 @@
+{
+  "version": "1.4.345",
+  "depends_on": "1.4.344",
+  "candidate_only": true,
+  "native_town_content_id": 103,
+  "theme_id": "halloween2026",
+  "native_kind": "Event",
+  "original_period": {
+    "start": "2026-10-31 00:00:00",
+    "end": "2026-10-31 23:59:59",
+    "timezone": "UTC+8"
+  },
+  "default_bgm": "bgm/common/worldflipper_town_quest_spring",
+  "sounds": [],
+  "adopted_visual_sha256": "f17dfe51825c5af8c1222af007cd61f3bdb4c931765d91ff294a4898671266ce",
+  "archives": [
+    {
+      "name": "pinball-1.4.344-1.4.345-1-halloween2026-town.zip",
+      "size": 2410832,
+      "sha256": "26ce9eb4ce0e97100d430ba0e1b8eabd35fcc65b63352bf33d61cc7e09508d8b",
+      "members": 8
+    }
+  ],
+  "old_town_stored_rows_preserved": 18,
+  "device_verified": false
+}

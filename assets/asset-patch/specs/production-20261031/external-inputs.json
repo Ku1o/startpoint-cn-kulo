@@ -1,0 +1,1386 @@
+{
+  "schemaVersion": 1,
+  "status": "explicit_external_dependencies_required",
+  "mappingFormat": "Local JSON object mapping each alias to an absolute local input path; keep the location map outside Git",
+  "inputs": [
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.258-1.4.259-1-hell-pumpkin-local.zip",
+        "sha256": "ebbab590b050335213a2dbeb9cd0f5359a65e98f34ad2d7b62e3e9069f597524",
+        "bytes": 4305366,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.258-1.4.259-1-hell-pumpkin-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.258-1.4.259-2-hell-pumpkin-local.zip",
+        "sha256": "0313c52484e132903351f8af06a7d6c8fcd968d6f6565bb5ff296c62ebf85a34",
+        "bytes": 2603579,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.258-1.4.259-2-hell-pumpkin-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.258-1.4.259-3-hell-pumpkin-local.zip",
+        "sha256": "d6ed19ba05442a850d19c94645be74d41ece5546064bc4608bdc5492ae374b28",
+        "bytes": 2769315,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.258-1.4.259-3-hell-pumpkin-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.258-1.4.259-4-hell-pumpkin-local.zip",
+        "sha256": "ba365811bee94b7216b0ea995dc029b18ea16fe60e142d75308848a5b0d3c9ac",
+        "bytes": 2811303,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.258-1.4.259-4-hell-pumpkin-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.258-1.4.259-5-hell-pumpkin-local.zip",
+        "sha256": "982cf0ec38da73f52184d27c4927a68b8f9a4fd089047b6881f7cf5f82963e49",
+        "bytes": 2911060,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.258-1.4.259-5-hell-pumpkin-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.259-1.4.260-1-hell-pumpkin-candy-icon-local.zip",
+        "sha256": "7946f303149049df3611cd0edbf1f1a6aa877f5adb830d361b1dda15eac57486",
+        "bytes": 243436,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.259-1.4.260-1-hell-pumpkin-candy-icon-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.260-1.4.261-1-hell-pumpkin-p1rounds-local.zip",
+        "sha256": "00be273af3bfaadc1323797552a239acf25b24e07315f1666bd01901d053802f",
+        "bytes": 4171578,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.260-1.4.261-1-hell-pumpkin-p1rounds-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.261-1.4.262-1-hell-pumpkin-tolerance-local.zip",
+        "sha256": "9bde5cd8a8b37e4afb8e91e55ee602d95e18ca78a1982a4546663d50d15c23b7",
+        "bytes": 4249109,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.261-1.4.262-1-hell-pumpkin-tolerance-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.262-1.4.263-1-balance-1020b-local.zip",
+        "sha256": "c412aa50b051f33821b67314e4845d6c18e5cc01674af9739dbcd78919cabe45",
+        "bytes": 353428,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.262-1.4.263-1-balance-1020b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.263-1.4.264-1-skill-rework-1020b-local.zip",
+        "sha256": "fc7ae3617d3c064c084f5e51fbcf371ce0f8551cb32922ee543235f97bf2e2fd",
+        "bytes": 573885,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.263-1.4.264-1-skill-rework-1020b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.264-1.4.265-1-water-gerald-unison-pf.zip",
+        "sha256": "44267239d7689d1a6920915029859ce66b2caba2bdaa1657574926620cd70ee5",
+        "bytes": 139340,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.264-1.4.265-1-water-gerald-unison-pf.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.265-1.4.266-1-hell-pumpkin-regress-local.zip",
+        "sha256": "77c64408fbb66cc67c26036ea381f882a2a3bdf0c5a22b52481ac92debe0f330",
+        "bytes": 3293568,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.265-1.4.266-1-hell-pumpkin-regress-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.266-1.4.267-1-hell-pumpkin-p1pre-local.zip",
+        "sha256": "8155d3a5ab60d3cabbb5cd4870051bf450af0c421d406770c158bd40ea690f71",
+        "bytes": 3883967,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.266-1.4.267-1-hell-pumpkin-p1pre-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.267-1.4.268-1-balance-1021-ol-local.zip",
+        "sha256": "83bf0a484259c3c6ca5c5501ca96a021df6e38c269d89bc1fb3913b704fe18ce",
+        "bytes": 289011,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.267-1.4.268-1-balance-1021-ol-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.268-1.4.269-1-hell-pumpkin-dispel30-local.zip",
+        "sha256": "ba9b3228d7be2c6c9a1594d39bb2d4dad31f3aa690b97ff8661d773c641022c7",
+        "bytes": 17578,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.268-1.4.269-1-hell-pumpkin-dispel30-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.269-1.4.270-1-balance-1021b-local.zip",
+        "sha256": "1afb4a29413ee9a11f7a2ded6ca619c9c5f9ce557f04df3215ba7ad1277614e2",
+        "bytes": 365814,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.269-1.4.270-1-balance-1021b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.270-1.4.271-1-wagner-limit-fix-local.zip",
+        "sha256": "dd1c5bdd0b5c55d198f1f6d83a197f3fa9591625b11a28e84a6fbcc972e291e6",
+        "bytes": 225613,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.270-1.4.271-1-wagner-limit-fix-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.271-1.4.272-1-hell-pumpkin-lite-local.zip",
+        "sha256": "fc170d1e2d11c5d14f6d9fe2216081dbdc6ee7f5871a13a57e1a0d5263f0290f",
+        "bytes": 4203221,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.271-1.4.272-1-hell-pumpkin-lite-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.271-1.4.272-2-hell-pumpkin-lite-local.zip",
+        "sha256": "3155b658fead048d20fe2afdcfc974a36f6568c02c8120a574413e5aa7d14ee0",
+        "bytes": 380100,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.271-1.4.272-2-hell-pumpkin-lite-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.272-1.4.273-1-balance-1022-local.zip",
+        "sha256": "ea1e02107c179f252a91e7864900ccae4d964e76c3311ec5eac35a9ec845ab52",
+        "bytes": 952112,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.272-1.4.273-1-balance-1022-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.273-1.4.274-1-abyss-hp-balance-1023-local.zip",
+        "sha256": "c83e485d384a303a392705c88fa8c180be4bbc3d71392bbd97c6bab2685aa02c",
+        "bytes": 1012476,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.273-1.4.274-1-abyss-hp-balance-1023-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.274-1.4.275-1-balance-1023-local.zip",
+        "sha256": "4ac19928055560d428ce206efe82864d5a0035210fdbdc2d6d69180ee250ef87",
+        "bytes": 948847,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.274-1.4.275-1-balance-1023-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.275-1.4.276-1-balance-1024-local.zip",
+        "sha256": "b9e4ae0a4c8d160f3389fdacb425d7fbc20c68a61f00753b5d993e65e44ad944",
+        "bytes": 729242,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.275-1.4.276-1-balance-1024-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.276-1.4.277-1-nova-levi-zones-local.zip",
+        "sha256": "7f2a40a7ab9531afe326d2c5b8cf130b4172945dfbe5c742d00e9a563f1717af",
+        "bytes": 2705244,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.276-1.4.277-1-nova-levi-zones-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.277-1.4.278-1-nova-levi-zones-fix-local.zip",
+        "sha256": "02e5814e91a3d41cfc0daecba70399a98a04e0ea4557bd70c0cad60f89fbf063",
+        "bytes": 282920,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.277-1.4.278-1-nova-levi-zones-fix-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.278-1.4.279-1-balance-1024b-local.zip",
+        "sha256": "6d409b9c52743e5464b52d686172c710e5a7d194608fdce4857f2b34941394aa",
+        "bytes": 383675,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.278-1.4.279-1-balance-1024b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.279-1.4.280-1-abyss-beast-rework-local.zip",
+        "sha256": "806bfbc7959bf419cfe68500734752ba9a6fff1189f86f6ab0f93bfa64522f22",
+        "bytes": 1133321,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.279-1.4.280-1-abyss-beast-rework-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.280-1.4.281-1-balance-1025-local.zip",
+        "sha256": "370765f148ac844c630b991c4136e66ceb88e085949c86bc238cebffbb628e19",
+        "bytes": 986656,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.280-1.4.281-1-balance-1025-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.281-1.4.282-1-boss-limit-text-local.zip",
+        "sha256": "3a057540b3d86e681de21b97635948e9bf51db173e995625a3597bd95e251deb",
+        "bytes": 93693,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.281-1.4.282-1-boss-limit-text-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.282-1.4.283-1-abyss-beast-client-followup-local.zip",
+        "sha256": "b43e3ffecc280b33aeede4b6889359306005d31481427d7af9730e710562d9cf",
+        "bytes": 388624,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.282-1.4.283-1-abyss-beast-client-followup-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.283-1.4.284-1-abyss-beast-rework-local.zip",
+        "sha256": "14c6eb339d9d2b5af12564a46656ef0d13f9d1dc178d5d9c5b6633326aab2e4f",
+        "bytes": 1172925,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.283-1.4.284-1-abyss-beast-rework-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.284-1.4.285-1-balance-1025b-local.zip",
+        "sha256": "b4a1ce7367424ac7469046bc62a56a7f7ecc2ab4573b535103204a18e05dcd11",
+        "bytes": 983724,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.284-1.4.285-1-balance-1025b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.285-1.4.286-1-abyss-beast-buff15s-local.zip",
+        "sha256": "804557fd3f3ae02003757c3083199d34596d5305e2a67ee56d07ab427e948de3",
+        "bytes": 396717,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.285-1.4.286-1-abyss-beast-buff15s-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.286-1.4.287-1-leader-move-1025-local.zip",
+        "sha256": "c13e6da7771f4538760592234e508fce8b35cc89557049358491e681b933aa88",
+        "bytes": 391868,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.286-1.4.287-1-leader-move-1025-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.287-1.4.288-1-abyss-beast-own-atk-local.zip",
+        "sha256": "6fabc864e87e9c3953d919b3d88377c20fb48ceb55d52233c931dce4ec79bd3e",
+        "bytes": 99967,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.287-1.4.288-1-abyss-beast-own-atk-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.288-1.4.289-1-balance-1025c-local.zip",
+        "sha256": "b41e87e8d049ab5d9006a6845725b95642b74cb6f9d1b1d9d8f2a838b2c2fd98",
+        "bytes": 345430,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.288-1.4.289-1-balance-1025c-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.289-1.4.290-1-abyss-atlas-repack-local.zip",
+        "sha256": "d4dc23cf11e721896ac5f2adf90a16aed21e19c9a5ac812e40461109318128cd",
+        "bytes": 36427,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.289-1.4.290-1-abyss-atlas-repack-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.290-1.4.291-1-beretta-duet-local.zip",
+        "sha256": "0acc00b334d38c564f08fd8c4199c4871548a92053ffa5cd53bd37d7890eed8e",
+        "bytes": 3086726,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.290-1.4.291-1-beretta-duet-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.290-1.4.291-2-beretta-duet-local.zip",
+        "sha256": "fafa0b48831c1f41e1f8af15ac932d0c4932dfc54604033dc4fb2457f3876e82",
+        "bytes": 1639714,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.290-1.4.291-2-beretta-duet-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.290-1.4.291-3-beretta-duet-local.zip",
+        "sha256": "04616702c84332d0cdc58d77baa8999a1a6df0ae624b592ee2a0e606c3c9c631",
+        "bytes": 3291237,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.290-1.4.291-3-beretta-duet-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.290-1.4.291-4-beretta-duet-local.zip",
+        "sha256": "b90b7db8e0aff4a22d3df3c1e5698cfef14fbf47b9942f2b8504210b1906a8cb",
+        "bytes": 5041825,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.290-1.4.291-4-beretta-duet-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.290-1.4.291-5-beretta-duet-local.zip",
+        "sha256": "46b4e2ed194ca9cadccd92e182f027a18a7876cbff51bad7906bf592c946e503",
+        "bytes": 3468655,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.290-1.4.291-5-beretta-duet-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.291-1.4.292-1-balance-1025d-local.zip",
+        "sha256": "2fc2c5857837c52a86e4a82c296917ed567f65c1bef39e3bbed5846c7fae181b",
+        "bytes": 991873,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.291-1.4.292-1-balance-1025d-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.292-1.4.293-1-beretta-resummon.zip",
+        "sha256": "76fae70112fa1645fc7972614daff5b906b8ee2189bf47903fa792e3ccd1b1ae",
+        "bytes": 344745,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.292-1.4.293-1-beretta-resummon.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.293-1.4.294-1-balance-1025e-local.zip",
+        "sha256": "490eaa524eb8249e6e75f0bcd22dea3e0ac6a1c70e93eff3fd4226422696747b",
+        "bytes": 985536,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.293-1.4.294-1-balance-1025e-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.294-1.4.295-1-beretta-display.zip",
+        "sha256": "a0eb7b1cc5633383a07bcabe525e3a3e4873cc29408343779c03e9cde81b3f30",
+        "bytes": 330659,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.294-1.4.295-1-beretta-display.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.295-1.4.296-1-balance-1026a-local.zip",
+        "sha256": "9286c93da1d0eef3676f70872379be2cc98c1de71e005cafaf0b6f5eee5e3e1a",
+        "bytes": 639142,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.295-1.4.296-1-balance-1026a-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.296-1.4.297-1-balance-1026b-local.zip",
+        "sha256": "3ef3f910815f566e57d901fed8cf86e158662aeb4d5383cf6fe6851ded2e26d3",
+        "bytes": 1771,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.296-1.4.297-1-balance-1026b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.297-1.4.298-1-cursed-1026b-local.zip",
+        "sha256": "7e2018e94e38dbf498e06809e123546165e33172752789077cddc4c5b4fc212d",
+        "bytes": 304536,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.297-1.4.298-1-cursed-1026b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.298-1.4.299-1-pumpkin-p3-1026-local.zip",
+        "sha256": "809769d93a3ec9a1201fe69a96ea48791582f85bd2d84c503ae3727b964cc21d",
+        "bytes": 624308,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.298-1.4.299-1-pumpkin-p3-1026-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.299-1.4.300-1-balance-1026c-local.zip",
+        "sha256": "82d8e663c8ff33dddbcc5473ff6c74878b71d8bce6ae25ec4de4925ae4230ff8",
+        "bytes": 547903,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.299-1.4.300-1-balance-1026c-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.300-1.4.301-1-continue-cost-1026-local.zip",
+        "sha256": "f0a30db03d5e2ed0d3558a7a7059147eb4f21c42422b9a1f84b9d383361233c3",
+        "bytes": 99793,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.300-1.4.301-1-continue-cost-1026-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.301-1.4.302-1-tester-nameplates.zip",
+        "sha256": "b7b357259dea9ea029eba611c503a1669dfa883435b7d44e61546929d8b498cb",
+        "bytes": 1938209,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.301-1.4.302-1-tester-nameplates.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.302-1.4.303-1-balance-1027a-local.zip",
+        "sha256": "f233ebe47f0fa733f7429c48fb0cccba834d4df61db83e94b79c2921eea413b7",
+        "bytes": 234667,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.302-1.4.303-1-balance-1027a-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.303-1.4.304-1-abyss-revert-1027-local.zip",
+        "sha256": "126a68d6d5449997d63a5386cb7f70b8df5c5f65de1904e0d6df5089f15a3abf",
+        "bytes": 68745,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.303-1.4.304-1-abyss-revert-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.304-1.4.305-1-tester-nameplate-size.zip",
+        "sha256": "c50973a01eb7716f1a786a158b8345db6c5381a48fbf5d26401d5068d9944688",
+        "bytes": 331580,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.304-1.4.305-1-tester-nameplate-size.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.305-1.4.307-1-balance-1027b-local.zip",
+        "sha256": "83fc9482d457261af72ddc20200df729705275fb092c755e60a80a0725f59512",
+        "bytes": 404454,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.305-1.4.307-1-balance-1027b-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.307-1.4.310-1-balance-1027c-local.zip",
+        "sha256": "96a69c26d3734716c9222e60497ecace4ab2d910738ff6a64398514f6244a118",
+        "bytes": 174360,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.307-1.4.310-1-balance-1027c-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.310-1.4.311-1-tester-nameplate-redesign.zip",
+        "sha256": "6ad5c235a1dbc2ea7da8836414e4cfc31a3446e8380a100f45f7cd6ec44dce4c",
+        "bytes": 296225,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.310-1.4.311-1-tester-nameplate-redesign.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.311-1.4.312-1-char-nameplates.zip",
+        "sha256": "8b9f720c95a59aff9e3419eedc6e6069789294d5def3d8005a96111d0b4e89a9",
+        "bytes": 568525,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.311-1.4.312-1-char-nameplates.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.312-1.4.313-1-balance-1027d-local.zip",
+        "sha256": "a2a28c9a08cc7843dee67662c5f2bd9afe1c0ed388697941b7ea6f36fed00ec6",
+        "bytes": 403853,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.312-1.4.313-1-balance-1027d-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.313-1.4.314-1-char-nameplates.zip",
+        "sha256": "f5e878cc2e2d0867fa37db4b6e69b1a8c4ebc3efa1b956ed7139a3ebf8618603",
+        "bytes": 264162,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.313-1.4.314-1-char-nameplates.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.314-1.4.315-1-aqua-portrait-v20.zip",
+        "sha256": "3caac70364a0e3fe4954f93bc35599abf07737d09bb78cac82f1d2dd74f44e38",
+        "bytes": 4413145,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.314-1.4.315-1-aqua-portrait-v20.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.314-1.4.315-2-aqua-portrait-v20.zip",
+        "sha256": "9f38ca75cb88d7266240a994a9b0ef11ad62966619f939dd09acdc754a687f36",
+        "bytes": 3193392,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.314-1.4.315-2-aqua-portrait-v20.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.315-1.4.316-1-balance-1027e-local.zip",
+        "sha256": "7caa534c7e1197ed536cc0eccfb6bd5f068720e13433a1646d7c4f79da5c4060",
+        "bytes": 397944,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.315-1.4.316-1-balance-1027e-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.316-1.4.317-1-riven-port175-atlas.zip",
+        "sha256": "0c8bedff2f1ba7f279e83317de6427deb9a03b27a5529bff6fec54a9d07119bc",
+        "bytes": 553703,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.316-1.4.317-1-riven-port175-atlas.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.317-1.4.318-1-riven-port175-tables.zip",
+        "sha256": "d3b637c5b5d0dbcd96fc006696086fb3963dc32cc6326dd95339aff26d070b59",
+        "bytes": 320163,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.317-1.4.318-1-riven-port175-tables.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.318-1.4.320-1-fiveboss-hp-half-1027-local.zip",
+        "sha256": "63d375a2303374325962066a83338c18db2729f1d8d62446d64752c0effac710",
+        "bytes": 92860,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.318-1.4.320-1-fiveboss-hp-half-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.320-1.4.321-1-pumpkin-p3-1027-local.zip",
+        "sha256": "4a0c99c39e6cf5cb910f49050a6a71c41dd33532848d50384c750a4624239a0a",
+        "bytes": 43214,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.320-1.4.321-1-pumpkin-p3-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.321-1.4.322-1-pumpkin-bullets-1027-local.zip",
+        "sha256": "cf567bfbe81006bca49c5f02a918c86b21c2f636a530b4c3d3350a53491a15f9",
+        "bytes": 407257,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.321-1.4.322-1-pumpkin-bullets-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.322-1.4.323-1-gerald-guard-1027-local.zip",
+        "sha256": "4af100b0c95bc2a2759e82a3fabfd9ea766deca72e9806783f2f41a326467f5a",
+        "bytes": 989886,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.322-1.4.323-1-gerald-guard-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.323-1.4.324-1-damage-font-m-1027-local.zip",
+        "sha256": "3ee313ec2e473d5e47348448d70bfc9e6f5dd78aecf4feea488f527fc00c3024",
+        "bytes": 941744,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.323-1.4.324-1-damage-font-m-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.324-1.4.325-1-riven-r2-themed.zip",
+        "sha256": "07d9536c6b5193500656fbcbca3b0a6acd4889e437732e8041d5bc7dcb8262a2",
+        "bytes": 841386,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.324-1.4.325-1-riven-r2-themed.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.325-1.4.326-1-pumpkin-field-1027-local.zip",
+        "sha256": "01c75982b32cbe671f767c27053b8e7f4304768b992cd325dc5fd1f6a8767fd3",
+        "bytes": 1318,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.325-1.4.326-1-pumpkin-field-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.326-1.4.327-1-abyss-fx-merge-1027-local.zip",
+        "sha256": "9e12cc46fb32e23f50275583324db7f0a00577d85938c72d6c55772f1cb7ebc1",
+        "bytes": 4327,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.326-1.4.327-1-abyss-fx-merge-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.327-1.4.328-1-unique-cap-1027-local.zip",
+        "sha256": "99d79a0ebe9308ad7f70904b39662456da620bcf0e4862c8f0d2769f2c1eafa9",
+        "bytes": 12367,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.327-1.4.328-1-unique-cap-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.328-1.4.329-1-no-continue-1027-local.zip",
+        "sha256": "04ce884e1ac44caad43a80f7abcbcd00072c625e2d5723891d52792695801e65",
+        "bytes": 230795,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.328-1.4.329-1-no-continue-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.329-1.4.330-1-boss-ui-closeup-1027-local.zip",
+        "sha256": "da7697a2766609d3593b66304dbaa99b96ebf00dcec20e0938ddc544a6661606",
+        "bytes": 6530981,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.329-1.4.330-1-boss-ui-closeup-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.330-1.4.331-1-abyss-fx-faint-1027-local.zip",
+        "sha256": "28d187cc7953c852cedfa5ad42eb2e6421eabe6e6d3f52620ca5afe396a50b94",
+        "bytes": 110404,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.330-1.4.331-1-abyss-fx-faint-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.331-1.4.332-1-party-card-face-1027-local.zip",
+        "sha256": "ab80cafc7112feb1a23dddb0b347ea6dbf6c25ed969c32856d6567440129d88e",
+        "bytes": 152165,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.331-1.4.332-1-party-card-face-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.332-1.4.335-1-pumpkin-rings-1027-local.zip",
+        "sha256": "0e23a389bc9eaf8d49856c1a4ea81188ffaec8e1d37527684e26135793357348",
+        "bytes": 609,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.332-1.4.335-1-pumpkin-rings-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.335-1.4.336-1-riven-r3-themes.zip",
+        "sha256": "8b7355e9c7248ac7020dfe98e51bef260d6f70fdf153e7a7f1a9d7d4f145c9c7",
+        "bytes": 849289,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.335-1.4.336-1-riven-r3-themes.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.336-1.4.337-1-gerald-ab6-1027-local.zip",
+        "sha256": "5182b7c95a32a4dc833a41f4c764efca6a9ac1997b35d65253b7a5368916a815",
+        "bytes": 345164,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.336-1.4.337-1-gerald-ab6-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.337-1.4.339-1-pumpkin-p2-lite-1027-local.zip",
+        "sha256": "96f5f8b7f7195f85a4d9f65adb1cf956251cea35c913fe9eef4f50850e585a59",
+        "bytes": 379733,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.337-1.4.339-1-pumpkin-p2-lite-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.339-1.4.340-1-damage-font-units-1027-local.zip",
+        "sha256": "96538ab2528070bff0387619fb19fd5bc2f35aee1f2dafb8a604e67a089a104e",
+        "bytes": 944777,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.339-1.4.340-1-damage-font-units-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.340-1.4.341-1-pumpkin-fever-trial-1027-local.zip",
+        "sha256": "79277748c72e89d8b6f51845da4720f9cf443ba963bfa54c728fd33e1a475c85",
+        "bytes": 3677618,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.340-1.4.341-1-pumpkin-fever-trial-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.341-1.4.342-1-abyss-ab3-1027-local.zip",
+        "sha256": "04be1d602f9a88ebd482027fe04d8a15edbdfb5785bc1fd3a13a996bc6edb52d",
+        "bytes": 330322,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.341-1.4.342-1-abyss-ab3-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "pr106/pinball-1.4.342-1.4.343-1-gerald-guard-icon-1027-local.zip",
+        "sha256": "6d8af4322642d70909e72eee4a4c39bd7221a91d47a760ec1085915866834c9c",
+        "bytes": 17415,
+        "kind": "fixed-git-archive",
+        "source": {
+          "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+          "path": "assets/asset-patch/active/pinball-1.4.342-1.4.343-1-gerald-guard-icon-1027-local.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "author-gacha/pinball-1.4.258-1.4.259-1-halloween-gacha-native.zip",
+        "sha256": "51eb61c227e7d3709dfdb828b77fea3fabc9065a55f2592f8adefad0b69cec98",
+        "bytes": 29544554,
+        "kind": "author-registered-resource-archive",
+        "source": {
+          "authorCollection": "halloween-surprise-native-gacha",
+          "version": "1.4.259",
+          "archive": "pinball-1.4.258-1.4.259-1-halloween-gacha-native.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "author-gacha/pinball-1.4.260-1.4.261-1-halloween-gacha-ui-timing.zip",
+        "sha256": "ef44ae008f0c89624352b661661d009ee550cd30088b60552e925f92b6c648f1",
+        "bytes": 11257583,
+        "kind": "author-registered-resource-archive",
+        "source": {
+          "authorCollection": "halloween-surprise-native-gacha",
+          "version": "1.4.261",
+          "archive": "pinball-1.4.260-1.4.261-1-halloween-gacha-ui-timing.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "author-gacha/pinball-1.4.262-1.4.263-1-halloween-official-parity.zip",
+        "sha256": "7ad723aea4446503933912f8d01ccb56312a79ab434ef975bc8bda2ef756e35a",
+        "bytes": 13981710,
+        "kind": "author-registered-resource-archive",
+        "source": {
+          "authorCollection": "halloween-surprise-native-gacha",
+          "version": "1.4.263",
+          "archive": "pinball-1.4.262-1.4.263-1-halloween-official-parity.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "author-gacha/pinball-1.4.261-1.4.262-1-halloween-official-sample.zip",
+        "sha256": "5b20a41317bfae332cd45fc1a49f29bda389e2d4c05ec6b4101bb7c5596568d5",
+        "bytes": 2651350,
+        "kind": "author-registered-resource-archive",
+        "source": {
+          "authorCollection": "halloween-surprise-native-gacha",
+          "version": "1.4.262",
+          "archive": "pinball-1.4.261-1.4.262-1-halloween-official-sample.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "author-gacha/pinball-1.4.266-1.4.267-1-halloween-exclusive-ten-ticket.zip",
+        "sha256": "62b5bf9057f633d472e1e6e1e49d5c84ec2fbd4ca30a222232322c7a9757ed6e",
+        "bytes": 371489,
+        "kind": "author-registered-resource-archive",
+        "source": {
+          "authorCollection": "halloween-surprise-native-gacha",
+          "version": "1.4.267",
+          "archive": "pinball-1.4.266-1.4.267-1-halloween-exclusive-ten-ticket.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "author-gacha/pinball-1.4.265-1.4.266-1-halloween-cover-text-scale.zip",
+        "sha256": "1f5d4779cfa727ecf7f838ed2d213a31cf693630e82bd4fba0f494e95f1d0fb0",
+        "bytes": 4020810,
+        "kind": "author-registered-resource-archive",
+        "source": {
+          "authorCollection": "halloween-surprise-native-gacha",
+          "version": "1.4.266",
+          "archive": "pinball-1.4.265-1.4.266-1-halloween-cover-text-scale.zip"
+        }
+      }
+    },
+    {
+      "recipe": "release344.json",
+      "input": {
+        "alias": "author-gacha/pinball-1.4.264-1.4.265-1-halloween-official-lettering-badge.zip",
+        "sha256": "1025fda7f2876acf6a18ae36ec27f7d435ce118200b575fa6d9387735eaacc18",
+        "bytes": 4029666,
+        "kind": "author-registered-resource-archive",
+        "source": {
+          "authorCollection": "halloween-surprise-native-gacha",
+          "version": "1.4.265",
+          "archive": "pinball-1.4.264-1.4.265-1-halloween-official-lettering-badge.zip"
+        }
+      }
+    },
+    {
+      "recipe": "town345.json",
+      "input": {
+        "alias": "town345_concept",
+        "kind": "file",
+        "bytes": 2358243,
+        "sha256": "2b6c988ba69e026970bf6f8a5138dcae23ab49d0d599f101d42e6fa6ca05ce97",
+        "source": {
+          "description": "Approved historical Halloween town concept; native345 export only",
+          "suggestedFilename": "halloween-town-concept.png"
+        }
+      }
+    },
+    {
+      "recipe": "art346347.json",
+      "input": {
+        "alias": "author_139985",
+        "kind": "file",
+        "bytes": 16482082,
+        "sha256": "b5e16f962418d7de946cf91a6f60ab1d528234ceb970d9759ee5ad5b88f48bec",
+        "source": {
+          "kind": "original-author-wfchar",
+          "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+          "characterId": 139985
+        }
+      }
+    },
+    {
+      "recipe": "art346347.json",
+      "input": {
+        "alias": "author_149985",
+        "kind": "file",
+        "bytes": 11999307,
+        "sha256": "05ac6dfeb028022b37d06ff3518a05d2d83c671dfab437881bf9baa7400f5168",
+        "source": {
+          "kind": "original-author-wfchar",
+          "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+          "characterId": 149985
+        }
+      }
+    },
+    {
+      "recipe": "art346347.json",
+      "input": {
+        "alias": "author_169985",
+        "kind": "file",
+        "bytes": 18986776,
+        "sha256": "b1cef1910879b3c897fd0e9ad0dde4b646ce55e9ccc890bf6d63f30bf064e6da",
+        "source": {
+          "kind": "original-author-wfchar",
+          "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+          "characterId": 169985
+        }
+      }
+    },
+    {
+      "recipe": "art346347.json",
+      "input": {
+        "alias": "author_159985",
+        "kind": "file",
+        "bytes": 17120175,
+        "sha256": "c524adc84edd410c9b693744243fc9b4c6d4c739e79af934ce514c31b04001d9",
+        "source": {
+          "kind": "original-author-wfchar",
+          "description": "Original art project archive; project.json and hash-checked assets only; embedded code is never executed",
+          "characterId": 159985
+        }
+      }
+    },
+    {
+      "recipe": "art346347.json",
+      "input": {
+        "alias": "character_studio",
+        "kind": "directory",
+        "files": [
+          {
+            "path": "studio_compile.py",
+            "sha256": "555353dd2b3c94a9ae5d43e2ad4fb984a9e9be32ad1d599f3921651e5894b6e2",
+            "bytes": 39342
+          },
+          {
+            "path": "effect_channels.py",
+            "sha256": "f986501423ba76f1a0ba4e91bdb6990f6ced16d34448767dfdd1604f35c4e28e",
+            "bytes": 10770
+          },
+          {
+            "path": "atlas_optimizer.py",
+            "sha256": "df9d16a94ae151b70f2bd8fb9e9fa421fd3a4d97cb6ec42895789b070e5495f3",
+            "bytes": 31155
+          },
+          {
+            "path": "studio_core.py",
+            "sha256": "4b786b85f9c24315c2b5ff21adced2ca5836fa485832ea27de9c0e8fb3695d69",
+            "bytes": 70444
+          },
+          {
+            "path": "bridge.py",
+            "sha256": "baff5eb11d01a044129b76778809d702db2071465b6647f78bae62fe03ec3881",
+            "bytes": 587
+          },
+          {
+            "path": "asset_rules.py",
+            "sha256": "3a9bc244a803c9af4ec8e0e01125e507fae90253e31dcdfb88092a4864df85cd",
+            "bytes": 384
+          },
+          {
+            "path": "audio_compile.py",
+            "sha256": "026e915244aaecb2bbfafe49932121ad301141844e40e68e579fed8d5ea3303e",
+            "bytes": 1756
+          },
+          {
+            "path": "audio_rules.py",
+            "sha256": "18f78bd7ab3855f202760e9d17eab69beea4a0a176c3b4c352ab74703b2dc680",
+            "bytes": 1419
+          },
+          {
+            "path": "character_contract.py",
+            "sha256": "50980092509261558c5e498e4153f100f41fd5264ed73dbd110dfe70376ea4fe",
+            "bytes": 16808
+          },
+          {
+            "path": "action_presets.py",
+            "sha256": "889de6bdb5d6d32e56e8a05f9c21b9b600f6ff905503b7eb9f78a60b056ea183",
+            "bytes": 10571
+          },
+          {
+            "path": "production_brief.py",
+            "sha256": "169e0b4a3ccf3d9c241da96f2e05f8f677c0f414e9f4f36352fa7a6b32cccb4e",
+            "bytes": 55986
+          }
+        ],
+        "source": {
+          "kind": "maintained-offline-compiler",
+          "description": "Character Studio compile_channels, transformed_cell and lossless atlas optimizer with their immediate import closure. Codec bridge resolves preloaded repository wf tools. No old compiled candidate or preview input."
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "module": "tools/production_20261031_cdn/lich349.py",
+  "baseVersion": "1.4.348",
+  "targetVersion": "1.4.349",
+  "baselineManifestSha256": "4da846aba4d201a14eb8b4871e8d386b0ad45e3ae4caf29d155dc17357034ef8",
+  "baselineResources": [
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/sprite_sheet.png",
+      "bytes": 452542,
+      "sha256": "37aea17e892b7a8fcbdcd9d167131c16373572fe5a42390ab5d87cf34512df21"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "bytes": 1751,
+      "sha256": "6a6ba1f617519ab6d797ee2611d205b9f0262d9ef7c428224afb265669002050"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/pixelart.frame.amf3.deflate",
+      "bytes": 77,
+      "sha256": "f81f4991267f5fff39f41c6b52401efbce29c7df6f65c3a147bbec13c28c0ae2"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/pixelart.timeline.amf3.deflate",
+      "bytes": 335,
+      "sha256": "bd698685de00d5470a2a34dfc119fcccb969ec2fede7a7ab188f35d44845a9df"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/special_sprite_sheet.png",
+      "bytes": 1428082,
+      "sha256": "733d84bd7ad798d229538670e8c051bac1c70356fd2ee46759ba41eabf6c6e4e"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "bytes": 2465,
+      "sha256": "dec27824ccf7e4fe18a816d91c449e9f82f9f10f0ec738d0e0bb6f991326a549"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/special.frame.amf3.deflate",
+      "bytes": 81,
+      "sha256": "890cb6baea1ae44c944f5528ba5fa15039af656861700792b4fa3b0970c81eb0"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/special.timeline.amf3.deflate",
+      "bytes": 229,
+      "sha256": "059dd11d1f06400bc86d94e1e4ac76f42f3df8f716af914128a91270fdf1507f"
+    }
+  ],
+  "outputResources": [
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/pixelart.parts.amf3.deflate",
+      "bytes": 1627,
+      "sha256": "8e6e98a7ea96c6088ea2fb2b287f60147ec210d48d396434a16c55d908adbf71"
+    },
+    {
+      "root": "common",
+      "logical": "character/lich_halloween/pixelart/special.parts.amf3.deflate",
+      "bytes": 1844,
+      "sha256": "4465109e7256e9ec4c06b5f88edcad477c9de1d150b69ac79488b0f6517000ea"
+    }
+  ],
+  "variants": [
+    {
+      "name": "normal",
+      "atlas": "character/lich_halloween/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "frame": "character/lich_halloween/pixelart/pixelart.frame.amf3.deflate",
+      "timeline": "character/lich_halloween/pixelart/pixelart.timeline.amf3.deflate",
+      "output": "character/lich_halloween/pixelart/pixelart.parts.amf3.deflate",
+      "atlasRows": 207,
+      "totalTicks": 534,
+      "imagePoolCapacity": 157,
+      "selectors": [
+        "neutral",
+        "walk_back",
+        "walk_front",
+        "skill_ready",
+        "kachidoki",
+        "into_coffin",
+        "ghost_raise",
+        "ghost_neutral",
+        "revive"
+      ]
+    },
+    {
+      "name": "special",
+      "atlas": "character/lich_halloween/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "frame": "character/lich_halloween/pixelart/special.frame.amf3.deflate",
+      "timeline": "character/lich_halloween/pixelart/special.timeline.amf3.deflate",
+      "output": "character/lich_halloween/pixelart/special.parts.amf3.deflate",
+      "atlasRows": 211,
+      "totalTicks": 290,
+      "imagePoolCapacity": 210,
+      "selectors": [
+        "special_land",
+        "special_pose"
+      ]
+    }
+  ],
+  "constraints": {
+    "innerScale": 0.5,
+    "rootDefaultScale": 6,
+    "matrixResolution": 4096,
+    "innerMatrix": {
+      "a": 2048,
+      "b": 0,
+      "c": 0,
+      "d": 2048,
+      "x": -262144,
+      "y": -262144
+    },
+    "normalAndSpecialOriginalPngAtlasFrameTimelineExact": true,
+    "nonvisualMarkerAndSkillDataUnchanged": true,
+    "singleTickLeafPeak": 1,
+    "specialPreRollTicks": 74,
+    "totalTimelineCoverageTicks": 824,
+    "deviceAndImagePoolCostAcceptance": "separate"
+  },
+  "history": "The three town PNGs already in the349 archive are retained historical archive content. This module produces only the2parts and does not consume temporary town drafts.",
+  "externalInputs": []
+}

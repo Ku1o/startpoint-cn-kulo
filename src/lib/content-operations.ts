@@ -11,6 +11,7 @@ import path from "node:path"
 import { contentEconomyCapabilities } from "./content-economy-operations"
 import { getMultiSpecialExchangeCampaignDefinition } from "./multi-special-exchange"
 import { defaultContentDecision, unknownContentDecision, unknownQuestContentDecision, unknownMissionContentDecision } from "./content-operations-defaults"
+import { isReleaseClosedQuest, isReleaseClosedShop, projectReleaseClosedSnapshot } from "./content-release-restrictions"
 import { matchCampaignDefinition, matchExactDefinition, type ExactDefinitionEvidence, type CurrentParentDefinitionEvidence,
     type ExactDefinitionRow } from "./content-definition-evidence"
 import { getContentBoxAssociation, getContentBoxAssociations, isContentBoxAssociationIndexAvailable } from "./content-box-associations"
@@ -231,9 +232,10 @@ export function createContentOperationsStore(db: Database): ContentOperationsSto
             // children exactly when their content is served by the box route.
             requiredKeys: contentCatalog.rows.filter(row => row.type === "box_gacha" || row.type === "raid_event"
                 || row.type === "world_story_event" && !nativeShopOwners.has(row.key)).map(row => row.key),
-        })
+        }, projectReleaseClosedSnapshot)
 }
 export function contentDecision(type: string, id: number, action: ContentAction, nowMs: number): boolean | null {
+    if ((action === "visible" || action === "exchange") && isReleaseClosedShop(type, id)) return false
     // The first business request must apply the same defaults as later snapshots.
     // Store creation initializes only global control tables; an absent table grants no seasonal access.
     const store = contentOperations()
@@ -246,6 +248,7 @@ export function contentDecision(type: string, id: number, action: ContentAction,
     return result
 }
 export function contentQuestDecision(category: number, questId: number, realNowMs = Date.now()): boolean | null {
+    if (isReleaseClosedQuest(category, questId)) return false
     const key = contentCatalog.questMap[`${category}:${questId}`]
     if (!key) return unknownQuestContentDecision(category, questId)
     return contentOperations().scopedAllowed(key, "quest", `${category}:${questId}`, "enter", realNowMs)

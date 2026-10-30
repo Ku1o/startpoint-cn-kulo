@@ -1,0 +1,52 @@
+{
+  "baseVersion": "1.4.347",
+  "targetVersion": "1.4.348",
+  "baseManifestSha256": "a7b24456ddd86244591cb16fbaa5cf5c937f5c6d642441730867d6d1f27d9a34",
+  "manifestSha256": "4da846aba4d201a14eb8b4871e8d386b0ad45e3ae4caf29d155dc17357034ef8",
+  "newArchive": {
+    "name": "pinball-1.4.347-1.4.348-1-halloween-ticket-b.zip",
+    "size": 818213,
+    "sha256": "20e0d155d8fcf5cff9a2a76bf51c198dcbe9136730e72600763dfa29f3ea5c1f",
+    "members": 2,
+    "files": [
+      "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "production/upload/ef/a86098527436dd942171b6ee31c8a390caabc2"
+    ]
+  },
+  "files": [
+    {
+      "root": "common",
+      "logical": "item/cnmod_halloween_surprise_2026_ticket.png",
+      "member": "production/upload/ef/a86098527436dd942171b6ee31c8a390caabc2",
+      "bytes": 591,
+      "sha256": "e0bdb667faddc873670b8ece05d27199bf7017f3f22dc72197ed377289d1bff8",
+      "beforeSha256": "34a6dffdde7ede12805469a293f13fabf495b92d143805d1d2e458d79800838b"
+    },
+    {
+      "root": "common",
+      "logical": "item/sprite_sheet.png",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "bytes": 819342,
+      "sha256": "932627bd067c2a02579432d383359c773bf2b898c040d5c2a7fd611d6903b237",
+      "beforeSha256": "cb1374a565e7ac6ae0fdaf15b3af8f7d8d2bbf3e3a2f208bb888bbf94f3bd0da"
+    }
+  ],
+  "rowChanges": [],
+  "strictPngReadbackPassed": true,
+  "deviceVerified": false,
+  "candidate_only": true,
+  "atlas_metadata_unchanged": true,
+  "atlas_size": [
+    505,
+    1986
+  ],
+  "frame_count": 1647,
+  "ticket_frame": {
+    "n": "item/cnmod_halloween_surprise_2026_ticket",
+    "w": 20,
+    "h": 20,
+    "x": 1,
+    "y": 1965
+  },
+  "all_non_ticket_pixels_preserved": true
+}

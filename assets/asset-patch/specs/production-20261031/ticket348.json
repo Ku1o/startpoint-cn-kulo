@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "module": "tools/production_20261031_cdn/ticket348.py",
+  "baseVersion": "1.4.347",
+  "targetVersion": "1.4.348",
+  "baselineManifestSha256": "a7b24456ddd86244591cb16fbaa5cf5c937f5c6d642441730867d6d1f27d9a34",
+  "input": {
+    "relative": "inputs/ticket-20x20.png",
+    "sha256": "467915fe991eae385439362e1702ff126be47b15a6dd2cd82c232444e06da536",
+    "bytes": 591,
+    "size": [
+      20,
+      20
+    ],
+    "mode": "RGBA"
+  },
+  "baselineResources": [
+    {
+      "root": "common",
+      "logical": "item/cnmod_halloween_surprise_2026_ticket.png",
+      "bytes": 518,
+      "sha256": "34a6dffdde7ede12805469a293f13fabf495b92d143805d1d2e458d79800838b"
+    },
+    {
+      "root": "common",
+      "logical": "item/sprite_sheet.png",
+      "bytes": 819327,
+      "sha256": "cb1374a565e7ac6ae0fdaf15b3af8f7d8d2bbf3e3a2f208bb888bbf94f3bd0da"
+    },
+    {
+      "root": "common",
+      "logical": "item/sprite_sheet.atlas.amf3.deflate",
+      "bytes": 17290,
+      "sha256": "e1ead63b1c20ef7256da7f6f1b880d88104ee7acbfec344e310c5353fd38d3c6"
+    },
+    {
+      "root": "common",
+      "logical": "master/item/item.orderedmap",
+      "bytes": 330367,
+      "sha256": "973267a247f8c6a6a9fceff0d22b882bc6be64af27f4fc7f3755ecbcf02b2357"
+    },
+    {
+      "root": "common",
+      "logical": "master/generated/trimmed_image.orderedmap",
+      "bytes": 360919,
+      "sha256": "2b6b5d855befff8dbd4d4170c62f400b74e7e82b0e785dc5063916bb15815cef"
+    }
+  ],
+  "outputResources": [
+    {
+      "root": "common",
+      "logical": "item/cnmod_halloween_surprise_2026_ticket.png",
+      "bytes": 591,
+      "sha256": "e0bdb667faddc873670b8ece05d27199bf7017f3f22dc72197ed377289d1bff8"
+    },
+    {
+      "root": "common",
+      "logical": "item/sprite_sheet.png",
+      "bytes": 819342,
+      "sha256": "932627bd067c2a02579432d383359c773bf2b898c040d5c2a7fd611d6903b237"
+    }
+  ],
+  "constraints": {
+    "standalone": "item/cnmod_halloween_surprise_2026_ticket.png",
+    "sheet": "item/sprite_sheet.png",
+    "atlas": "item/sprite_sheet.atlas.amf3.deflate",
+    "sheetSize": [
+      505,
+      1986
+    ],
+    "atlasFrameCount": 1647,
+    "ticketFrame": {
+      "n": "item/cnmod_halloween_surprise_2026_ticket",
+      "w": 20,
+      "h": 20,
+      "x": 1,
+      "y": 1965
+    },
+    "genericFrame": {
+      "n": "item/spends/tickets/wildcard_ten_times_gacha_character_ticket",
+      "w": 20,
+      "h": 20,
+      "x": 289,
+      "y": 1554
+    },
+    "replacementMode": "paste_without_alpha_mask",
+    "outsideTicketRgbaExact": true,
+    "atlasMetadataAndTablesUnchanged": true,
+    "onlyFinalBStandalone591Bytes": true
+  },
+  "verificationScope": "Byte identities, exact cell replacement, all outside RGBA and generic ticket preservation; device acceptance is separate.",
+  "externalInputs": []
+}

@@ -41604,5 +41604,124 @@
         ""
       ]
     ]
+  },
+  "990005": {
+    "1": [
+      [
+        "0",
+        "",
+        "gacha/feature_movie/cnmod_halloween_surprise_2026/cover/feature",
+        "",
+        "",
+        "",
+        "(None)",
+        "",
+        ""
+      ]
+    ],
+    "2": [
+      [
+        "2",
+        "",
+        "",
+        "1",
+        "skill_preview_gacha_cnmod_halloween_surprise_2026_169977",
+        "169977",
+        "0",
+        "169977",
+        ""
+      ]
+    ],
+    "3": [
+      [
+        "0",
+        "",
+        "gacha/feature_movie/cnmod_halloween_surprise_2026/169977/feature",
+        "",
+        "",
+        "",
+        "0",
+        "169977",
+        ""
+      ]
+    ],
+    "4": [
+      [
+        "2",
+        "",
+        "",
+        "1",
+        "skill_preview_gacha_cnmod_halloween_surprise_2026_169985",
+        "169985",
+        "0",
+        "169985",
+        ""
+      ]
+    ],
+    "5": [
+      [
+        "0",
+        "",
+        "gacha/feature_movie/cnmod_halloween_surprise_2026/169985/feature",
+        "",
+        "",
+        "",
+        "0",
+        "169985",
+        ""
+      ]
+    ],
+    "6": [
+      [
+        "2",
+        "",
+        "",
+        "1",
+        "skill_preview_gacha_cnmod_halloween_surprise_2026_159985",
+        "159985",
+        "0",
+        "159985",
+        ""
+      ]
+    ],
+    "7": [
+      [
+        "0",
+        "",
+        "gacha/feature_movie/cnmod_halloween_surprise_2026/159985/feature",
+        "",
+        "",
+        "",
+        "0",
+        "159985",
+        ""
+      ]
+    ],
+    "8": [
+      [
+        "2",
+        "",
+        "",
+        "1",
+        "skill_preview_gacha_cnmod_halloween_surprise_2026_139985",
+        "139985",
+        "0",
+        "139985",
+        ""
+      ]
+    ],
+    "9": [
+      [
+        "0",
+        "",
+        "gacha/feature_movie/cnmod_halloween_surprise_2026/139985/feature",
+        "",
+        "",
+        "",
+        "0",
+        "139985",
+        ""
+      ]
+    ]
   }
 }

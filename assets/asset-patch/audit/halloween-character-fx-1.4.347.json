@@ -1,0 +1,31 @@
+{
+  "version": "1.4.347",
+  "depends_on": "1.4.346",
+  "candidate_only": true,
+  "archives": [
+    {
+      "name": "pinball-1.4.346-1.4.347-1-halloween-character-fx.zip",
+      "size": 1400351,
+      "sha256": "b298864ad4c11439f26c1e911a7aba8bae3b7340a55afcb10a9f42d7df4b3626",
+      "members": 12,
+      "files": [
+        "production/upload/10/db62ca5f142eb5282ca4b868c7f54c626646a0",
+        "production/upload/2d/cbacdab83547a3823ffb69d1ca74bd7b377ffb",
+        "production/upload/52/28f36f748c3875d52307218834939e5b6c4a74",
+        "production/upload/64/9e63d2d8523b303718864124e575a36398f7f4",
+        "production/upload/73/f90070d36607eab847fb8e8e2713084a06ceeb",
+        "production/upload/8b/e9c0c8018c6147fcaf46cd44d737de97b4e22e",
+        "production/upload/ab/7fab54638278c8c63a7c73c4c24fa7525ab455",
+        "production/upload/bc/8316a905d3f6236370ce0238ba0834c92f4429",
+        "production/upload/ca/8926160fcc5221afc109a354cd8c754231560b",
+        "production/upload/d4/3451f28956c98155de905025e2cc1c78687287",
+        "production/upload/e2/7274c9e44933b4e87626e498ff851cd258b038",
+        "production/upload/f7/9e81daf8061c7003bd06085e510ecb74883f75"
+      ]
+    }
+  ],
+  "changed_members": 12,
+  "old20_archives_unchanged": true,
+  "review_pending": true,
+  "device_verified": false
+}

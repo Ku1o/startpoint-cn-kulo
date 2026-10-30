@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "description": "Source provenance for adopted resource recipes344 through350",
+  "entries": [
+    {
+      "recipe": "release344.json",
+      "source": "PR106 fixed resource/data commit and registered author gacha source collections",
+      "commit": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "identity": "External archive and selected member hashes are sealed in the recipe",
+      "scope": "Cumulative resource filtering, final skill precedence, declared native shop/reward rows"
+    },
+    {
+      "recipe": "town345.json",
+      "source": "Approved Halloween concept; native anv1 mask; authored pumpkin/fireworks/candy/bat texture and native timeline objects",
+      "scope": "Historical theme103 activation and seven visuals; no current350 art selection"
+    },
+    {
+      "recipe": "art346347.json",
+      "source": "Four original author wfchar projects; canonical UI mask/crop recipes; Character Studio compiler",
+      "scope": "Portrait/UI/native motion and adopted visual-only FX/DSL leaf binding"
+    },
+    {
+      "recipe": "ticket348.json",
+      "source": "Adopted purple ghost20px ticket B artwork",
+      "scope": "Standalone ticket and existing atlas cell"
+    },
+    {
+      "recipe": "lich349.json",
+      "source": "Existing348 native Lich frame/timeline/atlas resources",
+      "scope": "Two inner0.5 parts layouts; no art resampling or collision/skill change"
+    },
+    {
+      "recipe": "town350.json",
+      "source": "Adopted original-grid full-v5 native700x900 artwork",
+      "scope": "Exact main PNG, newRGB with349alpha, native blur derivative"
+    }
+  ],
+  "attributionPolicy": "Retain actual upstream commit and original input identities; filenames do not establish individual Git authorship",
+  "notIncluded": [
+    "Private input locations",
+    "Task receipts and chat metadata",
+    "Unadopted drafts or preview media"
+  ],
+  "acceptanceBoundary": "Resource recipe/source preservation does not establish device behavior or deployment"
+}
