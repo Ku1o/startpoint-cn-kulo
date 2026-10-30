@@ -1,3 +1,8 @@
+# Exact SHA-256 of haxe/iterators/MapKeyValueIterator.as from the pinned
+# original-source archive; the digest was checked against the actual member.
+# Only this commit, path, rule and line are excluded.
+261a36d359a1d40cd667f9f1812b3dfc9ad0f49d:client-patch/release-20261031/settings/contracts/original-entries.json:generic-api-key:6
+
 # The legacy device-token endpoint returns a fixed protocol stub to every caller.
 # This exact finding is from its generated JavaScript entering version control.
 # Other commits, locations, and rules remain subject to secret scanning.
