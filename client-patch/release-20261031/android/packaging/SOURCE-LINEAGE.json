@@ -1,0 +1,28 @@
+{
+  "path": "packaging/package_delta.py",
+  "kind": "common_recipe_extracted_from_three_identical_structures",
+  "sources": [
+    {
+      "source_relative_path": "revision-tutorial-gacha/package_android.py",
+      "source_sha256": "05bb3de95d0e5278ab976a45220dee22bca27e39068b13058aa1d0decd4d4b3c"
+    },
+    {
+      "source_relative_path": "revision-trigger9000/package_android.py",
+      "source_sha256": "a8afd7c6f01efc4b1d81105399582b9c76169d2542c74f681c842fc4a77ed3a7"
+    },
+    {
+      "source_relative_path": "revision-dash-f1069/package_android.py",
+      "source_sha256": "7aa4417c52e77629774071f8952c3cdcf5e54b4912e34e6d329e04642ac1a752"
+    }
+  ],
+  "changes": [
+    "Role paths and external output root",
+    "One explicit private signer-path configuration instead of machine-specific defaults",
+    "Shared selected-revision table; all3-member/UUID/signature/member checks retained",
+    "Subprocess timeout120 remains under outer180s"
+  ],
+  "production_business_methods_changed": 0,
+  "adapted_sha256": "812e2f9fa55d21ffd7d71edad29601f297f92869e3d22a32dcc4232a979b5b02",
+  "adapted_bytes": 5275,
+  "normalization_note": "Current source uses LF and one EOF newline; sources[] retain original source identities."
+}

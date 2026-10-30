@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate_source_only_no_interpreter_execution",
+  "owned_groups": [
+    "carry163",
+    "tutorial",
+    "trigger9000",
+    "dash",
+    "packaging",
+    "test-support"
+  ],
+  "files": [
+    {
+      "path": "carry163/air_harness.as",
+      "bytes": 12711,
+      "sha256": "61b24c07cf2f500b9e9987e71d410d56d788d2112863077f5af4743c503986dc"
+    },
+    {
+      "path": "carry163/apply_to_candidate.py",
+      "bytes": 884,
+      "sha256": "fe2cc2ac5bd9a3bb7e916930a35ea6319e9f759d43b06af2bcbaf17987705a8d"
+    },
+    {
+      "path": "carry163/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "carry163/build.py",
+      "bytes": 4999,
+      "sha256": "874b181bb0284c8b4fd6f0e42dd66a4dc9fabcd281d87143a47c9a46b7a2b606"
+    },
+    {
+      "path": "carry163/compile_helper.py",
+      "bytes": 2147,
+      "sha256": "f31a53219c594ceaf24f0f01ec0894be5df6e4ab33817dba983b5fe050a41458"
+    },
+    {
+      "path": "carry163/contract.json",
+      "bytes": 1032,
+      "sha256": "2b009f64e9cb4cf36b6436b530a13e71840f0b32854ed4afdb26082fa9484a2f"
+    },
+    {
+      "path": "carry163/patch.py",
+      "bytes": 2206,
+      "sha256": "9c127182a7b365dca4a0a61dda6c3bb2e9da6f3255622b744566bba9107fd7fb"
+    },
+    {
+      "path": "carry163/README.md",
+      "bytes": 2612,
+      "sha256": "222fe8cb77d771af562f8c3d9b46f3ce8980ee290d383fe054185b0237045367"
+    },
+    {
+      "path": "carry163/run_air.py",
+      "bytes": 17422,
+      "sha256": "6f60ec8244183fce62c6ae20d563df7a7429cfda2075b722cdecf445f7cbb20c"
+    },
+    {
+      "path": "carry163/run_mutation_controls.py",
+      "bytes": 3675,
+      "sha256": "ba0093edccd2396831a2c57e035de7559dc62de68f79f4b56ab4eba1a797a759"
+    },
+    {
+      "path": "carry163/src/cn/carry/StageCarryState.as",
+      "bytes": 7227,
+      "sha256": "2e4141d743ce2aff36b4b649fe350c4a644b90938af2f7a2b65eef2152a86443"
+    },
+    {
+      "path": "carry163/test_contracts.py",
+      "bytes": 996,
+      "sha256": "431d45ac3d05df2ca8866239ea1065d8aa0caba162447e7498ec941190187bb0"
+    },
+    {
+      "path": "dash/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "dash/build.py",
+      "bytes": 3413,
+      "sha256": "95df9bc3edef8fb014d1f73ed7da94aeb10b59c9299a090825538c66c5458eeb"
+    },
+    {
+      "path": "dash/check_closure.py",
+      "bytes": 2754,
+      "sha256": "3a68778997f10ea9ef041eaf5b079f12237c0b209294f733c95c39b3902cc5d6"
+    },
+    {
+      "path": "dash/contract.json",
+      "bytes": 1074,
+      "sha256": "c1a17221a5aebadf2d62fd1b8e2f5ece11757845c96515642b323f2b45fda5ba"
+    },
+    {
+      "path": "dash/README.md",
+      "bytes": 1615,
+      "sha256": "8cd076f4db6db63457a0fe96a76987ec5e26d386701d66afcf6444575723fef8"
+    },
+    {
+      "path": "dash/regression/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "dash/regression/Harness.as",
+      "bytes": 3878,
+      "sha256": "e33e104cb09214b2c7a67a13e3d01a61c057c702382d9bf0454810b43e38d329"
+    },
+    {
+      "path": "dash/regression/Launcher.as",
+      "bytes": 1264,
+      "sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc"
+    },
+    {
+      "path": "dash/regression/Ports.as",
+      "bytes": 908,
+      "sha256": "adbec23d14f3402678b6eaddeb43c784ec2be5540734aa2d9ef2b758360beb8d"
+    },
+    {
+      "path": "dash/regression/run.py",
+      "bytes": 10714,
+      "sha256": "c1d43e74ce487407ff423780e5445bced6f0a108b570fcb9fb53f8219395337f"
+    },
+    {
+      "path": "packaging/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "packaging/contract.json",
+      "bytes": 1403,
+      "sha256": "3cf501754c22914676a46cf5d687d5d84c0f2c0eff64d72dcb226a8d00ab86ed"
+    },
+    {
+      "path": "packaging/package_delta.py",
+      "bytes": 5275,
+      "sha256": "812e2f9fa55d21ffd7d71edad29601f297f92869e3d22a32dcc4232a979b5b02"
+    },
+    {
+      "path": "packaging/README.md",
+      "bytes": 1644,
+      "sha256": "d28269444dd83f276332800e8de1707dae32d81e6a7dc328b011de5ab3a96f7c"
+    },
+    {
+      "path": "packaging/SOURCE-LINEAGE.json",
+      "bytes": 1229,
+      "sha256": "4f2f8475e3f9418c799b7eed391bc25183d7bbb6e867638dc24f7d30c03c2d6a"
+    },
+    {
+      "path": "test-support/abc_tools.py",
+      "bytes": 8623,
+      "sha256": "3d180eb31338f4c48c65697d5d2160e0ddf843aa6c9a578e6d29997760641e0a"
+    },
+    {
+      "path": "test-support/check_source.py",
+      "bytes": 3256,
+      "sha256": "ccb5a3718bd16a626a257afb6d481b1465563d1a3a344b6e125a7ff38327fc16"
+    },
+    {
+      "path": "test-support/DEPENDENCIES.json",
+      "bytes": 3885,
+      "sha256": "3fdca6082c4d76c0a3e4a69d4398c1dd5dd715123c10b40cc819e8f7dc97ef26"
+    },
+    {
+      "path": "test-support/input_config.py",
+      "bytes": 3969,
+      "sha256": "854b0099ddcb24c0fcbfdf84bdb3f606d18a53e21b62c720566205e8e38133fc"
+    },
+    {
+      "path": "test-support/input-hashes.json",
+      "bytes": 1266,
+      "sha256": "5585eb20a2a367949282b8f505c5c47d52e429ca6356d96eaab82fba61d363f1"
+    },
+    {
+      "path": "test-support/INPUTS.example.json",
+      "bytes": 2697,
+      "sha256": "22999465044f7970db86214cd6868fa1f27089933579df1f36364c2d0508675f"
+    },
+    {
+      "path": "test-support/README.md",
+      "bytes": 4484,
+      "sha256": "360cec2b668c5642672cf1a04107ceeea124eadc08c05b1d88675d37f333fa95"
+    },
+    {
+      "path": "test-support/SOURCE-LINEAGE.json",
+      "bytes": 13377,
+      "sha256": "d04e3b921204d048eea74b226bf190de9894aecb916c1b5b4a52cae1e30ccab9"
+    },
+    {
+      "path": "test-support/WHITELIST.md",
+      "bytes": 1521,
+      "sha256": "5df2f6d9d23097474a6e49e1f8fca686c0fce3de882ead845056895109c4fc49"
+    },
+    {
+      "path": "trigger9000/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "trigger9000/build.py",
+      "bytes": 6252,
+      "sha256": "eb0114bc9a598c39981404f068f33945903ff496032cf15bd4b2dcf35874806d"
+    },
+    {
+      "path": "trigger9000/contract.json",
+      "bytes": 6300,
+      "sha256": "72143a4b0fbe3abdcdee13ca398cc77aa5d394243695b3702e6bad906cdd19f9"
+    },
+    {
+      "path": "trigger9000/README.md",
+      "bytes": 3101,
+      "sha256": "e8129cc6867ee47f579822a020ccc5aa1dab8ff512967a55abbac713f3da5c9d"
+    },
+    {
+      "path": "trigger9000/regression/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "trigger9000/regression/fixture_utils.py",
+      "bytes": 985,
+      "sha256": "145634ca947120fcfe34850b822dbf6df3d92766a22eb6e8f3c9eb9817afeebe"
+    },
+    {
+      "path": "trigger9000/regression/Harness.as",
+      "bytes": 1364,
+      "sha256": "431b11819ade62685e29c13baa0d6706029309f0d77e5fd88203a4c75ee0af2d"
+    },
+    {
+      "path": "trigger9000/regression/HPGear.as",
+      "bytes": 121,
+      "sha256": "56d10782485069c8cb382d49a8d4aa9c9765615a2ed90c6f3db66162467948ac"
+    },
+    {
+      "path": "trigger9000/regression/HPNativeCase.as",
+      "bytes": 10764,
+      "sha256": "0d33ef211d83be7a88bf8ac8973289874a95fe3a9675d5489668054405c84e8a"
+    },
+    {
+      "path": "trigger9000/regression/HPPort.as",
+      "bytes": 468,
+      "sha256": "4bef2daad48ec2477d261b4e984ed1ab5d7b9e0b957c8a92d2533bb0fa846a52"
+    },
+    {
+      "path": "trigger9000/regression/HPState.as",
+      "bytes": 2840,
+      "sha256": "439eb189839cd5286cc38a6204dc6c1103722588f8f6802d1831d43425b39731"
+    },
+    {
+      "path": "trigger9000/regression/HPTeam.as",
+      "bytes": 321,
+      "sha256": "f4522ffc3a2f3fc7cb79f2764c3710303e3eb91b88b6fe1ead05900b592c3963"
+    },
+    {
+      "path": "trigger9000/regression/inspect_fixture.py",
+      "bytes": 4098,
+      "sha256": "30f737bfa1a02a4a1283cd45ebdb0b4f8ebe8cd5441e83a0b854a0613d168553"
+    },
+    {
+      "path": "trigger9000/regression/inspect_lifecycle.py",
+      "bytes": 2187,
+      "sha256": "3e1ad423f938ac4739d727b5e65677940913d3739154dfbd919a93f0abf477e1"
+    },
+    {
+      "path": "trigger9000/regression/Launcher.as",
+      "bytes": 1264,
+      "sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc"
+    },
+    {
+      "path": "trigger9000/regression/LifecycleCase.as",
+      "bytes": 3932,
+      "sha256": "79f550847ac7168b8877fe3e638cfc42d988c7bec11825643b214fb558bcd4e5"
+    },
+    {
+      "path": "trigger9000/regression/LifeHarness.as",
+      "bytes": 1273,
+      "sha256": "d1bcab3f19f128dcccc24840b260a0738b56e141ced83126a10bff1eaacfedc7"
+    },
+    {
+      "path": "trigger9000/regression/NativeCases.as",
+      "bytes": 4949,
+      "sha256": "c83c542ed73e8853a6ce8eceac3f6d5dde483e8692048d310767beec808f71d0"
+    },
+    {
+      "path": "trigger9000/regression/prepare_native.py",
+      "bytes": 16802,
+      "sha256": "09b17e70ce4d6dbfe4c76fc56ef438ba0ddcd85bbd958b2814c85008c168aa6f"
+    },
+    {
+      "path": "trigger9000/regression/run.py",
+      "bytes": 5433,
+      "sha256": "2017cafac3de920e260e0094fb9ad858e7bec1c62acca42e7deaffd7aa39350f"
+    },
+    {
+      "path": "trigger9000/targets.json",
+      "bytes": 4843,
+      "sha256": "cdcb41daf3683e9f5998eff39bb38541636aa82b8abbe9c53fe56416be4b6df0"
+    },
+    {
+      "path": "tutorial/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "tutorial/contract.json",
+      "bytes": 1468,
+      "sha256": "f4c398d44f88874364e3556129c13c9b67fbc39a3bde3f43895e136c362e1d78"
+    },
+    {
+      "path": "tutorial/patch_helper.py",
+      "bytes": 4696,
+      "sha256": "33c710ecdf45766f31bb51a438ca7ba3e8069333c5ec92c1ca278dc95a945a8c"
+    },
+    {
+      "path": "tutorial/README.md",
+      "bytes": 1790,
+      "sha256": "72753b5398ca1c7921bac13a5f26bdb56d3a1461d6c9ff0cb2bb429f46665e6c"
+    },
+    {
+      "path": "tutorial/regression/bootstrap.py",
+      "bytes": 331,
+      "sha256": "e2e624ce7879639004b45e1323c3ab284df4cc6b264022822f0690652c9b5839"
+    },
+    {
+      "path": "tutorial/regression/Harness.as",
+      "bytes": 4269,
+      "sha256": "71f0d8ad685e9a694e8d52febbebb5400ec2472873b0527ad988cbe946a2bccd"
+    },
+    {
+      "path": "tutorial/regression/inventory.py",
+      "bytes": 1945,
+      "sha256": "511a32ba078da6e44b0fd9e3b97c7162e1e77ad9e8a59647787dd4b63e72ea5b"
+    },
+    {
+      "path": "tutorial/regression/Launcher.as",
+      "bytes": 1264,
+      "sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc"
+    },
+    {
+      "path": "tutorial/regression/run.py",
+      "bytes": 12851,
+      "sha256": "764c4c686a7db0e1eaecb27da72adfd019a3a7a0795f2b23f431a94723047415"
+    }
+  ],
+  "unchanged_AS_and_loader": 18,
+  "source_lineage": "SOURCE-LINEAGE.json",
+  "dependencies": "DEPENDENCIES.json",
+  "private_roles": "android.inputs.<role>={path,sha256}",
+  "output_boundary": "external work_dir/android",
+  "preserved_business": "Adopted handwritten AS and exact abc_tools loader preserve business logic; original source identities remain in lineage. Approved LF/EOF normalization may change current AS bytes. Runtime bodies continue actual donor/importer or native guard-permutation recipes.",
+  "not_included": [
+    "carry/original",
+    "official whole decompilation",
+    "attempt/src",
+    "SDK/runtime",
+    "APK/IPA/SWF/ABC/SWC/AOT",
+    "keys or credential material",
+    "local execution receipts",
+    "retired HP count-sink prototype"
+  ],
+  "checks_performed": [
+    "PowerShell JSON parse",
+    "PowerShell original source SHA comparison",
+    "PowerShell machine-path text search",
+    "explicit extension allowlist"
+  ],
+  "not_executed": [
+    "Python AST or imports",
+    "compiler",
+    "SWF composition",
+    "AIR regression",
+    "packaging/signing",
+    "device tests"
+  ],
+  "remaining": [
+    "Run test-support/check_source.py in <=512MiB/60s outer Job after slot authorization",
+    "Test generic-bootstrap and importer plumbing in a complete merged checkout",
+    "Only then rerun changed path-adapter fixtures/byte-exact reconstruction under authorized bounded/background slots"
+  ],
+  "no_git_or_registry_changes": true,
+  "unchanged_AS_and_loader_note": "The count18 records the initial exact source copy. Current AS may have approved LF/EOF-only byte differences; original source_sha256 is retained and adapted_sha256/adapted_bytes identify current source. abc_tools remains exact. No business logic changed."
+}

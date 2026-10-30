@@ -1,0 +1,186 @@
+{
+  "swfSha256": "83fc92d70d7457bb5e4b58d25d97663eeb80367ee366a947f4779a12075ff172",
+  "totalMethods": 101239,
+  "methods": [
+    {
+      "qname": "pinball.master.generated::LeaderAbilityValues$/parseAt25|1",
+      "methodInfo": 45358,
+      "bodyIndex": 42044,
+      "codeSha256": "569f95ba0e007623e39751f308c182a916838d70eb1cdb448c8ae6858ed65629",
+      "header": [
+        14,
+        5,
+        1,
+        1
+      ]
+    },
+    {
+      "qname": "pinball.master.generated::AbilityValues$/parseAt27|1",
+      "methodInfo": 42307,
+      "bodyIndex": 38993,
+      "codeSha256": "cfe1d751e51390e496aeb4c7f7940876f4e603712b264166335e613c8655a728",
+      "header": [
+        14,
+        5,
+        1,
+        1
+      ]
+    },
+    {
+      "qname": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValueTools$/resolve|1",
+      "methodInfo": 15204,
+      "bodyIndex": 14778,
+      "codeSha256": "adaa3e66fdc15b507cf4dd87531e06ee3496bf71e5140dfffb5e5fc87e6ebea9",
+      "header": [
+        8,
+        8,
+        1,
+        1
+      ]
+    },
+    {
+      "qname": "pinball.common.data.ability.description::InstantAbilityDescriptionGenerator/stringfyInstantTriggerBattle|1",
+      "methodInfo": 11730,
+      "bodyIndex": 11306,
+      "codeSha256": "9975b1fec70a3cb2beac0e3fc04bf3a4d238a7f6f35fa48cd5c1673f4d4b0a4b",
+      "header": [
+        6,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/subtract|1",
+      "methodInfo": 54929,
+      "bodyIndex": 51127,
+      "codeSha256": "351727d6feb55050020fbf2b87b94b727f8f026b3125a947602cd47b2e3dc89a",
+      "header": [
+        3,
+        6,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/setRatio|1",
+      "methodInfo": 54930,
+      "bodyIndex": 51128,
+      "codeSha256": "54c4b16d291c1e3cf24ad65274934323447cd040589374a6afa794fccce56f55",
+      "header": [
+        2,
+        3,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/setMaxHealthPoint|1",
+      "methodInfo": 54932,
+      "bodyIndex": 51130,
+      "codeSha256": "0390324545ee00acefb16b4493e12cc56f47c0375f333f2a719e4c94c6cd85d7",
+      "header": [
+        2,
+        4,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/set|1",
+      "methodInfo": 54935,
+      "bodyIndex": 51133,
+      "codeSha256": "4134ad15a69b7e0135c3d42bb88ec9382bdbb05f9668486bf29fd68783af95d8",
+      "header": [
+        2,
+        3,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/changeMaxHp|1",
+      "methodInfo": 54952,
+      "bodyIndex": 51150,
+      "codeSha256": "eb6e9e52b8d57ecec25c36a3ade8dcdc910b10ea3372dd342cd67268bb5f2d45",
+      "header": [
+        4,
+        3,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/addMaxStatModifier|1",
+      "methodInfo": 54954,
+      "bodyIndex": 51152,
+      "codeSha256": "b392dac5d74c3cc8251173e44ff49f9357dff89683224868b51fd9fd8a4e6287",
+      "header": [
+        7,
+        6,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/add|1",
+      "methodInfo": 54956,
+      "bodyIndex": 51154,
+      "codeSha256": "3e926fe2606ebdbd1f19e7d9b6984f82fc7ffe2f5eddf3225a39e10fa947a9e3",
+      "header": [
+        2,
+        3,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValueTools$/wfxResolveHpLoss|1",
+      "methodInfo": 101234,
+      "bodyIndex": 92761,
+      "codeSha256": "e4d19ca0de7ac0f68bad20fce5aa8f865062ca12f422c3ac918e87043aa45a0d",
+      "header": [
+        4,
+        5,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle.ability::InstantAbility/wfxAccumulateHpLoss|1",
+      "methodInfo": 101235,
+      "bodyIndex": 92762,
+      "codeSha256": "e649a966a8cca3797c5d76916fb909029ea60925f28c7c844086063e496c58b2",
+      "header": [
+        3,
+        11,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.scene.battle.battle::HealthPointGaugeImpl/wfxObserveHpLoss|1",
+      "methodInfo": 101236,
+      "bodyIndex": 92763,
+      "codeSha256": "2a6f3fd53a2df477cc11a2f6519500be967bcba28224bfed805868600138e73f",
+      "header": [
+        4,
+        11,
+        1,
+        2
+      ]
+    },
+    {
+      "qname": "pinball.common.data.ability.description::InstantAbilityDescriptionGenerator$/wfxHpLossTriggerDescription|1",
+      "methodInfo": 101237,
+      "bodyIndex": 92764,
+      "codeSha256": "314e44a1a3ead88873bac707333ab97cd6ee12b61d53482d16218c2ddde49dc7",
+      "header": [
+        4,
+        3,
+        1,
+        2
+      ]
+    }
+  ]
+}

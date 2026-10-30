@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "source_pr": "https://github.com/Ku1o/startpoint-cn-kulo/pull/106",
+  "source_head": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+  "baseline_swf_sha256": "9c672e56e5911679848047daece874e139255b2d128f67ab11e605c5db2bb951",
+  "baseline_apk_sha256": "e9b9bbd8a0557a4cfaf6534b0e952caf20d142f5e6702fb2d35a0977f9a871b8",
+  "baseline_air_uuid": "2345e786-411e-4f03-870e-8f3100737da9",
+  "ordered_groups": [
+    {
+      "name": "194-board2",
+      "expected_output_sha256": "4cddaea5ceb8b9e4b54c59430cb604212dadd68a6e53dd66e4d61877699d7ce6"
+    },
+    {
+      "name": "112-116-core",
+      "expected_output_sha256": "bd65b0a8a6bed59e0ea0bab7d8828132dda505c49cae3b35a619eac1c5ed89a4"
+    },
+    {
+      "name": "117-118-pf",
+      "expected_output_sha256": "eb26d5d16b4fe9ea2301eb35286c99585b9a86ecb788584a78cdfd1e336eac3e"
+    },
+    {
+      "name": "120-121-leaders",
+      "expected_output_sha256": "020a9f90b177afd31e4fa9cd5cb741c58cac9834f9f11dce8472a4fcf89314c0"
+    },
+    {
+      "name": "122-overflow",
+      "expected_output_sha256": "b1a7ef00d24febb695e8b90d5748c3adda04465e9807a39d2a8a2225d2f66c2b"
+    },
+    {
+      "name": "129-equipment",
+      "expected_output_sha256": "c85ed832e684d022d73fa6ac9d32a1fc0ceef7d93b00e66ebf2f2b37d9b0e454"
+    },
+    {
+      "name": "131-hidden",
+      "expected_output_sha256": "226fe165752c4c00985025a719dbc09faa3afe4c773e7bddae8fc6ebda190158"
+    },
+    {
+      "name": "155-leader-kinds",
+      "expected_output_sha256": "8daa74bc8df14936db0adf1bad8e03b7beb09af55a885b48f8e414c12f3a728d"
+    },
+    {
+      "name": "193-guard",
+      "expected_output_sha256": "ec2cd7264cceb25393cff7d9447924e01633ce96539c3a911809851e1b6e2fcf"
+    },
+    {
+      "name": "123-124-visuals-clamp",
+      "expected_output_sha256": "75cd9b3c892267368632f692cfa86aca57dd064d0d58fe6f3b82b7e7941ea3b4"
+    },
+    {
+      "name": "130-direct-unique",
+      "expected_output_sha256": "d782c97592d3da64ea659c182073f92bb121fccba48e14b22e4c7eecfb7d24e3"
+    },
+    {
+      "name": "125-fever",
+      "expected_output_sha256": "feab26f240be1a424d03e68fc269cbbe20a12a81782610291b714884f1166b2f"
+    },
+    {
+      "name": "125-superdamage",
+      "expected_output_sha256": "40f53f885c0b4da1f57837e9ebfc03aae2773f3589f8dfe2683693f4859e3ba8"
+    },
+    {
+      "name": "125-superpreload",
+      "expected_output_sha256": "68edd3b471d84a45e8d3ffade4e892c07a41c1b2c65ab0ab3f8950b1d8a035f0"
+    },
+    {
+      "name": "126-128-voices-dual",
+      "expected_output_sha256": "3273b691e105e266e2a70fddb5a06b8e7359cc050bf5087285b68c72f7f22bf2"
+    },
+    {
+      "name": "132-heal-damage",
+      "expected_output_sha256": "c7be060ae85f37fa377777bdf3c93b9b01efdf77ea494c3cc1947536f8055f4b"
+    },
+    {
+      "name": "132-heal-resources",
+      "expected_output_sha256": "2040d3873da07d78eec07256ade3d31f37496592fb46591399ace718f565832f"
+    },
+    {
+      "name": "133-heal-fever",
+      "expected_output_sha256": "eca57861be66a3913732e34ab976f90dd6618643d880aa4e82cadb83e5e90da1"
+    },
+    {
+      "name": "134-unlock-v2",
+      "expected_output_sha256": "3390909e1034b36c3ebb5b118df2cb2c236fd9b877416e81b0ae3bd4f6b783a9"
+    },
+    {
+      "name": "135-leader-guard",
+      "expected_output_sha256": "460504e4c8739a108ed2feb46ee276a7946ce2fca00240880495e74e76f7dfc0"
+    },
+    {
+      "name": "136-window",
+      "expected_output_sha256": "b3cd43a721cea434efbce2af29315e44f031c939227ee08b0b64decaba24f3c6"
+    },
+    {
+      "name": "137-owner-main",
+      "expected_output_sha256": "ff0110affc688e931c2fc3525749bd1543d72b7a146b9d57a39f8d1635c68a93"
+    },
+    {
+      "name": "138-identity-tags",
+      "expected_output_sha256": "e9ed64c522d7cf7f18ff4c0d10d7bf2ce4ac6e863aab93b7ba94ba5338c6caca"
+    },
+    {
+      "name": "139-caster-barrier",
+      "expected_output_sha256": "8e6f94db0e80aa866c3b65d73a7824d27e4a563d2d57f9253a1aa7714cabce47"
+    },
+    {
+      "name": "141-direct-count",
+      "expected_output_sha256": "2c5499c50f1ec5141ba1b14dbd4f2993392ee40c32b9623ce74244a19d1f5666"
+    },
+    {
+      "name": "142-143-heal-any",
+      "expected_output_sha256": "ce50d73cdc8bc354451966c6bf70e40bb31f1731d1d058c2e5b7b4bf49ecf08f"
+    },
+    {
+      "name": "144-override",
+      "expected_output_sha256": "67bd87b3d85e93ec24b1a7d6dede342afd80678776500f18c7f21bca25a9b3e6"
+    },
+    {
+      "name": "144-chain",
+      "expected_output_sha256": "13a1189e3081fcc61bb6f2b9889cfaf3a18a6acd8831226c1affb577c9ebbc5e"
+    },
+    {
+      "name": "144-lifecycle",
+      "expected_output_sha256": "ac82bb53b0e79d45febb6e96f8838c51f07d45550dea740dc8612b83a0b4eca7"
+    },
+    {
+      "name": "144-preload",
+      "expected_output_sha256": "f038c676f1d6f4898a0246612afd7b760db4e71943fa95a152f330d568c37cd5"
+    },
+    {
+      "name": "144-damage",
+      "expected_output_sha256": "d37a0889e1407789f8aeb45147fcc964b294825ee729c402bf5da8e11a473554"
+    },
+    {
+      "name": "153-trial-pf",
+      "expected_output_sha256": "939916dcadd21a10a3f8a98316648a23f6881b70d2838803d323ce2c4e72a926"
+    },
+    {
+      "name": "154-pf4-source",
+      "expected_output_sha256": "944f1c2dce0de42ec77f20129eee1b7c8892119d45a7be7b5a5662a2a1b3312b"
+    },
+    {
+      "name": "156-combo-cap",
+      "expected_output_sha256": "31d313e5ad4b66f54a703679cb05435496555fbe9bad8eb40f12ea0809dd0655"
+    },
+    {
+      "name": "157-atlas-preload",
+      "expected_output_sha256": "fa13d0e2133d0bd2dee09a19135d4fd69df7eb14b6683c850ba83f4adf6603ee"
+    },
+    {
+      "name": "159-combo-base",
+      "expected_output_sha256": "bcc55df6e79c527a4c51c15ecfab474b6ca50d9e2d82c0a7530903c9f8cb5eab"
+    },
+    {
+      "name": "160-dual-pf",
+      "expected_output_sha256": "5e07492a57d91f38a09b9cfb818ca9b293de0fb0abad61f1575c8a13bc6a272f"
+    },
+    {
+      "name": "161-summon-flip",
+      "expected_output_sha256": "415b42aca00708b4b225303cd66a2aa75372ce4808a0b408e58bb962f155dc57"
+    },
+    {
+      "name": "193-signed-parser",
+      "expected_output_sha256": "0de0ab81fc8a8e8e58119f69a50e185f2cfcb91302182062efe880163dee9be0"
+    },
+    {
+      "name": "140-leader-display",
+      "expected_output_sha256": "a6a4b6f8121d7f4370aa06c72ad9a0b26e096b1b9bc3c596fe9964b6b090b531"
+    },
+    {
+      "name": "dash-v2-final",
+      "expected_output_sha256": "fed9715c74499bfdb22569765110a865396f7a3876958675609c7a13c4354990"
+    },
+    {
+      "name": "162-ball-action",
+      "expected_output_sha256": "2f65784510f3d333fdb2da24675ce6f64e1099ad756f2eab566c0ea72ce0f7a6"
+    },
+    {
+      "name": "119-fever-items",
+      "expected_output_sha256": "18c3b43af2dd03c667acae9c9eaf5922848892527d3ded1f5fbb025fdd9887c0"
+    },
+    {
+      "name": "158-summon-cutin",
+      "expected_output_sha256": "1601956fd25ed44157ab28109f2af7d56ef90eeb52420c5994708f5304ccd396"
+    },
+    {
+      "name": "136-materials",
+      "expected_output_sha256": "a915708c66000a9d01eba470f377c13fd0ae2a388176de3d68ece9e667e0146a"
+    },
+    {
+      "name": "136-pedestals",
+      "expected_output_sha256": "ddde051e2969b97ae9ab30664e06fc7ed8e711c60a63a3c49eaa74a54994fcbd"
+    }
+  ],
+  "final_partial_sha256": "ddde051e2969b97ae9ab30664e06fc7ed8e711c60a63a3c49eaa74a54994fcbd",
+  "historical_deferred_dash_helper": true,
+  "excluded": [
+    145,
+    146,
+    148,
+    149,
+    150,
+    151,
+    152,
+    164,
+    "165-192",
+    "195P6",
+    "195P7",
+    "old163"
+  ],
+  "meaning": "Exact successful construction order; deferred missing dash method is repaired by the final standalone stage"
+}

@@ -1,0 +1,422 @@
+{
+  "schema_version": 1,
+  "status": "metadata_only_ios_repair_target_and_storage_contract",
+  "base_full_abc_sha256": "672757b40180eb960dde989b8f659b37cc32229a03a5c903b0bbdc3be6bc814e",
+  "full_abc_sha256": "3b4ba121da42230abc1f430610bde3ad1b0b5eabfe64e5766c6ef8a8d439c7ff",
+  "ipa_sha256": "73eb2f47b008103ac46e9e0870ca501b97e0c1b039d1bffbd0fa2fd2987bec54",
+  "native_sha256": "20c422ffa12b9c676323cfe2c0d1607ce5f5d7f8e58ce0861ee9230ccee53257",
+  "old_method_info_count": 101833,
+  "method_info_count": 101843,
+  "business_method_count": 17,
+  "support_method_count": 5,
+  "aot_target_count": 22,
+  "business_methods": [
+    {
+      "identity": "cn.content::ContentOperationsState$/gachaDateText|1",
+      "identity_kind": "method",
+      "method_info": 101550,
+      "added": false,
+      "android_abc_tag": "content_operations",
+      "android_method_info": 54,
+      "signature": {
+        "returns": "Boolean",
+        "parameters": [
+          "Object"
+        ],
+        "flags": 128,
+        "optional": null
+      },
+      "android_source_code_sha256": "2d6ce2f00cb38b30a2699c05d8a77c049bf6502336f2ce57a2eaf78a1f66668a",
+      "ios_prepared_code_sha256": "893051790ac1a203129008f10d0da2df87a107972fd203723469dd5c96b2f303"
+    },
+    {
+      "identity": "pinball.master.generated::LeaderAbilityValues$/parseAt25|1",
+      "identity_kind": "method",
+      "method_info": 45723,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 45358,
+      "signature": {
+        "returns": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue",
+        "parameters": [
+          "Array"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "569f95ba0e007623e39751f308c182a916838d70eb1cdb448c8ae6858ed65629",
+      "ios_prepared_code_sha256": "dd3c699e5859437f51648b3ae36ab34606b32f47e069921b4acf606943eb94af"
+    },
+    {
+      "identity": "pinball.master.generated::AbilityValues$/parseAt27|1",
+      "identity_kind": "method",
+      "method_info": 42672,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 42307,
+      "signature": {
+        "returns": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue",
+        "parameters": [
+          "Array"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "cfe1d751e51390e496aeb4c7f7940876f4e603712b264166335e613c8655a728",
+      "ios_prepared_code_sha256": "f1af0117c06f78d5dbee83ad3ad3288915d3fdcafc1833af697ff68661213cc9"
+    },
+    {
+      "identity": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValueTools$/resolve|1",
+      "identity_kind": "method",
+      "method_info": 15275,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 15204,
+      "signature": {
+        "returns": "pinball.common.data.ability.instant::InstantAbilityTriggerKind",
+        "parameters": [
+          "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue",
+          "pinball.common.data.ability.instant::InstantAbilityContent",
+          "pinball.common.data.ability::AbilityPowerValue",
+          "pinball.asset.logic::ILogicAssetContainer",
+          "Boolean"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "adaa3e66fdc15b507cf4dd87531e06ee3496bf71e5140dfffb5e5fc87e6ebea9",
+      "ios_prepared_code_sha256": "225138fba6a45bb5c4977d825baa208523c8d6b4388bbe5cde046e821b91d372"
+    },
+    {
+      "identity": "pinball.common.data.ability.description::InstantAbilityDescriptionGenerator/stringfyInstantTriggerBattle|1",
+      "identity_kind": "method",
+      "method_info": 11801,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 11730,
+      "signature": {
+        "returns": "Function",
+        "parameters": [
+          "pinball.common.data.ability.instant::InstantBattleAbilityTriggerKind"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "9975b1fec70a3cb2beac0e3fc04bf3a4d238a7f6f35fa48cd5c1673f4d4b0a4b",
+      "ios_prepared_code_sha256": "6806fef853ef0ee8af23fe64081f1fac778c0aba499917950f28cb8858710300"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/subtract|1",
+      "identity_kind": "method",
+      "method_info": 55339,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 54929,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number",
+          "Boolean"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "351727d6feb55050020fbf2b87b94b727f8f026b3125a947602cd47b2e3dc89a",
+      "ios_prepared_code_sha256": "8665f00b60064126edd652519472fdf7103e447a116cc49387f12d009830ff02"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/setRatio|1",
+      "identity_kind": "method",
+      "method_info": 55340,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 54930,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "54c4b16d291c1e3cf24ad65274934323447cd040589374a6afa794fccce56f55",
+      "ios_prepared_code_sha256": "e907837ad243ee3ac2585bc376fc62d6003fa124aaf5c8e38148795a31e75427"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/setMaxHealthPoint|1",
+      "identity_kind": "method",
+      "method_info": 55342,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 54932,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number",
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "0390324545ee00acefb16b4493e12cc56f47c0375f333f2a719e4c94c6cd85d7",
+      "ios_prepared_code_sha256": "cddf43d49c2189679b8423ab9a0d236ed78ecdffb4b521aefb7148fce27359b9"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/set|1",
+      "identity_kind": "method",
+      "method_info": 55345,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 54935,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "4134ad15a69b7e0135c3d42bb88ec9382bdbb05f9668486bf29fd68783af95d8",
+      "ios_prepared_code_sha256": "1f9e37797d9502b843b6191e2a7f00045b2a913b299c2a6e554feecedd6576d5"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/changeMaxHp|1",
+      "identity_kind": "method",
+      "method_info": 55362,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 54952,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "eb6e9e52b8d57ecec25c36a3ade8dcdc910b10ea3372dd342cd67268bb5f2d45",
+      "ios_prepared_code_sha256": "37d40391bb22bc4dd56291ad3b459174494ea053269b41fc21aff93c2225bdd9"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/addMaxStatModifier|1",
+      "identity_kind": "method",
+      "method_info": 55364,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 54954,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number",
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "b392dac5d74c3cc8251173e44ff49f9357dff89683224868b51fd9fd8a4e6287",
+      "ios_prepared_code_sha256": "e32a4b100ed49eb09f7aad59a9382b59961a3638ed06e02e3a098814c047f41b"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/add|1",
+      "identity_kind": "method",
+      "method_info": 55366,
+      "added": false,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 54956,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "3e926fe2606ebdbd1f19e7d9b6984f82fc7ffe2f5eddf3225a39e10fa947a9e3",
+      "ios_prepared_code_sha256": "0809f197e6f0df119f66c2cd4308fe760974aef5d4cfa1691b39486768b1764d"
+    },
+    {
+      "identity": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValueTools$/wfxResolveHpLoss|1",
+      "identity_kind": "method",
+      "method_info": 101838,
+      "added": true,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 101234,
+      "signature": {
+        "returns": "pinball.common.data.ability.instant::InstantAbilityTriggerKind",
+        "parameters": [
+          "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue",
+          "pinball.common.data.ability::AbilityPowerValue"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "e4d19ca0de7ac0f68bad20fce5aa8f865062ca12f422c3ac918e87043aa45a0d",
+      "ios_prepared_code_sha256": "a9c7005a098926af0410c6c4ac1a9d0ddd4bccfc54da82a005ec0736167409bd"
+    },
+    {
+      "identity": "pinball.scene.battle.battle.ability::InstantAbility/wfxAccumulateHpLoss|1",
+      "identity_kind": "method",
+      "method_info": 101839,
+      "added": true,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 101235,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "*",
+          "Number",
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "e649a966a8cca3797c5d76916fb909029ea60925f28c7c844086063e496c58b2",
+      "ios_prepared_code_sha256": "269c6d0bb6e1ac62ab5195d0a3e82f417b23a5c3f458286158e1042c7e615df0"
+    },
+    {
+      "identity": "pinball.scene.battle.battle::HealthPointGaugeImpl/wfxObserveHpLoss|1",
+      "identity_kind": "method",
+      "method_info": 101840,
+      "added": true,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 101236,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "Number"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "2a6f3fd53a2df477cc11a2f6519500be967bcba28224bfed805868600138e73f",
+      "ios_prepared_code_sha256": "61bd13393403d8a44b260525bf023cd26b3fc8982bbd4853244a99d81cd5d84f"
+    },
+    {
+      "identity": "pinball.common.data.ability.description::InstantAbilityDescriptionGenerator$/wfxHpLossTriggerDescription|1",
+      "identity_kind": "method",
+      "method_info": 101841,
+      "added": true,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 101237,
+      "signature": {
+        "returns": "String",
+        "parameters": [
+          "Object",
+          "Object"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "314e44a1a3ead88873bac707333ab97cd6ee12b61d53482d16218c2ddde49dc7",
+      "ios_prepared_code_sha256": "65e805717638ce8c763105978dc56e8c5ac3975476efa373f17903bb7b187ce1"
+    },
+    {
+      "identity": "pinball.scene.battle.battle.squad.member::MemberImpl/wfxRunDashAction|1",
+      "identity_kind": "method",
+      "method_info": 101842,
+      "added": true,
+      "android_abc_tag": "boot_ffc6",
+      "android_method_info": 101238,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "String"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "android_source_code_sha256": "151fe59f66fb40c359c4221d38acd951108566de23ae971652db7ad94ba51436",
+      "ios_prepared_code_sha256": "39ce793401907b701c1216f00e5687143a17658eab0fae1d57f256f1a83c4de8"
+    }
+  ],
+  "support_methods": [
+    {
+      "identity": "script:cn.release::AcceptanceRepairsState20261031/<init>",
+      "identity_kind": "script_initializer",
+      "method_info": 101833,
+      "added": true
+    },
+    {
+      "identity": "cn.release::AcceptanceRepairsState20261031$/<cinit>",
+      "identity_kind": "class_initializer",
+      "method_info": 101834,
+      "added": true
+    },
+    {
+      "identity": "cn.release::AcceptanceRepairsState20261031/<ctor>",
+      "identity_kind": "constructor",
+      "method_info": 101835,
+      "added": true
+    },
+    {
+      "identity": "pinball.scene.battle.battle.ability::InstantAbility$/wfxHpLossLedger|2",
+      "identity_kind": "getter",
+      "method_info": 101836,
+      "added": true,
+      "signature": {
+        "returns": "*",
+        "parameters": [],
+        "flags": 0,
+        "optional": null
+      },
+      "return_type_index": 0
+    },
+    {
+      "identity": "pinball.scene.battle.battle.ability::InstantAbility$/wfxHpLossLedger|3",
+      "identity_kind": "setter",
+      "method_info": 101837,
+      "added": true,
+      "signature": {
+        "returns": "void",
+        "parameters": [
+          "*"
+        ],
+        "flags": 0,
+        "optional": null
+      },
+      "parameter_type_indices": [
+        0
+      ]
+    }
+  ],
+  "storage": {
+    "owner": "pinball.scene.battle.battle.ability::InstantAbility",
+    "property": "wfxHpLossLedger",
+    "namespace": {
+      "kind": 22,
+      "uri": ""
+    },
+    "new_sidecar": "cn.release::AcceptanceRepairsState20261031",
+    "new_sidecar_field": "hpLossLedger",
+    "type": "*",
+    "type_index": 0,
+    "default": "undefined",
+    "lazy_value": "Dictionary(true)",
+    "old_owner_storage_slots_added": 0,
+    "getter_method_info": 101836,
+    "setter_method_info": 101837,
+    "getter_return": "64-bit Atom",
+    "setter_parameter": "64-bit Atom",
+    "own_method_env_required": true,
+    "no_eager_state_allocation": true,
+    "runtime_initialized_value_observed": false
+  },
+  "preservation": {
+    "old_instance_and_static_slot_prefixes_exact": true,
+    "old_activation_prefix_exact": true,
+    "old_compiled_functions_preserved": 334,
+    "old_function_target_intersection": 0,
+    "protected_method_infos": [
+      18392,
+      66181
+    ],
+    "protected_chains": [
+      "MemberView.draw existing gate/bridge/stock/scale",
+      "equipment wrapper -> five-in-one wrapper -> compiled resolver and original stock fallback"
+    ],
+    "numeric_display_changes_excluded": true
+  },
+  "evidence_boundary": "Hash-bound metadata and offline compiled ABI verification; original objects/carriers/receipts are external, no native/game execution is claimed",
+  "native_executed": false,
+  "device_tested": false
+}

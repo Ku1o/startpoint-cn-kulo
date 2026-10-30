@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "status": "all_four_source_contract_hash_links_verified",
+  "stages": [
+    {
+      "id": "settings-r1-274",
+      "source_contract_sha256": "4c128fa2dc2029538c3d867011033dd0ed762ce53624821d1f21ec3012b74630",
+      "cumulative_bodies": 274,
+      "swf_sha256": "3c56f08c8b30ae75ae71908a699e703764dcfca0bc64d1fb91d866e2c61bfaef"
+    },
+    {
+      "id": "tutorial-275",
+      "source_contract_sha256": "48a9eeb3e36a977e8c9f1c1c226068dcf1f1fabf9927a988a72abb2884ce336e",
+      "base_contract_sha256": "4c128fa2dc2029538c3d867011033dd0ed762ce53624821d1f21ec3012b74630",
+      "cumulative_bodies": 275,
+      "new_bodies": 1,
+      "delta": "exact display-period guard permutation"
+    },
+    {
+      "id": "trigger9000-290",
+      "source_contract_sha256": "08a593f8a66c6c7eddbcfd7c0cd2e8e36d3bab581e84cbba11398be4417a7a1b",
+      "base_contract_sha256": "48a9eeb3e36a977e8c9f1c1c226068dcf1f1fabf9927a988a72abb2884ce336e",
+      "cumulative_bodies": 290,
+      "new_bodies": 15,
+      "swf_sha256": "d06b1431c13d7d50765f81ed4a747be00e01500c5288702d816398e4fcc666f2"
+    },
+    {
+      "id": "dash-291",
+      "source_contract_sha256": "b819efe16ec344ef1d7b07885f4292d78d054083e955c1c7605dc09e545f5908",
+      "base_contract_sha256": "08a593f8a66c6c7eddbcfd7c0cd2e8e36d3bab581e84cbba11398be4417a7a1b",
+      "cumulative_bodies": 291,
+      "new_bodies": 1,
+      "swf_sha256": "83fc92d70d7457bb5e4b58d25d97663eeb80367ee366a947f4779a12075ff172"
+    }
+  ],
+  "fixed_upstream": {
+    "repository": "https://github.com/Ku1o/startpoint-cn-kulo",
+    "pull_request": "https://github.com/Ku1o/startpoint-cn-kulo/pull/106",
+    "head": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+    "git_author_account": "kuronzzhan-droid",
+    "verification": "verified_by_coordinator_GitHub_API"
+  },
+  "body_counts": [
+    274,
+    275,
+    290,
+    291
+  ],
+  "original_source_archives_and_carriers": "external hash-bound inputs; not reproduced",
+  "extraction": "PowerShell JSON/hash extraction only; no payload parsing or engineering execution"
+}

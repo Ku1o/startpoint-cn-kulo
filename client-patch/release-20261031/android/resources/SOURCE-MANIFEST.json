@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "status": "unexecuted_source_only_read_only_resource_validation_recipe",
+  "files": [
+    {
+      "path": "bind_final_bundle67.py",
+      "sha256": "c49279faebb2f675389405de3db231ec8611fa15a83d1fdce8928dd66536f127",
+      "bytes": 4348
+    },
+    {
+      "path": "bind_frozen_resources.py",
+      "sha256": "09d79deb7c5329ec8f99c75d53c20bd80e4bfa1e886810d6095fb2b96dd6257a",
+      "bytes": 3825
+    },
+    {
+      "path": "bundle67.json",
+      "sha256": "104ccb0d81a523742b0cf722815bd2fe0ae736f07eee6f06612dce4e0fa9a0d9",
+      "bytes": 28871
+    },
+    {
+      "path": "contract-hashes.json",
+      "sha256": "8a21a014a29477b42c8c82d5d47622d7f259e5f4c5482bddfc69b625549ce4b9",
+      "bytes": 185
+    },
+    {
+      "path": "INPUTS.example.json",
+      "sha256": "b40e1a862b6aadc71db0c6138df4742fbf91eaecbd0f2f96fe9b0ebedc914b09",
+      "bytes": 1717
+    },
+    {
+      "path": "README.md",
+      "sha256": "a9aa140ab370721ffebb04fe475d1de926107a904c907ed38713d75757eac6e7",
+      "bytes": 5905
+    },
+    {
+      "path": "REPOSITORY-DEPENDENCIES.json",
+      "sha256": "69dd15b1f9841a684c72ec0b890b766effb3fd1f6efe312451daa174b29bc08d",
+      "bytes": 507
+    },
+    {
+      "path": "resource_inputs.py",
+      "sha256": "be209377cb6c3f946886d9e48afe043492a981fac01c6e3bc0bb4c5e7de69776",
+      "bytes": 2496
+    },
+    {
+      "path": "shared-inputs344.json",
+      "sha256": "a774ccb8e85e016e9c13e4344b53363da450e4bd81dcc9f2b88119f0ee950971",
+      "bytes": 3041
+    },
+    {
+      "path": "SOURCE-LINEAGE.json",
+      "sha256": "b9811f2c632b336e7948485201e174fcd3fa4ac8736e15a9663fa9744d682f43",
+      "bytes": 2649
+    },
+    {
+      "path": "verify_bundle_dependencies.py",
+      "sha256": "2dc67d8efd1d952157b2f03181c7b7e9518e8620bba32951a02ae9fc75c4b46a",
+      "bytes": 6359
+    }
+  ],
+  "carrier_resource_writer": false,
+  "packaging_step_required": false,
+  "private_input_contract": "INPUTS.example.json",
+  "repository_dependencies": [
+    {
+      "repository_path": "tools/fantasy-gauntlet-mod-tools/wf_mod_tool.py",
+      "sha256": "051ffc7d67b5d4532c77bf4b8ad42e34f93d4ab53d98c8bce3e977cd706cc79d"
+    },
+    {
+      "repository_path": "tools/fantasy-gauntlet-mod-tools/wf_assets.py",
+      "sha256": "83129436a49bc457dec303ec5cb7fc4859a359f4285418cbbaa3de8a59ad5879"
+    },
+    {
+      "repository_path": "tools/fantasy-gauntlet-mod-tools/wf_character_requirements.py",
+      "sha256": "99d6e2832a29c3cdeec2ca91a10c44e1ca47c05826ea8839cb74e6b2238fba32"
+    }
+  ],
+  "data_count": 67,
+  "historical_shared_count": 8,
+  "historical_target": "1.4.344",
+  "python_executed": false,
+  "remaining": [
+    "Python syntax/import check after explicit slot allocation",
+    "Resource decoding/carrier readback only with explicit inputs and separate authorization",
+    "Historical 344 freeze input availability is unresolved; do not substitute current freeze"
+  ]
+}

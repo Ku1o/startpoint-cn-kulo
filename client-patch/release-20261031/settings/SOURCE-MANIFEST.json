@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate_source_only_not_engine_executed",
+  "scope": "adopted revision3 UI/storage/render and degree UI withdrawal",
+  "files": [
+    {
+      "path": "build.py",
+      "bytes": 2006,
+      "sha256": "1d1cef2b9b83d31d830a6ed485dcf3ce1338fb35dd8b28c1844dd5bd8cfcb7e9"
+    },
+    {
+      "path": "contracts/api.json",
+      "bytes": 2721,
+      "sha256": "f3de984c52ce8bfb7ba15a5a905e4d1bfeacc108b96704667b74314b3d49ea5d"
+    },
+    {
+      "path": "contracts/degree-retraction.json",
+      "bytes": 1292,
+      "sha256": "1cd80969da004e3d664122ed08fa8b27fa1b77c3841c93801b0d3d80144fc036"
+    },
+    {
+      "path": "contracts/original-entries.json",
+      "bytes": 1597,
+      "sha256": "39299c99d90d590b45c8c2e817999a6e109c95e10e7c891f03a039243af72ddd"
+    },
+    {
+      "path": "contracts/private-input-hashes.json",
+      "bytes": 681,
+      "sha256": "4d4f0e33cd80c6eada05b0db6903ea355f7aeaf8631c6d171149e92982769a5f"
+    },
+    {
+      "path": "contracts/repository-support.json",
+      "bytes": 252,
+      "sha256": "a3e09bff46ede08b2a1d00430ccdaeec91b2d57e892a2e861f19f944c482d951"
+    },
+    {
+      "path": "contracts/validation-baseline.json",
+      "bytes": 1196,
+      "sha256": "d6481256dfe9b7fe440eb01716515a29998e2afe6746bc09aa0b0af3a282c89e"
+    },
+    {
+      "path": "degree_retraction.py",
+      "bytes": 2504,
+      "sha256": "0666f046a8da4b28f9199129bad70dcb11158e9b9e789abab61a2dcda9de0adb"
+    },
+    {
+      "path": "input_config.py",
+      "bytes": 3067,
+      "sha256": "8a4a230279f616f8b26227454ff25c2834ac677056c771abacc8e5ec144d42ca"
+    },
+    {
+      "path": "INPUTS.example.json",
+      "bytes": 1401,
+      "sha256": "5001de4efe731bddc46e77c5dc67b458c63daa6c2929737351b68f68cf40e2f5"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7307,
+      "sha256": "a5a85fd5bd6f20f945ab09186a5381e3b60ec0afe03bc587ed51a7eaaf7b0793"
+    },
+    {
+      "path": "render/air_harness.as",
+      "bytes": 11288,
+      "sha256": "b99a9a21d901aaea0b1897e491c1fac802e48d343ca655fee92abc61f0e184d7"
+    },
+    {
+      "path": "render/apply_to_candidate.py",
+      "bytes": 614,
+      "sha256": "51fee69b245cef11036ce2d65c360847372b1b68b70cc20017e4a2bf9acdbf68"
+    },
+    {
+      "path": "render/bootstrap.py",
+      "bytes": 237,
+      "sha256": "274f6847014928c98f64a2d32cf3aaa6f60b814931c5473641cd76f83d940529"
+    },
+    {
+      "path": "render/build.py",
+      "bytes": 3736,
+      "sha256": "757f109ac3b913f09840db898e5cf8ac1b71bdda4ba8cdf70df90e96dfba3c93"
+    },
+    {
+      "path": "render/export_contract.py",
+      "bytes": 2153,
+      "sha256": "d57f3961537da4bcbaba47314b5068ce1bb3950b3116005f61a63b685c171bfb"
+    },
+    {
+      "path": "render/patch.py",
+      "bytes": 5216,
+      "sha256": "8afe002b3fd026a62c6af92e8c03759827c0b5ba419c8eb95ad1fd74fa0df15d"
+    },
+    {
+      "path": "render/run_air.py",
+      "bytes": 12986,
+      "sha256": "51eadee0ea7d68f37ab9a35d0b98322dd3411d359db7369eb5109cd4ef83c8f8"
+    },
+    {
+      "path": "render/run_controls.py",
+      "bytes": 2810,
+      "sha256": "2367b1b62307b8af74169e310a82a67a4638b764b2cf08a0150c618afcc9a40b"
+    },
+    {
+      "path": "render/test_composition.py",
+      "bytes": 2087,
+      "sha256": "ed71877de254d998472dc506bca54a28d8bad2afe9b732d0a9ff1384e7ff148c"
+    },
+    {
+      "path": "SOURCE-LINEAGE.json",
+      "bytes": 11428,
+      "sha256": "28b0927a5fd79889f050eacfb6f6ca118f5b25ff8a299e2af903db8ce716e4e5"
+    },
+    {
+      "path": "storage-validation/air_harness.as",
+      "bytes": 5825,
+      "sha256": "a743640dac65b6e1d17621b59bdf5d742631e83d71e3a052ca1233d75d82d5d0"
+    },
+    {
+      "path": "storage-validation/bootstrap.py",
+      "bytes": 237,
+      "sha256": "274f6847014928c98f64a2d32cf3aaa6f60b814931c5473641cd76f83d940529"
+    },
+    {
+      "path": "storage-validation/fixture_api.py",
+      "bytes": 11144,
+      "sha256": "eec1158e95dbc62fac21a406cd0ca84e701bc343483679cac89114537c9a0002"
+    },
+    {
+      "path": "storage-validation/inventory.py",
+      "bytes": 3260,
+      "sha256": "ab00ea2c0f0aaca8e62040e0e017b2397274656fecb4bc821d9572a138cb2a11"
+    },
+    {
+      "path": "storage-validation/Launcher.as",
+      "bytes": 768,
+      "sha256": "cf11e1f1e9689e7dae881b3e42212de9a4509b831cb4dac4607ed8bf97584964"
+    },
+    {
+      "path": "storage-validation/run_air.py",
+      "bytes": 5181,
+      "sha256": "0992c265d357917e890b19551b8640fdb7c97275febfcf06460761c534edaf79"
+    },
+    {
+      "path": "storage-validation/run_external_cold.py",
+      "bytes": 3028,
+      "sha256": "3969662b1e4fc67fe81a423bbef773c3b18e6313f067add929562a86c11e7d76"
+    },
+    {
+      "path": "support/asm.py",
+      "bytes": 26294,
+      "sha256": "73f2a8e5d02758636959bc1a10c92795fead4e4d89e3678bed356d211a61c341"
+    },
+    {
+      "path": "support/avm_interp.py",
+      "bytes": 15323,
+      "sha256": "c7f356e58acf570a09e9bad2e7aff427d03b3dd61d5cc6f70d998185632f6580"
+    },
+    {
+      "path": "support/bootstrap.py",
+      "bytes": 237,
+      "sha256": "274f6847014928c98f64a2d32cf3aaa6f60b814931c5473641cd76f83d940529"
+    },
+    {
+      "path": "support/editor.py",
+      "bytes": 1451,
+      "sha256": "e8edbfc3b6c0bcf9572242d6fe99e7c2d50f24b82314283e29d35481ce59709d"
+    },
+    {
+      "path": "support/framework.py",
+      "bytes": 6954,
+      "sha256": "e8edfd7be2685d2230842c9c1e766e6c0178a5defc5a8fb94b91ea803365f897"
+    },
+    {
+      "path": "support/selected_patch.py",
+      "bytes": 17614,
+      "sha256": "a3ce57562c5faceaed1fc47613406c5b2d4f579928e4f6b141872088405b00da"
+    },
+    {
+      "path": "support/static_check.py",
+      "bytes": 4210,
+      "sha256": "6af51486d6af87eff3aba2ed381338a198cd8f44dd9cb9b318401c19b51c7726"
+    },
+    {
+      "path": "support/swfabc.py",
+      "bytes": 5462,
+      "sha256": "4f1c3ea93d71af0d98dba0467cb38fe205cbfc5eef5de93633db8f838aac7528"
+    },
+    {
+      "path": "support/swftags.py",
+      "bytes": 1975,
+      "sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06"
+    },
+    {
+      "path": "tests/check_source.py",
+      "bytes": 2901,
+      "sha256": "f810b2521b7478e44ff2ce8ba544e35d0636a2fcfebf27b3ebbc21cc20bc8b6f"
+    },
+    {
+      "path": "ui/bootstrap.py",
+      "bytes": 237,
+      "sha256": "274f6847014928c98f64a2d32cf3aaa6f60b814931c5473641cd76f83d940529"
+    },
+    {
+      "path": "ui/build.py",
+      "bytes": 1773,
+      "sha256": "e1fae9d921f4f202ad4a7fe3b2f19399d533c1d225a2f621099f9559f0787b75"
+    },
+    {
+      "path": "ui/native-option-row-layout.json",
+      "bytes": 2654,
+      "sha256": "6e1ac5d96d04b10392767bf7b39033a8504b841ebe2b010920034e6a0a8a9fcc"
+    },
+    {
+      "path": "ui/patch.py",
+      "bytes": 7626,
+      "sha256": "72a541a5646f2849fb428c1ec6df9a7a0aec92859850a085eb4089221d283204"
+    },
+    {
+      "path": "ui/run_air.py",
+      "bytes": 33019,
+      "sha256": "4b64e269c2be385e620ef54302d34978365df230fba9b75a99268407f7677f58"
+    },
+    {
+      "path": "ui/run_layout_air.py",
+      "bytes": 8067,
+      "sha256": "250182f042cbe4ea9037696f6b4d7a66f6b84448dd88965ac62decd5361e944b"
+    },
+    {
+      "path": "WHITELIST.md",
+      "bytes": 1847,
+      "sha256": "5ad2d3fc3cf58ce64444477af2e4c51e37286bad04ee3aaf1e9ba38269225722"
+    }
+  ],
+  "business_patch_bytes_unchanged": [
+    "ui/patch.py",
+    "render/patch.py"
+  ],
+  "engineering_execution": "not_authorized_or_run_for_this_source_adaptation",
+  "private_inputs_contract": "INPUTS.example.json",
+  "shared_source_dependencies": [
+    "../release_config.py",
+    "client-patch/pr43-port/support/{abcfmt,bodies,opwalk}.py",
+    "client-patch/lens0907-0908/build_swf.py and repository imports"
+  ],
+  "excluded": [
+    "full official decompilation",
+    "SDK/APK/IPA/SWF/ABC/AOT/native carrier",
+    "private config/keys",
+    "local execution receipts",
+    "attempt generated source"
+  ],
+  "remaining": [
+    "Run tests/check_source.py in <=512MiB/60s bounded Job after slot allocation",
+    "Check adapters/imports in complete merged checkout",
+    "Deterministic UI/render reconstruction and affected AIR fixture runs after separately authorized build slot"
+  ],
+  "business_patch_identity_note": "business_patch_bytes_unchanged records the initial exact source copy. Current files may differ only by approved LF/EOF normalization; current identities are adapted_sha256/adapted_bytes in SOURCE-LINEAGE. No business logic changed."
+}

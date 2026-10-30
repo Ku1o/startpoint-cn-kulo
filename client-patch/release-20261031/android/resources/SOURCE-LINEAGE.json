@@ -1,0 +1,68 @@
+{
+  "files": [
+    {
+      "path": "bind_frozen_resources.py",
+      "source_role": "client/bind_frozen_resources.py",
+      "source_sha256": "7bd1c0cc31fbe791e76edd3c289831b20c7321cb2bec64a42d19cc2fc5fe1f8b",
+      "candidate_sha256": "09d79deb7c5329ec8f99c75d53c20bd80e4bfa1e886810d6095fb2b96dd6257a",
+      "contribution": "adopted read-only resource binding/decoder proof; no resource injection",
+      "adaptation": "explicit private roles, repository tools, fresh external report, sanitized source resource contracts; strict payload/decoder guards retained",
+      "candidate_bytes": 3825
+    },
+    {
+      "path": "bind_final_bundle67.py",
+      "source_role": "client/bind_final_bundle67.py",
+      "source_sha256": "3e908ce20e8997554a800799e867b67b009f1e1e93097091e74ac5ac84f182d5",
+      "candidate_sha256": "c49279faebb2f675389405de3db231ec8611fa15a83d1fdce8928dd66536f127",
+      "contribution": "adopted read-only resource binding/decoder proof; no resource injection",
+      "adaptation": "explicit private roles, repository tools, fresh external report, sanitized source resource contracts; strict payload/decoder guards retained",
+      "candidate_bytes": 4348
+    },
+    {
+      "path": "verify_bundle_dependencies.py",
+      "source_role": "client/verify_bundle_dependencies.py",
+      "source_sha256": "e894f1243b96ca81cb2aebb73f18325d0c71900e639a8ef1d26747b43e1de5b9",
+      "candidate_sha256": "2dc67d8efd1d952157b2f03181c7b7e9518e8620bba32951a02ae9fc75c4b46a",
+      "contribution": "adopted read-only resource binding/decoder proof; no resource injection",
+      "adaptation": "explicit private roles, repository tools, fresh external report, sanitized source resource contracts; strict payload/decoder guards retained",
+      "candidate_bytes": 6359
+    }
+  ],
+  "derived_data": [
+    {
+      "path": "bundle67.json",
+      "source_roles": [
+        "baseline_carrier_readback",
+        "final_carrier_readback",
+        "original_67_contract"
+      ],
+      "retained_fields": [
+        "logical",
+        "member",
+        "ios_member",
+        "sha256",
+        "bytes",
+        "count",
+        "androidBundleSha256"
+      ],
+      "omitted": "machine paths, receipts, carrier records, acceptance statuses"
+    },
+    {
+      "path": "shared-inputs344.json",
+      "source_roles": [
+        "frozen_shared_binding",
+        "semantic_dependency_resolution"
+      ],
+      "retained_fields": [
+        "root",
+        "logical",
+        "member",
+        "sha256",
+        "archiveName",
+        "count",
+        "historical manifest identity"
+      ],
+      "omitted": "machine paths and execution receipts"
+    }
+  ]
+}

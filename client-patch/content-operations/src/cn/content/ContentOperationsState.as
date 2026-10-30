@@ -698,8 +698,8 @@ package cn.content {
         }
         public static function gachaDateText(view:Object):Boolean {
             var logic:Object = view.basePeek.getGacha();
-            if (!gachaSharedDates(logic)) return false;
             if (!logic.get_showPeriod()) return false;
+            if (!gachaSharedDates(logic)) return false;
             view.periodLayout.visible = true;
             var text:Object = view.periodLayout.getText("label",{});
             fitPeriodText(text); text.set_text(keyLabel("gacha:" + logic.id));

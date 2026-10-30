@@ -1,0 +1,477 @@
+{
+  "schema_version": 1,
+  "count": 67,
+  "androidBundleSha256": "29b0fdfbcee78f154f2db1b00c938cc844f54f13af40af299c30569d39b5dd11",
+  "entries": [
+    {
+      "logical": "master/battle/multiball/multiball_iosbundled.orderedmap",
+      "member": "production/android_bundle/66/ddff07a1a4e9b5265802999cab2c5d24539fe8",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/66/ddff07a1a4e9b5265802999cab2c5d24539fe8",
+      "sha256": "7f0f5d365362c6ff75ee83d70b6ba03fa843dfd88ab24437c58ce75d5e53f185",
+      "bytes": 107
+    },
+    {
+      "logical": "master/battle/zako/general_zako_iosbundled.orderedmap",
+      "member": "production/android_bundle/f5/789c984d20c8a70bb484b922fc1e60e1dfe685",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/f5/789c984d20c8a70bb484b922fc1e60e1dfe685",
+      "sha256": "d00d77f0332530083c1e3fb2a6c226f742634daff823d261d92781af0232d757",
+      "bytes": 887
+    },
+    {
+      "logical": "master/skill/power_flip_action_iosbundled.orderedmap",
+      "member": "production/android_bundle/30/5b99dd690efdcfc9d07b5a75bf47d6ff1f877b",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/30/5b99dd690efdcfc9d07b5a75bf47d6ff1f877b",
+      "sha256": "c33663f21a31787b49ae37023894535857e96b93295007e1d1652b281cca087b",
+      "bytes": 284
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_black/fine_black.parts.amf3.deflate",
+      "member": "production/android_bundle/c7/e964918fcea4c84f541e812781e7134577c3f3",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/c7/e964918fcea4c84f541e812781e7134577c3f3",
+      "sha256": "bf91ed90bdbcbe713cb7ef88374580c07ad5fefdcea751c00e471a703a6d9ce2",
+      "bytes": 661
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_black/fine_black.timeline.amf3.deflate",
+      "member": "production/android_bundle/46/e533cd6dd51245e9025acac0069233f0c8e69b",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/46/e533cd6dd51245e9025acac0069233f0c8e69b",
+      "sha256": "a48558ab3a54ebd4377f1cdd352aa88e25384ab6c9254ef6b9733bc3f6e25665",
+      "bytes": 94
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_black/fine_black.png",
+      "member": "production/android_bundle/be/07a0e4bdad79143c49990d9445ae3955b7930e",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/be/07a0e4bdad79143c49990d9445ae3955b7930e",
+      "sha256": "51ac4d42f7c61f35292a418cde4bdd7fa9774a29843ccd184d2a799a2ee9049b",
+      "bytes": 566
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_black/fine_black.atlas.amf3.deflate",
+      "member": "production/android_bundle/ff/9bfb76a6d59f3c6e769490eb2e8f423e4736db",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/ff/9bfb76a6d59f3c6e769490eb2e8f423e4736db",
+      "sha256": "3cb4969416654025c54f2814c06445dedd86379e49e4a00dafd7b51dac03f3a1",
+      "bytes": 126
+    },
+    {
+      "logical": "character/evil/pixelart/pixelart.frame.amf3.deflate",
+      "member": "production/android_bundle/0d/0a44b1e74a4c29e4188a0119e78f4abcdc4582",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/0d/0a44b1e74a4c29e4188a0119e78f4abcdc4582",
+      "sha256": "2b139d255002c6502fa9c431a6e7c7d7ade7e7244bc832751015715a7f4ac14c",
+      "bytes": 67
+    },
+    {
+      "logical": "character/evil/pixelart/pixelart.timeline.amf3.deflate",
+      "member": "production/android_bundle/26/aeba90a2c06a916f69ed796dd3d56fa0da206e",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/26/aeba90a2c06a916f69ed796dd3d56fa0da206e",
+      "sha256": "4a5d7435a368a7af776d3d1750ca5be27eb66739dc4617396603081ead6fefa9",
+      "bytes": 359
+    },
+    {
+      "logical": "character/evil/pixelart/sprite_sheet.png",
+      "member": "production/android_bundle/31/c41fdd7ee6b49864f291780d9d704d77a06cb7",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/31/c41fdd7ee6b49864f291780d9d704d77a06cb7",
+      "sha256": "f4a8f4136a3397bd524bd117765ee6e90ed64799fa4069a91f4e60ddf0327e7a",
+      "bytes": 2133
+    },
+    {
+      "logical": "character/evil/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/android_bundle/50/e90ba2e12de6fa56b643bc3d751409e3cbd713",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/50/e90ba2e12de6fa56b643bc3d751409e3cbd713",
+      "sha256": "62ac8e2f91b749e209e3404b13bdfa76f947bccd20d502011b31d56ec13a6b39",
+      "bytes": 390
+    },
+    {
+      "logical": "battle/zako/general_zako/general_zako_shadow.parts.amf3.deflate",
+      "member": "production/android_bundle/a1/4e24e55b80c4c981d8787aaab2c1fc07153369",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/a1/4e24e55b80c4c981d8787aaab2c1fc07153369",
+      "sha256": "cfbef2035f2360865b1faaa68bd0225171a863d6e1f2860a2c3f420f7e456140",
+      "bytes": 202
+    },
+    {
+      "logical": "battle/zako/general_zako/general_zako_shadow.timeline.amf3.deflate",
+      "member": "production/android_bundle/37/c8a7ac59e680064a5374139a01f67d1385e77a",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/37/c8a7ac59e680064a5374139a01f67d1385e77a",
+      "sha256": "b20b0d3367a1057ad3b84d25ddb67133aa47059838055c5644c743b973bc36d9",
+      "bytes": 299
+    },
+    {
+      "logical": "battle/zako/general_zako/general_zako.png",
+      "member": "production/android_bundle/ce/324c9b513ef7c6c0e9c8af537489564785ab53",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/ce/324c9b513ef7c6c0e9c8af537489564785ab53",
+      "sha256": "1f8cf86511d42544f0ebcf4fa786b93da639871b73b2863ba4ba51cc208b9ae2",
+      "bytes": 1071
+    },
+    {
+      "logical": "battle/zako/general_zako/general_zako.atlas.amf3.deflate",
+      "member": "production/android_bundle/05/c34bf6a32db02d629facf85dcb69f79a344347",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/05/c34bf6a32db02d629facf85dcb69f79a344347",
+      "sha256": "81b39affac29295a9b1550496aa74f1d63b266050c3574e8d13b38b0b86f94a6",
+      "bytes": 181
+    },
+    {
+      "logical": "battle/zako/general_zako/general_zako_marker.timeline.amf3.deflate",
+      "member": "production/android_bundle/cb/33f01e8fe4573f3c3201fee2f46ad7fbcee6d2",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/cb/33f01e8fe4573f3c3201fee2f46ad7fbcee6d2",
+      "sha256": "466e7770ce93b80d7b61731a734d0be0fb5985cbe477757029f09df16e4419b6",
+      "bytes": 440
+    },
+    {
+      "logical": "character/evil_weak/pixelart/pixelart.frame.amf3.deflate",
+      "member": "production/android_bundle/9e/56ce52470a5701b774c8ef764080ce25a6175e",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/9e/56ce52470a5701b774c8ef764080ce25a6175e",
+      "sha256": "9c6b2f7b76190ea57e98e5b6c7a8e918863a777edd20631a40551ab5367d4d5e",
+      "bytes": 72
+    },
+    {
+      "logical": "character/evil_weak/pixelart/pixelart.timeline.amf3.deflate",
+      "member": "production/android_bundle/c6/baab813b579f026eac59992c84956f22d4a563",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/c6/baab813b579f026eac59992c84956f22d4a563",
+      "sha256": "4a5d7435a368a7af776d3d1750ca5be27eb66739dc4617396603081ead6fefa9",
+      "bytes": 359
+    },
+    {
+      "logical": "character/evil_weak/pixelart/sprite_sheet.png",
+      "member": "production/android_bundle/1c/078ac7954ef420c5736c0fe80aa98c4bb718c7",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/1c/078ac7954ef420c5736c0fe80aa98c4bb718c7",
+      "sha256": "23b0dbe65847c6f935a3753a760f1856f1231cfd91027b8e515932c13cd36f53",
+      "bytes": 2133
+    },
+    {
+      "logical": "character/evil_weak/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/android_bundle/7b/cf1544f7bb2de672713e22c093de8f499be22e",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/7b/cf1544f7bb2de672713e22c093de8f499be22e",
+      "sha256": "add704120a8aca235f8e4efbe7f5fe09f83441d2dfac259c422234f55ccc4470",
+      "bytes": 395
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_black/coarse_black.parts.amf3.deflate",
+      "member": "production/android_bundle/c5/9c1917894485ba9f5a68d0660df3b0cffe4f18",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/c5/9c1917894485ba9f5a68d0660df3b0cffe4f18",
+      "sha256": "c63427b6c9aa584522f501766e435575b9c955863ab2505b0d02ff1a03027036",
+      "bytes": 1958
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_black/coarse_black.timeline.amf3.deflate",
+      "member": "production/android_bundle/4f/38d37eaeafdf200ce13c10acb210d7e87d0f96",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/4f/38d37eaeafdf200ce13c10acb210d7e87d0f96",
+      "sha256": "1c4ec97c0ae88d865e8eb0672363d2001d152876d11a5a1d92f5ecaec48393f1",
+      "bytes": 96
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_black/coarse_black.png",
+      "member": "production/android_bundle/a2/bce0d75a4194675bfdc33bb42880c3924386ec",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/a2/bce0d75a4194675bfdc33bb42880c3924386ec",
+      "sha256": "d642977f4fae65bd0d13f2cf2d7001f714d792e471fb969d3d776d1354ae55b5",
+      "bytes": 4500
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_black/coarse_black.atlas.amf3.deflate",
+      "member": "production/android_bundle/e4/4227f7423958b55f3152cd01ff3dbce1781bee",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/e4/4227f7423958b55f3152cd01ff3dbce1781bee",
+      "sha256": "6babdcbfabb56518dc220a6ca4761f49962a2e95db2609a824c90d7d69c19775",
+      "bytes": 169
+    },
+    {
+      "logical": "battle/action/power_flip/action/knight$knight_lv1.action.dsl.amf3.deflate",
+      "member": "production/android_bundle/e3/e87d14606f8d69a7abb1d37b353fa0575879ad",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/e3/e87d14606f8d69a7abb1d37b353fa0575879ad",
+      "sha256": "792edbe5e401654cd6ba2733c1ae55739ab330bb6f6da09f4f2212b72dc5abd8",
+      "bytes": 495
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_white/fine_white.parts.amf3.deflate",
+      "member": "production/android_bundle/20/586893393f0ff118b51a4d95c0d2c93ab1d09f",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/20/586893393f0ff118b51a4d95c0d2c93ab1d09f",
+      "sha256": "04a9fae74b1f7c01a4a726647609b04b3745821a1a4723cbe395fb7f642d1938",
+      "bytes": 660
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_white/fine_white.timeline.amf3.deflate",
+      "member": "production/android_bundle/a4/8d7a0a0b7c5ccf7fbb52a3120075f74297c7c0",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/a4/8d7a0a0b7c5ccf7fbb52a3120075f74297c7c0",
+      "sha256": "a48558ab3a54ebd4377f1cdd352aa88e25384ab6c9254ef6b9733bc3f6e25665",
+      "bytes": 94
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_white/fine_white.png",
+      "member": "production/android_bundle/81/c16a3048267afccb6005959a5cc50a5d8546e2",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/81/c16a3048267afccb6005959a5cc50a5d8546e2",
+      "sha256": "4708eb7c8df1a9c600395c317669e6eeaa659a3cec4b8c79c4b754d4b91eb542",
+      "bytes": 561
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_white/fine_white.atlas.amf3.deflate",
+      "member": "production/android_bundle/38/21f882d85c4169ec9d81f8948db5f409cfd24b",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/38/21f882d85c4169ec9d81f8948db5f409cfd24b",
+      "sha256": "322b42c3f1f1d5dc7f4f2563729888c2cd84660d126423cf9dd34443517dafa0",
+      "bytes": 126
+    },
+    {
+      "logical": "battle/action/power_flip/action/knight$knight_lv2.action.dsl.amf3.deflate",
+      "member": "production/android_bundle/77/a984070550746252a8f7a4fb44a1d7cfac67b1",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/77/a984070550746252a8f7a4fb44a1d7cfac67b1",
+      "sha256": "7d54c04e0bee6f47a8f4403e8cc31fda296cbceb4705c5317a6e11fa6b8bf439",
+      "bytes": 496
+    },
+    {
+      "logical": "battle/action/power_flip/action/knight$knight_lv3.action.dsl.amf3.deflate",
+      "member": "production/android_bundle/3d/7ba8dab6fb778e9a7699b034c173c215215cb8",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/3d/7ba8dab6fb778e9a7699b034c173c215215cb8",
+      "sha256": "7e2b90947e9302feeebfad44bbf6fb60aaf862242f86b3cde6925f017cbfb150",
+      "bytes": 496
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_yellow/coarse_yellow.parts.amf3.deflate",
+      "member": "production/android_bundle/b2/12a181c3c4319ae5952701f221dcc9ba9838ac",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/b2/12a181c3c4319ae5952701f221dcc9ba9838ac",
+      "sha256": "41862d356add700759939c03eef70fc089849e2ec9562e370b65a3441fc1b3ee",
+      "bytes": 1960
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_yellow/coarse_yellow.timeline.amf3.deflate",
+      "member": "production/android_bundle/37/36fb39b8cbc7da15591f22461bfee9e89634c6",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/37/36fb39b8cbc7da15591f22461bfee9e89634c6",
+      "sha256": "1c4ec97c0ae88d865e8eb0672363d2001d152876d11a5a1d92f5ecaec48393f1",
+      "bytes": 96
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_yellow/coarse_yellow.png",
+      "member": "production/android_bundle/8c/1e2cf357148b31b9f2442c512e81eb68b047f7",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/8c/1e2cf357148b31b9f2442c512e81eb68b047f7",
+      "sha256": "4b04812b5ca59e1596ac13f28e7e8eb9ca46d5c44f015155d01acd2d93e69495",
+      "bytes": 4088
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/coarse/coarse_yellow/coarse_yellow.atlas.amf3.deflate",
+      "member": "production/android_bundle/92/7c1715077608dae0fa9eb2b677497d4659b20e",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/92/7c1715077608dae0fa9eb2b677497d4659b20e",
+      "sha256": "403b0d014c6678bd1655e056f39cbc51a16ae76f43cf5df9d665caa3196dca2e",
+      "bytes": 166
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_yellow/fine_yellow.parts.amf3.deflate",
+      "member": "production/android_bundle/c9/fb80a0e7d19bab1eb2aa2b8ebba76be37c6c20",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/c9/fb80a0e7d19bab1eb2aa2b8ebba76be37c6c20",
+      "sha256": "485e0602140f640db6bab1ee6faaef3ac370a95262bbda5a04b00058af629b90",
+      "bytes": 663
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_yellow/fine_yellow.timeline.amf3.deflate",
+      "member": "production/android_bundle/9b/9859e4b8e64b92e3d952c453ed121ebec5dc54",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/9b/9859e4b8e64b92e3d952c453ed121ebec5dc54",
+      "sha256": "a48558ab3a54ebd4377f1cdd352aa88e25384ab6c9254ef6b9733bc3f6e25665",
+      "bytes": 94
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_yellow/fine_yellow.png",
+      "member": "production/android_bundle/31/1bbec4793b498d759dfe90777f307b831c9833",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/31/1bbec4793b498d759dfe90777f307b831c9833",
+      "sha256": "525975775f19adfa7bf21d3ae956ef1221cbf9e89013d6abf237865263676b48",
+      "bytes": 556
+    },
+    {
+      "logical": "battle/effect/hit/normal_damage/fine/fine_yellow/fine_yellow.atlas.amf3.deflate",
+      "member": "production/android_bundle/8d/8fad942d3ac68b7ff2caeef1b6d35fff0b5dfa",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/8d/8fad942d3ac68b7ff2caeef1b6d35fff0b5dfa",
+      "sha256": "2191aeead0694f32fdc47534f1c165b1289f9f722a9296d7661b964c10b0cf10",
+      "bytes": 127
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_red/enemy_shot_cannon_red.parts.amf3.deflate",
+      "member": "production/android_bundle/4f/2b770b46abcce01305183448e128a3eb5f28c1",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/4f/2b770b46abcce01305183448e128a3eb5f28c1",
+      "sha256": "9a5222c2d3e08f870df4c5224d32e2ef51d60c20434b32e7a225dc15e9bdde2c",
+      "bytes": 318
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_red/enemy_shot_cannon_red.timeline.amf3.deflate",
+      "member": "production/android_bundle/ea/649d0092cbbe944b0876b2e7e25a51c742b399",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/ea/649d0092cbbe944b0876b2e7e25a51c742b399",
+      "sha256": "4ec4386a0ea7a41d87337777da5bcf342e85fb9b8c8bd74186dc4f11d1f24d37",
+      "bytes": 113
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_red/enemy_shot_cannon_red.atlas.amf3.deflate",
+      "member": "production/android_bundle/17/8d2ba672f4cf7076996eec9a64b8e9e866cf35",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/17/8d2ba672f4cf7076996eec9a64b8e9e866cf35",
+      "sha256": "cb05941268fcffa8dfa454adae179b6b57f6d7718b1d43f98ce9457e8d275d69",
+      "bytes": 193
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_red/enemy_shot_cannon_red.png",
+      "member": "production/android_bundle/b5/5af8830194823e940b7a227c354788fcf7b4b2",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/b5/5af8830194823e940b7a227c354788fcf7b4b2",
+      "sha256": "bf9a10b42127c1fdc6f3bf50f42a338cb6843eb280d0e005e7ebeece2329a9da",
+      "bytes": 1437
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_blue/enemy_shot_cannon_blue.parts.amf3.deflate",
+      "member": "production/android_bundle/7b/d19614c0bf9e99fd39a096f7c866faa0f8263d",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/7b/d19614c0bf9e99fd39a096f7c866faa0f8263d",
+      "sha256": "4359b8a70e0f4e2c23d2ab1b2f36b9cd76e0370012ca14b5e286a5779b5540de",
+      "bytes": 302
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_blue/enemy_shot_cannon_blue.timeline.amf3.deflate",
+      "member": "production/android_bundle/3d/a60f069ab7bf01ebb79b2e7fc7783dc9190338",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/3d/a60f069ab7bf01ebb79b2e7fc7783dc9190338",
+      "sha256": "4ec4386a0ea7a41d87337777da5bcf342e85fb9b8c8bd74186dc4f11d1f24d37",
+      "bytes": 113
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_blue/enemy_shot_cannon_blue.atlas.amf3.deflate",
+      "member": "production/android_bundle/f0/0013d66a5b11aeb7e9181f424b4c5207c0c746",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/f0/0013d66a5b11aeb7e9181f424b4c5207c0c746",
+      "sha256": "e1692ba63d281c215baff9df2cd5e8b8473db422cf615bc534c3a64ef3d2f319",
+      "bytes": 188
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_blue/enemy_shot_cannon_blue.png",
+      "member": "production/android_bundle/51/00b57b8d439fef1b5fcfab7f462fbf8d02e5d3",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/51/00b57b8d439fef1b5fcfab7f462fbf8d02e5d3",
+      "sha256": "033e4bced4b7f07af5753c2337c64bcfd565d3407fd17cf71f5730a7afef9031",
+      "bytes": 1437
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_yellow/enemy_shot_cannon_yellow.parts.amf3.deflate",
+      "member": "production/android_bundle/d9/271cd5157084b9e0502bc797bfc4cba01108be",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/d9/271cd5157084b9e0502bc797bfc4cba01108be",
+      "sha256": "040bc2d955d303e8e05b34206405df06db85622115a01efe4c58d35282ac5750",
+      "bytes": 303
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_yellow/enemy_shot_cannon_yellow.timeline.amf3.deflate",
+      "member": "production/android_bundle/3b/806db56141ad153be781da69652f5354b55451",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/3b/806db56141ad153be781da69652f5354b55451",
+      "sha256": "4ec4386a0ea7a41d87337777da5bcf342e85fb9b8c8bd74186dc4f11d1f24d37",
+      "bytes": 113
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_yellow/enemy_shot_cannon_yellow.atlas.amf3.deflate",
+      "member": "production/android_bundle/74/bda2b687339ac444e55b5dea9d9aa99fcebc56",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/74/bda2b687339ac444e55b5dea9d9aa99fcebc56",
+      "sha256": "de4d65430f76c78be9d78aa4654240750e94b8323f9183b683b60db3bf89a8a3",
+      "bytes": 189
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_yellow/enemy_shot_cannon_yellow.png",
+      "member": "production/android_bundle/28/d73c991a270983139e5ab3ead0e3b3c4e2ba11",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/28/d73c991a270983139e5ab3ead0e3b3c4e2ba11",
+      "sha256": "142e4d57204dc1876729a35acd12a8a06321c7c8736da6cf4c98d671899492a3",
+      "bytes": 1437
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_green/enemy_shot_cannon_green.parts.amf3.deflate",
+      "member": "production/android_bundle/b9/0fbbfa5b7ed406c83292ff0aa4e9e3311a4368",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/b9/0fbbfa5b7ed406c83292ff0aa4e9e3311a4368",
+      "sha256": "286fce95200fadae6a4c6deb9060ee41de22db197141917307b31161dd315ddf",
+      "bytes": 302
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_green/enemy_shot_cannon_green.timeline.amf3.deflate",
+      "member": "production/android_bundle/ef/9c86167a732691e7e8bd6f69f4b8d8a651c795",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/ef/9c86167a732691e7e8bd6f69f4b8d8a651c795",
+      "sha256": "4ec4386a0ea7a41d87337777da5bcf342e85fb9b8c8bd74186dc4f11d1f24d37",
+      "bytes": 113
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_green/enemy_shot_cannon_green.atlas.amf3.deflate",
+      "member": "production/android_bundle/c6/982a445a1c93b814274a366a413edbb89e0663",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/c6/982a445a1c93b814274a366a413edbb89e0663",
+      "sha256": "6fb7af4ce2c3256c5b00c59fa86a2476f0de7978665d0455a5c4a6c57d1bf3f0",
+      "bytes": 188
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_green/enemy_shot_cannon_green.png",
+      "member": "production/android_bundle/f1/fa6a7f71e2993eeb1a4cb963c49d42c1b49b80",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/f1/fa6a7f71e2993eeb1a4cb963c49d42c1b49b80",
+      "sha256": "e242319c732e16a390dd4727540e19e40c9df41c741ef01892c001dc2013d45f",
+      "bytes": 1437
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_white/enemy_shot_cannon_white.parts.amf3.deflate",
+      "member": "production/android_bundle/a5/3224c1c654b6885fbf8750670bef671500786e",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/a5/3224c1c654b6885fbf8750670bef671500786e",
+      "sha256": "9bc9d26808c779fd2e2f230c8867923896af5643d07d634f208830ee871500f7",
+      "bytes": 303
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_white/enemy_shot_cannon_white.timeline.amf3.deflate",
+      "member": "production/android_bundle/fa/323a8b77cd7b1a8f36bd4232cc958c8fc87ebc",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/fa/323a8b77cd7b1a8f36bd4232cc958c8fc87ebc",
+      "sha256": "4ec4386a0ea7a41d87337777da5bcf342e85fb9b8c8bd74186dc4f11d1f24d37",
+      "bytes": 113
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_white/enemy_shot_cannon_white.atlas.amf3.deflate",
+      "member": "production/android_bundle/89/eca1eedbf97284690039099b2abd63d3148786",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/89/eca1eedbf97284690039099b2abd63d3148786",
+      "sha256": "ea7c5bb2378049ce9e441cd7c75a016ed4d85f1aeef23233ae378bcea29c5e76",
+      "bytes": 189
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_white/enemy_shot_cannon_white.png",
+      "member": "production/android_bundle/f1/b5e09f4a445af9bf45ceac51eea398bb4e167b",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/f1/b5e09f4a445af9bf45ceac51eea398bb4e167b",
+      "sha256": "56efe06c28defadbefc047823dbda819a0fe3817812f32024964511b3fce6a89",
+      "bytes": 1437
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_black/enemy_shot_cannon_black.parts.amf3.deflate",
+      "member": "production/android_bundle/3f/5fbb09827c4cedf1d2a7c1569493bc3bc76bc0",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/3f/5fbb09827c4cedf1d2a7c1569493bc3bc76bc0",
+      "sha256": "00a41ca54e1326e0527416e6e538f9c84e5cfdd5fe6f564ed189184f38836ab0",
+      "bytes": 303
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_black/enemy_shot_cannon_black.timeline.amf3.deflate",
+      "member": "production/android_bundle/3b/dbd056c6ba45eaabf8102f30f8e0b7bd34e8a1",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/3b/dbd056c6ba45eaabf8102f30f8e0b7bd34e8a1",
+      "sha256": "4ec4386a0ea7a41d87337777da5bcf342e85fb9b8c8bd74186dc4f11d1f24d37",
+      "bytes": 113
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_black/enemy_shot_cannon_black.atlas.amf3.deflate",
+      "member": "production/android_bundle/6a/e1ca4f6ac64fce28e2c1ccf4420a3cb97c27b1",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/6a/e1ca4f6ac64fce28e2c1ccf4420a3cb97c27b1",
+      "sha256": "1c178584ea0d57f376cddca3bb212b0cd353bbbdda4e4a00a1175be7e38eface",
+      "bytes": 189
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_black/enemy_shot_cannon_black.png",
+      "member": "production/android_bundle/91/b8f249de92d196778724d1d0fd9681d08f61c5",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/91/b8f249de92d196778724d1d0fd9681d08f61c5",
+      "sha256": "bfbe17a4bd8c1f03c7ef715484c0a00b484856d84b2c3087085dce81bd4679aa",
+      "bytes": 1437
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_colorless/enemy_shot_cannon_colorless.parts.amf3.deflate",
+      "member": "production/android_bundle/3f/860cdc521cb4e9a5f682e75697d0156a66966a",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/3f/860cdc521cb4e9a5f682e75697d0156a66966a",
+      "sha256": "a5a3883a1602ec8c8138ad193127cf5b9814084262da7805951f7f1b6c28d720",
+      "bytes": 306
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_colorless/enemy_shot_cannon_colorless.timeline.amf3.deflate",
+      "member": "production/android_bundle/0b/2a055fbf03a8cc66b1c0a7b3b2d34d031b17f8",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/0b/2a055fbf03a8cc66b1c0a7b3b2d34d031b17f8",
+      "sha256": "4ec4386a0ea7a41d87337777da5bcf342e85fb9b8c8bd74186dc4f11d1f24d37",
+      "bytes": 113
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_colorless/enemy_shot_cannon_colorless.atlas.amf3.deflate",
+      "member": "production/android_bundle/0a/ed5e2bacecb0c067b57e883badb97154e36445",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/0a/ed5e2bacecb0c067b57e883badb97154e36445",
+      "sha256": "ea67cfd948019f33344d8654f2e652354ae8b7e22f0bd911124a2f7c063eefcd",
+      "bytes": 179
+    },
+    {
+      "logical": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_colorless/enemy_shot_cannon_colorless.png",
+      "member": "production/android_bundle/d9/b196bddcfcc5604fcd2fe15b9841f743010d6c",
+      "ios_member": "Payload/worldflipper.app/asset/production/ios_bundle/d9/b196bddcfcc5604fcd2fe15b9841f743010d6c",
+      "sha256": "7eb9d859fb2e7274411c817fd11b624bd7d736edee378bd1f6d2dd718b6c57b1",
+      "bytes": 1349
+    }
+  ],
+  "scope": "embedded resource byte contract, not CDN terminal winner or gameplay acceptance"
+}

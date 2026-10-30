@@ -1,0 +1,56 @@
+package {
+import flash.display.Sprite;import flash.filesystem.*;import flash.desktop.NativeApplication;
+import pinball.scene.battle.viewInput.BattleViewInputSettings;import pinball.scene.battle.battle.*;import pinball.scene.battle.view.BattleView;import pinball.scene.battle.view.BattleViewKind;import pinball.scene.battle.battle.effect.*;import pinball.scene.battle.battle.squad.ball.BallPeek;import pinball.scene.battle.battle.squad.member.MemberPeek;import pinball.scene.battle.battle.squad.SquadKind;import pinball.scene.battle.battle.cutin.CutinActionSkillPeek;import pinball.scene.battle.battle.action.ActionEffectPeek;import pinball.scene.battle.battle.ability.AbilityDamageShotPeek;import flatomo.timeline.Playhead;import pinball.context.global.GlobalLogic;import pinball.common.data.localStore.*;import jp.sipo.gipo.core.Gear;import jp.sipo.gipo.core.GearPhase;import haxe.ds.Option;
+public class air_harness extends Sprite {
+private var nativeErrors:Array=[];private var checks:int=0;private var cases:Array=[];private var raw:Object;private var global:GlobalLogic;private var gear:Gear;private var store:LocalStoreForLogic;private var app:ApplicationOptionLogic;private var lookupCount:int=0;private var expectedSaves:int=0;
+private function ok(v:Boolean,s:String):void{checks++;if(!v)throw new Error(s);}
+public function air_harness(){var result:Object;try{run();result={passed:true,assertions:checks,cases:cases,nativeDependencyLookups:lookupCount,recordedNativeStores:store.saves,nativeErrors:nativeErrors};}catch(e:Error){result={passed:false,assertions:checks,nativeErrors:nativeErrors,error:e.toString(),stack:e.getStackTrace(),cases:cases};}var f:File=new File(File.applicationDirectory.nativePath).resolvePath("result.json");var fs:FileStream=new FileStream();fs.open(f,FileMode.WRITE);fs.writeUTFBytes(JSON.stringify(result));fs.close();NativeApplication.nativeApplication.exit(result.passed?0:1);}
+private function option(i:int,v:Object=null):Option{var o:Option=new Option();o.index=i;o.params=i==0?[v]:[];return o;}
+private function choose(v:Boolean):void{app.setTeammateEffectsVisible(v);expectedSaves++;ok(store.saves==expectedSaves&&store.last===raw,"native store same raw exactly once");}
+private function battle(mode:int=1,lw:int=0):Battle{var b:Battle=new Battle();b.gear=gear;b.playerMode={index:mode};b.lightweightModeLevel=lw;b.showOthersMultiball=mode==0||lw<2;b.primary=true;b.bothBossManager={enable:false};return b;}
+private function run():void{
+ raw={weightSavingMode:{enable:false,cooperationSavingEnable:false},unrelated:{kept:17}};store=new LocalStoreForLogic();global=new GlobalLogic();global.logicStatus={applicationOption:option(0,raw)};global.localStore=store;global.logicAssets=null;
+ gear=new Gear();gear.phase=new GearPhase();gear.phase.index=3;gear.diffuser={"get":function(c:Class,pos:Object):Object{lookupCount++;if(c!==GlobalLogic||pos!==null)throw new Error("wrong native dependency key");return global;},getDictionaryCondition:function(v:*):String{return "fixture-global";}};
+ app=new ApplicationOptionLogic(raw,store,null);var second:ApplicationOptionLogic=global.getApplicationOption() as ApplicationOptionLogic;
+ ok(app.applicationOption===raw&&second!==app&&second.applicationOption===raw,"native wrappers share original raw Object");
+ var b:Battle=battle();ok(app.getTeammateEffectsVisible()&&ApplicationOptionLogic.cnTeammateEffectsVisibleFromBattle(b),"missing key default visible");
+ for each(var bad:* in [null,0,1,"false",{},[]]){raw.cnTeammateEffectsVisible=bad;ok(app.getTeammateEffectsVisible()&&ApplicationOptionLogic.cnTeammateEffectsVisibleFromBattle(b),"nonBoolean default visible");}
+ for each(var toggle:Boolean in [false,true,false]){choose(toggle);ok(second.getTeammateEffectsVisible()==toggle&&ApplicationOptionLogic.cnTeammateEffectsVisibleFromBattle(b)==toggle,"same raw immediate false true false");}
+ ok(raw.unrelated.kept==17&&raw.weightSavingMode.enable==false,"unrelated options preserved");cases.push("actual-gear-global-getter-ctor-raw-reader-setter-store-shared-identity");
+ var settings:BattleViewInputSettings=new BattleViewInputSettings();settings.battle=b;
+ for(var mode:int=0;mode<2;mode++){for(var lw:int=0;lw<3;lw++){
+  b.playerMode={index:mode};b.lightweightModeLevel=lw;
+  for each(toggle in [false,true,false]){choose(toggle);ok(settings.isOtherBattleActionVisible()==(toggle&&(mode==0||lw<2)),"P1 complete original rich-mode decision");}
+ }}cases.push("P1-native-richmode-action-level-and-runtime-toggle");
+ // Original preparation still executes its complete native flag derivation; only downstream reader is gated.
+ for(mode=0;mode<2;mode++){for(lw=0;lw<3;lw++){
+  b=battle(mode,lw);settings.battle=b;raw.weightSavingMode={enable:lw>0,cooperationSavingEnable:lw==2};
+  b.gear={absorbWithKey:function(...a):Object{return {index:mode};},absorb:function(...a):GlobalLogic{return global;}};
+  global.getBattleDebugSettings=function():*{throw new Error("FLAGS_REACHED");};
+  var stopped:Boolean=false;try{b.preparation(null);}catch(stop:Error){stopped=stop.message=="FLAGS_REACHED";}
+  ok(stopped,"P2 actual preparation flags sentinel");ok(b.lightweightModeLevel==lw,"native light level");ok(b.showOthersMultiball==(mode==0||lw<2),"native multiball flag preserved");ok(b.shouldEmitParticle==(lw==0)&&b.enableGuideline==(mode==0||lw<2)&&b.enableEscapeMarker==(mode==0||lw<2),"other flags preserved");b.gear=gear;
+  var view:BattleView=new BattleView();view.removeKeyIndex=10;settings.playerMode={index:mode};view.settings=settings;view.featuresPermit={displayOther:true};var added:Array=[];view.addChild=function(...a):void{added.push(a);};
+  var member:MemberPeek=new MemberPeek();var kind:SquadKind=new SquadKind();member.kind=kind;var command:BattleViewKind=new BattleViewKind();command.index=44;command.params=[member];
+  for each(toggle in [false,true,false]){choose(toggle);var stored:Boolean=b.showOthersMultiball;
+   for(var squadKind:int=0;squadKind<3;squadKind++){kind.index=squadKind;for(var permit:int=0;permit<2;permit++){view.featuresPermit.displayOther=Boolean(permit);var n:int=added.length;var key:int=view.removeKeyIndex;var returned:int=view.show(1,command,0);ok(returned==key+1,"P2 key identity");ok(added.length-n==(permit&&((toggle&&stored)||squadKind==0)?1:0),"P2 dynamic reader original fallback");ok(b.showOthersMultiball==stored,"toggle never mutates native multiball field");}}
+  }
+ }}cases.push("P2-original-preparation-and-dynamic-case44-fallback");
+ b=battle();settings.battle=b;settings.playerMode={index:1};view=new BattleView();view.removeKeyIndex=200;view.settings=settings;view.featuresPermit={displayOther:true};added=[];view.addChild=function(...a):void{added.push(a);};var bp:BallPeek=new BallPeek();command=new BattleViewKind();
+ for each(toggle in [false,true,false]){choose(toggle);for(var primary:int=0;primary<2;primary++){bp.primary=Boolean(primary);command.index=43;command.params=[bp];for(permit=0;permit<2;permit++){view.featuresPermit.displayOther=Boolean(permit);n=added.length;view.show(1,command,0);ok(added.length-n==(permit&&(toggle||primary)?1:0),"P2b remote primary and permission");}}
+  command.index=55;command.params=[new CutinActionSkillPeek()];for(permit=0;permit<2;permit++){view.featuresPermit.displayOther=Boolean(permit);n=added.length;view.show(1,command,0);ok(added.length-n==(permit&&toggle?1:0),"P3 remote original permission");n=added.length;view.show(-1,command,0);ok(added.length-n==1,"P3 local native cutin unaffected");}
+ }cases.push("P2b-P3-full-native-show-same-view-continuous-toggle");
+ command.index=59;var action:ActionEffectPeek=new ActionEffectPeek();command.params=[action];
+ for(mode=0;mode<2;mode++){for(lw=0;lw<3;lw++){b.playerMode={index:mode};b.lightweightModeLevel=lw;for each(toggle in [false,true,false]){choose(toggle);for(var hostile:int=0;hostile<2;hostile++){action.hostile=Boolean(hostile);view.featuresPermit.displayOther=true;n=added.length;view.show(1,command,0);ok(added.length-n==(!hostile&&toggle&&(mode==0||lw<2)?1:0),"P1 actual case59 original hostile and rich branch");}
+ command.index=60;command.params=[new AbilityDamageShotPeek(),new Playhead()];n=added.length;view.show(1,command,0);ok(added.length-n==(toggle&&(mode==0||lw<2)?1:0),"P1 actual case60 native visibility branch");command.index=59;command.params=[action];
+ }}}cases.push("P1-full-native-show59-60-hostile-richmode");
+ var e:EffectManagerImpl=new EffectManagerImpl();e.battle=b;
+ for(lw=0;lw<3;lw++){b.lightweightModeLevel=lw;for each(toggle in [false,true,false]){choose(toggle);for(primary=0;primary<2;primary++){for(var outer:int=0;outer<2;outer++){for each(var effectNo:int in [0,33,34,63,95]){var simple:SimpleEffectKind=new SimpleEffectKind();simple.index=effectNo;simple.params=[];var effect:EffectKind=new EffectKind();effect.index=outer;effect.params=[simple];var nativeAllowed:Boolean=primary!=0||(outer==0&&((effectNo==33&&lw<1)||(effectNo==34&&lw<2)));ok(e.canPlayEffect(Boolean(primary),effect)==(primary!=0||(toggle&&nativeAllowed)),"P4 exact original kind33/34 lightweight decisions");}}}}
+ }cases.push("P4-real-full-native-filter-plus-shared-visible-gate");
+ for(lw=0;lw<3;lw++){b.lightweightModeLevel=lw;for each(toggle in [false,true,false]){choose(toggle);for(var rand:int=0;rand<2;rand++){
+ var rotations:int=0;var shown:int=0;var sup:int=0;e.primaryBattle=true;e.viewOrder={};e.asset={};e.getRandomRotation=function():Number{rotations++;return 0.25;};e.addChild=function(...a):void{shown++;};e.supressHitEffect=function(...a):Boolean{sup++;return false;};simple=new SimpleEffectKind();simple.index=63;simple.params=[new SimpleEffectPosition(),Boolean(rand),"test",false,null];effect=new EffectKind();effect.index=0;effect.params=[simple];var beforeLookups:int=lookupCount;e.show(effect);ok(rotations==rand,"P5 independent RNG");ok(shown==(lw==0?1:0),"P5 independent creation");ok(sup==((lw==0&&rand==0)?1:0),"P5 original suppression calls");ok(lookupCount==beforeLookups,"P5 primary path makes no visibility read");
+ }}}cases.push("P5-original-lightweight-RNG-fully-independent");
+ global.logicStatus.applicationOption=option(1);var threw:Boolean=false;try{ApplicationOptionLogic.cnTeammateEffectsVisibleFromBattle(b);}catch(missing:Error){nativeErrors.push({branch:"Option.None",error:missing.toString()});threw=missing.message=="6503";}ok(threw,"native Option.None error preserved");global.logicStatus.applicationOption=option(0,raw);
+ gear.phase=new GearPhase();gear.phase.index=0;threw=false;try{ApplicationOptionLogic.cnTeammateEffectsVisibleFromBattle(b);}catch(phase:Error){nativeErrors.push({branch:"Gear.phase",error:phase.toString()});threw=phase.message=="1006";}ok(threw,"native invalid Gear phase error preserved");gear.phase=new GearPhase();gear.phase.index=3;
+ gear.diffuser={"get":function(c:*,p:*):Object{return null;},getDictionaryCondition:function(v:*):String{return "missing";}};threw=false;try{ApplicationOptionLogic.cnTeammateEffectsVisibleFromBattle(b);}catch(context:Error){nativeErrors.push({branch:"Gear.absorb.missing",error:context.toString()});threw=context.message=="1007";}ok(threw,"native missing Global dependency error preserved");ok(store.saves==expectedSaves,"render reads never store or save");cases.push("native-context-errors-not-swallowed-no-render-writes");
+}
+}}

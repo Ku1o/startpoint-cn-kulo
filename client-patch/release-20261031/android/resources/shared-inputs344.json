@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "count": 8,
+  "targetVersion": "1.4.344",
+  "manifestSha256": "ebbd881d0170bcf7295c032fb48be12308f7eb50c9b1c1bb20e1df7f4ce347e2",
+  "sourceSemanticReviewManifestSha256": "dd4d74acec23855394620c696fbd7207553bdd44dd916da9ec66458852d97492",
+  "entries": [
+    {
+      "root": "common",
+      "logical": "master/character/unique_condition.orderedmap",
+      "member": "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+      "sha256": "ef9e91cae76bf9085449073d969822a2cac9acb49eb3ff32dc8b2d7c88ca72e9",
+      "archiveName": "pinball-1.4.258-1.4.344-9-production-20261031.zip"
+    },
+    {
+      "root": "common",
+      "logical": "master/ability/ability.orderedmap",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "sha256": "dbdfe12f0f6ea50d6b02650bf98e011a3c8201f3e03820bb21412f2f0293bba8",
+      "archiveName": "pinball-1.4.258-1.4.344-9-production-20261031.zip"
+    },
+    {
+      "root": "common",
+      "logical": "master/battle/multiball/multiball.orderedmap",
+      "member": "production/upload/53/43a72c056d5952f7c3cef3116b11517c3dbc53",
+      "sha256": "d4526ed0a98f91008162a4d2594abd555107feea1db19100593bb35c0b8ce4b0",
+      "archiveName": "pinball-1.4.258-1.4.344-10-production-20261031.zip"
+    },
+    {
+      "root": "common",
+      "logical": "master/battle/zako/general_zako.orderedmap",
+      "member": "production/upload/40/7bd387079092ff09744d22f4aaf0ba27c3817e",
+      "sha256": "9de3cc292a82832e507b89fda1797aea5136ae6206535bac4e268100c854de50",
+      "archiveName": "pinball-1.4.109-1.4.110-2-abyss-normal-ex-art.zip"
+    },
+    {
+      "root": "common",
+      "logical": "master/character/character.orderedmap",
+      "member": "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+      "sha256": "a4266e1e44168e09c9212a7f272d9745dc4047025ce4cc5e870e6fcf122924b5",
+      "archiveName": "pinball-1.4.258-1.4.344-9-production-20261031.zip"
+    },
+    {
+      "root": "common",
+      "logical": "master/skill/action_skill.orderedmap",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "sha256": "82e715b0c544903fe3ff4a07193b26abe2ff3602efe31fb064a8dc2de02dd2f5",
+      "archiveName": "pinball-1.4.258-1.4.344-12-production-20261031.zip"
+    },
+    {
+      "root": "common",
+      "logical": "master/skill/power_flip_action.orderedmap",
+      "member": "production/upload/38/dbe3524fee49989cccd10f2204238d25600cc8",
+      "sha256": "3049be22dd20fc8b24fef2a90e2091b94d22264fcad630105be7120a7ee65b98",
+      "archiveName": "pinball-1.4.258-1.4.344-10-production-20261031.zip"
+    },
+    {
+      "root": "common",
+      "logical": "master/battle/field.orderedmap",
+      "member": "production/upload/ec/e713173d2a64a77c28c927869135297ba5d074",
+      "sha256": "99815920a00db4ce503bc9b4ea972a7ef781fdfa1b738b191d0f649bc455bdb6",
+      "archiveName": "pinball-1.4.258-1.4.344-14-production-20261031.zip"
+    }
+  ],
+  "scope": "historical 1.4.344 shared-input byte binding only; not current resource target"
+}

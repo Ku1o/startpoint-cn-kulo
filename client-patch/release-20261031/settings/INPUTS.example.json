@@ -1,0 +1,15 @@
+{
+  "work_dir": "../private-work",
+  "settings": {
+    "r11": {"path": "inputs/r11.swf", "sha256": "9c672e56e5911679848047daece874e139255b2d128f67ab11e605c5db2bb951"},
+    "corecarry": {"path": "inputs/corecarry-nodegree.swf", "sha256": "1227add083028435cc05695a576fc9f73d48af726dad6c5f24cde9de1bcaf6a4"},
+    "ui_partial": {"path": "inputs/core-ui.partial.swf", "sha256": "5d3fc7304b292599ddd1487d2ff8e99474cd7014e7967061ae1768a6a4d923df"},
+    "final_swf": {"path": "inputs/settings-r1.swf", "sha256": "3c56f08c8b30ae75ae71908a699e703764dcfca0bc64d1fb91d866e2c61bfaef"},
+    "render_report": {"path": "inputs/render-insertion-contract.json", "sha256": "25bf563e11d6a52196523f398f3ac7fee4abdd039b4bda1d3f67bafad7b94f55"},
+    "original_zip": {"path": "inputs/original-source.zip", "sha256": "8a90738f55dfa03d5f6bb0193cd0ed51e22c645652c14a51a43071c8182d7a29"},
+    "air_config": {"path": "private-air-config.json", "sha256": "REPLACE_WITH_LOCAL_CONFIG_SHA256"},
+    "air_tools": {"path": "private-air-tools", "files": {"lib/abc_tools.py": "3d180eb31338f4c48c65697d5d2160e0ddf843aa6c9a578e6d29997760641e0a"}},
+    "raster_helper": {"path": "inputs/native_raster_probe.py", "sha256": "a3999b1976d72ed01eadd518074510d076e8cf9af13368c1cef8dacf906b0ce6"},
+    "compositor_source": {"path": "inputs/TrueTypeCompositor.as", "sha256": "8b5a4ef341119872a5595218979cf772aec336b8bd7d4b03784c4ed489657cc4"}
+  }
+}

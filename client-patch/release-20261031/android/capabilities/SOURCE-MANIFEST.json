@@ -1,0 +1,1129 @@
+{
+  "schemaVersion": 1,
+  "status": "portable_source_candidate_not_reconstructed",
+  "sourcePr": "https://github.com/Ku1o/startpoint-cn-kulo/pull/106",
+  "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+  "contributor": "kuronzzhan-droid",
+  "files": [
+    {
+      "path": "android/capabilities/bootstrap.py",
+      "sha256": "b5ad0eb5447b5c49e006a3a106f588394a56acacfd0f601282233e89103d1ca5",
+      "sourceKind": "Adopted selective integration recipe with explicit path/input adapter",
+      "originalSha256": "107453b3faad7a3a1b04450896a1baaee11d80dea9f4244d1f16bd42b321745e",
+      "bytes": 1296
+    },
+    {
+      "path": "android/capabilities/freeze_contract.py",
+      "sha256": "f8257263f932146015eefe88db6e0653222b73724d62f2dedf1cb5228486f4bf",
+      "sourceKind": "Adopted selective integration recipe with explicit path/input adapter",
+      "originalSha256": "f8257263f932146015eefe88db6e0653222b73724d62f2dedf1cb5228486f4bf",
+      "bytes": 5042
+    },
+    {
+      "path": "android/capabilities/INPUTS.example.json",
+      "sha256": "faee9a4f5531c148b78bbb21b7c851b15a1273c24aca423e7544e54573e3d99f",
+      "sourceKind": "Portable input/source documentation",
+      "originalSha256": null,
+      "bytes": 539
+    },
+    {
+      "path": "android/capabilities/port_capabilities.py",
+      "sha256": "572eaee551750a966012d9713ee3ae50e59eaedede9c4ddbef54113d95bf234d",
+      "sourceKind": "Adopted selective integration recipe with explicit path/input adapter",
+      "originalSha256": "6b206ecbb6cdbe788102aed72154a2252d6690109db4bf4b4efc00ddb35e09a4",
+      "bytes": 44017
+    },
+    {
+      "path": "android/capabilities/README.md",
+      "sha256": "bdc3631d39256fe1027669b1ba92c900dd3751d8a6ee38f154c30b50e5b073da",
+      "sourceKind": "Adopted selective integration recipe with explicit path/input adapter",
+      "originalSha256": "8bfcca5b3d73dfc2d80dd1abf99c7534089a9e0b464c9d1df3c4d9881d9a4625",
+      "bytes": 3463
+    },
+    {
+      "path": "android/capabilities/verify_core_pf.py",
+      "sha256": "2d3bd049b19e4a0c2e14d68e01718de720dc59f0264f96fbb3b9205ed342990f",
+      "sourceKind": "Adopted selective integration recipe with explicit path/input adapter",
+      "originalSha256": "2d3bd049b19e4a0c2e14d68e01718de720dc59f0264f96fbb3b9205ed342990f",
+      "bytes": 6197
+    },
+    {
+      "path": "android/capabilities/verify_guard_board.py",
+      "sha256": "6431812392de4850ad3352d8af16b32823df951e65f353e2c662c42dff82a89f",
+      "sourceKind": "Adopted selective integration recipe with explicit path/input adapter",
+      "originalSha256": "6431812392de4850ad3352d8af16b32823df951e65f353e2c662c42dff82a89f",
+      "bytes": 3104
+    },
+    {
+      "path": "android/capabilities/verify_materials.py",
+      "sha256": "aca87a68a2c309c0cd7d3e5b2b4d519ede0136349bb8274135f390541d2c277b",
+      "sourceKind": "Adopted selective integration recipe with explicit path/input adapter",
+      "originalSha256": "aca87a68a2c309c0cd7d3e5b2b4d519ede0136349bb8274135f390541d2c277b",
+      "bytes": 5634
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/direct_count/patches.py",
+      "sha256": "fdaf58b533ad5edc802d9d501f94c6d88395f6aeed1738470ff1b7d7b8916651",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/direct_count/patches.py",
+      "originalSha256": "fdaf58b533ad5edc802d9d501f94c6d88395f6aeed1738470ff1b7d7b8916651",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5326
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/framework.py",
+      "sha256": "8856c8f6491ac798e0d1d95e05154b0e581bc5d23ed64b5bc755c66bdec1a1b5",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/framework.py",
+      "originalSha256": "8856c8f6491ac798e0d1d95e05154b0e581bc5d23ed64b5bc755c66bdec1a1b5",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 6981
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/heal_any/ct_patch.py",
+      "sha256": "0ce0ca02dc6a085f280ae4c3a49f55d8d7dbef34b74d9a3d90d5aa845a7de2c7",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/heal_any/ct_patch.py",
+      "originalSha256": "0ce0ca02dc6a085f280ae4c3a49f55d8d7dbef34b74d9a3d90d5aa845a7de2c7",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1823
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/heal_any/ct_record.py",
+      "sha256": "c76b102751c4ecd3c9f6642a334ad0ad8e82933eea1a95aaf462bc8185cc79d8",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/heal_any/ct_record.py",
+      "originalSha256": "c76b102751c4ecd3c9f6642a334ad0ad8e82933eea1a95aaf462bc8185cc79d8",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4237
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/heal_any/ct_state.py",
+      "sha256": "4082a349a1cee3f573251d7e99a48ad87660cd54d851221b277cb3f5e7739150",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/heal_any/ct_state.py",
+      "originalSha256": "4082a349a1cee3f573251d7e99a48ad87660cd54d851221b277cb3f5e7739150",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4348
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/heal_any/patches.py",
+      "sha256": "5c7a049a334fbc976250188a69ee93f93fcf876795786530fed5d24a9c71cf78",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/heal_any/patches.py",
+      "originalSha256": "5c7a049a334fbc976250188a69ee93f93fcf876795786530fed5d24a9c71cf78",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3963
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/heal_any/sample.py",
+      "sha256": "8f7b71d3edb4539f847720e7fed6d30376ad123ba4d4420864593f2b7fc88431",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/heal_any/sample.py",
+      "originalSha256": "8f7b71d3edb4539f847720e7fed6d30376ad123ba4d4420864593f2b7fc88431",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3653
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/heal_any/values.py",
+      "sha256": "cdca630f5dca191269cd9a89f68d7cafc5501f7aa0dd82f60156295c19448ea3",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/heal_any/values.py",
+      "originalSha256": "cdca630f5dca191269cd9a89f68d7cafc5501f7aa0dd82f60156295c19448ea3",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4375
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/multiabc.py",
+      "sha256": "49b3f76b7466e029f326b9214e952bb57d951ba275574373ad0274ebd2b48bea",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/multiabc.py",
+      "originalSha256": "49b3f76b7466e029f326b9214e952bb57d951ba275574373ad0274ebd2b48bea",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3030
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/static_check.py",
+      "sha256": "6af51486d6af87eff3aba2ed381338a198cd8f44dd9cb9b318401c19b51c7726",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/static_check.py",
+      "originalSha256": "6af51486d6af87eff3aba2ed381338a198cd8f44dd9cb9b318401c19b51c7726",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4210
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/abcfmt.py",
+      "sha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/abcfmt.py",
+      "originalSha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 9764
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/asm.py",
+      "sha256": "c033836d0a7aa109b81509c1cb0731be82fc543c76d8d3b43881f9dab7d81e87",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/asm.py",
+      "originalSha256": "c033836d0a7aa109b81509c1cb0731be82fc543c76d8d3b43881f9dab7d81e87",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 26088
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/avm_interp.py",
+      "sha256": "c7f356e58acf570a09e9bad2e7aff427d03b3dd61d5cc6f70d998185632f6580",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/avm_interp.py",
+      "originalSha256": "c7f356e58acf570a09e9bad2e7aff427d03b3dd61d5cc6f70d998185632f6580",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 15323
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/bodies.py",
+      "sha256": "daa069c919b46d25bf6b25e367f1ac2744ffd64f76d6d0469e0eacf42d0d25d8",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/bodies.py",
+      "originalSha256": "daa069c919b46d25bf6b25e367f1ac2744ffd64f76d6d0469e0eacf42d0d25d8",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3507
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/common.py",
+      "sha256": "4e77fdb832287d36593c959ee7f6bffa93b03dc35bcec4f656bfeba3cdf72c26",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/common.py",
+      "originalSha256": "f1b680a6de6e989f9d884d45cfa936bc2e424ffe6485afc4a8b7389cd35383f1",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2995
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/opwalk.py",
+      "sha256": "c3e17d85438d5f1a62320c811b77bdfd7f475a123e0e8ea2ac759062bb9d6080",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/opwalk.py",
+      "originalSha256": "c3e17d85438d5f1a62320c811b77bdfd7f475a123e0e8ea2ac759062bb9d6080",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5911
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/perf2_core.py",
+      "sha256": "b5d50c6ae613e22773f8dd969df0faf80a3afe4a1aa1bef790b561ceb94c4a8a",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/perf2_core.py",
+      "originalSha256": "b5d50c6ae613e22773f8dd969df0faf80a3afe4a1aa1bef790b561ceb94c4a8a",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 9504
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/swfabc.py",
+      "sha256": "4f1c3ea93d71af0d98dba0467cb38fe205cbfc5eef5de93633db8f838aac7528",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/swfabc.py",
+      "originalSha256": "4f1c3ea93d71af0d98dba0467cb38fe205cbfc5eef5de93633db8f838aac7528",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5462
+    },
+    {
+      "path": "android/upstream/_build-v35/run11-source/vendor/swftags.py",
+      "sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/_build-v35/run11-source/vendor/swftags.py",
+      "originalSha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1975
+    },
+    {
+      "path": "android/upstream/112-wfx-effect-query/source/consumers.py",
+      "sha256": "c6fca18074c47e3a7b07b883e757934b24015e8178f07e3aca16c016f095fa41",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/112-wfx-effect-query/source/consumers.py",
+      "originalSha256": "c6fca18074c47e3a7b07b883e757934b24015e8178f07e3aca16c016f095fa41",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 7334
+    },
+    {
+      "path": "android/upstream/112-wfx-effect-query/source/patches.py",
+      "sha256": "d4c5a9ecc626ba809acfe5a72a6c7497762506a0c64ddbe2112d9e272b29b47a",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/112-wfx-effect-query/source/patches.py",
+      "originalSha256": "d4c5a9ecc626ba809acfe5a72a6c7497762506a0c64ddbe2112d9e272b29b47a",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1878
+    },
+    {
+      "path": "android/upstream/112-wfx-effect-query/source/query.py",
+      "sha256": "0995c597d3ca72570808af1388a002439585a274fbd2324f7c6cc603a59c6b24",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/112-wfx-effect-query/source/query.py",
+      "originalSha256": "0995c597d3ca72570808af1388a002439585a274fbd2324f7c6cc603a59c6b24",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 9055
+    },
+    {
+      "path": "android/upstream/118-pf-lv4-data/source/patches.py",
+      "sha256": "b10a4b651a4286bdd0eb12fa1f609fdb20326539ee0734db8296084a7a75d58f",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/118-pf-lv4-data/source/patches.py",
+      "originalSha256": "b10a4b651a4286bdd0eb12fa1f609fdb20326539ee0734db8296084a7a75d58f",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 13374
+    },
+    {
+      "path": "android/upstream/119-fever-items-v2/source/helpers.py",
+      "sha256": "877a6b62e5036365774e2406c08b6e4663e4184fb00240ff45d8e446410ff68c",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/119-fever-items-v2/source/helpers.py",
+      "originalSha256": "877a6b62e5036365774e2406c08b6e4663e4184fb00240ff45d8e446410ff68c",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 10000
+    },
+    {
+      "path": "android/upstream/119-fever-items-v2/source/patches.py",
+      "sha256": "f537880a6b636e8f9c32a7223415a89dd364ad43ae81d1dfc975117f4d1c9071",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/119-fever-items-v2/source/patches.py",
+      "originalSha256": "f537880a6b636e8f9c32a7223415a89dd364ad43ae81d1dfc975117f4d1c9071",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5559
+    },
+    {
+      "path": "android/upstream/120-leader-unlock/source/adaptive.py",
+      "sha256": "c378a035abce63627442d97d8c7bbfcc73c7076d58eff0882224e1316938877d",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/120-leader-unlock/source/adaptive.py",
+      "originalSha256": "c378a035abce63627442d97d8c7bbfcc73c7076d58eff0882224e1316938877d",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3002
+    },
+    {
+      "path": "android/upstream/120-leader-unlock/source/common.py",
+      "sha256": "434e9f4beccf634480ade2fc29abc4b37b7d8f11ff3178332ba1f5df06c05a60",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/120-leader-unlock/source/common.py",
+      "originalSha256": "434e9f4beccf634480ade2fc29abc4b37b7d8f11ff3178332ba1f5df06c05a60",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4240
+    },
+    {
+      "path": "android/upstream/120-leader-unlock/source/leaders.py",
+      "sha256": "18fc0a83c98c5783fa851d2a34dc991bc60a4b4650a66bdbdab35de746f535db",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/120-leader-unlock/source/leaders.py",
+      "originalSha256": "18fc0a83c98c5783fa851d2a34dc991bc60a4b4650a66bdbdab35de746f535db",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4023
+    },
+    {
+      "path": "android/upstream/120-leader-unlock/source/patches.py",
+      "sha256": "bcce0e5d4380269315b4a2ee0c679cf89677c7447915bc7b4668e7123b99ccf7",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/120-leader-unlock/source/patches.py",
+      "originalSha256": "bcce0e5d4380269315b4a2ee0c679cf89677c7447915bc7b4668e7123b99ccf7",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2206
+    },
+    {
+      "path": "android/upstream/122-overflow-heal-damage/source/patches.py",
+      "sha256": "f7ea295ebed7bc72097bf79bbf6188fc324a7ef48e2dc50dddbf62354a710fee",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/122-overflow-heal-damage/source/patches.py",
+      "originalSha256": "071ae857ddde89f40fd183cd3cbb29d0b4c277a13e000a72fed02e52917f11b9",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1679
+    },
+    {
+      "path": "android/upstream/122-overflow-heal-damage/source/record.py",
+      "sha256": "8cde79897c12a0db16fc9f965d62ec969fbbdc15efd298814d9fa2a171a3a97e",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/122-overflow-heal-damage/source/record.py",
+      "originalSha256": "8cde79897c12a0db16fc9f965d62ec969fbbdc15efd298814d9fa2a171a3a97e",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3065
+    },
+    {
+      "path": "android/upstream/122-overflow-heal-damage/source/symbols.py",
+      "sha256": "1d95d6df3022c8cdfb9b4ada633c0441d05ec0e1300715fea95e23cc56ed7571",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/122-overflow-heal-damage/source/symbols.py",
+      "originalSha256": "1d95d6df3022c8cdfb9b4ada633c0441d05ec0e1300715fea95e23cc56ed7571",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 744
+    },
+    {
+      "path": "android/upstream/122-overflow-heal-damage/source/timing.py",
+      "sha256": "e62c1271b2f49de89c256031602c97cb98c8ab593e13a5b17f39444ceebb1d28",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/122-overflow-heal-damage/source/timing.py",
+      "originalSha256": "e62c1271b2f49de89c256031602c97cb98c8ab593e13a5b17f39444ceebb1d28",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5464
+    },
+    {
+      "path": "android/upstream/123-ability-visuals/source/helpers.py",
+      "sha256": "f97b860b2346e3ace712b93a652303bf0bc12338d1e75d000f29527fb5fd3809",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/123-ability-visuals/source/helpers.py",
+      "originalSha256": "f97b860b2346e3ace712b93a652303bf0bc12338d1e75d000f29527fb5fd3809",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4581
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superdamage/patches.py",
+      "sha256": "3dcbe1682c6e6551f556046f38744f35414a5fb54bfa876e9a6e4d264eff9f85",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superdamage/patches.py",
+      "originalSha256": "3dcbe1682c6e6551f556046f38744f35414a5fb54bfa876e9a6e4d264eff9f85",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2720
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superdamage/poison.py",
+      "sha256": "fd015e7209ab4c682d503591d78688cefab9300beb02df09cd02781e9354716b",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superdamage/poison.py",
+      "originalSha256": "afa164321d1461782fa51a5d0818158ae5724012acdc228a3108ffbb3c36d0c7",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1419
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superdamage/record.py",
+      "sha256": "0b7cb40132c75119e02c623047c9035f311b21dd50f8904937b371e6eae8bfd2",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superdamage/record.py",
+      "originalSha256": "0b7cb40132c75119e02c623047c9035f311b21dd50f8904937b371e6eae8bfd2",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2645
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superdamage/source_share.py",
+      "sha256": "e0356ade3eeac919d342b4f9d242e5b03da52afef1c7ea1e4ce986babb97e780",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superdamage/source_share.py",
+      "originalSha256": "e0356ade3eeac919d342b4f9d242e5b03da52afef1c7ea1e4ce986babb97e780",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2551
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superfever/bonus.py",
+      "sha256": "dbc6afb695f9c319980148a55d5941243acd7e6364b9c7d8f2e33eeaa03a4e32",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superfever/bonus.py",
+      "originalSha256": "dbc6afb695f9c319980148a55d5941243acd7e6364b9c7d8f2e33eeaa03a4e32",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2519
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superfever/energy.py",
+      "sha256": "a5c3b5c6e481d3b10660b38ac29d994f32c092b3c8d47712f56344d6ed3c6194",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superfever/energy.py",
+      "originalSha256": "a5c3b5c6e481d3b10660b38ac29d994f32c092b3c8d47712f56344d6ed3c6194",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3234
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superfever/grant.py",
+      "sha256": "fc713cdbb546ed0674150488336445dfc82b20b8aff3575117aa7afb944392fb",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superfever/grant.py",
+      "originalSha256": "fc713cdbb546ed0674150488336445dfc82b20b8aff3575117aa7afb944392fb",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3783
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superfever/lifecycle.py",
+      "sha256": "5243d1e75fa838009839dc11fdd5542b3fc384978a467d5b931ef47d1686cef4",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superfever/lifecycle.py",
+      "originalSha256": "5243d1e75fa838009839dc11fdd5542b3fc384978a467d5b931ef47d1686cef4",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2499
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superfever/patches.py",
+      "sha256": "ff0eef9703eb29edf4fc1640f18663c80f1f22be8c36ecf57e17a95b417a8eec",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superfever/patches.py",
+      "originalSha256": "ff0eef9703eb29edf4fc1640f18663c80f1f22be8c36ecf57e17a95b417a8eec",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1330
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superfever/state.py",
+      "sha256": "d798855db0e2d4c90298a951b068ad16ce5a949aafd42852e53745c91c78af30",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superfever/state.py",
+      "originalSha256": "d798855db0e2d4c90298a951b068ad16ce5a949aafd42852e53745c91c78af30",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4295
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superfever/symbols.py",
+      "sha256": "203fe6f6aca93187828bae11ad184cea724c433a9d6153c7b653f4d5f8f6a0c2",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superfever/symbols.py",
+      "originalSha256": "203fe6f6aca93187828bae11ad184cea724c433a9d6153c7b653f4d5f8f6a0c2",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1000
+    },
+    {
+      "path": "android/upstream/125-super-fever/source/superpreload/patches.py",
+      "sha256": "561f26118d4e9d2575a9b2c7b08d7ccfd25fbf34fd3026df722c369f6ffe320e",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/125-super-fever/source/superpreload/patches.py",
+      "originalSha256": "561f26118d4e9d2575a9b2c7b08d7ccfd25fbf34fd3026df722c369f6ffe320e",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4211
+    },
+    {
+      "path": "android/upstream/128-dual-form-uid/source/voice_dual/patches.py",
+      "sha256": "9607ce36133cdb360d45a41981fd6e7219c3b15bbfacfd484a5c26ca5ba0b150",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/128-dual-form-uid/source/voice_dual/patches.py",
+      "originalSha256": "9607ce36133cdb360d45a41981fd6e7219c3b15bbfacfd484a5c26ca5ba0b150",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5063
+    },
+    {
+      "path": "android/upstream/129-equipment-rules-data/source/equipment/config.py",
+      "sha256": "0b17f7fc8f485e957c02b88c886fb8c1a7baaa1fd2ca3e447de4f73939ca07ef",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/129-equipment-rules-data/source/equipment/config.py",
+      "originalSha256": "0b17f7fc8f485e957c02b88c886fb8c1a7baaa1fd2ca3e447de4f73939ca07ef",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2805
+    },
+    {
+      "path": "android/upstream/129-equipment-rules-data/source/equipment/patches.py",
+      "sha256": "d5e9f143461750206fecd2d576eece2457eeabd28dc37ba11d8741ab0d116e52",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/129-equipment-rules-data/source/equipment/patches.py",
+      "originalSha256": "d5e9f143461750206fecd2d576eece2457eeabd28dc37ba11d8741ab0d116e52",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5225
+    },
+    {
+      "path": "android/upstream/130-direct-target-unique/source/direct_unique/patches.py",
+      "sha256": "7f874644d65473f2eef622c1f5e3f8cb1dae8afc7a5045a604120f7dd3ad562b",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/130-direct-target-unique/source/direct_unique/patches.py",
+      "originalSha256": "7f874644d65473f2eef622c1f5e3f8cb1dae8afc7a5045a604120f7dd3ad562b",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5399
+    },
+    {
+      "path": "android/upstream/131-wfx-hidden-unique-icons/source/hidden_icons/patches.py",
+      "sha256": "911b0041d934db973148e5b12783f08496143ec4f831f5c0897ecf866fd586bb",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/131-wfx-hidden-unique-icons/source/hidden_icons/patches.py",
+      "originalSha256": "911b0041d934db973148e5b12783f08496143ec4f831f5c0897ecf866fd586bb",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2236
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_damage/emission.py",
+      "sha256": "f5098673a6e4b093ef26584c5f6959f6039c71cf90c322c55f58c5632b25da47",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_damage/emission.py",
+      "originalSha256": "f5098673a6e4b093ef26584c5f6959f6039c71cf90c322c55f58c5632b25da47",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3985
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_damage/patches.py",
+      "sha256": "a4d5a27d845d6cd1131faa6e4c4c065dc8a369466946c90349d7e6d49c197240",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_damage/patches.py",
+      "originalSha256": "a4d5a27d845d6cd1131faa6e4c4c065dc8a369466946c90349d7e6d49c197240",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1655
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_damage/record.py",
+      "sha256": "507d7ca7348cca7b567d4d2647931302198bafb9f21fbc9109b9222d6096a2a1",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_damage/record.py",
+      "originalSha256": "507d7ca7348cca7b567d4d2647931302198bafb9f21fbc9109b9222d6096a2a1",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1341
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_damage/sample.py",
+      "sha256": "74876c4e5ac05014ad3de27f7f795ddf5d5edc7bb140d63dd473a310bd749ad8",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_damage/sample.py",
+      "originalSha256": "74876c4e5ac05014ad3de27f7f795ddf5d5edc7bb140d63dd473a310bd749ad8",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1761
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_damage/stance.py",
+      "sha256": "53d38e9017096855f2d1efaf679ab59bc1552a9c26b5ce5ee403b5bf215057a9",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_damage/stance.py",
+      "originalSha256": "53d38e9017096855f2d1efaf679ab59bc1552a9c26b5ce5ee403b5bf215057a9",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2109
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_damage/symbols.py",
+      "sha256": "1d95d6df3022c8cdfb9b4ada633c0441d05ec0e1300715fea95e23cc56ed7571",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_damage/symbols.py",
+      "originalSha256": "1d95d6df3022c8cdfb9b4ada633c0441d05ec0e1300715fea95e23cc56ed7571",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 744
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_damage/timing.py",
+      "sha256": "eac6e7ad4471c47a6a502e643db183aba6fe60199c749838891e06919bfe72ed",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_damage/timing.py",
+      "originalSha256": "eac6e7ad4471c47a6a502e643db183aba6fe60199c749838891e06919bfe72ed",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3071
+    },
+    {
+      "path": "android/upstream/132-heal-damage/source/heal_resources/patches.py",
+      "sha256": "4a01bc0e44caf34ed6c0759f038a56a440926afbce56b55867c0ffe3fd37854b",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/132-heal-damage/source/heal_resources/patches.py",
+      "originalSha256": "4a01bc0e44caf34ed6c0759f038a56a440926afbce56b55867c0ffe3fd37854b",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1409
+    },
+    {
+      "path": "android/upstream/133-heal-fever/source/heal_fever/patches.py",
+      "sha256": "878ed1ab3ba639b7cad6a6edb2fe8b5aff242da33d9a73ccde6319041b319420",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/133-heal-fever/source/heal_fever/patches.py",
+      "originalSha256": "878ed1ab3ba639b7cad6a6edb2fe8b5aff242da33d9a73ccde6319041b319420",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2376
+    },
+    {
+      "path": "android/upstream/134-leader-unlock-v2/source/leader_unlock/patches.py",
+      "sha256": "070c2b8dc5c707dcd54917e9ddf9f2518296c37c69a2e96f2f1fee820c89e78b",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/134-leader-unlock-v2/source/leader_unlock/patches.py",
+      "originalSha256": "070c2b8dc5c707dcd54917e9ddf9f2518296c37c69a2e96f2f1fee820c89e78b",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3019
+    },
+    {
+      "path": "android/upstream/135-wfx-no-leader-guard/source/leader_guard/patches.py",
+      "sha256": "da582c1e783d71e79784401f947397fde994ba528776358c901d3c7bc81e8263",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/135-wfx-no-leader-guard/source/leader_guard/patches.py",
+      "originalSha256": "da582c1e783d71e79784401f947397fde994ba528776358c901d3c7bc81e8263",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3162
+    },
+    {
+      "path": "android/upstream/136-overlimit-full-and-window-guard/source/materials/helper.py",
+      "sha256": "b37f461587b0e848451f4d6f53094a778eab7b3d1fb711b12bc480058eb6c07b",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/136-overlimit-full-and-window-guard/source/materials/helper.py",
+      "originalSha256": "b37f461587b0e848451f4d6f53094a778eab7b3d1fb711b12bc480058eb6c07b",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2466
+    },
+    {
+      "path": "android/upstream/136-overlimit-full-and-window-guard/source/materials/patches.py",
+      "sha256": "d753ca9da7f9156a602818eebb4f1a7084687af50394c0511e95528d11cdbf66",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/136-overlimit-full-and-window-guard/source/materials/patches.py",
+      "originalSha256": "d753ca9da7f9156a602818eebb4f1a7084687af50394c0511e95528d11cdbf66",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3378
+    },
+    {
+      "path": "android/upstream/136-overlimit-full-and-window-guard/source/materials/runtime.py",
+      "sha256": "6e31c8dad7314ce1284d87306e8ca8efd2b1ef9992fe4444cf074ebdf2827f99",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/136-overlimit-full-and-window-guard/source/materials/runtime.py",
+      "originalSha256": "6e31c8dad7314ce1284d87306e8ca8efd2b1ef9992fe4444cf074ebdf2827f99",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5509
+    },
+    {
+      "path": "android/upstream/136-overlimit-full-and-window-guard/source/pedestals/patches.py",
+      "sha256": "79d1445489187aba0caf4f45f56a5c6d129f306ebe2345ae3219f891ebf9260e",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/136-overlimit-full-and-window-guard/source/pedestals/patches.py",
+      "originalSha256": "79d1445489187aba0caf4f45f56a5c6d129f306ebe2345ae3219f891ebf9260e",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 7153
+    },
+    {
+      "path": "android/upstream/136-overlimit-full-and-window-guard/source/window/patches.py",
+      "sha256": "f40da4e661cabb8ba75130ad8a95ec44da91c91ef28a3bce553021d284aa97a1",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/136-overlimit-full-and-window-guard/source/window/patches.py",
+      "originalSha256": "f40da4e661cabb8ba75130ad8a95ec44da91c91ef28a3bce553021d284aa97a1",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1963
+    },
+    {
+      "path": "android/upstream/137-leader-unlock-owner-main/source/owner_main/element_helpers.py",
+      "sha256": "19d2d8c2446b20a52b11505a6d03e516fda6c5eacc22834a6c66f7eacd83e737",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/137-leader-unlock-owner-main/source/owner_main/element_helpers.py",
+      "originalSha256": "19d2d8c2446b20a52b11505a6d03e516fda6c5eacc22834a6c66f7eacd83e737",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2979
+    },
+    {
+      "path": "android/upstream/137-leader-unlock-owner-main/source/owner_main/helpers.py",
+      "sha256": "1735e6985a67cb619fa7c5d880e3a2cf4a03bafc5699db44d72201af306f4ebd",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/137-leader-unlock-owner-main/source/owner_main/helpers.py",
+      "originalSha256": "1735e6985a67cb619fa7c5d880e3a2cf4a03bafc5699db44d72201af306f4ebd",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5893
+    },
+    {
+      "path": "android/upstream/137-leader-unlock-owner-main/source/owner_main/patches.py",
+      "sha256": "336356369a630e1664aa83bdf42d310f04aacb3c96940ddf127bb7984f3f13b8",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/137-leader-unlock-owner-main/source/owner_main/patches.py",
+      "originalSha256": "336356369a630e1664aa83bdf42d310f04aacb3c96940ddf127bb7984f3f13b8",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3338
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/chain/config.py",
+      "sha256": "4d7f5286cbf720addb6ccf741a82d67f19e5703dd0f545efc65b382cd8075cfa",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/chain/config.py",
+      "originalSha256": "4d7f5286cbf720addb6ccf741a82d67f19e5703dd0f545efc65b382cd8075cfa",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1908
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/chain/patch.py",
+      "sha256": "721ce59225262cc55caf1ec0faaf56dadda786d55ce014856899674b520d5699",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/chain/patch.py",
+      "originalSha256": "721ce59225262cc55caf1ec0faaf56dadda786d55ce014856899674b520d5699",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 8574
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/damage/patch.py",
+      "sha256": "6810ed79ce644f6bd5236682da4c37ec695673b952ae12c30d71d6096184c1f3",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/damage/patch.py",
+      "originalSha256": "6810ed79ce644f6bd5236682da4c37ec695673b952ae12c30d71d6096184c1f3",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4221
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/lifecycle/address.py",
+      "sha256": "32c03bd08ec595bf4c1768b7d97a422b4062b0a5aa230cd5e01b9d7762ba1c0d",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/lifecycle/address.py",
+      "originalSha256": "32c03bd08ec595bf4c1768b7d97a422b4062b0a5aa230cd5e01b9d7762ba1c0d",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 808
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/lifecycle/movement.py",
+      "sha256": "77e3bd5ad07e6377c972c2c6523e0740909516e1ed1f8963f7c9b34a00d28612",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/lifecycle/movement.py",
+      "originalSha256": "77e3bd5ad07e6377c972c2c6523e0740909516e1ed1f8963f7c9b34a00d28612",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5338
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/lifecycle/patch.py",
+      "sha256": "09fb2eebd151f29ab26dcbb8993121cee201fde8846e335c2e1ac8a713fc3e72",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/lifecycle/patch.py",
+      "originalSha256": "09fb2eebd151f29ab26dcbb8993121cee201fde8846e335c2e1ac8a713fc3e72",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3869
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/override/patch.py",
+      "sha256": "dce88f179dcdc638c68bae6ca8b1143dc2520f50773c68c2a352ab0d86050f9f",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/override/patch.py",
+      "originalSha256": "dce88f179dcdc638c68bae6ca8b1143dc2520f50773c68c2a352ab0d86050f9f",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 7028
+    },
+    {
+      "path": "android/upstream/144-pf-unison-chain/source/preload/patch.py",
+      "sha256": "48c27f820e677f6ffeb572c7eafdee62cb6c1d8416a2c87fe1ddf7f8f7585b07",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/144-pf-unison-chain/source/preload/patch.py",
+      "originalSha256": "48c27f820e677f6ffeb572c7eafdee62cb6c1d8416a2c87fe1ddf7f8f7585b07",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 7054
+    },
+    {
+      "path": "android/upstream/153-hell-pumpkin-pf-trial/source/pa_common.py",
+      "sha256": "31feea9d2bc5431df4c862dbf06ae3298eac6e02535d63dd7e9a4e225f55ad88",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/153-hell-pumpkin-pf-trial/source/pa_common.py",
+      "originalSha256": "31feea9d2bc5431df4c862dbf06ae3298eac6e02535d63dd7e9a4e225f55ad88",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4333
+    },
+    {
+      "path": "android/upstream/153-hell-pumpkin-pf-trial/source/pa_integrity.py",
+      "sha256": "14942ab4331207fec597cd411442502bb0cbc74c01c7683f1c329cb54e9902f9",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/153-hell-pumpkin-pf-trial/source/pa_integrity.py",
+      "originalSha256": "14942ab4331207fec597cd411442502bb0cbc74c01c7683f1c329cb54e9902f9",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 6194
+    },
+    {
+      "path": "android/upstream/153-hell-pumpkin-pf-trial/source/pa_patch.py",
+      "sha256": "3924e732cd5c82b5d84e1f6da28aacd29920101a7cb74b9cdf331656e7a71649",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/153-hell-pumpkin-pf-trial/source/pa_patch.py",
+      "originalSha256": "3924e732cd5c82b5d84e1f6da28aacd29920101a7cb74b9cdf331656e7a71649",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4383
+    },
+    {
+      "path": "android/upstream/154-pf4-source-unison/source/src/patch.py",
+      "sha256": "8d705db3b9a3074f89c5c1bde0f6cfeef2e476085c6ade000e2979e141a63de1",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/154-pf4-source-unison/source/src/patch.py",
+      "originalSha256": "8d705db3b9a3074f89c5c1bde0f6cfeef2e476085c6ade000e2979e141a63de1",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4932
+    },
+    {
+      "path": "android/upstream/154-pf4-source-unison/source/src/selectors.py",
+      "sha256": "69b36a4daea477321c57e157cb7919a0da35bf7bf3cb7b794e9562c6c27f81a0",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/154-pf4-source-unison/source/src/selectors.py",
+      "originalSha256": "69b36a4daea477321c57e157cb7919a0da35bf7bf3cb7b794e9562c6c27f81a0",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 6658
+    },
+    {
+      "path": "android/upstream/154-pf4-source-unison/source/src/sources.py",
+      "sha256": "dbbed9c8d1a98c22578f1a93d4dacd964a10a3bc93e82ac2b720a3187a5345bf",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/154-pf4-source-unison/source/src/sources.py",
+      "originalSha256": "dbbed9c8d1a98c22578f1a93d4dacd964a10a3bc93e82ac2b720a3187a5345bf",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 9290
+    },
+    {
+      "path": "android/upstream/155-leader-table-patched-kinds/source/leader_kinds/patch.py",
+      "sha256": "e79e5f5fd90d3617efda445a0d4ce54bd8d7a33d28157e61d3fda620de12bc8b",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/155-leader-table-patched-kinds/source/leader_kinds/patch.py",
+      "originalSha256": "e79e5f5fd90d3617efda445a0d4ce54bd8d7a33d28157e61d3fda620de12bc8b",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2154
+    },
+    {
+      "path": "android/upstream/156-direct-combo-cap/source/direct_combo_cap/patch.py",
+      "sha256": "bf2a6348538e27ca32fdf127a96c5986690b55fbeaa887bceff9c1089c34e179",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/156-direct-combo-cap/source/direct_combo_cap/patch.py",
+      "originalSha256": "bf2a6348538e27ca32fdf127a96c5986690b55fbeaa887bceff9c1089c34e179",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3072
+    },
+    {
+      "path": "android/upstream/157-atlas-preload-dualform-and-ability-dmg/source/atlas_preload/arrays.py",
+      "sha256": "5cfa30556e7d164c86202afa1683be9c1710dfbf4dd0d242ffd8428767bfd06a",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/157-atlas-preload-dualform-and-ability-dmg/source/atlas_preload/arrays.py",
+      "originalSha256": "5cfa30556e7d164c86202afa1683be9c1710dfbf4dd0d242ffd8428767bfd06a",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 1802
+    },
+    {
+      "path": "android/upstream/157-atlas-preload-dualform-and-ability-dmg/source/atlas_preload/inline.py",
+      "sha256": "3c0a715fa12c4b0eefbaf3eb5c50dab30f0d37aa3c8421af3ae56243076629f2",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/157-atlas-preload-dualform-and-ability-dmg/source/atlas_preload/inline.py",
+      "originalSha256": "3c0a715fa12c4b0eefbaf3eb5c50dab30f0d37aa3c8421af3ae56243076629f2",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2249
+    },
+    {
+      "path": "android/upstream/157-atlas-preload-dualform-and-ability-dmg/source/atlas_preload/patch.py",
+      "sha256": "84d85bc39ee5a7061ecd192259b7265fa0b963450e1ffdaeb1ea1123ab02e6a5",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/157-atlas-preload-dualform-and-ability-dmg/source/atlas_preload/patch.py",
+      "originalSha256": "84d85bc39ee5a7061ecd192259b7265fa0b963450e1ffdaeb1ea1123ab02e6a5",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4730
+    },
+    {
+      "path": "android/upstream/158-summon-cutin-preload/source/summon_cutin_preload/patch.py",
+      "sha256": "25cd5790dd860dfa9f10407fbe53655681c03f817a489d8b7296a41ee935ecb3",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/158-summon-cutin-preload/source/summon_cutin_preload/patch.py",
+      "originalSha256": "25cd5790dd860dfa9f10407fbe53655681c03f817a489d8b7296a41ee935ecb3",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4515
+    },
+    {
+      "path": "android/upstream/159-combo-base-wfx41/source/combo_base/helpers.py",
+      "sha256": "d89c3236901d6766c3012388a318a7dbc678d3e5c72d8a3feec2e3e9ca034709",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/159-combo-base-wfx41/source/combo_base/helpers.py",
+      "originalSha256": "d89c3236901d6766c3012388a318a7dbc678d3e5c72d8a3feec2e3e9ca034709",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3707
+    },
+    {
+      "path": "android/upstream/159-combo-base-wfx41/source/combo_base/patch.py",
+      "sha256": "e055a90e966fe197e65c15f4f71643979b8fedbe4588b7d7087f3444fc0e3f85",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/159-combo-base-wfx41/source/combo_base/patch.py",
+      "originalSha256": "e055a90e966fe197e65c15f4f71643979b8fedbe4588b7d7087f3444fc0e3f85",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2093
+    },
+    {
+      "path": "android/upstream/160-dual-pf-wfx42/source/dual_pf_preload/code.py",
+      "sha256": "d4ce475dbf2036cd0bae32fc0b8deb52c7add7c769e1c4825b0269029c1f2079",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/160-dual-pf-wfx42/source/dual_pf_preload/code.py",
+      "originalSha256": "d4ce475dbf2036cd0bae32fc0b8deb52c7add7c769e1c4825b0269029c1f2079",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 6001
+    },
+    {
+      "path": "android/upstream/160-dual-pf-wfx42/source/dual_pf_preload/patch.py",
+      "sha256": "8103a8ee293214640cf196ec852ce65108399de1f555ba008676e307f057afad",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/160-dual-pf-wfx42/source/dual_pf_preload/patch.py",
+      "originalSha256": "8103a8ee293214640cf196ec852ce65108399de1f555ba008676e307f057afad",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2147
+    },
+    {
+      "path": "android/upstream/160-dual-pf-wfx42/source/dual_pf/actions.py",
+      "sha256": "20178246c19ecfed400237b7081337debaf67b3d0e769a2ca4eccc596308137e",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/160-dual-pf-wfx42/source/dual_pf/actions.py",
+      "originalSha256": "af55500ba70714bd6491d18524360c56bd798ddf21d9d4b4d979662155f0000c",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 5373
+    },
+    {
+      "path": "android/upstream/160-dual-pf-wfx42/source/dual_pf/common.py",
+      "sha256": "b8c09a9f0c33129f0a4b34e78172ad697137007b39b0eb6977f124a2bed63eb0",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/160-dual-pf-wfx42/source/dual_pf/common.py",
+      "originalSha256": "b8c09a9f0c33129f0a4b34e78172ad697137007b39b0eb6977f124a2bed63eb0",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 674
+    },
+    {
+      "path": "android/upstream/160-dual-pf-wfx42/source/dual_pf/patch.py",
+      "sha256": "825188452f29a097535d6b20fc9980bcca09b047aa39941519dab16b62e142c8",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/160-dual-pf-wfx42/source/dual_pf/patch.py",
+      "originalSha256": "825188452f29a097535d6b20fc9980bcca09b047aa39941519dab16b62e142c8",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2971
+    },
+    {
+      "path": "android/upstream/160-dual-pf-wfx42/source/dual_pf/snapshot.py",
+      "sha256": "b1908c76f82ce5a348e4c984633a3864daf6f3f7a3e620ee0927b82d852109fe",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/160-dual-pf-wfx42/source/dual_pf/snapshot.py",
+      "originalSha256": "d7fa32a7015ee179caa4c203bd72159a7ab75a3c055c3a1cdd3fa327ad4c8227",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 6446
+    },
+    {
+      "path": "android/upstream/161-summon-flip-pf/source/summon_flip_pf/config.py",
+      "sha256": "2ad48be67df7f9c72bc1d9beca945e93dd82fad0559662bdf1cfe21b81b24b4b",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/161-summon-flip-pf/source/summon_flip_pf/config.py",
+      "originalSha256": "220fa90e3a0c12fc8265924e14522c6a3687c6473c37f0904534506a5b48c385",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4198
+    },
+    {
+      "path": "android/upstream/161-summon-flip-pf/source/summon_flip_pf/patch.py",
+      "sha256": "e7e51270568bef6068e92c3b340f4a84d460c3ccd39738a303e817727f82e0a2",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/161-summon-flip-pf/source/summon_flip_pf/patch.py",
+      "originalSha256": "1767fa34cf0d3bb1fe906d195797069aedb5102f8fd4bd3c664f1dd4ce3943c1",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3173
+    },
+    {
+      "path": "android/upstream/161-summon-flip-pf/source/summon_flip_pf/queue.py",
+      "sha256": "e3464a8be3a976b5392c00b9a21eb795729d3974f1c2544d6e5ef07b36dae300",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/161-summon-flip-pf/source/summon_flip_pf/queue.py",
+      "originalSha256": "581a52bb88ac1d52b481a5eb2edf51d73297cfae354e7a6effd24c683b4a2803",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 6706
+    },
+    {
+      "path": "android/upstream/162-ball-pf-action/source/ball_pf_action/bundled.py",
+      "sha256": "376fd10d60acc319c235f3ae427af677c6fb228063872e55ce68b4087215474d",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/162-ball-pf-action/source/ball_pf_action/bundled.py",
+      "originalSha256": "5869acfa6b3ba583af8314df0fd3d694b71232423ab0829a72f33bdd04e70118",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2027
+    },
+    {
+      "path": "android/upstream/162-ball-pf-action/source/ball_pf_action/patch.py",
+      "sha256": "cb01727d510ef15ae59e216f103e0986789e3085108e57999de183d7512b8bcd",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/162-ball-pf-action/source/ball_pf_action/patch.py",
+      "originalSha256": "12aab12079317a964b5397645ba099ecc4690a352b1e062d72b943aa38f63bff",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2291
+    },
+    {
+      "path": "android/upstream/162-ball-pf-action/source/ball_pf_action/preload.py",
+      "sha256": "e6ae18a660bc9e714b6d82960c7acb921e045cfef3a1c9e1d4ffe7497c3bb3dc",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/162-ball-pf-action/source/ball_pf_action/preload.py",
+      "originalSha256": "47e8b4798583645fd537b482a912b206a300542d4f1cf0e8226b4b070ba16759",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 3340
+    },
+    {
+      "path": "android/upstream/162-ball-pf-action/source/ball_pf_action/select.py",
+      "sha256": "1a16525d39c55b959c43cd40d9b939fb9a0835dd9898bbf46691a7b553696555",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/162-ball-pf-action/source/ball_pf_action/select.py",
+      "originalSha256": "c6ee58a343b7c69380c6d77763ba388b0f72daf06ea25587a82d675e9a274aeb",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 2524
+    },
+    {
+      "path": "android/upstream/193-perfect-guard-wfx43/source/guard/patch.py",
+      "sha256": "bf2e40ba54ae530180ab9b73d55dcc4e5842430f4660f6a9a431575aac62ea4d",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/193-perfect-guard-wfx43/source/guard/patch.py",
+      "originalSha256": "bf2e40ba54ae530180ab9b73d55dcc4e5842430f4660f6a9a431575aac62ea4d",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 4346
+    },
+    {
+      "path": "android/upstream/193-perfect-guard-wfx43/source/verify.py",
+      "sha256": "40d720937ffe5f3e0347b557b45e7c27f43a1028afa33ccd09684ce83f2b486c",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/193-perfect-guard-wfx43/source/verify.py",
+      "originalSha256": "40d720937ffe5f3e0347b557b45e7c27f43a1028afa33ccd09684ce83f2b486c",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 30251
+    },
+    {
+      "path": "android/upstream/194-gerald-mana-board2-lv120/source/board2/patch.py",
+      "sha256": "c82077a66c87c1c26bda32e7a3e0f0644c4c3577d9c1b446e9555ebb97d9565d",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/194-gerald-mana-board2-lv120/source/board2/patch.py",
+      "originalSha256": "c82077a66c87c1c26bda32e7a3e0f0644c4c3577d9c1b446e9555ebb97d9565d",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 7132
+    },
+    {
+      "path": "android/upstream/194-gerald-mana-board2-lv120/source/board2/verify.py",
+      "sha256": "5e2fbd8b3d6029dacf2895197e7a08434292b54ca336c8f684ad7516176f76ba",
+      "sourceKind": "Selected upstream patch/tool or narrow interpreter QA source",
+      "sourceGitPath": "docs/client-apk-patches-v35/194-gerald-mana-board2-lv120/source/board2/verify.py",
+      "originalSha256": "5e2fbd8b3d6029dacf2895197e7a08434292b54ca336c8f684ad7516176f76ba",
+      "sourceRevision": "5f70aec391c011f8d3066d41021fe06f27c07f84",
+      "bytes": 27209
+    },
+    {
+      "path": "android/contracts/capability-order.json",
+      "sha256": "7865600583d0c05c836ff307066adb2fabc04626427cd917c73e4ea3929198dc",
+      "sourceKind": "Narrow exact instruction/header/selection contract; no whole-class export",
+      "bytes": 7461
+    },
+    {
+      "path": "android/contracts/helper-instructions.json",
+      "sha256": "1ace360c516382f3e211690aec31db1dfb1e00beb5285f5ec26ef289b7fab67d",
+      "sourceKind": "Narrow exact instruction/header/selection contract; no whole-class export",
+      "bytes": 7690
+    },
+    {
+      "path": "android/contracts/leader-display-labels.json",
+      "sha256": "bb5bf571bc81985afe49bf5e42fcbbd6fa0f9036ba01d00d65e7f208a9434828",
+      "sourceKind": "Narrow exact instruction/header/selection contract; no whole-class export",
+      "bytes": 800
+    },
+    {
+      "path": "android/contracts/semantic-preimages.json",
+      "sha256": "feec6c28f5f6d02c523f261d2546d61650980052da08f666b9ed4bf15d84e735",
+      "sourceKind": "Narrow exact instruction/header/selection contract; no whole-class export",
+      "bytes": 682455
+    }
+  ],
+  "repositoryDependencies": [
+    {
+      "path": "docs/client-apk-patches-v33/93-fever-items-leading-dsl/source/feveritems_patches.py",
+      "sha256": "9bbd99af22b9199a811c29def240b9e86d14df3d54928a8129461a44d0a726ae",
+      "role": "Existing repository source; read only, not copied"
+    },
+    {
+      "path": "client-patch/lens0907-0908/build_swf.py",
+      "sha256": "fda30d7f435f8d0a9c0ab6a2a09cde1178014d65c25f8eae0b8163151736d4f4",
+      "role": "Existing repository source; read only, not copied"
+    },
+    {
+      "path": "client-patch/lens0907-0908/vendor/abcasm/asm.py",
+      "sha256": "a70c8186da5e8f8e2a71f62cbb803db6d9f89543b785a9266cc72e6d439c40ac",
+      "role": "Existing repository source; read only, not copied"
+    },
+    {
+      "path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/abcfmt.py",
+      "sha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82",
+      "role": "Existing repository source; read only, not copied"
+    },
+    {
+      "path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/swftags.py",
+      "sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+      "role": "Existing repository source; read only, not copied"
+    },
+    {
+      "path": "tools/lens-integration/compare_clients.py",
+      "sha256": "38883c3e2b7dfe575a15363a9456e65ba0a06ef4b4fadfcfd822607d2bd96a92",
+      "role": "Existing repository source; read only, not copied"
+    }
+  ],
+  "sourceDependencyClosureCount": 105,
+  "extraInterpreterQaSources": 4,
+  "semanticMethodContracts": 21,
+  "customHelperContracts": 2,
+  "ctPredecessorContracts": 1,
+  "orderedSuccessfulGroups": 46,
+  "adaptations": [
+    "Repository-relative source and explicit private inputs/external outputs",
+    "Exact selected semantic contracts replace broad P-code archive traversal",
+    "Literal donor-method labels replace filename enumeration",
+    "Frozen historical construction order defers final missing-helper insertion; normal donor completeness fix retained",
+    "R11 APK identity streamed directly before bundled PFA data read",
+    "Unused historical vendor defaults removed; active describe/ASM API preserved"
+  ],
+  "validation": {
+    "powershellSourceAndJsonReadback": true,
+    "pythonSyntaxAndImportRun": false,
+    "carrierReconstructionRun": false,
+    "packageRebuilt": false
+  },
+  "line_endings": {
+    "format": "LF",
+    "trailing_newline": "single",
+    "current_file_hashes": "files.sha256 and files.bytes describe the normalized repository bytes",
+    "source_provenance": "originalSha256, sourceRevision and sourceGitPath retain the pre-normalization upstream provenance where present; repository dependencies are unchanged",
+    "scope": "Release source files were normalized without business-logic changes"
+  }
+}

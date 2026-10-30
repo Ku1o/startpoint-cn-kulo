@@ -1,0 +1,10 @@
+{
+ "schemaVersion":1,
+ "signerSha256":"569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
+ "revisions": {
+  "tutorial":{"input_apk_sha256":"3361108f8d321ec188aab3454798d363e09086106ecf361a5c519f522c2ea814","output_apk_sha256":"566b1c6be54d03cb471b67e1507013ef396a67a33a6831b18fbc5ca3493b4666","input_swf_sha256":"3c56f08c8b30ae75ae71908a699e703764dcfca0bc64d1fb91d866e2c61bfaef","output_swf_sha256":"215860d0f3933b352c377309c68943a3978a80ab5c5beb209c9b94382191e325"},
+  "trigger9000":{"input_apk_sha256":"566b1c6be54d03cb471b67e1507013ef396a67a33a6831b18fbc5ca3493b4666","output_apk_sha256":"c93c6cbbf5437b1664e3184a31798a57315fad482ac3fd55f1035548573721b9","input_swf_sha256":"215860d0f3933b352c377309c68943a3978a80ab5c5beb209c9b94382191e325","output_swf_sha256":"d06b1431c13d7d50765f81ed4a747be00e01500c5288702d816398e4fcc666f2"},
+  "dash":{"input_apk_sha256":"c93c6cbbf5437b1664e3184a31798a57315fad482ac3fd55f1035548573721b9","output_apk_sha256":"ccb18e4a6ea295d14e2ab7a17e478d7b0ea7fc54a6dbc78d06f1375569c67254","input_swf_sha256":"d06b1431c13d7d50765f81ed4a747be00e01500c5288702d816398e4fcc666f2","output_swf_sha256":"83fc92d70d7457bb5e4b58d25d97663eeb80367ee366a947f4779a12075ff172"}
+ },
+ "boundary":"Historical signed output identities. A later authorized rebuild chooses a fresh UUID and therefore a new APK SHA; it is not automatically the old accepted or delivered package."
+}

@@ -1,0 +1,306 @@
+[
+  {
+    "path": "carry163/src/cn/carry/StageCarryState.as",
+    "source_relative_path": "carry163/src/cn/carry/StageCarryState.as",
+    "source_sha256": "6ac6ff8f5eead3984f932c9d7a4cfb58b058452c0311d058ebd00a6a7d30b856",
+    "adapted_sha256": "2e4141d743ce2aff36b4b649fe350c4a644b90938af2f7a2b65eef2152a86443",
+    "adapted": true,
+    "adapted_bytes": 7227
+  },
+  {
+    "path": "carry163/patch.py",
+    "source_relative_path": "carry163/patch.py",
+    "source_sha256": "365d2be74f2d89ee95df5fcfbe6db9ed40316442d7b0a41a048c528b91b00b57",
+    "adapted_sha256": "9c127182a7b365dca4a0a61dda6c3bb2e9da6f3255622b744566bba9107fd7fb",
+    "adapted": true,
+    "adapted_bytes": 2206
+  },
+  {
+    "path": "carry163/compile_helper.py",
+    "source_relative_path": "carry163/compile_helper.py",
+    "source_sha256": "4b97cfd01568d0d8f06760d731c90087a88a4469e7b8904fa67dcf351a86ae7c",
+    "adapted_sha256": "f31a53219c594ceaf24f0f01ec0894be5df6e4ab33817dba983b5fe050a41458",
+    "adapted": true,
+    "adapted_bytes": 2147
+  },
+  {
+    "path": "carry163/build.py",
+    "source_relative_path": "carry163/build.py",
+    "source_sha256": "1df22972c45f19027a0a6c549585f011345459d121d9cffca8853fcfe5322be8",
+    "adapted_sha256": "874b181bb0284c8b4fd6f0e42dd66a4dc9fabcd281d87143a47c9a46b7a2b606",
+    "adapted": true,
+    "adapted_bytes": 4999
+  },
+  {
+    "path": "carry163/apply_to_candidate.py",
+    "source_relative_path": "carry163/apply_to_candidate.py",
+    "source_sha256": "0887c03878e966fa0ea9be3c1719d0ce4d7d77e9c60076441b46dce04fcb1602",
+    "adapted_sha256": "fe2cc2ac5bd9a3bb7e916930a35ea6319e9f759d43b06af2bcbaf17987705a8d",
+    "adapted": true,
+    "adapted_bytes": 884
+  },
+  {
+    "path": "carry163/run_air.py",
+    "source_relative_path": "carry163/run_air.py",
+    "source_sha256": "c7b4d1eaa2d9230a1ca2e4cb6b0b89aeb944c42af24647e46e24259acd841603",
+    "adapted_sha256": "6f60ec8244183fce62c6ae20d563df7a7429cfda2075b722cdecf445f7cbb20c",
+    "adapted": true,
+    "adapted_bytes": 17422
+  },
+  {
+    "path": "carry163/air_harness.as",
+    "source_relative_path": "carry163/air_harness.as",
+    "source_sha256": "286f9be18cdfb556e958415558ec5e93f71c300ae7dc5112a2aedf44dce15dd8",
+    "adapted_sha256": "61b24c07cf2f500b9e9987e71d410d56d788d2112863077f5af4743c503986dc",
+    "adapted": true,
+    "adapted_bytes": 12711
+  },
+  {
+    "path": "carry163/run_mutation_controls.py",
+    "source_relative_path": "carry163/run_mutation_controls.py",
+    "source_sha256": "4876efdcc9a7c5cd16eeb1838802d08e142a9d993025aa96939aeb28793f6c63",
+    "adapted_sha256": "ba0093edccd2396831a2c57e035de7559dc62de68f79f4b56ab4eba1a797a759",
+    "adapted": true,
+    "adapted_bytes": 3675
+  },
+  {
+    "path": "carry163/test_contracts.py",
+    "source_relative_path": "carry163/test_contracts.py",
+    "source_sha256": "32044e7ca207c09d4fc4ffa51ed997a3cffc3fcc2eb978efc2fd65346415962b",
+    "adapted_sha256": "431d45ac3d05df2ca8866239ea1065d8aa0caba162447e7498ec941190187bb0",
+    "adapted": true,
+    "adapted_bytes": 996
+  },
+  {
+    "path": "tutorial/patch_helper.py",
+    "source_relative_path": "revision-tutorial-gacha/patch_helper.py",
+    "source_sha256": "bb931ee81f8e24ebe6e143bb0460042520ec8aef8804dbaf14511856f7971402",
+    "adapted_sha256": "33c710ecdf45766f31bb51a438ca7ba3e8069333c5ec92c1ca278dc95a945a8c",
+    "adapted": true,
+    "adapted_bytes": 4696
+  },
+  {
+    "path": "tutorial/regression/run.py",
+    "source_relative_path": "revision-tutorial-gacha/regression/run.py",
+    "source_sha256": "503a3427bff1f2188e578546e13f795c7120377336101bd369d7f184409783b7",
+    "adapted_sha256": "764c4c686a7db0e1eaecb27da72adfd019a3a7a0795f2b23f431a94723047415",
+    "adapted": true,
+    "adapted_bytes": 12851
+  },
+  {
+    "path": "tutorial/regression/inventory.py",
+    "source_relative_path": "revision-tutorial-gacha/regression/inventory.py",
+    "source_sha256": "153af3627a93904edc4a0a5be4e59f98fac5842abe01ff342c9bc88f9b0c7069",
+    "adapted_sha256": "511a32ba078da6e44b0fd9e3b97c7162e1e77ad9e8a59647787dd4b63e72ea5b",
+    "adapted": true,
+    "adapted_bytes": 1945
+  },
+  {
+    "path": "tutorial/regression/Harness.as",
+    "source_relative_path": "revision-tutorial-gacha/regression/Harness.as",
+    "source_sha256": "71f0d8ad685e9a694e8d52febbebb5400ec2472873b0527ad988cbe946a2bccd",
+    "adapted_sha256": "71f0d8ad685e9a694e8d52febbebb5400ec2472873b0527ad988cbe946a2bccd",
+    "adapted": false,
+    "adapted_bytes": 4269
+  },
+  {
+    "path": "tutorial/regression/Launcher.as",
+    "source_relative_path": "revision-tutorial-gacha/regression/Launcher.as",
+    "source_sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc",
+    "adapted_sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc",
+    "adapted": false,
+    "adapted_bytes": 1264
+  },
+  {
+    "path": "trigger9000/build.py",
+    "source_relative_path": "revision-trigger9000/build.py",
+    "source_sha256": "f1c45cf662ecc29da1e72af77c3c230132005e7407f559429b1c8a9fe6b4064b",
+    "adapted_sha256": "eb0114bc9a598c39981404f068f33945903ff496032cf15bd4b2dcf35874806d",
+    "adapted": true,
+    "adapted_bytes": 6252
+  },
+  {
+    "path": "trigger9000/regression/prepare_native.py",
+    "source_relative_path": "revision-trigger9000/regression/prepare_native.py",
+    "source_sha256": "10883a4aed8b0d5edecac09d081f50742b32cbc7bdb0134ca63947331ccb51f3",
+    "adapted_sha256": "09b17e70ce4d6dbfe4c76fc56ef438ba0ddcd85bbd958b2814c85008c168aa6f",
+    "adapted": true,
+    "adapted_bytes": 16802
+  },
+  {
+    "path": "trigger9000/regression/run.py",
+    "source_relative_path": "revision-trigger9000/regression/run.py",
+    "source_sha256": "89dc09892d9883cc4a2a2e0a2e8ea1ce4249f0e38987d73e7e27808550cc741d",
+    "adapted_sha256": "2017cafac3de920e260e0094fb9ad858e7bec1c62acca42e7deaffd7aa39350f",
+    "adapted": true,
+    "adapted_bytes": 5433
+  },
+  {
+    "path": "trigger9000/regression/fixture_utils.py",
+    "source_relative_path": "revision-trigger9000/regression/fixture_utils.py",
+    "source_sha256": "145634ca947120fcfe34850b822dbf6df3d92766a22eb6e8f3c9eb9817afeebe",
+    "adapted_sha256": "145634ca947120fcfe34850b822dbf6df3d92766a22eb6e8f3c9eb9817afeebe",
+    "adapted": false,
+    "adapted_bytes": 985
+  },
+  {
+    "path": "trigger9000/regression/inspect_fixture.py",
+    "source_relative_path": "revision-trigger9000/regression/inspect_fixture.py",
+    "source_sha256": "bb2f9dc2f215570a491b09fd668c1b0a452a80bf0466e17ad0613a28280650ca",
+    "adapted_sha256": "30f737bfa1a02a4a1283cd45ebdb0b4f8ebe8cd5441e83a0b854a0613d168553",
+    "adapted": true,
+    "adapted_bytes": 4098
+  },
+  {
+    "path": "trigger9000/regression/inspect_lifecycle.py",
+    "source_relative_path": "revision-trigger9000/regression/inspect_lifecycle.py",
+    "source_sha256": "5676b74eed4273b2a39eff24b3ba16be667e45461e5d48eed197ff9ae6188ad0",
+    "adapted_sha256": "3e1ad423f938ac4739d727b5e65677940913d3739154dfbd919a93f0abf477e1",
+    "adapted": true,
+    "adapted_bytes": 2187
+  },
+  {
+    "path": "trigger9000/regression/Harness.as",
+    "source_relative_path": "revision-trigger9000/regression/Harness.as",
+    "source_sha256": "431b11819ade62685e29c13baa0d6706029309f0d77e5fd88203a4c75ee0af2d",
+    "adapted_sha256": "431b11819ade62685e29c13baa0d6706029309f0d77e5fd88203a4c75ee0af2d",
+    "adapted": false,
+    "adapted_bytes": 1364
+  },
+  {
+    "path": "trigger9000/regression/Launcher.as",
+    "source_relative_path": "revision-trigger9000/regression/Launcher.as",
+    "source_sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc",
+    "adapted_sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc",
+    "adapted": false,
+    "adapted_bytes": 1264
+  },
+  {
+    "path": "trigger9000/regression/NativeCases.as",
+    "source_relative_path": "revision-trigger9000/regression/NativeCases.as",
+    "source_sha256": "c83c542ed73e8853a6ce8eceac3f6d5dde483e8692048d310767beec808f71d0",
+    "adapted_sha256": "c83c542ed73e8853a6ce8eceac3f6d5dde483e8692048d310767beec808f71d0",
+    "adapted": false,
+    "adapted_bytes": 4949
+  },
+  {
+    "path": "trigger9000/regression/HPNativeCase.as",
+    "source_relative_path": "revision-trigger9000/regression/HPNativeCase.as",
+    "source_sha256": "0d33ef211d83be7a88bf8ac8973289874a95fe3a9675d5489668054405c84e8a",
+    "adapted_sha256": "0d33ef211d83be7a88bf8ac8973289874a95fe3a9675d5489668054405c84e8a",
+    "adapted": false,
+    "adapted_bytes": 10764
+  },
+  {
+    "path": "trigger9000/regression/HPState.as",
+    "source_relative_path": "revision-trigger9000/regression/HPState.as",
+    "source_sha256": "439eb189839cd5286cc38a6204dc6c1103722588f8f6802d1831d43425b39731",
+    "adapted_sha256": "439eb189839cd5286cc38a6204dc6c1103722588f8f6802d1831d43425b39731",
+    "adapted": false,
+    "adapted_bytes": 2840
+  },
+  {
+    "path": "trigger9000/regression/HPPort.as",
+    "source_relative_path": "revision-trigger9000/regression/HPPort.as",
+    "source_sha256": "4bef2daad48ec2477d261b4e984ed1ab5d7b9e0b957c8a92d2533bb0fa846a52",
+    "adapted_sha256": "4bef2daad48ec2477d261b4e984ed1ab5d7b9e0b957c8a92d2533bb0fa846a52",
+    "adapted": false,
+    "adapted_bytes": 468
+  },
+  {
+    "path": "trigger9000/regression/HPTeam.as",
+    "source_relative_path": "revision-trigger9000/regression/HPTeam.as",
+    "source_sha256": "f4522ffc3a2f3fc7cb79f2764c3710303e3eb91b88b6fe1ead05900b592c3963",
+    "adapted_sha256": "f4522ffc3a2f3fc7cb79f2764c3710303e3eb91b88b6fe1ead05900b592c3963",
+    "adapted": false,
+    "adapted_bytes": 321
+  },
+  {
+    "path": "trigger9000/regression/HPGear.as",
+    "source_relative_path": "revision-trigger9000/regression/HPGear.as",
+    "source_sha256": "56d10782485069c8cb382d49a8d4aa9c9765615a2ed90c6f3db66162467948ac",
+    "adapted_sha256": "56d10782485069c8cb382d49a8d4aa9c9765615a2ed90c6f3db66162467948ac",
+    "adapted": false,
+    "adapted_bytes": 121
+  },
+  {
+    "path": "trigger9000/regression/LifeHarness.as",
+    "source_relative_path": "revision-trigger9000/regression/LifeHarness.as",
+    "source_sha256": "d1bcab3f19f128dcccc24840b260a0738b56e141ced83126a10bff1eaacfedc7",
+    "adapted_sha256": "d1bcab3f19f128dcccc24840b260a0738b56e141ced83126a10bff1eaacfedc7",
+    "adapted": false,
+    "adapted_bytes": 1273
+  },
+  {
+    "path": "trigger9000/regression/LifecycleCase.as",
+    "source_relative_path": "revision-trigger9000/regression/LifecycleCase.as",
+    "source_sha256": "79f550847ac7168b8877fe3e638cfc42d988c7bec11825643b214fb558bcd4e5",
+    "adapted_sha256": "79f550847ac7168b8877fe3e638cfc42d988c7bec11825643b214fb558bcd4e5",
+    "adapted": false,
+    "adapted_bytes": 3932
+  },
+  {
+    "path": "dash/build.py",
+    "source_relative_path": "revision-dash-f1069/build.py",
+    "source_sha256": "9b412b0c6815f88a62bc008a1c18f2e14db4e17b3a7c2227c3a7d16cd9e77bee",
+    "adapted_sha256": "95df9bc3edef8fb014d1f73ed7da94aeb10b59c9299a090825538c66c5458eeb",
+    "adapted": true,
+    "adapted_bytes": 3413
+  },
+  {
+    "path": "dash/check_closure.py",
+    "source_relative_path": "revision-dash-f1069/check_closure.py",
+    "source_sha256": "f831ceba7ac01632475e2dfd0263ac3e0d745433633d87469bbe23bcbf00c916",
+    "adapted_sha256": "3a68778997f10ea9ef041eaf5b079f12237c0b209294f733c95c39b3902cc5d6",
+    "adapted": true,
+    "adapted_bytes": 2754
+  },
+  {
+    "path": "dash/regression/run.py",
+    "source_relative_path": "revision-dash-f1069/regression/run.py",
+    "source_sha256": "febfab9846ab42ad9c79afe0ba9f6693b7c3911641dafc979114dd18e46d4e55",
+    "adapted_sha256": "c1d43e74ce487407ff423780e5445bced6f0a108b570fcb9fb53f8219395337f",
+    "adapted": true,
+    "adapted_bytes": 10714
+  },
+  {
+    "path": "dash/regression/Harness.as",
+    "source_relative_path": "revision-dash-f1069/regression/Harness.as",
+    "source_sha256": "e33e104cb09214b2c7a67a13e3d01a61c057c702382d9bf0454810b43e38d329",
+    "adapted_sha256": "e33e104cb09214b2c7a67a13e3d01a61c057c702382d9bf0454810b43e38d329",
+    "adapted": false,
+    "adapted_bytes": 3878
+  },
+  {
+    "path": "dash/regression/Launcher.as",
+    "source_relative_path": "revision-dash-f1069/regression/Launcher.as",
+    "source_sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc",
+    "adapted_sha256": "82c68ec914e914979114de9683a970f790e706fdcbf121fff8252510be382ddc",
+    "adapted": false,
+    "adapted_bytes": 1264
+  },
+  {
+    "path": "dash/regression/Ports.as",
+    "source_relative_path": "revision-dash-f1069/regression/Ports.as",
+    "source_sha256": "adbec23d14f3402678b6eaddeb43c784ec2be5540734aa2d9ef2b758360beb8d",
+    "adapted_sha256": "adbec23d14f3402678b6eaddeb43c784ec2be5540734aa2d9ef2b758360beb8d",
+    "adapted": false,
+    "adapted_bytes": 908
+  },
+  {
+    "path": "test-support/abc_tools.py",
+    "source_relative_path": "private-authored-tools/client-air-test/lib/abc_tools.py",
+    "source_sha256": "3d180eb31338f4c48c65697d5d2160e0ddf843aa6c9a578e6d29997760641e0a",
+    "adapted_sha256": "3d180eb31338f4c48c65697d5d2160e0ddf843aa6c9a578e6d29997760641e0a",
+    "adapted": false,
+    "adapted_bytes": 8623
+  },
+  {
+    "path": "trigger9000/targets.json",
+    "source_relative_path": "revision-trigger9000/regression/15-TARGET-METHODS-83fc.json",
+    "source_sha256": "b7772d7b09a332097d42451991e0adbd7cfc8b67316eafc0fdfb1f4a22b72977",
+    "adapted_sha256": "cdcb41daf3683e9f5998eff39bb38541636aa82b8abbe9c53fe56416be4b6df0",
+    "adapted": true,
+    "adapted_bytes": 4843
+  }
+]

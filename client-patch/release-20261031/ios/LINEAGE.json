@@ -1,0 +1,317 @@
+[
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/compile_sidecar.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/compile_sidecar.py",
+    "source_sha256": "e5c8129adaa06a820770d2bd4b5b1ee37d0e97a9d70ae6c8b2c1d5562552eb64",
+    "candidate_sha256": "7d9119d7a416b822a2732290cddce426f94be49375d4b12c0da5f21b71e9fd92",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 4275
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/freeze_sources.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/freeze_sources.py",
+    "source_sha256": "5a79b53ac496423c77cc45c2801193d1f3dcd6f2d3235280f18a2a8e5b7bc130",
+    "candidate_sha256": "d60241495d3ff50171dcb0ef98567c120b7011278ea7324fef4afedf0a62d8cf",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 9415
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/inspect_stage1.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/inspect_stage1.py",
+    "source_sha256": "931a0c056ad334e5a10ecf7139dfe01d3293fadc19cadf54b3d5e5d0a5c95f9a",
+    "candidate_sha256": "fe795013fdcb71fac3a667959afb84eb792b842842133107292155d29ec07ff7",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 24588
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/prepare_repairs.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/prepare_repairs.py",
+    "source_sha256": "1093dd847e6514275162f3545ba92532c7b17b0a28c2746fd3bb84a0e1b8e078",
+    "candidate_sha256": "19d5f5839c9d755f665d11c0613404ab63971930910df4059e3589c236793c44",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 15281
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/repair_common.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/repair_common.py",
+    "source_sha256": "07818deb958b31f67a16d77690187cdbc3bb6146f7304fc86b339f606f5a48c4",
+    "candidate_sha256": "7a4870543db4f91db2b3e06e74ddf73925c2c1d192a2a557231bfca2e9948428",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 4817
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/run_native_stage.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/run_native_stage.py",
+    "source_sha256": "fe66c934a15d1955d3b6afaa480a92556afc52f165aa8966c47be6983c534c2c",
+    "candidate_sha256": "2ca332532b161a5b9d4c9d97b039057b786574ce7d7c42ee6394276622646766",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 9275
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/signing_models.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/signing_models.py",
+    "source_sha256": "b014dbc1c0d852544d86d57fed20bb4cd580faceef694908c535511ce4417152",
+    "candidate_sha256": "fd2274df15c97a168f858d7acebe82a3f3c71285c8068089d9c4239f2fff95a8",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 3554
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/storage_adapter.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/storage_adapter.py",
+    "source_sha256": "b7ffc6d598e9a8831e2de8f296388656a1c32618c7a1f40c3d332b33223f21d1",
+    "candidate_sha256": "0f37955c4c82ee1f7b9ed5cd23660c67f172938ec946906b537dc2ce6180c839",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 6121
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/verify_atom_abi.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/verify_atom_abi.py",
+    "source_sha256": "c482ce0f70037513d34a93fdf9f6d041ba2559072dce2c6377fe72d761aec453",
+    "candidate_sha256": "1439b38cb89d88c5655f373b2eafedb2e8b2b1fee57bf427cd9b86ed6ac4fd4a",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 13704
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/repairs/scripts/verify_repairs.py",
+    "contribution": "client/revision-ios-acceptance-repairs/scripts/verify_repairs.py",
+    "source_sha256": "20466e366d96fb0fa81c4181567657e095de96ff1597cc7beff1e9c9a10bf719",
+    "candidate_sha256": "7d546aa88d938406f6763064bd25703050b2d870b9e3d10ea239d8fec22ddd11",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 8977
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/apply_draw.py",
+    "contribution": "client/revision-settings/ios/recipe/apply_draw.py",
+    "source_sha256": "22f02acc4e50114c46a151ec9762969dc3ae84dce028b97ab784cf5e35ea6c95",
+    "candidate_sha256": "befc7a4490f73be43c8ddc4c47340b343f4b9874e4aa4cf6dce01510909e9af5",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 2495
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/donor_mapping.py",
+    "contribution": "client/revision-settings/ios/recipe/donor_mapping.py",
+    "source_sha256": "4e4fdf14384d2350909830275dc5c081519043e12dce6c7ae20388bee63b4332",
+    "candidate_sha256": "bfd220ff895c7cdaddf5ab126186303fe3a67be38df9ad037947b49d537df5f6",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 6504
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/draw_extension.py",
+    "contribution": "client/revision-settings/ios/recipe/draw_extension.py",
+    "source_sha256": "ba1902330304ec3d7d4ddc86bcca89b3be7b31d06da5084c3f22c38b3754c002",
+    "candidate_sha256": "a20ebdf1f2f5344db5e5a173a0319ecb21479d8495903bd3d7673f107241aae7",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 2791
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/finalize_final.py",
+    "contribution": "client/revision-settings/ios/recipe/finalize_final.py",
+    "source_sha256": "1d6b8d603c9a67e2ae3dec2069f75a5f01d09e06cc3f5efdec8f3a382d0f9a1b",
+    "candidate_sha256": "8d062120f5bc3ba690c4f67f59d4138dba9e631c4cfaa241be7d8376cd9c8293",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 1474
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/link_grouped.py",
+    "contribution": "client/revision-settings/ios/recipe/link_grouped.py",
+    "source_sha256": "31eb75b3acf2fa28647473e99a64ed515e20b0144e510b58fae61196461cbdf9",
+    "candidate_sha256": "3cfa128c3318e903451d4808d1e6bbdf753d3cc77ae66032b31e6bf97a8b585e",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 4031
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/platform_draw.py",
+    "contribution": "client/revision-settings/ios/recipe/platform_draw.py",
+    "source_sha256": "e9c6b41d1f265986c30b9278d1f29d40d319f83e7c72a5b0c62945b9f07c651d",
+    "candidate_sha256": "1fe3852c8a3ad2b247fa29a1ac02184fe3480e73bd659fb5add7eac420ce710e",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 6576
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/platform_equipment.py",
+    "contribution": "client/revision-settings/ios/recipe/platform_equipment.py",
+    "source_sha256": "d8528d8d105b1ded1e113c0cbd9ddab937f1ad8ea04a6ca94d1454d08b2bdb72",
+    "candidate_sha256": "0b02c57bf9da1237886b24fc07aeb1a0ad8f70be4926a7244121ea8779eabca9",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 3510
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/platform_methods.py",
+    "contribution": "client/revision-settings/ios/recipe/platform_methods.py",
+    "source_sha256": "d5be1cfbe6e9f2e6f14149b1ca24f5ca4e684e1252af19e1ad3aa8a484ce1589",
+    "candidate_sha256": "e15739894091e36c18a8870a4da7cd187deb24b2e689e7a70d87c6fe4a12aa82",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 2631
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/prepare_final.py",
+    "contribution": "client/revision-settings/ios/recipe/prepare_final.py",
+    "source_sha256": "c18ec764287ec341f5696d6141fdd882bb93ca99413e96a0a8a306d734fd0a2d",
+    "candidate_sha256": "8d5c1d8e3755a42762e0c4ebeb52fbf670c28f27137457c337598e168fd0b9c3",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 16719
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/switch_adapter.py",
+    "contribution": "client/revision-settings/ios/recipe/switch_adapter.py",
+    "source_sha256": "ad0e592615bce5afe66d42282ad85fe0406a9e5e5d0d363f4c65d6de0735017d",
+    "candidate_sha256": "3705631015293d3497e5aa581836afc155686c6a28c80dfdeb93b714a689da0a",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 9668
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/verify_contract.py",
+    "contribution": "client/revision-settings/ios/recipe/verify_contract.py",
+    "source_sha256": "e23180d5dfcb0d859382167cf6c2a64c3d8e751ec00f4ac83fdfdbb0ca7a912e",
+    "candidate_sha256": "be9c51692b2d8774c75f06227984b9133029d991e19f90bc6637e2878a239923",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 3735
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/recipe/verify_final.py",
+    "contribution": "client/revision-settings/ios/recipe/verify_final.py",
+    "source_sha256": "86854b805d9be47adc37f035b0db2fcbb6574b0753e443d07a32e539e1f80a2d",
+    "candidate_sha256": "33e23573c42c7280817424fe33ae8aa6f772509cd919ca7b0f10148b42c0b4a2",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 3901
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/prepare_revision.py",
+    "contribution": "client/revision-settings/ios/prepare_revision.py",
+    "source_sha256": "994d36a1c4e411ca41e22707f42e8a9225c49f3e6f9e1ae5bfd132215a159b45",
+    "candidate_sha256": "02967523256cf40e8aced98ddd347a249db9ea9f7dec4df45aa5fea628d3ad52",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 3227
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/verify_actual_abi.py",
+    "contribution": "client/revision-settings/ios/verify_actual_abi.py",
+    "source_sha256": "aa2f44825ac27ba1de11a3ad6c17a088b1ff7a082a7bc5b8b40c8c3ebe4bd345",
+    "candidate_sha256": "f2db4c5285dad637a63af08f8cc5e50350a2bf3835bd57168c7360e9f519533b",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 6488
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/verify_degree_retraction.py",
+    "contribution": "client/revision-settings/ios/verify_degree_retraction.py",
+    "source_sha256": "f05767706270bdd1b7f5e4bad7cc18c7fd7299ac6a9548554910b530d63ffaee",
+    "candidate_sha256": "fea30ba848078d37d6bec5c0b3b53a6998130b72d3098e01a8033a038bbcc05c",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 5000
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/capabilities/static_proxies.py",
+    "contribution": "client/ios-capabilities/static_proxies.py",
+    "source_sha256": "b2293f43203efe3b2374446a223025c9d0393313d369f549bc17856929d48668",
+    "candidate_sha256": "b520d77c9974e5d5260da76ea43cb5a869c8cf468c40930eb8707d50c2ca459f",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "candidate_bytes": 6822
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/compile_port.py",
+    "contribution": "client-patch/pr43-ios/compile_port.py",
+    "source_sha256": "e8d1e116a22e8cba3765094045612c5ca0e98171450f686cd207129a914307ce",
+    "candidate_sha256": "0a4ca5d4006a5f37f0a540767fbe50478d1fcefc42deec3a325b62049ea75521",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "7fa5c56fed2a68ba3bf0d643b7db44120b3727742f68e54a4902675fac8d4221",
+    "candidate_bytes": 8086
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/hud_adapter.py",
+    "contribution": "client-patch/pr43-ios/hud_adapter.py",
+    "source_sha256": "48910640ea7c9b16b067584088eb3927e2e8c253f426afe2052aafe5290b666a",
+    "candidate_sha256": "ef984639db60cde432e79941e167b489b057caece852bf6978df78abb140f3e2",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "afe782d90115b1d0fd0e7ab3837177502bd9a362d62995e457b020fc876d3ed7",
+    "candidate_bytes": 5473
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/link_port.py",
+    "contribution": "client-patch/pr43-ios/link_port.py",
+    "source_sha256": "90da7ba842f749abf3e418e07e0f5b62ed087d3c26caed5a419dd649bddaba5f",
+    "candidate_sha256": "3682ce69f1b8c8de30cfef30d0c74ab6bca6c37547d06b033366b16ac835c9fb",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "1f8ba8db7b7baeb87a6cc79f35cece86d3e02cd93e0df56cce6fae038d316031",
+    "candidate_bytes": 29510
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/native_support.py",
+    "contribution": "client-patch/pr43-ios/native_support.py",
+    "source_sha256": "1900c005db877448885f0f880b7620545a0daac50c0b61e3671efb16fcc9458e",
+    "candidate_sha256": "f662127f6c95ba59c3cb6aeae5d7ae8fd6d2eaf047ae4da55d981910af7c10fb",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "47d32b70b24830e1afa16906a30e287c6b1dccef2c8ea7417403f15e63976dc9",
+    "candidate_bytes": 11954
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/aot_helpers.py",
+    "contribution": "client-patch/pr43-ios/support/aot_helpers.py",
+    "source_sha256": "5a5251ecdb18fd441c9474f95a889c9c937769604ed3103ec48f5f969d1a77b6",
+    "candidate_sha256": "210d51aff9df6b69799614fabb7fde8348bccd341849ecf6dc25e00b72678309",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "06dd32eaeb4dba064c9aa125eed5c2113431372c135f3d59a5e04ca207b5150a",
+    "candidate_bytes": 6599
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/fixed_inputs.py",
+    "contribution": "client-patch/pr43-ios/support/fixed_inputs.py",
+    "source_sha256": "2af7a789b59e8f68cb05acd926bfe8df8a57b3cfcdb699d80891292ccea3c088",
+    "candidate_sha256": "c79e286224f4a0eb36a20f5dcf5d9fb17e9f5f690de7bb2ea0c5ba4811af53b9",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "4b3da38233baa602b27e64609dddaa184b81222576edd6988c8b602148ca934a",
+    "candidate_bytes": 1728
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/pr43_backend.py",
+    "contribution": "client-patch/pr43-ios/support/pr43_backend.py",
+    "source_sha256": "f4d64c7fd6ab28f7520f1ba2881921cb2648c9b47b5af5bb07d292df99930580",
+    "candidate_sha256": "f91c8fa31db8d1b14efbf7a0bca204708f2a4b2c2ec1573752076d6384ca7e58",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "1332690dddec9fa8465799dcce1fec2e915b91e41e0a71f9ce5d1a4f618576ca",
+    "candidate_bytes": 2983
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/runtime_symbols.py",
+    "contribution": "client-patch/pr43-ios/support/runtime_symbols.py",
+    "source_sha256": "17eabe0549807b323feb2c2472dbe499fee576bd3934efdbfb14f924017fc95a",
+    "candidate_sha256": "811f6e7823c26828cd347bab381d16af95c4fcce79056394286dbd825df8ccc8",
+    "adaptation": "repository/private-input path and entry bootstrap only; business guards retained",
+    "current_common_sha256": "2682b826ff57bbfdc6d0a715d0524c600f94aa44fb95b10f148bd96831f4fb1b",
+    "candidate_bytes": 2487
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/process/run_bounded.py",
+    "contribution": "process/run_bounded.py",
+    "source_sha256": "cbd7573d977d91ea9180fbc9310cd71d19352a8cdd7e7e32c91af9ac4b3ae422",
+    "candidate_sha256": "cbd7573d977d91ea9180fbc9310cd71d19352a8cdd7e7e32c91af9ac4b3ae422",
+    "adaptation": "byte-exact adopted process guard; shared mutex retained",
+    "candidate_bytes": 8141
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/process/run_background.py",
+    "contribution": "process/run_background.py",
+    "source_sha256": "4f67d23bb4ffa74aac35f5c2981d024cbb66c01df30939027906d5c1e311c3d9",
+    "candidate_sha256": "4f67d23bb4ffa74aac35f5c2981d024cbb66c01df30939027906d5c1e311c3d9",
+    "adaptation": "byte-exact adopted process guard; shared mutex retained",
+    "candidate_bytes": 1492
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/support/process/quiet_process.py",
+    "contribution": "process/quiet_process.py",
+    "source_sha256": "3fbddcd17903be74a22892fc92976bc900d2fc9bc6ab623a3801e2d94c87dd1c",
+    "candidate_sha256": "3fbddcd17903be74a22892fc92976bc900d2fc9bc6ab623a3801e2d94c87dd1c",
+    "adaptation": "byte-exact adopted process guard; shared mutex retained",
+    "candidate_bytes": 17689
+  },
+  {
+    "repository_path": "client-patch/release-20261031/ios/settings/type_helpers.py",
+    "contribution": "client/revision-settings/ios/prepare_api_probe.py:owning_script + verify_probe_abi.py:receiver_loads",
+    "source_sha256": {
+      "receiver_loads_owner": "5b6ccf78067260ee6d5e960a4fdc716737c39805d9a2d7602dc8cd4bb93cfcf1",
+      "owning_script_owner": "f564b65bddfd0c7c513c8d72b35e98f853363905b1dfae69c4f126a50fa0ac09"
+    },
+    "candidate_sha256": "3e82921590d54c227bcb675b85ab8cf1032cb10c16fbf961df409d5ee956628b",
+    "adaptation": "exact extracted functions and KIND constant; excludes historical probe mains",
+    "candidate_bytes": 1069
+  }
+]

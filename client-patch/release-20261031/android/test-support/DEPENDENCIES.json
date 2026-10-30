@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "repository_files": [
+    {
+      "path": "client-patch/pr43-port/package_android.py",
+      "sha256": "fcfb5e328204ea0bc63f2b32c423c862de2977f897edf517ceae35e837ec8bd9"
+    },
+    {
+      "path": "client-patch/pr43-port/x86_port.py",
+      "sha256": "e1930ef8f6376ecab6f50ce787ba4ae3a2c95b562167b2984c893f087a4dbefc"
+    },
+    {
+      "path": "client-patch/pr43-port/support/apk_manifest.py",
+      "sha256": "c4faa869c4fedfd63daaacc179db499552d1c60677a466bc12df46c34fd3e764"
+    },
+    {
+      "path": "client-patch/pr43-port/support/abcfmt.py",
+      "sha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82"
+    },
+    {
+      "path": "client-patch/pr43-port/support/opwalk.py",
+      "sha256": "c3e17d85438d5f1a62320c811b77bdfd7f475a123e0e8ea2ac759062bb9d6080"
+    },
+    {
+      "path": "client-patch/pr43-port/support/bodies.py",
+      "sha256": "daa069c919b46d25bf6b25e367f1ac2744ffd64f76d6d0469e0eacf42d0d25d8"
+    },
+    {
+      "path": "client-patch/lens0907-0908/build_swf.py",
+      "sha256": "fda30d7f435f8d0a9c0ab6a2a09cde1178014d65c25f8eae0b8163151736d4f4"
+    },
+    {
+      "path": "tools/lens-integration/compare_clients.py",
+      "sha256": "38883c3e2b7dfe575a15363a9456e65ba0a06ef4b4fadfcfd822607d2bd96a92"
+    },
+    {
+      "path": "client-patch/content-operations/build_bridge.py",
+      "sha256": "7e143cf44ef01846bc784fe03fdce081da5cdf085137b39a497cf817ad2d9759"
+    },
+    {
+      "path": "client-patch/content-operations/src/cn/content/ContentOperationsState.as",
+      "sha256": "7eaf3898297a16722809e1a678ad30cfa35482d43255cd7e82e278621c2da9d5"
+    },
+    {
+      "path": "client-patch/startup-cache/build_swf.py",
+      "sha256": "d5dcfb6826b8f3cb462b44860c18f51aae78883c77aa26573c38425c771a3468"
+    },
+    {
+      "path": "client-patch/abyss-autostart/sign_apk.ps1",
+      "sha256": "5cc67eec1788ed21466c5c3fd69fc099f6593cf585bbcc30e7ee3bcb3754f996"
+    }
+  ],
+  "release_source_files": [
+    {
+      "path": "settings/support/framework.py",
+      "sha256": "e8edfd7be2685d2230842c9c1e766e6c0178a5defc5a8fb94b91ea803365f897",
+      "pre_normalization_sha256": "c4711b96e640b819fe171bf2ba13c5982ea6cec4ecdf1c4b06399e7ceb381108",
+      "bytes": 6954
+    },
+    {
+      "path": "settings/support/static_check.py",
+      "sha256": "6af51486d6af87eff3aba2ed381338a198cd8f44dd9cb9b318401c19b51c7726",
+      "pre_normalization_sha256": "1b340c53257aec396ba7f41e6ff3d57c62f1fb06401595d9b427b91f157f9376",
+      "bytes": 4210
+    },
+    {
+      "path": "settings/support/asm.py",
+      "sha256": "73f2a8e5d02758636959bc1a10c92795fead4e4d89e3678bed356d211a61c341",
+      "pre_normalization_sha256": "28c39d75ff8406e7caa4b94f8855fb2f3a9ae461290f1a06d9aa71e8043a1e39",
+      "bytes": 26294
+    },
+    {
+      "path": "settings/support/swfabc.py",
+      "sha256": "4f1c3ea93d71af0d98dba0467cb38fe205cbfc5eef5de93633db8f838aac7528",
+      "pre_normalization_sha256": "4f1c3ea93d71af0d98dba0467cb38fe205cbfc5eef5de93633db8f838aac7528",
+      "bytes": 5462
+    },
+    {
+      "path": "settings/support/swftags.py",
+      "sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+      "pre_normalization_sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+      "bytes": 1975
+    }
+  ],
+  "release_apis": [
+    "release_config.py configuration/input_path/work_path/repo_path/require_sha",
+    "android/capabilities/port_capabilities.py R11Editor/graft_donor/load/compose/envelope/body_bytes/digest/bodies/framework.FMT"
+  ],
+  "private_inputs": "INPUTS.example.json + input-hashes.json",
+  "runtime_boundary": "No runtimes or binary carriers are vendored. air_config sdk/java and signer_config fields are absolute private paths.",
+  "source_snapshot": "test-support/abc_tools.py exact authored loader; original AS fixtures are handwritten/grafted, no official original tree"
+}

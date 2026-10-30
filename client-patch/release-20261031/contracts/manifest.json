@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "portable_metadata_contracts_extracted_and_readback_checked",
+  "files": [
+    {
+      "name": "android-methods.json",
+      "bytes": 335398,
+      "sha256": "5e275c85300c02c71301cc149c3cb484887a4b703a05c55888c9e9ca950c787f"
+    },
+    {
+      "name": "CONTRIBUTORS.md",
+      "bytes": 1098,
+      "sha256": "4a9b0e6861ef4a353302db333b6af2c4cffdd5b2e5141c9ca7754eb38070480c"
+    },
+    {
+      "name": "ios-repairs.json",
+      "bytes": 14792,
+      "sha256": "d0ea571638daf4ca3b6fe6c04c323c8612d869d8055f7c2d40ebb2a535c95c7e"
+    },
+    {
+      "name": "lineage.json",
+      "bytes": 2053,
+      "sha256": "b800b63f094f0f4c6a0a10f6ce721c065bf3dc1e8670d266484e30244d9306f2"
+    },
+    {
+      "name": "README.md",
+      "bytes": 2474,
+      "sha256": "0a57dfe2549ab7707ca6c33593d8a25bd5e2acb76996d119decf7793447e5693"
+    }
+  ],
+  "android_methods": 291,
+  "android_by_abc": [
+    {
+      "abc_tag": "boot_ffc6",
+      "count": 275
+    },
+    {
+      "abc_tag": "cn.carry.StageCarryState",
+      "count": 12
+    },
+    {
+      "abc_tag": "cn.mod.InahoAbilityVisuals",
+      "count": 3
+    },
+    {
+      "abc_tag": "content_operations",
+      "count": 1
+    }
+  ],
+  "ios_business_methods": 17,
+  "ios_support_methods": 5,
+  "ios_aot_targets": 22,
+  "source_hash_chain_checked": true,
+  "unique_method_identities_checked": true,
+  "forbidden_local_paths_emails_raw_bodies_absent": true,
+  "engineering_execution_performed": false,
+  "line_endings": {
+    "format": "LF",
+    "trailing_newline": "single",
+    "current_file_hashes": "files.sha256 and files.bytes describe the normalized repository bytes",
+    "source_provenance": "Original source hashes and stage lineage remain in the contract documents; this manifest records normalized file bytes",
+    "scope": "Release source files were normalized without business-logic changes"
+  }
+}

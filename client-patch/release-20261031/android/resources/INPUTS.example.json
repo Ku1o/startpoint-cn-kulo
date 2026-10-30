@@ -1,0 +1,45 @@
+{
+  "work_dir": "../private-work",
+  "android": {
+    "resources": {
+      "bundle67_source_contract": {
+        "path": "private-resource-inputs/bundle67_source_contract.json",
+        "sha256": "b5e1e068df93eef662e3d59479b61da86301cd5bec1971a0dc1754eb17aa49c6"
+      },
+      "baseline_decoder_report": {
+        "path": "private-resource-inputs/baseline_decoder_report.json",
+        "sha256": "7f98fb0b68aae7038036a6d6f06e5e4a3515c0817a38bf662a8ddc8bb6358059"
+      },
+      "frozen_binding": {
+        "path": "private-resource-inputs/frozen_binding.json",
+        "sha256": "724221f6685b200745affab3e222bf8066d9d497fc3d3df904e191c6450bd3f2"
+      },
+      "shared_resolution": {
+        "path": "private-resource-inputs/shared_resolution.json",
+        "sha256": "6b81771a77041e183774b6001df7ac785fc9a4bfbf47cf2efd980138ad128474"
+      },
+      "frozen_resource": {
+        "path": "private-resource-inputs/historical-freeze344.json",
+        "sha256": "REPLACE_WITH_EXACT_HISTORICAL_FREEZE_SHA256"
+      },
+      "frozen_manifest": {
+        "path": "private-resource-inputs/historical-manifest344.json",
+        "sha256": "ebbd881d0170bcf7295c032fb48be12308f7eb50c9b1c1bb20e1df7f4ce347e2"
+      },
+      "candidate_active_dir": {
+        "path": "private-resource-archives/candidate-active"
+      },
+      "baseline_active_dir": {
+        "path": "private-resource-archives/baseline-active"
+      },
+      "android_carrier": {
+        "path": "private-resource-inputs/carrier.apk",
+        "sha256": "REPLACE_WITH_EXACT_ANDROID_CARRIER_SHA256"
+      },
+      "ios_carrier": {
+        "path": "private-resource-inputs/carrier.ipa",
+        "sha256": "REPLACE_WITH_EXACT_IOS_CARRIER_SHA256"
+      }
+    }
+  }
+}

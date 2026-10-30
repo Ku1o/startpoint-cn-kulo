@@ -1,0 +1,16 @@
+{
+  "haxe/IMap.as": "b00d97dbdc626e0572892f512009d3026017bf9d08f006eb1a46b6578829ba3c",
+  "haxe/ds/BalancedTree.as": "1a2287e7a98c5fc8fe069d707ccc098ffefc27f3ca19e407ef91d2746d636cf4",
+  "haxe/ds/TreeNode.as": "8f547b1d72dcbf1a0bed36ec1562f3c8b223fc57bfe34c8b4340ad16c3fd82a2",
+  "haxe/ds/EnumValueMap.as": "f35a1295ec23b3b772dcb3d248132e332fed5152ee3147e4d248250bfc0e2c7b",
+  "haxe/iterators/MapKeyValueIterator.as": "0f4ed3d768e74526271a4be3c5577de9d02c9658c392b4b0c9b04b4cfef66b8e",
+  "pinball/common/tools/_FunctionTools/BindImpl2_1.as": "58ed2a314b1da8605741c02115b0d624e2c6a6bb5c5baa263bbb24973b7e5bc1",
+  "pinball/ui/component/switchButton/SwitchButtonPeek.as": "df014f52c40c8d707db553b10e07ef4b7b0f38d9e262392f733ae5b550bcc6ed",
+  "pinball/ui/component/switchButton/SwitchButtonGroupPeek.as": "37659561b2d06c71a42c46c2fe51e58f23748ab5ee9b66881b5369019518a2b7",
+  "pinball/ui/component/switchButton/SwitchButtonInput.as": "f6f7e406e5a3942aaf8cdecda708afc80a60537a223e55fe45df785159d48ad9",
+  "pinball/ui/component/switchButton/SwitchButtonState.as": "0297406c9f51b6e644f25f71437292a4803de6149c8efe899b2cf61b4f1ab88c",
+  "starling/events/Touch.as": "7aa3d3e4e0b734e76ba1fa1706c83a64d336c89c4b02e8c31d414ca648174a5e",
+  "haxe/ds/Option.as": "660325a7d5034bd9a71f0f6699e52b6b2ee9bd13fbfb161cbae8dfd6e2906955",
+  "pinball/scene/applicationOption/ApplicationOptionSwitchButtonKind.as": "ca8a3cb9cecf3cf6cd24331fb19443516db96543954019363cc366a9fef87396",
+  "pinball/scene/applicationOption/panel/SwitchConfigContainerItem.as": "d35a1fd7906a37d42c6adfe6a0c387b61854887953f2ffe3438a5adb02331a7d"
+}

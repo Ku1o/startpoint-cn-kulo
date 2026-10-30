@@ -1,0 +1,14 @@
+[
+  {
+    "repository_path": "tools/fantasy-gauntlet-mod-tools/wf_mod_tool.py",
+    "sha256": "051ffc7d67b5d4532c77bf4b8ad42e34f93d4ab53d98c8bce3e977cd706cc79d"
+  },
+  {
+    "repository_path": "tools/fantasy-gauntlet-mod-tools/wf_assets.py",
+    "sha256": "83129436a49bc457dec303ec5cb7fc4859a359f4285418cbbaa3de8a59ad5879"
+  },
+  {
+    "repository_path": "tools/fantasy-gauntlet-mod-tools/wf_character_requirements.py",
+    "sha256": "99d6e2832a29c3cdeec2ca91a10c44e1ca47c05826ea8839cb74e6b2238fba32"
+  }
+]

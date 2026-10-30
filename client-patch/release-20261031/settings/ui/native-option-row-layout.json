@@ -1,0 +1,116 @@
+{
+  "logical": "scene/application_option/application_option.ui.amf3.deflate",
+  "sha256": "18edfa44579e677efb971045387aa611013d83549935fe182ed7938c6c119f6b",
+  "layout": {
+    "id": "layout/pushNotificationConfig",
+    "children": {
+      "texts": [
+        {
+          "name": "title",
+          "attributes": {
+            "color": "0x444444",
+            "fontSize": 40,
+            "thickness": 0,
+            "hAlign": "left",
+            "lineSpacing": 0,
+            "letterSpacing": 0,
+            "x": -8,
+            "y": -11.8,
+            "width": 592,
+            "height": 64.75
+          },
+          "frames": [
+            {
+              "depth": 0,
+              "matrix": {
+                "a": 1,
+                "b": 0,
+                "c": 0,
+                "d": 1,
+                "tx": -8,
+                "ty": -12
+              },
+              "alpha": 1,
+              "color": 16777215
+            }
+          ]
+        },
+        {
+          "name": "description",
+          "attributes": {
+            "color": "0x444444",
+            "fontSize": 32,
+            "thickness": 0,
+            "hAlign": "left",
+            "lineSpacing": -4,
+            "letterSpacing": 0,
+            "x": -8,
+            "y": 37.2,
+            "width": 592,
+            "height": 89.3
+          },
+          "frames": [
+            {
+              "depth": 1,
+              "matrix": {
+                "a": 1,
+                "b": 0,
+                "c": 0,
+                "d": 1,
+                "tx": -8,
+                "ty": 37
+              },
+              "alpha": 1,
+              "color": 16777215
+            }
+          ]
+        }
+      ],
+      "bitmaps": [],
+      "containers": [
+        {
+          "name": "switchButton",
+          "attributes": {
+            "layout_id": "layout/container/switchButtonLayer"
+          },
+          "frames": [
+            {
+              "depth": 2,
+              "matrix": {
+                "a": 1,
+                "b": 0,
+                "c": 0,
+                "d": 1,
+                "tx": 748,
+                "ty": 56
+              },
+              "alpha": 1,
+              "color": 16777215
+            }
+          ]
+        }
+      ],
+      "components": [],
+      "guides": [
+        {
+          "name": "area",
+          "attributes": {
+            "guide_kind": "rectangle",
+            "x": 0,
+            "y": 0,
+            "width": 888,
+            "height": 120
+          },
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 888,
+              "height": 888
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

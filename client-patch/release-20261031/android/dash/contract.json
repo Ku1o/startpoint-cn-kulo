@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "input_swf_sha256": "d06b1431c13d7d50765f81ed4a747be00e01500c5288702d816398e4fcc666f2",
+  "output_swf_sha256": "83fc92d70d7457bb5e4b58d25d97663eeb80367ee366a947f4779a12075ff172",
+  "donor_swf_sha256": "2fa334cca6b104bdcae061c5ed9bc63eb52d59db7e687c90d24742e61759e7b4",
+  "method": {
+    "qname": "pinball.scene.battle.battle.squad.member::MemberImpl/wfxRunDashAction",
+    "method_info": 101238,
+    "body_index": 92765,
+    "parameters": [
+      "String"
+    ],
+    "returns": "void",
+    "flags": 0,
+    "header": [
+      11,
+      2,
+      1,
+      2
+    ],
+    "instructions": 33,
+    "code_sha256": "151fe59f66fb40c359c4221d38acd951108566de23ae971652db7ad94ba51436",
+    "namespace_kind": 22,
+    "namespace_uri": ""
+  },
+  "existing_bodies_changed": 0,
+  "new_static_or_instance_slots": 0,
+  "prior_validation": {
+    "before_assertions": 3,
+    "after_assertions": 10,
+    "actual_methods_readback": 18,
+    "final_skill_application": "parameter/count sink only; no skill engine/physics claim"
+  },
+  "portable_adaptation": "not_executed"
+}

@@ -1,0 +1,21 @@
+{
+  "outputs_ios_r11_port_20261025_equipment_link_report_json": "297ddcedc9e93bdcaee8b3e2028928c1f930da1dad0e218e53e478d0fcb5f2b9",
+  "outputs_ios_r11_cumulative_compact_20261025_linked_worldflipper": "bcdf74c7f37aa22e4caa4f0abd1891947c70098467b0756413bd26f12c0a9ee1",
+  "client_ios_draw_review_bridge88_v2_mechanism_review_json": "3f95030178028c4b87bad143d6ba29de22910ada712aad51035557edb86a60a6",
+  "client_ios_final_capabilities_draw_air03_result_json": "100c9477657bab297d9f7ac1a09edf4c81238980f1ef1186d30b14ddb698a0b7",
+  "outputs_ios_r11_cumulative_compact_20261025_ios_full_equipment_r11_compact_20261025_abc": "ff1ac16421ed0d394b70612aed23584e30c0aa9ec1de0eebe4336cc1cb396388",
+  "outputs_ios_r11_cumulative_compact_20261025_linked_link_report_json": "0aa531ddc11a399e146774487d104951b57f714dc21c8c1bb9586b9f204a5e51",
+  "outputs_ios_r11_cumulative_compact_20261025_starpoint_ios_1_8_4_equipment_r11_compact_20261025_unsigned_json": "54ef4cc1808569620534f036c680651e536f79e1fe03fe066181ee8d7831c45f",
+  "targets": "f8e60c4461eefd16ecc0581625d5e44c9983ae0d514d2901714ea187c185660f",
+  "source_swf": "83fc92d70d7457bb5e4b58d25d97663eeb80367ee366a947f4779a12075ff172",
+  "before_swf": "215860d0f3933b352c377309c68943a3978a80ab5c5beb209c9b94382191e325",
+  "runtime_stubs": "952f0c9ffe34f2e35eb434fdf0dd641d7ecd8baa6bf9d260e258d59e4ca1ecb8",
+  "r11_baseline_record": "cb065ebf32c991b174bd8d207448b71159a662caeaf3737e046a8fb2dce8c78f",
+  "native_storage_contract": "5646ac925e6d130b559c6957f8b6342abeb8d511a281b6ecdc456a3f8aa08a17",
+  "namespace_contract": "58e5b85ae9c59dc1e70dd7a6a2939f74c0ae95849ba9a678945a42d55139c1b8",
+  "shared_alias_review": "37b169b970ee6878a05e5f0a4bea4d5c82439ccba4d759c4ee5ed0a90c7654f7",
+  "settings_full_abc": "672757b40180eb960dde989b8f659b37cc32229a03a5c903b0bbdc3be6bc814e",
+  "settings_native": "7d803626d4cd5debc00cb17b633bbfeec3a9d04ef6b7beed4f068d2e17b6215f",
+  "settings_swf": "ab745853ec6064b8c6738673a93e3fdfc1410fc8e995e180159cc5bb200299d3",
+  "settings_ipa": "b38629f65e8506720cc27200b4c87fd51613b78593899c0248a46ffc2e3a9d24"
+}

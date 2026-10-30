@@ -1,0 +1,75 @@
+{
+  "work_dir": "../private-work",
+  "android": {
+    "inputs": {
+      "r11_swf": {
+        "path": "inputs/r11_swf",
+        "sha256": "9c672e56e5911679848047daece874e139255b2d128f67ab11e605c5db2bb951"
+      },
+      "donor_swf": {
+        "path": "inputs/donor_swf",
+        "sha256": "2fa334cca6b104bdcae061c5ed9bc63eb52d59db7e687c90d24742e61759e7b4"
+      },
+      "settings_swf": {
+        "path": "inputs/settings_swf",
+        "sha256": "3c56f08c8b30ae75ae71908a699e703764dcfca0bc64d1fb91d866e2c61bfaef"
+      },
+      "tutorial_swf": {
+        "path": "inputs/tutorial_swf",
+        "sha256": "215860d0f3933b352c377309c68943a3978a80ab5c5beb209c9b94382191e325"
+      },
+      "trigger9000_swf": {
+        "path": "inputs/trigger9000_swf",
+        "sha256": "d06b1431c13d7d50765f81ed4a747be00e01500c5288702d816398e4fcc666f2"
+      },
+      "final_swf": {
+        "path": "inputs/final_swf",
+        "sha256": "83fc92d70d7457bb5e4b58d25d97663eeb80367ee366a947f4779a12075ff172"
+      },
+      "carry_swf": {
+        "path": "inputs/carry_swf",
+        "sha256": "4b56d9aa725f8529e630deb756a89521ad5e64ab4d75d245fa1540d595dc2854"
+      },
+      "old163_swf": {
+        "path": "inputs/old163_swf",
+        "sha256": "463ae455765f31be5e2d782bda9ab024d7b2f1bb344c6ada36db038fab30c302"
+      },
+      "carry_helper_abc": {
+        "path": "inputs/carry_helper_abc",
+        "sha256": "6849f52ea234769bb73fadad08604e9f8009b4e4fc0a0c01c22a7d9284c507a5"
+      },
+      "carry_helper_swc": {
+        "path": "inputs/carry_helper_swc",
+        "sha256": "4dedf8134ec01ceca83f6f1176ba15d047a6522ff3731d15b356bb733a684cf5"
+      },
+      "leader169980_fixture": {
+        "path": "inputs/leader169980_fixture",
+        "sha256": "f61d6a5f292d75e18a59bf81759dce452b0d81a2bd1a58e3d38684edb064c24c"
+      },
+      "settings_apk": {
+        "path": "inputs/settings_apk",
+        "sha256": "3361108f8d321ec188aab3454798d363e09086106ecf361a5c519f522c2ea814"
+      },
+      "tutorial_apk": {
+        "path": "inputs/tutorial_apk",
+        "sha256": "566b1c6be54d03cb471b67e1507013ef396a67a33a6831b18fbc5ca3493b4666"
+      },
+      "trigger9000_apk": {
+        "path": "inputs/trigger9000_apk",
+        "sha256": "c93c6cbbf5437b1664e3184a31798a57315fad482ac3fd55f1035548573721b9"
+      },
+      "final_apk": {
+        "path": "inputs/final_apk",
+        "sha256": "ccb18e4a6ea295d14e2ab7a17e478d7b0ea7fc54a6dbc78d06f1375569c67254"
+      },
+      "air_config": {
+        "path": "private-air-config.json",
+        "sha256": "REPLACE_WITH_LOCAL_CONFIG_SHA256"
+      },
+      "signer_config": {
+        "path": "private-signer-paths.json",
+        "sha256": "REPLACE_WITH_LOCAL_CONFIG_SHA256"
+      }
+    }
+  }
+}

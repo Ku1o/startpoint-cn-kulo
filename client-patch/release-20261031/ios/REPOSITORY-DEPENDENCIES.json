@@ -1,0 +1,123 @@
+[
+  {
+    "repository_path": "client-patch/equipment-ios-repair/build_candidate.py",
+    "sha256": "e15f370a52b4225711550ec79d5bbe61caef98bfbfb35d51f1cd0cb845d52547",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/equipment-ios-repair/compact_unwind.py",
+    "sha256": "6bb37ee0bdd855d6ab1ed1da1f3777ffd375fa4742779be9885bcb7be888e371",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/equipment-ios-repair/finalize_delta.py",
+    "sha256": "ffb13a68946573f28e1c60af6bf2f9042839d0c88f040fb6a9496891723f08e5",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/ios-cumulative-login/macho_signing_layout.py",
+    "sha256": "8c270a728c4b2fbaa9d1d6f1f0b9048f2ecc825d1133fb0bfbdfd17c0a78b153",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/ios-cumulative-login/prepare.py",
+    "sha256": "9fdc2d31aafc4724fa6d1b710db1b375a48875fe2e3076036b6c0679d9f5584f",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/ios-r11-port/link_stage.py",
+    "sha256": "4a908b98a39ebfb83efb1ea1245231c5774c6cc45dec714107f88405357aeb10",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/ios-r11-port/package_stage.py",
+    "sha256": "37be0e4ecd0a4901018431b3d2bec8ed58b28fa6e23ca291a6f2b104822787da",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/ios-r11-port/verify_equipment.py",
+    "sha256": "8d719d58a179a3f5e7e4b146a5bc3e2523ae79eb360655c7e69de4096893d087",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/ios-r11-port/verify_stages.py",
+    "sha256": "17b6e667b0722a2109deb104e6b01f79c191e803bd69e4ab3aa5bdaa7be0a726",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/ios-shop-first-open/veneers.py",
+    "sha256": "60baa38ad6c20d7ffd5006243e824df8efaca8045d2012bc104bff036c203675",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/lens0907-0908/build_swf.py",
+    "sha256": "fda30d7f435f8d0a9c0ab6a2a09cde1178014d65c25f8eae0b8163151736d4f4",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/lens0907-0908/vendor/abcasm/asm.py",
+    "sha256": "a70c8186da5e8f8e2a71f62cbb803db6d9f89543b785a9266cc72e6d439c40ac",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/lens0907-0908/vendor/abcasm/swfabc.py",
+    "sha256": "d3a56b7f23d809e14d78b0ac11e55f8bf127fb60f1d9dfd5814502cc691eaad3",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/pr43-ios/support/additional-helper.json",
+    "sha256": "c78a57cc90dc375f1470f564adfe24798f58500a80383fb901ec4d28697f28a9",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/pr43-ios/support/baseline-contract.json",
+    "sha256": "fd6469eefd76d34c18d57161bb5d551223e147456bb61e1c67c48da1a74acf50",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/pr43-ios/support/dependency-hashes.json",
+    "sha256": "77732231196d1adf13dee76bf49ed43adb8b39ec86cf93af6469afceb79b5a35",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/pr43-ios/support/ios-method-map.json",
+    "sha256": "b781c2a345737d25f8b74a04bb7084a3ea54cdb7e383bc06e435f15f244f3282",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/pr43-ios/support/runtime-extra-map.json",
+    "sha256": "fc41536b67d9c6e56d8704bdc37176bc2ad468194cc1e1e1e78b2338e3e5cbbc",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/pr43-ios/support/runtime-helper-map.json",
+    "sha256": "cd85d5394ba0764bb4777a7f6c48902ffc97aa895a23d12eb8651962b693b406",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "tools/lens-integration/compare_clients.py",
+    "sha256": "38883c3e2b7dfe575a15363a9456e65ba0a06ef4b4fadfcfd822607d2bd96a92",
+    "role": "existing_repository_dependency_exact_adopted_source"
+  },
+  {
+    "repository_path": "client-patch/pr43-ios/support/fill_ios_aot_stub_bodies.py",
+    "sha256": "c63cc292eab8a6aeb1cfb3a039f68694097b8c25b70d3cc957fbff401bb2f3db",
+    "adopted_source_sha256": "e8ca0106f47a3aa9d29229e220da1a24a668736755a0368b6929b664db385750",
+    "normalized_text_exact": true,
+    "role": "direct_import_or_parser_dependency"
+  },
+  {
+    "repository_path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/abcfmt.py",
+    "sha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82",
+    "adopted_source_sha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82",
+    "normalized_text_exact": true,
+    "role": "direct_import_or_parser_dependency"
+  },
+  {
+    "repository_path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/swftags.py",
+    "sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+    "adopted_source_sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+    "normalized_text_exact": true,
+    "role": "direct_import_or_parser_dependency"
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "labels": [
+    "AbilityDisabledReasonResolver/wfxLeaderResolve",
+    "AbilityDisabledReasonResolver/wfxLeaderResolveInitial",
+    "AbilityDisabledReasonResolver/wfxLeaderResolveInstant",
+    "AbilityDisabledReasonResolver/wfxLeaderResolvePrecondition",
+    "TriggerableAbilityDialogAllAbilitiesGenerator/get",
+    "TriggerableAbilityDialogAllAbilitiesGenerator/wfxAddLeaderAbility",
+    "TriggerableAbilityDialogAllAbilitiesGenerator/wfxAppendUnisonLeader",
+    "TriggerableAbilityDialogAllAbilitiesGenerator/wfxLeaderAbilityPeek",
+    "TriggerableAbilityDialogAllAbilitiesGenerator/wfxLeaderDescriptions",
+    "TriggerableAbilityDialogAllAbilitiesGenerator/wfxLeaderReasonResolver"
+  ],
+  "scope": "Explicit fixed-donor selection replacing archive filename enumeration"
+}

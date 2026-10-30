@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "source_base_receipt_sha256": "937d99f4501b91525c7a1a8009ea99001b249d13a53ffe27439d689a920b0d19",
+  "settings135_receipt_sha256": "8d67ab6e58a0fd18df05ad045764f3432d87e7a2d9589738f49b374c7e031435",
+  "files": [
+    {
+      "path": "ui/patch.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/ui/patch.py",
+      "source_sha256": "72a541a5646f2849fb428c1ec6df9a7a0aec92859850a085eb4089221d283204",
+      "adapted": false,
+      "adapted_sha256": "72a541a5646f2849fb428c1ec6df9a7a0aec92859850a085eb4089221d283204",
+      "adapted_bytes": 7626
+    },
+    {
+      "path": "ui/build.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/ui/build.py",
+      "source_sha256": "5ff617e61bcb3c82d67ace78cbb10b79ab8b1f886ceccad50e84569a0a5811eb",
+      "adapted": true,
+      "adapted_sha256": "e1fae9d921f4f202ad4a7fe3b2f19399d533c1d225a2f621099f9559f0787b75",
+      "adapted_bytes": 1773
+    },
+    {
+      "path": "ui/run_air.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/ui/run_air.py",
+      "source_sha256": "294b2a6c6e6b306bcaf400304c5b8575b23dcf89281318e4dfd8dead5663de11",
+      "adapted": true,
+      "adapted_sha256": "4b64e269c2be385e620ef54302d34978365df230fba9b75a99268407f7677f58",
+      "adapted_bytes": 33019
+    },
+    {
+      "path": "ui/run_layout_air.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/ui/run_layout_air.py",
+      "source_sha256": "c642a2d9bd7528a64de1dce68de6615bbbc83049e7849fa9e61fe9d74e3a354a",
+      "adapted": true,
+      "adapted_sha256": "250182f042cbe4ea9037696f6b4d7a66f6b84448dd88965ac62decd5361e944b",
+      "adapted_bytes": 8067
+    },
+    {
+      "path": "ui/native-option-row-layout.json",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/ui/native-option-row-layout.json",
+      "source_sha256": "ef6f206e11b7a37b49d688d82e5267f40b22ebce85b061d41479eac12bb5029a",
+      "adapted": true,
+      "adapted_sha256": "6e1ac5d96d04b10392767bf7b39033a8504b841ebe2b010920034e6a0a8a9fcc",
+      "adapted_bytes": 2654
+    },
+    {
+      "path": "render/patch.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/patch.py",
+      "source_sha256": "6a2a162ab3445fd94982faad78199873a06de860962e62c2d0133a7a720a9f91",
+      "adapted": true,
+      "adapted_sha256": "8afe002b3fd026a62c6af92e8c03759827c0b5ba419c8eb95ad1fd74fa0df15d",
+      "adapted_bytes": 5216
+    },
+    {
+      "path": "render/build.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/build.py",
+      "source_sha256": "9ec85462281d92a6c8f51391e0c415ccbdf36c85669e23547800c2dae9cfa83b",
+      "adapted": true,
+      "adapted_sha256": "757f109ac3b913f09840db898e5cf8ac1b71bdda4ba8cdf70df90e96dfba3c93",
+      "adapted_bytes": 3736
+    },
+    {
+      "path": "render/apply_to_candidate.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/apply_to_candidate.py",
+      "source_sha256": "8c70ffbfdb2ce30eacf1e8440bce73632ffa3f18db09f4cb86bceba3cbd58335",
+      "adapted": true,
+      "adapted_sha256": "51fee69b245cef11036ce2d65c360847372b1b68b70cc20017e4a2bf9acdbf68",
+      "adapted_bytes": 614
+    },
+    {
+      "path": "render/run_air.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/run_air.py",
+      "source_sha256": "b515d3459e540c8da630b9d94ca407b856ea4faae6ad74c241d19b51c9d4c9bd",
+      "adapted": true,
+      "adapted_sha256": "51eadee0ea7d68f37ab9a35d0b98322dd3411d359db7369eb5109cd4ef83c8f8",
+      "adapted_bytes": 12986
+    },
+    {
+      "path": "render/air_harness.as",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/air_harness.as",
+      "source_sha256": "46cb732c9590b41d7c6a9081431cdc849f801a0df8f684dcb5807086367b0653",
+      "adapted": true,
+      "adapted_sha256": "b99a9a21d901aaea0b1897e491c1fac802e48d343ca655fee92abc61f0e184d7",
+      "adapted_bytes": 11288
+    },
+    {
+      "path": "render/run_controls.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/run_controls.py",
+      "source_sha256": "f803dff8598a2308640992cf3b93af982b8e01baa14a9089ddd38fa6817b42e9",
+      "adapted": true,
+      "adapted_sha256": "2367b1b62307b8af74169e310a82a67a4638b764b2cf08a0150c618afcc9a40b",
+      "adapted_bytes": 2810
+    },
+    {
+      "path": "render/test_composition.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/test_composition.py",
+      "source_sha256": "a4bec76c8973489c29ef9d8503e1fff7fb1e0b9c73491bcdcde6bd7127d4c533",
+      "adapted": true,
+      "adapted_sha256": "ed71877de254d998472dc506bca54a28d8bad2afe9b732d0a9ff1384e7ff148c",
+      "adapted_bytes": 2087
+    },
+    {
+      "path": "render/export_contract.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/render/export_contract.py",
+      "source_sha256": "accd89eef41fd2debafd935b26980807f2758ca83ae46ea6571ed977a851cbcc",
+      "adapted": true,
+      "adapted_sha256": "d57f3961537da4bcbaba47314b5068ce1bb3950b3116005f61a63b685c171bfb",
+      "adapted_bytes": 2153
+    },
+    {
+      "path": "storage-validation/inventory.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/storage-validation/inventory.py",
+      "source_sha256": "ecb3a295f3db8e2aa1fb51f47c7046c93c365111f8fb5bbb83a1ff64541471b6",
+      "adapted": true,
+      "adapted_sha256": "ab00ea2c0f0aaca8e62040e0e017b2397274656fecb4bc821d9572a138cb2a11",
+      "adapted_bytes": 3260
+    },
+    {
+      "path": "storage-validation/fixture_api.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/storage-validation/fixture_api.py",
+      "source_sha256": "52a66c30549384b186b064aa1233e3e6791a8be943c5e659c98dbdef8f5aac44",
+      "adapted": true,
+      "adapted_sha256": "eec1158e95dbc62fac21a406cd0ca84e701bc343483679cac89114537c9a0002",
+      "adapted_bytes": 11144
+    },
+    {
+      "path": "storage-validation/run_air.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/storage-validation/run_air.py",
+      "source_sha256": "a7e15a02ffabef4d4caaa4d234d0129774f5b353615407875a61f57fcc39da44",
+      "adapted": true,
+      "adapted_sha256": "0992c265d357917e890b19551b8640fdb7c97275febfcf06460761c534edaf79",
+      "adapted_bytes": 5181
+    },
+    {
+      "path": "storage-validation/run_external_cold.py",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/storage-validation/run_external_cold.py",
+      "source_sha256": "bf33ff23f014a4649676fdeed8d8a9c476e4bbba59625649a26a62c044ddd5e7",
+      "adapted": true,
+      "adapted_sha256": "3969662b1e4fc67fe81a423bbef773c3b18e6313f067add929562a86c11e7d76",
+      "adapted_bytes": 3028
+    },
+    {
+      "path": "storage-validation/air_harness.as",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/storage-validation/air_harness.as",
+      "source_sha256": "92c9c3a3a4a836c947f5624fcf6856294470b1fb0c826db4617673da11a77779",
+      "adapted": true,
+      "adapted_sha256": "a743640dac65b6e1d17621b59bdf5d742631e83d71e3a052ca1233d75d82d5d0",
+      "adapted_bytes": 5825
+    },
+    {
+      "path": "storage-validation/Launcher.as",
+      "source_snapshot": "settings-r1",
+      "source_relative_path": "revision-settings/storage-validation/Launcher.as",
+      "source_sha256": "e69aa8cb92a4f860f47c06e575ef07b33f3ad8f4e388050fb76d3f6c42207cdb",
+      "adapted": true,
+      "adapted_sha256": "cf11e1f1e9689e7dae881b3e42212de9a4509b831cb4dac4607ed8bf97584964",
+      "adapted_bytes": 768
+    },
+    {
+      "path": "support/framework.py",
+      "source_snapshot": "base",
+      "source_relative_path": "lite195/framework.py",
+      "source_sha256": "0ca0f2b6a5976c943cc962516be8cb542b98e78fc9a0ab66a410b850e3eccdea",
+      "adapted": true,
+      "adapted_sha256": "e8edfd7be2685d2230842c9c1e766e6c0178a5defc5a8fb94b91ea803365f897",
+      "adapted_bytes": 6954
+    },
+    {
+      "path": "support/static_check.py",
+      "source_snapshot": "base",
+      "source_relative_path": "lite195/static_check.py",
+      "source_sha256": "1b340c53257aec396ba7f41e6ff3d57c62f1fb06401595d9b427b91f157f9376",
+      "adapted": true,
+      "adapted_sha256": "6af51486d6af87eff3aba2ed381338a198cd8f44dd9cb9b318401c19b51c7726",
+      "adapted_bytes": 4210
+    },
+    {
+      "path": "support/selected_patch.py",
+      "source_snapshot": "base",
+      "source_relative_path": "lite195/selected_patch.py",
+      "source_sha256": "6169f9e9bfd295fe4c02e140ca31406da6e3c538dd8f6780bfd1010174b0ca47",
+      "adapted": true,
+      "adapted_sha256": "a3ce57562c5faceaed1fc47613406c5b2d4f579928e4f6b141872088405b00da",
+      "adapted_bytes": 17614
+    },
+    {
+      "path": "support/asm.py",
+      "source_snapshot": "base",
+      "source_relative_path": "lite195/vendor/asm.py",
+      "source_sha256": "c033836d0a7aa109b81509c1cb0731be82fc543c76d8d3b43881f9dab7d81e87",
+      "adapted": true,
+      "adapted_sha256": "73f2a8e5d02758636959bc1a10c92795fead4e4d89e3678bed356d211a61c341",
+      "adapted_bytes": 26294
+    },
+    {
+      "path": "support/swfabc.py",
+      "source_snapshot": "base",
+      "source_relative_path": "lite195/vendor/swfabc.py",
+      "source_sha256": "4f1c3ea93d71af0d98dba0467cb38fe205cbfc5eef5de93633db8f838aac7528",
+      "adapted": false,
+      "adapted_sha256": "4f1c3ea93d71af0d98dba0467cb38fe205cbfc5eef5de93633db8f838aac7528",
+      "adapted_bytes": 5462
+    },
+    {
+      "path": "support/swftags.py",
+      "source_snapshot": "base",
+      "source_relative_path": "lite195/vendor/swftags.py",
+      "source_sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+      "adapted": false,
+      "adapted_sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+      "adapted_bytes": 1975
+    },
+    {
+      "path": "support/avm_interp.py",
+      "source_snapshot": "base",
+      "source_relative_path": "lite195/vendor/avm_interp.py",
+      "source_sha256": "c7f356e58acf570a09e9bad2e7aff427d03b3dd61d5cc6f70d998185632f6580",
+      "adapted": false,
+      "adapted_sha256": "c7f356e58acf570a09e9bad2e7aff427d03b3dd61d5cc6f70d998185632f6580",
+      "adapted_bytes": 15323
+    }
+  ],
+  "adaptation_scope": [
+    "Machine/task paths replaced by shared release_config and explicit hash-guarded private inputs",
+    "Outputs redirected to external work_dir/settings; original business patches and adopted AS harnesses unchanged",
+    "Original AS declarations read from private ZIP whitelist rather than committing official source",
+    "Old unconditional selected_patch.build removed; only validators retained",
+    "Narrow R11Editor adapter replaces import of historical capabilities orchestration",
+    "Exact two native R11 shop verify/restore API plus no-degree assembly guard"
+  ],
+  "normalization_note": "Original source_sha256 values are preserved. adapted=true denotes path adapters and/or LF/EOF normalization, not a business logic change. The one whitespace-only empty line in render/run_air.py was cleared without removing its newline."
+}

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "input_swf_sha256": "215860d0f3933b352c377309c68943a3978a80ab5c5beb209c9b94382191e325",
+  "output_swf_sha256": "d06b1431c13d7d50765f81ed4a747be00e01500c5288702d816398e4fcc666f2",
+  "final_qa_swf_sha256": "83fc92d70d7457bb5e4b58d25d97663eeb80367ee366a947f4779a12075ff172",
+  "donor_swf_sha256": "2fa334cca6b104bdcae061c5ed9bc63eb52d59db7e687c90d24742e61759e7b4",
+  "methods": [
+    {
+      "label": "LeaderAbilityValues$/parseAt25",
+      "bodyIndex": 42044,
+      "beforeCodeSha256": "9b6bada4fdb9c3ec29698a663cc62a6962a42cc6ceb70ea9c8954fcced357e5f",
+      "afterCodeSha256": "569f95ba0e007623e39751f308c182a916838d70eb1cdb448c8ae6858ed65629",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "AbilityValues$/parseAt27",
+      "bodyIndex": 38993,
+      "beforeCodeSha256": "46049863af00c88ce5469ad2edc3fe561750821c77e46feb1fabf2689219dcd8",
+      "afterCodeSha256": "cfe1d751e51390e496aeb4c7f7940876f4e603712b264166335e613c8655a728",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "InstantAbilityTriggerMasterValueTools$/resolve",
+      "bodyIndex": 14778,
+      "beforeCodeSha256": "8f6cf93749a25a40319140fae7c2c6b1846f97551b51caa8fd8b84d8797e1c01",
+      "afterCodeSha256": "adaa3e66fdc15b507cf4dd87531e06ee3496bf71e5140dfffb5e5fc87e6ebea9",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "InstantAbilityDescriptionGenerator/stringfyInstantTriggerBattle",
+      "bodyIndex": 11306,
+      "beforeCodeSha256": "4d3a99a08bdbc3b635ed4802aca9a1aa0ea92570841681eaaae23633654c2d19",
+      "afterCodeSha256": "9975b1fec70a3cb2beac0e3fc04bf3a4d238a7f6f35fa48cd5c1673f4d4b0a4b",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/subtract",
+      "bodyIndex": 51127,
+      "beforeCodeSha256": "f8271c86cc011b72db6236df8c6ba0964795bf2285105963eb8c23322f17cb4e",
+      "afterCodeSha256": "351727d6feb55050020fbf2b87b94b727f8f026b3125a947602cd47b2e3dc89a",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/setRatio",
+      "bodyIndex": 51128,
+      "beforeCodeSha256": "7fd95ef07ab309c757c1e30f8b7fe0ced0494a13b55b78e44cb6e840a58ab997",
+      "afterCodeSha256": "54c4b16d291c1e3cf24ad65274934323447cd040589374a6afa794fccce56f55",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/setMaxHealthPoint",
+      "bodyIndex": 51130,
+      "beforeCodeSha256": "927c39b29cbe0dd1e3f4d4aaab459af8f7002e659550785a549e36a078c5f04d",
+      "afterCodeSha256": "0390324545ee00acefb16b4493e12cc56f47c0375f333f2a719e4c94c6cd85d7",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/set",
+      "bodyIndex": 51133,
+      "beforeCodeSha256": "130361333a37545341f261f0f0c169d6d86157cc6ec6a76ea2b57071768aa05f",
+      "afterCodeSha256": "4134ad15a69b7e0135c3d42bb88ec9382bdbb05f9668486bf29fd68783af95d8",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/changeMaxHp",
+      "bodyIndex": 51150,
+      "beforeCodeSha256": "9d691da8db9173d349c13a9c490a83842404e572dd35e4d049aedb84a0b8ee66",
+      "afterCodeSha256": "eb6e9e52b8d57ecec25c36a3ade8dcdc910b10ea3372dd342cd67268bb5f2d45",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/addMaxStatModifier",
+      "bodyIndex": 51152,
+      "beforeCodeSha256": "0e78d7f87964734f7a576892b7088d931168deb10e5a6b3c1a75428279e2c0e2",
+      "afterCodeSha256": "b392dac5d74c3cc8251173e44ff49f9357dff89683224868b51fd9fd8a4e6287",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/add",
+      "bodyIndex": 51154,
+      "beforeCodeSha256": "f8102a943db8e6a9520fa1d2787133a2058794b34edc5434bd1a26431f3a2138",
+      "afterCodeSha256": "3e926fe2606ebdbd1f19e7d9b6984f82fc7ffe2f5eddf3225a39e10fa947a9e3",
+      "oldInstructionsAndReachableCfgPreserved": true
+    },
+    {
+      "label": "InstantAbilityTriggerMasterValueTools$/wfxResolveHpLoss",
+      "bodyIndex": 92761,
+      "codeSha256": "e4d19ca0de7ac0f68bad20fce5aa8f865062ca12f422c3ac918e87043aa45a0d",
+      "donorMethodInfo": 101194,
+      "signature": [
+        10159,
+        [
+          12504,
+          9331
+        ],
+        0,
+        0,
+        null,
+        null
+      ],
+      "added": true
+    },
+    {
+      "label": "InstantAbility/wfxAccumulateHpLoss",
+      "bodyIndex": 92762,
+      "codeSha256": "e649a966a8cca3797c5d76916fb909029ea60925f28c7c844086063e496c58b2",
+      "donorMethodInfo": 101195,
+      "signature": [
+        1,
+        [
+          0,
+          85,
+          85
+        ],
+        0,
+        0,
+        null,
+        null
+      ],
+      "added": true
+    },
+    {
+      "label": "HealthPointGaugeImpl/wfxObserveHpLoss",
+      "bodyIndex": 92763,
+      "codeSha256": "2a6f3fd53a2df477cc11a2f6519500be967bcba28224bfed805868600138e73f",
+      "donorMethodInfo": 101196,
+      "signature": [
+        1,
+        [
+          85
+        ],
+        0,
+        0,
+        null,
+        null
+      ],
+      "added": true
+    },
+    {
+      "label": "InstantAbilityDescriptionGenerator$/wfxHpLossTriggerDescription",
+      "bodyIndex": 92764,
+      "codeSha256": "314e44a1a3ead88873bac707333ab97cd6ee12b61d53482d16218c2ddde49dc7",
+      "donorMethodInfo": 101197,
+      "signature": [
+        11,
+        [
+          32,
+          32
+        ],
+        0,
+        0,
+        null,
+        null
+      ],
+      "added": true
+    }
+  ],
+  "static_ledger": {
+    "owner": "pinball.scene.battle.battle.ability::InstantAbility",
+    "name": "wfxHpLossLedger",
+    "type": "*",
+    "runtime": "lazy flash.utils.Dictionary(true)",
+    "new_instance_fields": 0
+  },
+  "prior_validation": {
+    "old_parser_assertions": 12,
+    "core_native_assertions": 62,
+    "core_actual_methods_readback": 93,
+    "lifecycle_assertions": 15,
+    "lifecycle_actual_methods_readback": 101,
+    "actual_native_countHandler_sha256": "d85099a0a04d1172726daa5b8f3d81b2ff8ca9954041459b564e566cd6c34953",
+    "full_registered_member_teardown": false,
+    "single_empty_graph_GC_observation": true
+  },
+  "portable_adaptation": "not_executed"
+}

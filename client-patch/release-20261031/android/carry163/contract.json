@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "source_sha256": "6ac6ff8f5eead3984f932c9d7a4cfb58b058452c0311d058ebd00a6a7d30b856",
+  "helper_abc_sha256": "6849f52ea234769bb73fadad08604e9f8009b4e4fc0a0c01c22a7d9284c507a5",
+  "standalone_input_swf_sha256": "9c672e56e5911679848047daece874e139255b2d128f67ab11e605c5db2bb951",
+  "standalone_output_swf_sha256": "4b56d9aa725f8529e630deb756a89521ad5e64ab4d75d245fa1540d595dc2854",
+  "classes": 1,
+  "helper_methods": 12,
+  "new_existing_class_slots": 0,
+  "native_hooks": [
+    "BattleContinuationData/bothbossNext",
+    "SquadImpl/setContinuationData"
+  ],
+  "required_base": "Omit rejected original PR163 group and old wfxStage traits",
+  "prior_validation": {
+    "standalone_assertions": 58,
+    "final_composed_assertions": 60,
+    "complete_native_battle_assembly_executed": false,
+    "barrier_ctor_and_playheads": "fixture",
+    "actual_barrier_update": true,
+    "future_wfx60_61": "inactive resource boundary; migration is not implemented or claimed"
+  },
+  "portable_adaptation": "not_executed"
+}

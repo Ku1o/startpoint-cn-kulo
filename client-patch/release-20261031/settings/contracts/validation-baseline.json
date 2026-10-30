@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "implementationSwfSha256": "3c56f08c8b30ae75ae71908a699e703764dcfca0bc64d1fb91d866e2c61bfaef",
+  "adoptedOriginalValidation": {
+    "render": {"assertions": 790, "actualMethodsReadback": 18, "negativeControls": 4, "compositionChecks": 5, "specificNativeErrorCodes": [6503, 1006, 1007]},
+    "uiLinkedRealNativeStorage": {"assertions": 32, "graftedMethodsAndScripts": 101, "storageMethods": 35},
+    "storageSeparateProcesses": {"assertions": 362, "processes": 4, "sameAppId": true},
+    "linkedUiColdRead": {"assertions": 107, "separateProcess": true, "sourceFileByteExact": true}
+  },
+  "nativeStoreChain": ["ApplicationOptionLogic.store", "LocalStore.saveApplicationOption", "ApplicationOptionLocalStore_Impl_.save", "native JSON / WriteUTF / ZLIB / FileStreamWithCounter"],
+  "sourceRelocationValidation": "not_executed",
+  "boundaries": ["Finite Gear/Hook/audio/display transport and diagnostic ports remain", "Render-only store is a sink; linked UI/store suite executes the real file chain", "Native raster is not full GPU scene", "No mobile device, real multiplayer or performance claim", "Android AIR does not validate iOS ABC IDs, AOT activation or Atom ABI"]
+}

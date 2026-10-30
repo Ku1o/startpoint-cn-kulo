@@ -1,0 +1,19 @@
+{
+  "work_dir": "../private-build-work",
+  "android": {
+    "inputs": {
+      "r11_swf": {
+        "path": "inputs/r11.swf",
+        "sha256": "9c672e56e5911679848047daece874e139255b2d128f67ab11e605c5db2bb951"
+      },
+      "r11_apk": {
+        "path": "inputs/r11-lan.apk",
+        "sha256": "e9b9bbd8a0557a4cfaf6534b0e952caf20d142f5e6702fb2d35a0977f9a871b8"
+      },
+      "donor_swf": {
+        "path": "inputs/donor1008094.swf",
+        "sha256": "2fa334cca6b104bdcae061c5ed9bc63eb52d59db7e687c90d24742e61759e7b4"
+      }
+    }
+  }
+}

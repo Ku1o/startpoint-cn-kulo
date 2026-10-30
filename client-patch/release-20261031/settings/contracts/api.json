@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "scopeRevision": 3,
+  "status": "implementation_interface_frozen",
+  "optionKey": "cnTeammateEffectsVisible",
+  "semantics": {
+    "true": "display teammates subject to all existing native settings",
+    "false": "apply selected P1/P2/P2b/P3/P4 hiding gates",
+    "missingOrNonBoolean": "true"
+  },
+  "settingsOwner": "pinball.common.data.localStore::ApplicationOptionLogic",
+  "instanceMethods": {
+    "getTeammateEffectsVisible():Boolean": "Delegate to cnTeammateEffectsVisibleFromRaw(this.applicationOption).",
+    "setTeammateEffectsVisible(Boolean):void": "Write only the Boolean optionKey on the original applicationOption Object, then call the unchanged native store()."
+  },
+  "staticMethods": {
+    "cnTeammateEffectsVisibleFromRaw(Object):Boolean": "No mutable static state; return existing Boolean value, otherwise true. Valid original raw settings Object is required.",
+    "cnTeammateEffectsVisibleFromBattle(pinball.scene.battle.battle::Battle):Boolean": "Read battle.gear.absorb(GlobalLogic,null), then original GlobalLogic._getApplicationOption() and shared raw reader. Verify exact native QName visibility first; do not catch missing native context/None failures, perform filesystem IO or allocate new option wrappers."
+  },
+  "ui": {
+    "existingScene": "pinball.scene.applicationOption::ApplicationOptionScene/View",
+    "newSwitchButtonKindIndex": 18,
+    "label": "队友特效",
+    "description": "关闭后隐藏队友演出和特效。",
+    "onMeansVisible": true,
+    "defaultOn": true,
+    "textStrategy": "Run original native row initialization with valid existing UiString keys, then only for new kind18 assign actual title/description Text set_text via the existing layout. Do not pass Chinese as UiString key or intercept global translation.",
+    "pauseRouteAdded": false,
+    "newStandalonePage": false,
+    "newCDNResourceRequired": false
+  },
+  "render": {
+    "gated": [
+      "P1",
+      "P2",
+      "P2b",
+      "P3",
+      "P4"
+    ],
+    "P2": "Preserve entire native preparation assignment. Combine option dynamically at the actual BattleView.show other-multiball reader, so visible restores native flag and original settings.",
+    "visibleBranch": "Complete native original branch, never unconditional true.",
+    "P5": "Keep lightweight hit-effect behavior and RNG independently, with no option read.",
+    "existingEffectReplay": false,
+    "uiLifecycle": "Use original settings scene routing outside active battle; do not build new in-battle view reconstruction."
+  },
+  "degreeRetraction": {
+    "removeTwoMethodInsertions": true,
+    "removeCnDegreeShopId": true,
+    "nativeShopFlowExactR11": true,
+    "serverDegreeGrantUnchanged": true
+  }
+}
