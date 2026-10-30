@@ -17,6 +17,8 @@ interface ForeignKeyRow {
 
 interface IndexListRow {
     name: string
+    partial: number
+    origin: string
 }
 
 interface IndexInfoRow {
@@ -40,7 +42,17 @@ function quoteIdentifier(identifier: string): string {
 
 function hasSupportingIndex(database: Database, table: string, columns: string[]): boolean {
     const indexes = database.prepare(`PRAGMA index_list(${quoteIdentifier(table)})`).all() as IndexListRow[]
+    // A rowid-alias INTEGER PRIMARY KEY has no entry in index_list. DESC and
+    // WITHOUT ROWID primary keys have real PK indexes and use the normal path.
+    if (columns.length === 1 && !indexes.some(index => index.origin === "pk")) {
+        const primaryKey = (database.prepare(`PRAGMA table_info(${quoteIdentifier(table)})`).all() as {
+            name: string; type: string; pk: number
+        }[]).filter(column => column.pk > 0)
+        if (primaryKey.length === 1 && primaryKey[0].name === columns[0]
+            && primaryKey[0].type.trim().toUpperCase() === "INTEGER") return true
+    }
     return indexes.some(index => {
+        if (index.partial) return false
         const indexedColumns = (
             database.prepare(`PRAGMA index_info(${quoteIdentifier(index.name)})`).all() as IndexInfoRow[]
         )
@@ -50,13 +62,14 @@ function hasSupportingIndex(database: Database, table: string, columns: string[]
     })
 }
 
-/**
- * SQLite has to scan a child table for every cascaded parent-row deletion when
- * the child key is not indexed. Account cleanup touches many related tables, so
- * those scans become quadratic on a populated server. Add only the missing
- * indexes required by ON DELETE CASCADE constraints.
- */
-export function ensureCascadeDeleteIndexes(database: Database): number {
+export interface MissingCascadeDeleteIndex {
+    table: string
+    columns: string[]
+    indexName: string
+}
+
+/** Inspect schema only; safe to call while the server accepts gameplay writes. */
+export function findMissingCascadeDeleteIndexes(database: Database): MissingCascadeDeleteIndex[] {
     const tables = database.prepare(`
         SELECT name
         FROM sqlite_master
@@ -65,7 +78,7 @@ export function ensureCascadeDeleteIndexes(database: Database): number {
         ORDER BY name
     `).all() as { name: string }[]
 
-    let created = 0
+    const missing: MissingCascadeDeleteIndex[] = []
     for (const { name: table } of tables) {
         const foreignKeys = database
             .prepare(`PRAGMA foreign_key_list(${quoteIdentifier(table)})`)
@@ -86,12 +99,24 @@ export function ensureCascadeDeleteIndexes(database: Database): number {
 
             const safeTable = table.replace(/[^a-zA-Z0-9_]/g, "_")
             const indexName = `idx_cleanup_fk_${safeTable}_${foreignKeyId}`
-            database.prepare(
-                `CREATE INDEX IF NOT EXISTS ${quoteIdentifier(indexName)}
-                 ON ${quoteIdentifier(table)} (${columns.map(quoteIdentifier).join(", ")})`,
-            ).run()
-            created += 1
+            missing.push({ table, columns, indexName })
         }
+    }
+    return missing
+}
+
+/** Create indexes only for a new empty database or an offline maintenance window. */
+export function ensureCascadeDeleteIndexes(database: Database): number {
+    const missing = findMissingCascadeDeleteIndexes(database)
+    let created = 0
+    for (const { table, columns, indexName } of missing) {
+        // An earlier missing constraint may use the same child-key prefix.
+        if (hasSupportingIndex(database, table, columns)) continue
+        database.prepare(
+            `CREATE INDEX IF NOT EXISTS ${quoteIdentifier(indexName)}
+             ON ${quoteIdentifier(table)} (${columns.map(quoteIdentifier).join(", ")})`,
+        ).run()
+        created += 1
     }
     return created
 }

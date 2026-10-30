@@ -77,6 +77,14 @@ interface CleanupJob {
     backupCleanupError: string | null
     createdIndexes?: number
     workerThreadId?: number | null
+    backupProgress?: {
+        phase: "opening" | "copying" | "verifying"
+        totalPages: number
+        remainingPages: number
+        copiedPages: number
+        elapsedMs: number
+    } | null
+    cancelRequested?: boolean
     error?: string | null
 }
 
@@ -296,6 +304,12 @@ export default function Accounts() {
         onError: (error: Error) => { void message.error(error.message) },
     })
 
+    const cancelCleanup = useMutation({
+        mutationFn: () => apiPost<CleanupJob>("/api/server/deleteUnnotedAccounts/cancel", { jobId: cleanupJob?.jobId }),
+        onSuccess: job => { qc.setQueryData(["unnoted-account-cleanup"], job) },
+        onError: error => { message.error(error.message) },
+    })
+
     useEffect(() => {
         if (!cleanupJob?.jobId || cleanupJob.status === "idle" || cleanupJob.status === "running") return
         if (reportedCleanupJob.current === cleanupJob.jobId) return
@@ -330,13 +344,15 @@ export default function Accounts() {
         pending: accountWritePending,
         label: "账号与存档编辑",
     })
-    const cleanupPercent = cleanupRunning && cleanupJob.totalAccounts
-        ? Math.round(((cleanupJob.processedAccounts ?? 0) / cleanupJob.totalAccounts) * 100)
-        : 0
+    const backupProgress = cleanupJob?.backupProgress
+    const backingUp = cleanupJob?.phase === "backing_up"
+    const cleanupPercent = backingUp
+        ? (backupProgress?.totalPages ? Math.min(99, Math.floor(backupProgress.copiedPages / backupProgress.totalPages * 100)) : 0)
+        : (cleanupJob?.totalAccounts ? Math.round(((cleanupJob.processedAccounts ?? 0) / cleanupJob.totalAccounts) * 100) : 0)
     const cleanupPhaseText = {
         preparing: "正在准备 Worker",
         planning: "正在整理清理清单",
-        backing_up: "正在创建完整数据库备份",
+        backing_up: backupProgress?.phase === "verifying" ? "正在校验数据库备份" : "正在创建完整数据库备份",
         indexing: "正在检查删除索引",
         deleting: "正在分批删除",
         finalizing: "正在写入结果并清理旧备份",
@@ -359,7 +375,7 @@ export default function Accounts() {
                         当前选中的账号也按备注判断；需要保留的账号请先填写备注。执行前服务端会创建完整数据库备份。
                     </Typography.Text>
                     <Typography.Text type="secondary">
-                        Worker 整理清单后，服务端分批清理。期间可以继续登录和游戏；涉及数据库写入的操作偶尔可能短暂停顿。
+                        备份完成并校验后，服务端分批清理。可在批次之间取消；已经删除的批次不会自动恢复。大存档的删除仍可能短暂停顿，建议在低峰期操作。
                     </Typography.Text>
                     <Typography.Text type="secondary">
                         新备份和清理均成功后，只保留本次清理备份，较早的同类自动备份会被删除。
@@ -694,14 +710,20 @@ export default function Accounts() {
                         type="info"
                         showIcon
                         style={{ marginBottom: 12 }}
-                        message={`${cleanupPhaseText}${cleanupJob.workerThreadId ? `（Worker #${cleanupJob.workerThreadId}）` : ""}`}
+                        message={cleanupJob.cancelRequested ? "正在停止清理，请等待当前操作结束" : cleanupPhaseText}
                         description={(
                             <Space direction="vertical" style={{ width: "100%" }} size={4}>
-                                <Typography.Text>
+                                {backingUp ? <Typography.Text>
+                                    {backupProgress?.totalPages
+                                        ? `已复制 ${backupProgress.copiedPages.toLocaleString()}/${backupProgress.totalPages.toLocaleString()} 页，耗时 ${Math.floor(backupProgress.elapsedMs / 1000)} 秒。`
+                                        : "正在准备数据库快照，尚未执行删除。"}
+                                </Typography.Text> : <Typography.Text>
                                     已处理 {cleanupJob.processedAccounts ?? 0}/{cleanupJob.totalAccounts ?? 0} 个账号，
                                     已删除 {cleanupJob.deletedAccounts ?? 0} 个账号和 {cleanupJob.deletedSaves ?? 0} 个存档。
-                                </Typography.Text>
+                                </Typography.Text>}
                                 <Progress percent={cleanupPercent} status="active" size="small" />
+                                <Button onClick={() => cancelCleanup.mutate()} loading={cancelCleanup.isPending}
+                                    disabled={cleanupJob.cancelRequested}>停止清理</Button>
                             </Space>
                         )}
                     />

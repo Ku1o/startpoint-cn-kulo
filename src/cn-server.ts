@@ -137,6 +137,7 @@ import { assertServerAcceptingWork, beginServerShutdown, drainServerWork, isServ
 import { createGracefulShutdown } from "./lib/graceful-shutdown";
 import { cancelActiveLeaderboardSettlements, terminateActiveLeaderboardSettlements } from "./lib/leaderboard/background-worker";
 import { drainPlayerSaveExports, stopPlayerSaveExports } from "./lib/player-save-export";
+import { cancelActiveDatabaseBackups, stopDatabaseBackups } from "./lib/admin-database-backup-worker";
 
 process.env.MULTI_REALTIME_PROCESS ??= "1";
 export const fastify = Fastify({
@@ -541,6 +542,7 @@ let producerStops: Promise<PromiseSettledResult<unknown>[]> | null = null;
 function quiesceServer(): void {
     if (producerStops) return;
     beginServerShutdown();
+    cancelActiveDatabaseBackups("服务器正在关闭");
     const stop = (operation: () => unknown): Promise<unknown> => {
         try { return Promise.resolve(operation()); }
         catch (error) { return Promise.reject(error); }
@@ -592,11 +594,12 @@ const closeGracefully = createGracefulShutdown({
     quiesce: quiesceServer,
     close: () => fastify.close(),
     cancel: () => {
+        cancelActiveDatabaseBackups("服务器正在关闭");
         cancelActiveLeaderboardSettlements("server shutdown drain deadline");
         void stopPlayerSaveExports().catch(error => console.error("[SHUTDOWN] export cancellation failed", error));
     },
     terminate: async () => {
-        await Promise.all([terminateActiveLeaderboardSettlements(), stopPlayerSaveExports()]);
+        await Promise.all([terminateActiveLeaderboardSettlements(), stopPlayerSaveExports(), stopDatabaseBackups("服务器关闭期限已到")]);
     },
     failed: () => { process.exitCode = 1; process.exit(1); },
 });

@@ -12,6 +12,7 @@ interface GameplayLogin {
 export function initializeGameplayRequestIdentitySchemaSync(db: Database): void {
     if (initialized.has(db)) return
     if (db.inTransaction) throw new Error("Initialize gameplay login schema before business transactions")
+    const creatingSessions = !db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='gameplay_login_sessions'").get()
     db.exec(`CREATE TABLE IF NOT EXISTS gameplay_login_sessions (
         token_hash TEXT PRIMARY KEY,
         account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -23,6 +24,9 @@ export function initializeGameplayRequestIdentitySchemaSync(db: Database): void 
     );
     CREATE UNIQUE INDEX IF NOT EXISTS idx_gameplay_login_current_scope
         ON gameplay_login_sessions(scope_key) WHERE is_current=1;`)
+    // Only a newly created, empty table is indexed during normal startup.
+    // Existing installations add missing deletion indexes in offline maintenance.
+    if (creatingSessions) db.exec(`CREATE INDEX idx_gameplay_login_sessions_account ON gameplay_login_sessions(account_id)`)
     initialized.add(db)
 }
 

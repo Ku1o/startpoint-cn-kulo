@@ -163,12 +163,12 @@ test('account read failure is distinct from empty and every write mutation has e
     assert.equal(elements(tree, el => el.type === 'Alert' && el.props.message === '账号列表加载失败').length, 1)
     assert.equal(elements(tree, el => el.type === 'Table' && el.props.className === 'accounts-overview-table').length, 0)
     assert.equal(elements(tree, el => el.type === 'Button' && String(el.props.children).includes('数据未就绪'))[0].props.disabled, true)
-    assert.equal(failed.mutationOptions.length, 11)
+    assert.equal(failed.mutationOptions.length, 12)
     failed.mutationOptions.forEach(option => {
         assert.equal(typeof option.onError, 'function')
         assert.equal(option.onError(new Error('Synthetic write failure')), undefined, 'toast callbacks must not prolong TanStack pending')
     })
-    assert.equal(failed.notices.length, 11)
+    assert.equal(failed.notices.length, 12)
     const empty = uiHarness('admin/src/pages/Accounts.tsx', { queries: { accounts: { data: { rows: [], summary: { unnotedAccountCount: 0, unnotedSaveCount: 0 } } } } }).render()
     assert.equal(elements(empty, el => el.type === 'Table' && el.props.className === 'accounts-overview-table')[0].props.locale.emptyText, '暂无账号')
 })
@@ -185,6 +185,28 @@ test('account writes expose pending and disable conflicting row writes', () => {
     assert.equal(create.props.loading, true)
     assert.equal(create.props.disabled, true)
     assert.equal(elements(actionCell, el => el.type === 'Button' && el.props.danger)[0].props.disabled, true)
+})
+
+test('cleanup shows actual backup pages and cancellation targets the displayed job', async () => {
+    const calls = []
+    const job = { jobId: 'shown-job', status: 'running', phase: 'backing_up', totalAccounts: 12,
+        processedAccounts: 0, deletedAccounts: 0, deletedSaves: 0,
+        backupProgress: { phase: 'copying', totalPages: 2000, copiedPages: 1000, remainingPages: 1000, elapsedMs: 4000 } }
+    const harness = uiHarness('admin/src/pages/Accounts.tsx', {
+        queries: { 'unnoted-account-cleanup': { data: job } },
+        api: { apiPost: async (...args) => { calls.push(args); return job } },
+    })
+    const tree = harness.render()
+    assert.equal(elements(tree, el => el.type === 'Progress')[0].props.percent, 50)
+    const stop = elements(tree, el => el.type === 'Button' && el.props.children === '停止清理')[0]
+    assert.ok(stop)
+    await harness.mutationOptions.at(-1).mutationFn()
+    assert.equal(calls[0][0], '/api/server/deleteUnnotedAccounts/cancel')
+    assert.equal(calls[0][1].jobId, 'shown-job')
+    job.cancelRequested = true
+    const pending = harness.render()
+    assert.equal(elements(pending, el => el.type === 'Button' && el.props.children === '停止清理')[0].props.disabled, true)
+    assert.ok(elements(pending, el => el.type === 'Alert' && el.props.message === '正在停止清理，请等待当前操作结束').length)
 })
 
 test('default-save read failure is not displayed as unset and prevents replacement', () => {

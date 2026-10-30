@@ -1,7 +1,12 @@
 import { existsSync } from "./file-exists";
-import { copyFileSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "fs"
+import { lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "fs"
+import { createHash } from "crypto"
 import path from "path"
-import { getDb } from "../data/db"
+import {
+    AdminDatabaseBackupError, backupDatabaseInWorker,
+    type AdminDatabaseBackupOptions, type AdminDatabaseBackupProgress,
+} from "./admin-database-backup-worker"
+export type { AdminDatabaseBackupOptions, AdminDatabaseBackupProgress } from "./admin-database-backup-worker"
 
 export interface AdminDatabaseBackupResult {
     directory: string
@@ -35,35 +40,63 @@ function createBackupStamp(): string {
 export async function createFullDatabaseBackup(
     prefix: string,
     metadata: Record<string, unknown> = {},
+    options: AdminDatabaseBackupOptions = {},
 ): Promise<AdminDatabaseBackupResult> {
     if (!/^[a-z0-9-]+$/.test(prefix)) throw new Error("Database backup prefix is invalid")
     const databaseDir = getDatabaseDirectory()
     const name = `${prefix}-${createBackupStamp()}`
     const directory = path.join(databaseDir, "admin-backups", name)
-    mkdirSync(directory, { recursive: true })
-
-    const versionPath = path.join(databaseDir, "wdfp_data.db.version")
-    if (!existsSync(versionPath)) {
-        throw new Error("Database version file is missing: wdfp_data.db.version")
-    }
-    await getDb().backup(path.join(directory, "wdfp_data.db"))
-    copyFileSync(versionPath, path.join(directory, "wdfp_data.db.version"))
-
+    mkdirSync(path.dirname(directory), { recursive: true })
+    mkdirSync(directory)
     const statePath = path.join(databaseDir, "active_account.json")
-    if (existsSync(statePath)) copyFileSync(statePath, path.join(directory, "active_account.json"))
-    writeFileSync(
-        path.join(directory, "backup-info.json"),
-        JSON.stringify({
-            createdAt: new Date().toISOString(),
+    const createdAt = new Date().toISOString()
+    let lastProgress: AdminDatabaseBackupProgress | undefined
+    let sidecars: { capturedAt: string; versionSha256: string; activeAccountSha256: string | null } | undefined
+    const writeInfo = (status: "running" | "completed" | "failed", extra: Record<string, unknown> = {}): void => {
+        writeFileSync(path.join(directory, "backup-info.json"), JSON.stringify({
+            ...metadata,
+            createdAt,
             type: prefix,
+            status,
             database: "wdfp_data.db",
             databaseVersion: "wdfp_data.db.version",
-            includesActiveAccountState: existsSync(statePath),
-            ...metadata,
-        }, null, 2),
-        "utf8",
-    )
-    return { directory, name }
+            includesActiveAccountState: sidecars?.activeAccountSha256 !== null && sidecars !== undefined,
+            sidecars,
+            progress: lastProgress,
+            ...extra,
+        }, null, 2), "utf8")
+    }
+    try {
+        writeInfo("running")
+        const versionPath = path.join(databaseDir, "wdfp_data.db.version")
+        if (!existsSync(versionPath)) throw new Error("Database version file is missing: wdfp_data.db.version")
+        const versionBytes = readFileSync(versionPath)
+        const stateBytes = existsSync(statePath) ? readFileSync(statePath) : null
+        sidecars = {
+            capturedAt: new Date().toISOString(),
+            versionSha256: createHash("sha256").update(versionBytes).digest("hex"),
+            activeAccountSha256: stateBytes ? createHash("sha256").update(stateBytes).digest("hex") : null,
+        }
+        writeInfo("running")
+        const result = await backupDatabaseInWorker(path.join(databaseDir, "wdfp_data.db"), path.join(directory, "wdfp_data.db"), {
+            ...options,
+            activeAccountState: stateBytes?.toString("utf8"),
+            versionSidecar: { filename: versionPath, contents: versionBytes.toString("base64") },
+            onProgress: progress => { lastProgress = progress; options.onProgress?.(progress) },
+        })
+        writeFileSync(path.join(directory, "wdfp_data.db.version"), versionBytes)
+        if (stateBytes) writeFileSync(path.join(directory, "active_account.json"), stateBytes)
+        writeInfo("completed", { finishedAt: new Date().toISOString(), verification: result })
+        return { directory, name }
+    } catch (error) {
+        const failure = error instanceof AdminDatabaseBackupError ? error
+            : new AdminDatabaseBackupError("failed", error instanceof Error ? error.message : String(error))
+        failure.backupDirectory = directory
+        failure.backupName = name
+        try { writeInfo("failed", { finishedAt: new Date().toISOString(), errorCode: failure.code, error: failure.message }) }
+        catch (metadataError) { console.error("[ADMIN] failed to record unsuccessful database backup", metadataError) }
+        throw failure
+    }
 }
 
 export function createPlayerImportSnapshotBackup(

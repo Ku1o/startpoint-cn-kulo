@@ -12,14 +12,8 @@ interface ExistingAccountRow {
     id: number
 }
 
-interface PlayerRow {
-    id: number
-    account_id: number
-}
-
 interface PlannedCleanupEntry {
     accountId: number
-    playerIds: number[]
 }
 
 const input = workerData as CleanupWorkerData
@@ -48,15 +42,9 @@ function main(): void {
             const existingAccounts = database.prepare(
                 `SELECT id FROM accounts WHERE id IN (${placeholders})`,
             ).all(...requestedIds) as ExistingAccountRow[]
-            const players = database.prepare(
-                `SELECT id, account_id FROM players WHERE account_id IN (${placeholders})`,
-            ).all(...requestedIds) as PlayerRow[]
             for (const account of existingAccounts) {
                 plannedEntries.push({
                     accountId: account.id,
-                    playerIds: players
-                        .filter(player => player.account_id === account.id)
-                        .map(player => player.id),
                 })
             }
         }

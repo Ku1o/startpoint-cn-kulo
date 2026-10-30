@@ -9,7 +9,7 @@ import { initializeQuestTimeRevision } from "./initializers/quest-time-revision"
 import { initializeAbyssTowerProgress } from "./initializers/abyss-tower-progress";
 import { initializeAbyssRecords } from "./initializers/abyss-records";
 import { initializeFiveBossGauntlet } from "./initializers/five-boss-gauntlet";
-import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
+import { ensureCascadeDeleteIndexes, findMissingCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
 import { observeSqliteDatabase } from "../lib/sqlite-diagnostics";
 import { applySqliteSettings } from "../lib/sqlite-settings";
@@ -144,9 +144,16 @@ export default function getDatabase(
                 console.log("Successfully updated wdfp_data.db")
             }
 
-            const createdCleanupIndexes = ensureCascadeDeleteIndexes(db)
-            if (createdCleanupIndexes > 0) {
-                console.log(`[DB] created ${createdCleanupIndexes} cascade-delete indexes`)
+            if (!dbExists) {
+                const createdCleanupIndexes = ensureCascadeDeleteIndexes(db)
+                if (createdCleanupIndexes > 0) {
+                    console.log(`[DB] created ${createdCleanupIndexes} cascade-delete indexes`)
+                }
+            } else {
+                const missingCleanupIndexes = findMissingCascadeDeleteIndexes(db)
+                if (missingCleanupIndexes.length > 0) {
+                    console.warn(`[DB] ${missingCleanupIndexes.length} cascade-delete indexes are missing; account cleanup requires offline index maintenance`)
+                }
             }
 
             // write version file

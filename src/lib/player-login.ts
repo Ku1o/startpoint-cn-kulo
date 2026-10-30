@@ -36,6 +36,8 @@ interface ClaimCode { code: string; account_id: number; purpose: string; expires
 
 export function initializePlayerLogin(disconnect?: (viewerId: number) => void): void {
     initializeGameplayRequestIdentitySchemaSync(getDb())
+    const newAccountIndexes = ["player_login_codes", "player_login_claims"].filter(table =>
+        !getDb().prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table))
     getDb().exec(`
         CREATE TABLE IF NOT EXISTS player_login_credentials (
             account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
@@ -63,6 +65,10 @@ export function initializePlayerLogin(disconnect?: (viewerId: number) => void): 
         CREATE INDEX IF NOT EXISTS idx_player_login_code_expiry ON player_login_codes(expires_at);
         CREATE INDEX IF NOT EXISTS idx_player_login_code_consumed ON player_login_codes(consumed_at) WHERE consumed_at IS NOT NULL;
     `)
+    // Avoid building new indexes over an existing populated table at startup.
+    for (const table of newAccountIndexes) {
+        getDb().exec(`CREATE INDEX idx_${table}_account ON ${table}(account_id)`)
+    }
     initialized = true
     if (disconnect) disconnectViewer = disconnect
 }

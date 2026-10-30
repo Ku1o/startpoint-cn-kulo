@@ -59,6 +59,7 @@ async function main() {
     await app.ready()
     const post = (url, payload, headers = {}) => app.inject({ method: 'POST', url, payload, headers })
     assert.equal((await post('/api/server/deleteUnnotedAccounts', { confirm: 'DELETE_UNNOTED_ACCOUNTS' })).statusCode, 401)
+    assert.equal((await post('/api/server/deleteUnnotedAccounts/cancel', { jobId: 'unauthorized' })).statusCode, 401)
     const login = await post('/admin-login', { password: process.env.ADMIN_PANEL_PASSWORD })
     const headers = { cookie: login.headers['set-cookie'].split(';')[0] }
     assert.equal((await post('/api/server/deleteUnnotedAccounts', {}, headers)).statusCode, 400)

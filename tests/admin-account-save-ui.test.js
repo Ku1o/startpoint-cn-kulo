@@ -110,7 +110,7 @@ assert.match(dashboard, /title="国服最终基线" value=\{status\.cdn\.baselin
 assert.match(dashboard, /预览版本 \{status\.cdn\.extension\.effectiveVersionPreview\}/)
 assert.match(serverApi, /cnFinalVersion: effectiveVersion/)
 assert.match(serverApi, /createFullDatabaseBackup/)
-assert.match(adminDatabaseBackup, /getDb\(\)\.backup/)
+assert.match(adminDatabaseBackup, /backupDatabaseInWorker/)
 assert.match(serverApi, /MANUAL_DATABASE_BACKUP_KEEP_COUNT = 5/)
 assert.match(serverApi, /removeExpiredManualDatabaseBackups/)
 assert.match(adminMain, /colorBgContainer: dark \? "#10182a" : "#ffffff"/)

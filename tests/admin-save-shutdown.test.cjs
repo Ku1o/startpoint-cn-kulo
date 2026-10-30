@@ -143,7 +143,7 @@ async function scenario(name) {
             assert.equal(job.status, 'failed', JSON.stringify(job))
             assert.equal(job.interrupted, true)
             const completed = name === 'cleanup-batch-close' ? 5 : 0
-            assert.equal(deletes, completed ? 1 : 0); assert.equal(indexes, completed ? 1 : 0)
+            assert.equal(deletes, completed ? 1 : 0); assert.equal(indexes, 0, 'online cleanup never creates indexes')
             assert.equal(job.processedAccounts, completed)
             assert.equal(job.deletedAccounts, completed); assert.equal(job.deletedSaves, completed)
             assert.equal(job.remainingAccounts, candidates.length - completed)

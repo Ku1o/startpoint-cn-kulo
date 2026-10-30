@@ -1,6 +1,6 @@
 import { existsSync } from "../../lib/file-exists";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { lstatSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
+import { lstatSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "fs";
 import path from "path";
 import { randomBytes, randomUUID } from "crypto";
 import { Worker } from "worker_threads";
@@ -18,10 +18,11 @@ import { wantsJson } from "./http";
 import { SessionType } from "../../data/types";
 import { getDb } from "../../data/db";
 import { disconnectDeletedPlayerLogin, playerLoginAdminOverview, playerLoginManaged } from "../../lib/player-login";
-import { accountHasNote, ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
+import { accountHasNote, findMissingCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
 import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool";
 import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { createFullDatabaseBackup, getDatabaseDirectory } from "../../lib/admin-database-backup";
+import { AdminDatabaseBackupError, stopDatabaseBackups, type AdminDatabaseBackupProgress } from "../../lib/admin-database-backup-worker";
 import { getOnlinePlayerCount } from "../../lib/online-presence";
 import { clearRecoveryFailuresForViewer } from "../cn/takeOver";
 import { getZipFileSummary } from "../../lib/zip-summary-cache";
@@ -60,7 +61,6 @@ type AccountCleanupPhase = "preparing" | "planning" | "backing_up" | "indexing" 
 
 interface PlannedCleanupEntry {
     accountId: number
-    playerIds: number[]
 }
 
 interface AccountCleanupJob {
@@ -84,6 +84,8 @@ interface AccountCleanupJob {
     batchSize: number
     pauseMs: number
     workerThreadId: number | null
+    backupProgress: AdminDatabaseBackupProgress | null
+    cancelRequested: boolean
     error: string | null
 }
 
@@ -91,6 +93,7 @@ let accountCleanupJob: AccountCleanupJob | null = null
 let accountCleanupWorker: Worker | null = null
 let accountCleanupWorkerExit: Promise<void> | null = null
 let accountCleanupExecution: Promise<void> | null = null
+let accountCleanupAbort: AbortController | null = null
 let accountCleanupClosing = false
 function cleanupClosing(): boolean { return accountCleanupClosing || isServerShuttingDown() }
 function interruptCleanup(job: AccountCleanupJob): void {
@@ -99,7 +102,9 @@ function interruptCleanup(job: AccountCleanupJob): void {
     job.interrupted = true
     job.remainingAccounts = Math.max(0, job.totalAccounts - job.processedAccounts)
     job.finishedAt = new Date().toISOString()
-    job.error = `服务器正在关闭，清理已停止；已提交删除 ${job.deletedAccounts} 个账号，剩余 ${job.remainingAccounts} 个待处理，可在重启后重新确认清理。`
+    job.error = job.deletedAccounts === 0
+        ? "清理已停止，未执行删除；需要继续时请重新确认清理。"
+        : `清理已停止；已提交删除 ${job.deletedAccounts} 个账号，剩余 ${job.remainingAccounts} 个待处理，已完成的批次不会自动恢复。`
 }
 
 function delay(milliseconds: number): Promise<void> {
@@ -136,11 +141,25 @@ async function cleanupDeletedPlayerAiSnapshots(playerIds: number[], context: str
     }
 }
 
+function isCompletedDatabaseBackup(directory: string): boolean {
+    if (!existsSync(path.join(directory, "backup-info.json"))
+        || !existsSync(path.join(directory, "wdfp_data.db"))
+        || !existsSync(path.join(directory, "wdfp_data.db.version"))) return false
+    const metadata = JSON.parse(readFileSync(path.join(directory, "backup-info.json"), "utf8"))
+    // Older releases wrote this metadata only after a successful backup.
+    return metadata.status === undefined || metadata.status === "completed"
+}
+
 function removeExpiredManualDatabaseBackups(backupRoot: string): string[] {
     if (!existsSync(backupRoot)) return []
     const resolvedRoot = path.resolve(backupRoot)
     const backups = readdirSync(resolvedRoot)
         .filter(name => /^manual-full-\d{8}-\d{6}-\d{3}$/.test(name))
+        .filter(name => {
+            const directory = path.join(resolvedRoot, name)
+            const stats = lstatSync(directory)
+            return stats.isDirectory() && !stats.isSymbolicLink() && isCompletedDatabaseBackup(directory)
+        })
         .sort((left, right) => right.localeCompare(left))
     const removed: string[] = []
     for (const name of backups.slice(MANUAL_DATABASE_BACKUP_KEEP_COUNT)) {
@@ -148,6 +167,7 @@ function removeExpiredManualDatabaseBackups(backupRoot: string): string[] {
         if (path.dirname(candidate) !== resolvedRoot) continue
         const stats = lstatSync(candidate)
         if (!stats.isDirectory() || stats.isSymbolicLink()) continue
+        if (!isCompletedDatabaseBackup(candidate)) continue
         rmSync(candidate, { recursive: true, force: true })
         removed.push(name)
     }
@@ -165,6 +185,7 @@ function removeOlderCleanupBackups(currentBackupDirectory: string): string[] {
         if (candidate === currentDirectory || path.dirname(candidate) !== backupRoot) continue
         const stats = lstatSync(candidate)
         if (!stats.isDirectory() || stats.isSymbolicLink()) continue
+        if (!isCompletedDatabaseBackup(candidate)) continue
         rmSync(candidate, { recursive: true, force: true })
         removed.push(name)
     }
@@ -183,19 +204,20 @@ async function executeAccountCleanupPlan(
     let interrupted = false
     let failure: unknown
     try {
-        if (cleanupClosing()) { interruptCleanup(job); return }
+        if (cleanupClosing() || job.cancelRequested) { interruptCleanup(job); return }
         job.totalAccounts = plannedEntries.length
         job.remainingAccounts = job.totalAccounts
-        job.phase = "backing_up"
-        backup = await createFullDatabaseBackup("unnoted-accounts")
-        job.backup = `.database/admin-backups/${backup.name}`
-
         job.phase = "indexing"
-        if (!cleanupClosing()) {
-            job.createdIndexes = await runPersistenceTransaction({
-                domain: "admin", operation: "ensure_cleanup_indexes",
-            }, () => ensureCascadeDeleteIndexes(getDb()))
+        const missingIndexes = findMissingCascadeDeleteIndexes(getDb())
+        if (missingIndexes.length > 0) {
+            throw new Error(`缺少 ${missingIndexes.length} 个删除索引，已停止清理且未删除任何账号；请在停服维护中补齐索引后重试。`)
         }
+        job.phase = "backing_up"
+        backup = await createFullDatabaseBackup("unnoted-accounts", {}, {
+            signal: accountCleanupAbort?.signal,
+            onProgress: progress => { job.backupProgress = progress },
+        })
+        job.backup = `.database/admin-backups/${backup.name}`
 
         job.phase = "deleting"
         let processedAccounts = 0
@@ -206,7 +228,7 @@ async function executeAccountCleanupPlan(
         for (let offset = 0; offset < plannedAccountIds.length; offset += ACCOUNT_CLEANUP_BATCH_SIZE) {
             // Each accepted transaction may finish; close never admits the
             // next batch under a blanket cleanup exemption.
-            if (cleanupClosing()) { interrupted = true; break }
+            if (cleanupClosing() || job.cancelRequested) { interrupted = true; break }
             const requestedIds = plannedAccountIds.slice(offset, offset + ACCOUNT_CLEANUP_BATCH_SIZE)
             if (requestedIds.length === 0) continue
             const placeholders = requestedIds.map(() => "?").join(", ")
@@ -265,7 +287,7 @@ async function executeAccountCleanupPlan(
         }
 
     } catch (error) {
-        if (error instanceof ServerClosingError) interrupted = true
+        if (error instanceof ServerClosingError || (error instanceof AdminDatabaseBackupError && error.code === "cancelled")) interrupted = true
         else failure = error
     }
 
@@ -273,13 +295,16 @@ async function executeAccountCleanupPlan(
     // Only post-commit cleanup of already deleted objects may continue during
     // close. No new account deletion is hidden inside this cleanup scope.
     await withShutdownCleanup(() => cleanupDeletedPlayerAiSnapshots(deletedPlayerIds, `unnoted-account cleanup ${jobId}`))
-    interrupted ||= cleanupClosing() && job.remainingAccounts > 0
+    interrupted ||= (cleanupClosing() || job.cancelRequested) && job.remainingAccounts > 0
     if (interrupted) interruptCleanup(job)
     else {
         job.status = failure ? "failed" : "completed"
         job.ok = !failure
         job.finishedAt = new Date().toISOString()
-        if (failure) job.error = failure instanceof Error ? failure.message : String(failure)
+        if (failure) {
+            job.error = failure instanceof Error ? failure.message : String(failure)
+            if (!backup && job.deletedAccounts === 0) job.error += "；未执行删除。"
+        }
     }
     try {
         if (!backup) return
@@ -358,9 +383,12 @@ function startAccountCleanupWorker(
         batchSize: ACCOUNT_CLEANUP_BATCH_SIZE,
         pauseMs: ACCOUNT_CLEANUP_BATCH_PAUSE_MS,
         workerThreadId: null,
+        backupProgress: null,
+        cancelRequested: false,
         error: null,
     }
     accountCleanupJob = job
+    accountCleanupAbort = new AbortController()
 
     const worker = new Worker(workerLocation.filename, {
         execArgv: workerLocation.execArgv,
@@ -397,7 +425,7 @@ function startAccountCleanupWorker(
             const plannedEntries = Array.isArray(message.plannedEntries)
                 ? message.plannedEntries as PlannedCleanupEntry[]
                 : []
-            if (cleanupClosing()) { interruptCleanup(job); return }
+            if (cleanupClosing() || job.cancelRequested) { interruptCleanup(job); return }
             const execution = executeAccountCleanupPlan(jobId, plannedEntries)
             accountCleanupExecution = execution
             void execution.finally(() => {
@@ -425,7 +453,7 @@ function startAccountCleanupWorker(
         if (accountCleanupWorker === worker) accountCleanupWorker = null
         if (planReceived) return
         if (!accountCleanupJob || accountCleanupJob.jobId !== jobId || accountCleanupJob.status !== "running") return
-        if (cleanupClosing()) { interruptCleanup(job); return }
+        if (cleanupClosing() || job.cancelRequested) { interruptCleanup(job); return }
         accountCleanupJob.status = "failed"
         accountCleanupJob.finishedAt = new Date().toISOString()
         accountCleanupJob.error = `Cleanup worker exited before completion (code ${code})`
@@ -491,6 +519,8 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.addHook("onClose", async () => {
         accountCleanupClosing = true
+        accountCleanupAbort?.abort()
+        await stopDatabaseBackups("服务器正在关闭")
         if (accountCleanupWorker) {
             await accountCleanupWorker.terminate()
         }
@@ -902,6 +932,25 @@ const routes = async (fastify: FastifyInstance) => {
         })
     })
 
+    fastify.post("/deleteUnnotedAccounts/cancel", async (request: FastifyRequest, reply: FastifyReply) => {
+        const body = (request.body || {}) as { jobId?: unknown }
+        const job = accountCleanupJob
+        if (!job || body.jobId !== job.jobId) {
+            return reply.status(409).send({ error: "清理任务已变化，请刷新状态后重试" })
+        }
+        if (job.status !== "running") return reply.send(job)
+        if (!job.cancelRequested) {
+            job.cancelRequested = true
+            accountCleanupAbort?.abort()
+            if (accountCleanupWorker) {
+                void accountCleanupWorker.terminate().catch(error => {
+                    job.error = `清理正在停止：${error instanceof Error ? error.message : String(error)}`
+                })
+            }
+        }
+        return reply.status(202).send(job)
+    })
+
     // Only account notes determine eligibility, including bound and selected accounts.
     fastify.post("/deleteUnnotedAccounts", async (request: FastifyRequest, reply: FastifyReply) => {
         assertServerAcceptingWork()
@@ -942,6 +991,8 @@ const routes = async (fastify: FastifyInstance) => {
                 batchSize: ACCOUNT_CLEANUP_BATCH_SIZE,
                 pauseMs: ACCOUNT_CLEANUP_BATCH_PAUSE_MS,
                 workerThreadId: null,
+                backupProgress: null,
+                cancelRequested: false,
                 skippedActiveAccount: null,
                 error: null,
             }
