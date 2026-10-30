@@ -8,6 +8,9 @@ import { recordFiveBossSignal } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import { notifyRealtimePresence as markPlayerOnlineFromTcp } from "../coordinator/business-facts"
 import { battleTelemetry } from "../battle-telemetry"
+import { recordBattleFrame } from "./relay-recorder"
+import { handleBattleFingerprintNotify, isStateFingerprintEnabled,
+    isStateFingerprintNotify, isStateFingerprintPacket } from "./state-fingerprint"
 import type { RelayActivity } from "./battle-relay/protocol"
 import { markBattleMemberPhase } from "../state/battle-contract"
 import { deferPinnedRoomControl } from "../coordinator/room-start-claims"
@@ -107,6 +110,10 @@ function handleBattleNotify(socket: net.Socket, data: unknown, indexedClient?: S
         case 4: // LineSpeedWarning
             break
         case 5: // Heartbeat
+            if (isStateFingerprintNotify(data)) {
+                handleBattleFingerprintNotify(socket, data, client)
+                break
+            }
             if (client) sendToBattleClient(client, [1, [3, 0, 0, Date.now()]], "battle_heartbeat_ack")
             break
         default:
@@ -160,6 +167,10 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
         }
     }
     fiveBossConnectionDiagnostics.packet(socket, !!activityClient)
+    if (activityClient && (!isStateFingerprintPacket(data) || isStateFingerprintEnabled())) {
+        recordBattleFrame(activityClient.roomNumber, activityClient.roomGeneration,
+            activityClient.viewerId, activityClient.connectionId, data)
+    }
     if (activityClient) {
         sessionManager.noteBattleActivity(activityClient.connectionId)
         battleTelemetry.packet(activityClient.roomNumber, activityClient.viewerId, tag,

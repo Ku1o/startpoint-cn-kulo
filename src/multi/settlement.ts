@@ -28,6 +28,11 @@ export interface SettlementMergeResult {
 }
 
 const snapshots = new Map<string, SettlementSnapshot>()
+// A late finisher still needs the scores submitted by earlier teammates.
+const SNAPSHOT_RETENTION_MS = (() => {
+    const parsed = parseInt(process.env.MULTI_SETTLEMENT_SNAPSHOT_RETENTION_MS || "", 10)
+    return Number.isFinite(parsed) ? Math.max(120_000, parsed) : 900_000
+})()
 registerMemoryCounters("settlementBarriers", () => ({ entries: snapshots.size }))
 
 function finiteNumber(value: unknown, fallback = 0): number {
@@ -87,7 +92,7 @@ function createSnapshot(
     clearTimeout(snapshot.cleanupTimer)
     snapshot.cleanupTimer = setTimeout(() => {
         if (snapshots.get(key) === snapshot) snapshots.delete(key)
-    }, 120_000)
+    }, SNAPSHOT_RETENTION_MS)
     snapshot.cleanupTimer.unref()
     snapshots.set(key, snapshot)
     return snapshot

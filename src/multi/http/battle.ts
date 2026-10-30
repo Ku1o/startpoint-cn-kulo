@@ -700,6 +700,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                             roomInstanceId: committedInstanceId,
                             battleSessionId: committedRunId,
                             generation: settlementGeneration, viewerId, playerId, playId,
+                            accomplished: questAccomplished,
                         }) as { applied: boolean; snapshotPhase?: "LOBBY" | "RETURN_PENDING"; reason?: string } | undefined;
                         if (roomResult?.applied && roomResult.snapshotPhase) {
                             transitionMultiSettlementSnapshot(playerId, playId, roomResult.snapshotPhase);

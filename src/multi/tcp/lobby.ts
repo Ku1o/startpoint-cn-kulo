@@ -989,6 +989,20 @@ function rejectClaimedAdmission(
 }
 
 function commitClaimedAdmission(socket: net.Socket, client: SessionClient): boolean {
+    if (sessionManager.takeStaleAssetViewer(client.roomNumber, client.viewerId)) {
+        const instanceId = getRoom(client.roomNumber)?.lifecycle.instanceId
+        // Welcome must finish before the client receives MeetingServerMessage.AssetUpdate.
+        const timer = setTimeout(() => {
+            if (!socket.destroyed && sessionManager.getClient(client.viewerId, client.roomNumber) === client
+                && getRoom(client.roomNumber)?.lifecycle.instanceId === instanceId) {
+                sessionManager.sendJson(socket, [1, [9]], {
+                    roomNumber: client.roomNumber, connectionId: client.connectionId, viewerId: client.viewerId,
+                    roomGeneration: client.roomGeneration, channel: "asset_update",
+                })
+            }
+        }, 300)
+        timer.unref()
+    }
     if (!client.admissionClaimed) {
         return client.playerId !== null
             && addRoomMember(client.roomNumber, client.viewerId, client.playerId)

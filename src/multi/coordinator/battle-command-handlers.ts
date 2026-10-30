@@ -59,6 +59,7 @@ export interface SettlementCommittedCommand {
     viewerId: number
     playerId: number
     playId: string
+    accomplished?: boolean
 }
 
 export function registerBattleCommandHandlers(executor: RoomCommandExecutor): void {
@@ -157,6 +158,10 @@ export function registerBattleCommandHandlers(executor: RoomCommandExecutor): vo
             markRematchReturnWindowOpened(room)
             sessionManager.clearBattleExpectedCount(p.roomNumber)
             if (!wasPending) sessionManager.beginSettlementReturnGrace(p.roomNumber)
+            if (p.accomplished === true && !room.five_boss_runtime
+                && !isFiveBossGauntletQuest(Number(room.category), Number(room.quest_id))) {
+                sessionManager.sendServerConfirmedClear(p.roomNumber, p.viewerId, p.battleSessionId)
+            }
             return { applied: true, snapshotPhase: "RETURN_PENDING" }
         })
     })

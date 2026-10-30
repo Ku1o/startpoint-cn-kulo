@@ -21,6 +21,15 @@ function numberOrNull(value: unknown): number | null {
     const number = Number(value)
     return Number.isFinite(number) ? number : null
 }
+/** Optional co-op resource consistency gate; normal entry stays unchanged by default. */
+function isAssetStale(request: FastifyRequest): boolean {
+    if (!/^(1|true|yes|on)$/i.test(process.env.MULTI_REQUIRE_CURRENT_ASSETS ?? "")) return false
+    const resVer = request.headers["res_ver"]
+    if (typeof resVer !== "string" || !resVer) return false
+    const { computeAssetTarget } = require("../../lib/version") as typeof import("../../lib/version")
+    const target = computeAssetTarget(resVer)
+    return !target.isFirstTime && target.targetVersion !== resVer
+}
 async function roomFacts(roomNumber?: string, accessToken?: string): Promise<RoomQueryProjection | null> {
     return await getRoomCommandGateway().execute("room.query", roomNumber
         ? { roomNumber } : { accessToken: accessToken || "" }) as RoomQueryProjection | null
@@ -76,7 +85,7 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         if (!await hasValidViewer(viewerId)) return reply.status(400).send({ error: "Bad Request", message: "Invalid request body." })
         const room = await roomFacts(body.room_number, body.access_token)
         const payload = { ...decisionPayload(room, body.room_number || "", viewerId),
-            category: numberOrNull(body.category), questId: numberOrNull(body.quest_id) }
+            category: numberOrNull(body.category), questId: numberOrNull(body.quest_id), assetStale: isAssetStale(request) }
         const result = await executeConnection("room.prepare", payload)
         if (result.status !== "ready") {
             console.warn(`[MULTI] room connection acknowledged as unavailable: viewer=${viewerId} room=${payload.roomNumber} reason=${result.status}`)
@@ -99,7 +108,8 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         const body = request.body as RestoreRoomBody, viewerId = body.viewer_id
         if (!await hasValidViewer(viewerId)) return reply.status(400).send({ error: "Bad Request", message: "Invalid request body." })
         const room = await roomFacts(body.room_number)
-        const result = await executeConnection("room.restore", decisionPayload(room, body.room_number, viewerId))
+        const result = await executeConnection("room.restore",
+            { ...decisionPayload(room, body.room_number, viewerId), assetStale: isAssetStale(request) })
         const connection = result.status === "ready" ? result.connection : missingConnection(body.room_number)
         return send(reply, viewerId, { ...connectionData(connection, [9, 13].includes(connection.raising_state)), is_same_room: true })
     })
