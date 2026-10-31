@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "status": "repository_source_closure_with_external_payloads",
+  "business_implementation": "adopted_original_sources_with_explicit_path_and_bootstrap_relocation",
+  "files": [
+    {
+      "repository_path": "client-patch/release1031-ios-battle-f1069-fix-20261031/native/common.py",
+      "sha256": "bd2134008fb6a31e1ce3f2d183366833b38713128af88e217f6d650119ecac0d",
+      "original_source_sha256": "9c68934e228d749e464aa97019fc7a7badc779c8cf09af311d8db978df7707f3"
+    },
+    {
+      "repository_path": "client-patch/release1031-ios-battle-f1069-fix-20261031/native/run_stage.py",
+      "sha256": "a8aa6d130f1d21b4eee2858f1acff93293581e60382af0fba8aa7482b8d28b72",
+      "original_source_sha256": "91db95918b26d41344e6328246f6c3171b5da38acadc91259f4a0b241931bbc8"
+    },
+    {
+      "repository_path": "client-patch/release1031-ios-battle-f1069-fix-20261031/native/unwind_repack.py",
+      "sha256": "8531a998cbaf679b3e5b9044bbdeeac6c19bbae376ea32dd9754542a606db9a7",
+      "original_source_sha256": "baff7d59cfb55b97324ceac4ec7d10f9adf1fe6b1f8b1a22c91a91a3cb7a382c"
+    },
+    {
+      "repository_path": "client-patch/release1031-ios-battle-f1069-fix-20261031/prepare/air_getter_fixture.py",
+      "sha256": "9e58418734fafd5ea698d7a4ae000680d360567716e5b30b43e12deef9884fd6",
+      "original_source_sha256": "67c8de82e35525b04d5a70dd71e638e17ee79becbfc0632d8e5caa74793fbfcc"
+    },
+    {
+      "repository_path": "client-patch/release1031-ios-battle-f1069-fix-20261031/prepare/prepare_getter.py",
+      "sha256": "ce7428cd979dcab069eaab34bfe1d960a5826fa64f8bede6a0a2e38f4c3ce878",
+      "original_source_sha256": "b36272e58672455d480efc0e2036a3e6b717c49fa5430f7aedb7c05f787ed407"
+    },
+    {
+      "repository_path": "client-patch/release1031-ios-battle-f1069-fix-20261031/README.md",
+      "sha256": "1e0f67a5317d6e8254f6b4da52a7b1f551b56efaeedb0688a496bd204066e6ac"
+    },
+    {
+      "repository_path": "client-patch/release1031-ios-battle-f1069-fix-20261031/verify/verify_final.py",
+      "sha256": "5dd1e440a1fe9c38aa3fe01299b73519bda3d79d227cb98c62217828cfbb304d",
+      "original_source_sha256": "1e4d17a55d4fbc94b8f77205d604b67d24329b50ca411bc5f26daf37529e1d49"
+    }
+  ],
+  "shared_sources": [
+    {
+      "repository_path": "client-patch/equipment-ios-repair/build_candidate.py",
+      "sha256": "e15f370a52b4225711550ec79d5bbe61caef98bfbfb35d51f1cd0cb845d52547"
+    },
+    {
+      "repository_path": "client-patch/equipment-ios-repair/compact_unwind.py",
+      "sha256": "6bb37ee0bdd855d6ab1ed1da1f3777ffd375fa4742779be9885bcb7be888e371"
+    },
+    {
+      "repository_path": "client-patch/equipment-ios-repair/finalize_delta.py",
+      "sha256": "ffb13a68946573f28e1c60af6bf2f9042839d0c88f040fb6a9496891723f08e5"
+    },
+    {
+      "repository_path": "client-patch/ios-cumulative-login/macho_signing_layout.py",
+      "sha256": "8c270a728c4b2fbaa9d1d6f1f0b9048f2ecc825d1133fb0bfbdfd17c0a78b153"
+    },
+    {
+      "repository_path": "client-patch/ios-cumulative-login/prepare.py",
+      "sha256": "9fdc2d31aafc4724fa6d1b710db1b375a48875fe2e3076036b6c0679d9f5584f"
+    },
+    {
+      "repository_path": "client-patch/ios-r11-port/link_stage.py",
+      "sha256": "4a908b98a39ebfb83efb1ea1245231c5774c6cc45dec714107f88405357aeb10"
+    },
+    {
+      "repository_path": "client-patch/ios-r11-port/package_stage.py",
+      "sha256": "37be0e4ecd0a4901018431b3d2bec8ed58b28fa6e23ca291a6f2b104822787da"
+    },
+    {
+      "repository_path": "client-patch/ios-r11-port/verify_equipment.py",
+      "sha256": "8d719d58a179a3f5e7e4b146a5bc3e2523ae79eb360655c7e69de4096893d087"
+    },
+    {
+      "repository_path": "client-patch/ios-r11-port/verify_stages.py",
+      "sha256": "17b6e667b0722a2109deb104e6b01f79c191e803bd69e4ab3aa5bdaa7be0a726"
+    },
+    {
+      "repository_path": "client-patch/ios-shop-first-open/veneers.py",
+      "sha256": "60baa38ad6c20d7ffd5006243e824df8efaca8045d2012bc104bff036c203675"
+    },
+    {
+      "repository_path": "client-patch/lens0907-0908/build_swf.py",
+      "sha256": "fda30d7f435f8d0a9c0ab6a2a09cde1178014d65c25f8eae0b8163151736d4f4"
+    },
+    {
+      "repository_path": "client-patch/lens0907-0908/vendor/abcasm/asm.py",
+      "sha256": "a70c8186da5e8f8e2a71f62cbb803db6d9f89543b785a9266cc72e6d439c40ac"
+    },
+    {
+      "repository_path": "client-patch/lens0907-0908/vendor/abcasm/swfabc.py",
+      "sha256": "d3a56b7f23d809e14d78b0ac11e55f8bf127fb60f1d9dfd5814502cc691eaad3"
+    },
+    {
+      "repository_path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/abcfmt.py",
+      "sha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82"
+    },
+    {
+      "repository_path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/swftags.py",
+      "sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06"
+    },
+    {
+      "repository_path": "client-patch/pr43-ios/support/additional-helper.json",
+      "sha256": "c78a57cc90dc375f1470f564adfe24798f58500a80383fb901ec4d28697f28a9"
+    },
+    {
+      "repository_path": "client-patch/pr43-ios/support/baseline-contract.json",
+      "sha256": "fd6469eefd76d34c18d57161bb5d551223e147456bb61e1c67c48da1a74acf50"
+    },
+    {
+      "repository_path": "client-patch/pr43-ios/support/dependency-hashes.json",
+      "sha256": "77732231196d1adf13dee76bf49ed43adb8b39ec86cf93af6469afceb79b5a35"
+    },
+    {
+      "repository_path": "client-patch/pr43-ios/support/fill_ios_aot_stub_bodies.py",
+      "sha256": "e8ca0106f47a3aa9d29229e220da1a24a668736755a0368b6929b664db385750"
+    },
+    {
+      "repository_path": "client-patch/pr43-ios/support/ios-method-map.json",
+      "sha256": "b781c2a345737d25f8b74a04bb7084a3ea54cdb7e383bc06e435f15f244f3282"
+    },
+    {
+      "repository_path": "client-patch/pr43-ios/support/runtime-extra-map.json",
+      "sha256": "fc41536b67d9c6e56d8704bdc37176bc2ad468194cc1e1e1e78b2338e3e5cbbc"
+    },
+    {
+      "repository_path": "client-patch/pr43-ios/support/runtime-helper-map.json",
+      "sha256": "cd85d5394ba0764bb4777a7f6c48902ffc97aa895a23d12eb8651962b693b406"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/FOLLOWUPS.md",
+      "sha256": "1910211c6583222a2fb0b59456f91f6295266cb1269c8da4c38484d1327c1a51"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/INPUT-PINS.json",
+      "sha256": "1cf71b225713ca042699901691b1b00b2af542cea67b89a14f0ecde23a588180"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/LINEAGE.json",
+      "sha256": "2b8bc36859dd0a559a72bb686563b6b16a133ffe35871abf445ee1ff9eeda670"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/README.md",
+      "sha256": "0e7d12afc6f6a28e83d124693d42a48b6e163c6856fadc3564783d46bdb17734"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/REPORT-REBIND.md",
+      "sha256": "784b6c4b500bbb70e7ec21942d5c78e355566d41895366abddb509b0fcb848d8"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/REPOSITORY-DEPENDENCIES.json",
+      "sha256": "29caa33916a6fd344bff1505cfa02cae1c096aa6c2eac5b8a44a278e0ed576cc"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/SOURCE-MANIFEST.json",
+      "sha256": "e9858301d10aa2c2b72dd2a13b9b61c0a627dd2197dadb16d8167644864f412e"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/WHITELIST.md",
+      "sha256": "ebb550e1a5ebe4a5b346337437218b42a03411a6c02e7ec05ae9526690c50dab"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/capabilities/static_proxies.py",
+      "sha256": "b520d77c9974e5d5260da76ea43cb5a869c8cf468c40930eb8707d50c2ca459f"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/check_followup_sources.py",
+      "sha256": "2e96f0cc92e3a10962982b68491cb5fb09f819a03142d2871c2cc676ab9e0320"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/followup_config.py",
+      "sha256": "cb0eba8a3b0df8876df8b974f9ad8c567634c5c22d5d1da105ebea3a19fefd11"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/followups-inputs.example.json",
+      "sha256": "04670397ab7dcc810998840f68891aed35a38b6023a378cf3152a40a96ac18d6"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/input_config.py",
+      "sha256": "9d2e2a655adb09d16881165bc99a9c6013e6c688100fc610cb516134917f6dbc"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/inputs.example.json",
+      "sha256": "c7485a73cbfd2e9211e666200bbb115f734db1262b105e6b7c5b19c10ae0fbf9"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/invoke.ps1",
+      "sha256": "ea27448fcaf94b12f6d6159a30629882203e67741bd1ea50e09fdc346b782631"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/compile_sidecar.py",
+      "sha256": "7d9119d7a416b822a2732290cddce426f94be49375d4b12c0da5f21b71e9fd92"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/freeze_sources.py",
+      "sha256": "d60241495d3ff50171dcb0ef98567c120b7011278ea7324fef4afedf0a62d8cf"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/inspect_stage1.py",
+      "sha256": "fe795013fdcb71fac3a667959afb84eb792b842842133107292155d29ec07ff7"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/prepare_repairs.py",
+      "sha256": "19d5f5839c9d755f665d11c0613404ab63971930910df4059e3589c236793c44"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/repair_common.py",
+      "sha256": "7a4870543db4f91db2b3e06e74ddf73925c2c1d192a2a557231bfca2e9948428"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/run_native_stage.py",
+      "sha256": "2ca332532b161a5b9d4c9d97b039057b786574ce7d7c42ee6394276622646766"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/signing_models.py",
+      "sha256": "fd2274df15c97a168f858d7acebe82a3f3c71285c8068089d9c4239f2fff95a8"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/storage_adapter.py",
+      "sha256": "0f37955c4c82ee1f7b9ed5cd23660c67f172938ec946906b537dc2ce6180c839"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/verify_atom_abi.py",
+      "sha256": "1439b38cb89d88c5655f373b2eafedb2e8b2b1fee57bf427cd9b86ed6ac4fd4a"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/repairs/scripts/verify_repairs.py",
+      "sha256": "7d546aa88d938406f6763064bd25703050b2d870b9e3d10ea239d8fec22ddd11"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/report_rebind.py",
+      "sha256": "807b28700a480a1a3c9f9d83cbe563c265460257c095b37c9dcac4f958c10e48"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/prepare_revision.py",
+      "sha256": "02967523256cf40e8aced98ddd347a249db9ea9f7dec4df45aa5fea628d3ad52"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/apply_draw.py",
+      "sha256": "befc7a4490f73be43c8ddc4c47340b343f4b9874e4aa4cf6dce01510909e9af5"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/donor_mapping.py",
+      "sha256": "bfd220ff895c7cdaddf5ab126186303fe3a67be38df9ad037947b49d537df5f6"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/draw_extension.py",
+      "sha256": "a20ebdf1f2f5344db5e5a173a0319ecb21479d8495903bd3d7673f107241aae7"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/finalize_final.py",
+      "sha256": "8d062120f5bc3ba690c4f67f59d4138dba9e631c4cfaa241be7d8376cd9c8293"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/link_grouped.py",
+      "sha256": "3cfa128c3318e903451d4808d1e6bbdf753d3cc77ae66032b31e6bf97a8b585e"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/platform_draw.py",
+      "sha256": "1fe3852c8a3ad2b247fa29a1ac02184fe3480e73bd659fb5add7eac420ce710e"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/platform_equipment.py",
+      "sha256": "0b02c57bf9da1237886b24fc07aeb1a0ad8f70be4926a7244121ea8779eabca9"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/platform_methods.py",
+      "sha256": "e15739894091e36c18a8870a4da7cd187deb24b2e689e7a70d87c6fe4a12aa82"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/prepare_final.py",
+      "sha256": "8d5c1d8e3755a42762e0c4ebeb52fbf670c28f27137457c337598e168fd0b9c3"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/switch_adapter.py",
+      "sha256": "3705631015293d3497e5aa581836afc155686c6a28c80dfdeb93b714a689da0a"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/verify_contract.py",
+      "sha256": "be9c51692b2d8774c75f06227984b9133029d991e19f90bc6637e2878a239923"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/recipe/verify_final.py",
+      "sha256": "33e23573c42c7280817424fe33ae8aa6f772509cd919ca7b0f10148b42c0b4a2"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/type_helpers.py",
+      "sha256": "3e82921590d54c227bcb675b85ab8cf1032cb10c16fbf961df409d5ee956628b"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/verify_actual_abi.py",
+      "sha256": "f2db4c5285dad637a63af08f8cc5e50350a2bf3835bd57168c7360e9f519533b"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/settings/verify_degree_retraction.py",
+      "sha256": "fea30ba848078d37d6bec5c0b3b53a6998130b72d3098e01a8033a038bbcc05c"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/stage_entry.py",
+      "sha256": "52498f045568fa58ef84c1489adc08a893e8ca23fd546d7beec890d5ec3596d7"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/process/job_guard.py",
+      "sha256": "aea83d49c36d83d882d440bb9c3a5bc7f670cb387d6573725a40c729ebd547cb"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/process/quiet_process.py",
+      "sha256": "3fbddcd17903be74a22892fc92976bc900d2fc9bc6ab623a3801e2d94c87dd1c"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/process/run_background.py",
+      "sha256": "4f67d23bb4ffa74aac35f5c2981d024cbb66c01df30939027906d5c1e311c3d9"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/process/run_bounded.py",
+      "sha256": "cbd7573d977d91ea9180fbc9310cd71d19352a8cdd7e7e32c91af9ac4b3ae422"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/compile_port.py",
+      "sha256": "0a4ca5d4006a5f37f0a540767fbe50478d1fcefc42deec3a325b62049ea75521"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/hud_adapter.py",
+      "sha256": "ef984639db60cde432e79941e167b489b057caece852bf6978df78abb140f3e2"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/link_port.py",
+      "sha256": "3682ce69f1b8c8de30cfef30d0c74ab6bca6c37547d06b033366b16ac835c9fb"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/native_support.py",
+      "sha256": "f662127f6c95ba59c3cb6aeae5d7ae8fd6d2eaf047ae4da55d981910af7c10fb"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/aot_helpers.py",
+      "sha256": "210d51aff9df6b69799614fabb7fde8348bccd341849ecf6dc25e00b72678309"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/endpoint_reader.py",
+      "sha256": "bab48f0515f16f62ac2f7f4de0a0d938e5f5e8c7dfd7268474528b051d1b3c0e"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/fixed_inputs.py",
+      "sha256": "c79e286224f4a0eb36a20f5dcf5d9fb17e9f5f690de7bb2ea0c5ba4811af53b9"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/pr43_backend.py",
+      "sha256": "f91c8fa31db8d1b14efbf7a0bca204708f2a4b2c2ec1573752076d6384ca7e58"
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/runtime_symbols.py",
+      "sha256": "811f6e7823c26828cd347bab381d16af95c4fcce79056394286dbd825df8ccc8"
+    },
+    {
+      "repository_path": "tools/lens-integration/compare_clients.py",
+      "sha256": "38883c3e2b7dfe575a15363a9456e65ba0a06ef4b4fadfcfd822607d2bd96a92"
+    }
+  ],
+  "private_inputs": "client-patch/release-20261031/ios/followups-inputs.example.json",
+  "original_package_checks_reused": true,
+  "ipa_rebuilt_after_source_relocation": false,
+  "device_tested": false
+}
