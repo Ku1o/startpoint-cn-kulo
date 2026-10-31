@@ -140,7 +140,7 @@ class CloudOverlayReleaseTest(unittest.TestCase):
             self.invoke("--batch", "unsafe-full-scope", "--base", self.base)
         self.assertFalse((Path(self.tool.OUT_ROOT) / "unsafe-full-scope").exists())
 
-    def test_changed_discovery_index_requires_bound_generators_and_exact_source_hashes(self):
+    def test_optional_discovery_index_does_not_block_delivery_when_stale(self):
         generators = ["tools/build-content-discovery-gacha.py", "tools/build-content-discovery-rewards.cjs",
                       "tools/build-content-discovery.cjs"]
         paths = generators + ["assets/gacha.json"]
@@ -155,14 +155,29 @@ class CloudOverlayReleaseTest(unittest.TestCase):
             self.assertTrue(set(paths).issubset(archive.namelist()))
         self.write(generators[0], b"changed generator without index regeneration\n")
         self.commit("stale discovery generator binding")
-        with self.assertRaisesRegex(SystemExit, "字节不符"):
-            self.invoke("--batch", "discovery-stale", "--base", self.base)
+        result = self.invoke("--batch", "discovery-stale", "--base", self.base)
+        self.assertTrue(Path(result["zip"]).is_file())
         self.write(generators[0], f"verified {generators[0]}\n".encode())
         inputs["assets/gacha.json"] = "0" * 64
         self.write("assets/content_discovery_runtime.json", json.dumps(index).encode())
         self.commit("incorrect discovery hash")
-        with self.assertRaisesRegex(SystemExit, "字节不符"):
-            self.invoke("--batch", "discovery-reject", "--base", self.base)
+        result = self.invoke("--batch", "discovery-invalid-optional", "--base", self.base)
+        self.assertTrue(Path(result["zip"]).is_file())
+
+    def test_required_business_data_still_has_a_delivery_closure(self):
+        self.write("src/lib/content-resource-source.ts", b'read("assets/content_resource_source.json")')
+        missing = self.commit("business reader without required data")
+        with self.assertRaisesRegex(SystemExit, "必需业务文件缺失"):
+            self.tool.verify_content_runtime_inputs(self.base, missing, self.tool.runtime_members(self.base, missing))
+        required = ["assets/content_resource_source.json", "assets/content_catalog.json",
+                    "assets/content_history_quest_rules.json", "assets/content_history_shop_rules.json"]
+        for name in required:
+            self.write(name, b'{"fixture":true}')
+        current = self.commit("complete required business data")
+        members = self.tool.runtime_members(self.base, current)
+        self.tool.verify_content_runtime_inputs(self.base, current, members)
+        with self.assertRaisesRegex(SystemExit, "未进入云包"):
+            self.tool.verify_content_runtime_inputs(self.base, current, [name for name in members if name != required[0]])
 
     def test_release_tag_defaults_batch_but_does_not_publish(self):
         tag = self.release_tag()

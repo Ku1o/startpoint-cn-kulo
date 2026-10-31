@@ -42,7 +42,13 @@ Manual changes and automatic transitions use the same theme protocol. A publishe
 
 Complete catalog, definition/readiness evidence and native rules remain available. Compact runtime summaries are deterministic, bounded projections with strict source identities and coverage checks. They reduce repeated administrative allocation without removing gameplay checks or silently falling back to an unbounded full-report parse.
 
-The native identity index preserves original full keys, digests and order. Business adapters still read complete shop and quest rules. Source anchors bind actual original bytes, including deliberately preserved line endings. Source changes require explicit regeneration and verification, never automatic re-signing in a management GET.
+Native identities are computed once from the same complete quest/shop JSON modules used by gameplay. There is no separately generated native identity index or source anchor to synchronize. Original keys, digest algorithms and insertion order remain compatible with existing controls and receipts.
+
+`assets/content_resource_source.json` records only the client business tables used by content ownership, eligibility and economy. Verification reads their actual winning members through the current CDN chain. Art, audio, battle layout changes and manifest formatting/version changes keep the reviewed deployment identity when these tables are unchanged. Changes to a business table, a missing source or a corrupt member still reject the old identity. The verifier never writes a new record, republishes content or changes player progress. A real business update requires explicit review and the normal extraction/release workflow.
+
+After compiling the server, `node tools/capture-content-resource-source.cjs` verifies the record without writing. For a real business update, `--output <new-candidate.json>` captures the actual current table hashes for review. It refuses to overwrite an existing file and does not apply the candidate or alter any operations receipt. Ordinary resource updates require neither capture nor native-index regeneration.
+
+Discovery/search projections and thumbnails are optional admin aids. Stale or missing projections reduce the corresponding search/preview information; they do not block game startup or cloud packaging. Their readers keep source validation and do not show unverified reward or character matches. Required deployment plans and business rules remain mandatory, including during interrupted-migration recovery.
 
 Administrative reads use bounded shared work, scoped captures and compact card projections. Matching requests can share one result while cancellation and queue limits remain bounded. Prepared search identities compare actual used fields. This adds no new worker or replacement gameplay scheduler. Withdrawn cold-field compression, cards decode-cache and later cooperative-scan experiments are excluded.
 
@@ -52,9 +58,10 @@ The wider panel loads pages/lists on demand, paginates accounts/seeds, separates
 
 The Halloween supplement is separate from the original fixed-July initialization.
 It does not rewrite initialization, deployment or reward-box markers, and does not
-replay the old migration. Persistent real time must already be active. The terminal
-`assets/asset-patch/manifest.json` must be 1.4.350; the catalog's original master
-export is a separate identity and can remain older.
+replay the old migration. Persistent real time must already be active. The
+reviewed content source remains 1.4.350 while its business tables agree with
+`assets/content_resource_source.json`; the download version may advance independently.
+The catalog's original master export is a separate identity and can remain older.
 The original reviewed 9599-key set must remain complete before preview/application
 and during later verification; a new receipt cannot absorb missing old controls.
 

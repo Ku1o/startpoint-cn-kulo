@@ -8,7 +8,7 @@ const hash = value => createHash('sha256').update(JSON.stringify(value)).digest(
 const inputNames = ['out/cn-server.js', 'out/utils.js', 'out/data/activeAccount.js', 'out/lib/server-clock-state.js', 'out/lib/content-operations.js', 'out/lib/content-operations-store.js', 'out/lib/content-operations-bootstrap.js', 'out/lib/persistence/writer-client.js', 'out/workers/sqlite-writer-worker.js', 'out/routes/cn/load.js', 'assets/content_catalog.json', 'assets/content_july_controls.json', 'assets/asset-patch/manifest.json']
 inputNames.push('out/lib/content-discovery.js', 'assets/content_discovery.json')
 inputNames.push('assets/content_history_definition_runtime.json')
-inputNames.push('assets/content_native_identities_runtime.json')
+inputNames.push('assets/content_resource_source.json', 'out/lib/content-resource-source.js', 'out/lib/content-native-identities-runtime.js')
 inputNames.push('out/lib/content-july-reference.js', 'out/lib/content-operations-defaults.js', 'out/lib/box-gacha-policy.js',
     'out/lib/mission/pass-battle-facts.js')
 inputNames.push('out/lib/shop-quota.js', 'out/lib/content-definition-evidence.js', 'out/lib/content-economy-operations.js', 'out/routes/web_api/content.js', 'out/routes/api/shop.js', 'out/routes/api/howToGet.js', 'out/routes/api/passCard.js', 'out/routes/api/specialExchange.js', 'out/routes/api/startDashExchange.js', 'out/data/domains/player.js', 'out/lib/persistence-coordinator.js', 'out/content/runtime/content-snapshot.js')

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { closeSync, openSync, readFileSync, readSync } from "node:fs"
 import path from "node:path"
+import { readContentResourceSourceSync } from "./content-resource-source"
 
 export interface ContentBoxAssociation {
     readonly parentKey: string
@@ -102,7 +103,9 @@ function readIndex(): Index {
     let reason: string | undefined
     try {
         if (hashFile(path.join(root, "assets/content_catalog.json")) !== evidence.catalogSha256) throw new Error("catalog_identity_mismatch")
-        if (hashFile(path.join(root, "assets/asset-patch/manifest.json")) !== evidence.manifestSha256) throw new Error("manifest_identity_mismatch")
+        // The shared resource verifier checks actual winning business members.
+        // Download-chain changes alone do not change a parent/reward-box relation.
+        readContentResourceSourceSync(root)
         // Resolve the same JSON module used by content-operations; Node shares its cached object.
         const catalog = require("../../assets/content_catalog.json"), rows = new Map<string, any>()
         for (const row of catalog.rows) {

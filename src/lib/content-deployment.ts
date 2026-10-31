@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 import path from "node:path"
-import presentation from "../../assets/content_presentation.json"
+import { isContentManagementMember } from "./content-management-catalog"
 import { julyContentPlan } from "./content-operations-bootstrap"
 import { applyJulyContentPlanOfflineSync } from "./content-operations-bootstrap"
 import { completeExistingHistoryReviewsOfflineSync, prepareReviewedHistoryOfflineSync,
@@ -83,7 +83,7 @@ function reviewedPlan(store: ContentOperationsStore): { plan: ReviewedDeployment
         || plan.stage2.upgrades.some(row => !keys.has(row.key))
         || new Set(plan.stage3.candidates.map(row => row.key)).size !== expected.historicalCandidates)
         throw new ContentOperationError("内容部署项目集合不匹配", 409)
-    const parentKeys = Object.keys(presentation.rows)
+    const parentKeys = store.catalog.rows.filter(row => !isContentManagementMember(row.type)).map(row => row.key)
     const unsupported = new Set(expected.unsupportedParents)
     const controlledParentKeys = new Set(parentKeys.filter(key => keys.has(key)))
     if (parentKeys.length !== 1020 || new Set(parentKeys).size !== 1020

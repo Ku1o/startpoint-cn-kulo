@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs"
+import { closeSync, fstatSync, openSync, readFileSync, readSync, statSync } from "node:fs"
 import path from "node:path"
 import { inflateRawSync } from "node:zlib"
 import type { ContentCatalogRow } from "./content-operations-store"
@@ -54,7 +54,7 @@ const maxZipDirectory = 16 * 1024 * 1024
 const maxMasterBytes = 16 * 1024 * 1024
 type ZipEntry = { offset: number; compressed: number; uncompressed: number; method: number }
 type CampaignChain = { manifestSha256: string; active: string[]; indexes: Map<string, Map<string, ZipEntry>>;
-    sources: Map<string, string> }
+    sources: Map<string, string>; archiveSignature?: string }
 const campaignChains = new Map<string, CampaignChain>()
 
 function zipRead(fd: number, offset: number, length: number): Buffer {
@@ -162,7 +162,7 @@ function winningMasterSha(root: string, logical: string, baseline: string, chain
     // relative common-chain location, never an environment-specific absolute path.
     const configuredCdn = process.env.CDN_DIR || ".cdn"
     const cdnRoot = path.isAbsolute(configuredCdn) ? configuredCdn : path.join(root, configuredCdn)
-    let winner = path.join(cdnRoot, baseline.slice(".cdn/".length))
+    let winner = baseline.startsWith(".cdn/") ? path.join(cdnRoot, baseline.slice(".cdn/".length)) : path.join(root, baseline)
     let entry: ZipEntry | undefined
     for (let i = chain.active.length - 1; i >= 0; i--) {
         const archive = chain.active[i]
@@ -171,11 +171,36 @@ function winningMasterSha(root: string, logical: string, baseline: string, chain
         const candidate = index.get(member)
         if (candidate) { winner = archive; entry = candidate; break }
     }
-    if (!entry) entry = zipIndex(winner).get(member)
+    if (!entry) {
+        if (!baseline.startsWith(".cdn/") && !chain.active.includes(winner)) throw new Error("Inactive CDN master baseline")
+        entry = zipIndex(winner).get(member)
+    }
     if (!entry) throw new Error("Missing winning CDN master")
     const digest = createHash("sha256").update(zipMember(winner, member, entry)).digest("hex")
     chain.sources.set(logical, digest)
     return digest
+}
+
+/** Read actual winning business members with the existing bounded ZIP reader. */
+export function readWinningContentResourceHashesSync(root: string,
+    resources: Readonly<Record<string, { archive: string }>>): Record<string, string> {
+    const chain = campaignChain(root)
+    const configuredCdn = process.env.CDN_DIR || ".cdn"
+    const cdnRoot = path.isAbsolute(configuredCdn) ? configuredCdn : path.join(root, configuredCdn)
+    const files = [...new Set([...chain.active, ...Object.values(resources).map(value => value.archive.startsWith(".cdn/")
+        ? path.join(cdnRoot, value.archive.slice(".cdn/".length)) : path.join(root, value.archive))])]
+    const signature = () => files.map(file => {
+        const stat = statSync(file, { bigint: true })
+        return `${file}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`
+    }).join("|")
+    const before = signature()
+    if (chain.archiveSignature !== before) { chain.indexes.clear(); chain.sources.clear() }
+    const result = Object.fromEntries(Object.entries(resources).map(([logical, value]) =>
+        [logical, winningMasterSha(root, logical, value.archive, chain)]))
+    if (signature() !== before || createHash("sha256").update(readFileSync(path.join(root, "assets/asset-patch/manifest.json")))
+        .digest("hex") !== chain.manifestSha256) throw new Error("Content resources changed during verification")
+    chain.archiveSignature = before
+    return result
 }
 export function stableDefinitionJson(value: unknown): string {
     if (value === undefined) return "null"

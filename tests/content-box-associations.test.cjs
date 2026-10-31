@@ -24,7 +24,8 @@ function fixture(change = () => {}, actual = false) {
     // Cached JSON objects are deliberately independent of the raw-byte fixtures.
     const jsonModules = new Map([["assets/content_catalog.json", fixtureCatalog]])
     for (const name of ["assets/box_gacha.json", "assets/box_reward.json", "assets/box_gacha_1001_settings.json"]) jsonModules.set(name, JSON.parse(files.get(name)))
-    change({ artifact, files, fixtureCatalog, jsonModules })
+    const resourceState = { current: true }
+    change({ artifact, files, fixtureCatalog, jsonModules, resourceState })
     artifact.associationsDigest = hash(stable(artifact.associations))
     files.set('assets/content_box_associations.json', Buffer.from(JSON.stringify(artifact)))
     const module = { exports: {} }
@@ -49,6 +50,12 @@ function fixture(change = () => {}, actual = false) {
     }, closeSync(fd) { assert.ok(descriptors.delete(fd)) } }
     const customRequire = name => {
         if (name === 'node:fs') return fakeFs
+        if (name === './content-resource-source') return { readContentResourceSourceSync() {
+            // This fixture isolates association semantics; actual ZIP source
+            // continuity and changed business bytes have their own regressions.
+            if (!resourceState.current) throw Error('changed business resource')
+            return { assetVersion: artifact.assetVersion, manifestSha256: artifact.manifestSha256 }
+        } }
         if (name.startsWith('../../assets/')) {
             const key = name.slice(6)
             jsonCalls.set(key, (jsonCalls.get(key) ?? 0) + 1)
@@ -88,14 +95,14 @@ test('bindings are validated once, not once for each catalog row', () => {
     assert.deepEqual(api.getContentBoxAssociationStatus(), { available: true, relationshipsMatch: true })
     assert.ok([...calls.values()].every(count => count === 1))
     assert.deepEqual([...calls.keys()], ['assets/content_box_associations.json'])
-    assert.equal(opens.size, 6)
+    assert.equal(opens.size, 5)
     assert.ok([...opens.values()].every(count => count === 1))
     assert.equal(jsonCalls.size, 4)
     assert.ok([...jsonCalls.values()].every(count => count === 1))
     assert.ok(chunks.length > 6 && chunks.every(length => length === 64 * 1024))
     assert.equal(descriptors.size, 0)
 })
-for (const relative of ['assets/content_catalog.json', 'assets/asset-patch/manifest.json', 'assets/box_gacha.json', 'assets/box_reward.json', 'assets/box_gacha_1001_settings.json', 'src/lib/assets.ts']) {
+for (const relative of ['assets/content_catalog.json', 'assets/box_gacha.json', 'assets/box_reward.json', 'assets/box_gacha_1001_settings.json', 'src/lib/assets.ts']) {
     test(`changed binding ${relative} keeps safe pair metadata but cannot authorize opening`, () => {
         const { api } = fixture(({ files }) => files.set(relative, Buffer.from('changed input')))
         const status = api.getContentBoxAssociationStatus()
@@ -104,6 +111,12 @@ for (const relative of ['assets/content_catalog.json', 'assets/asset-patch/manif
         assert.ok(api.getContentBoxAssociations().every(row => row.relationshipMatches === false))
     })
 }
+test('unrelated manifest changes keep box associations while changed business members reject them', () => {
+    const preserved = fixture(({ files }) => files.set('assets/asset-patch/manifest.json', Buffer.from('new resource version')))
+    assert.equal(preserved.api.getContentBoxAssociationStatus().relationshipsMatch, true)
+    const changed = fixture(({ resourceState }) => { resourceState.current = false })
+    assert.equal(changed.api.getContentBoxAssociationStatus().relationshipsMatch, false)
+})
 for (const corruption of ['missing-file', 'invalid-json']) {
     test(`unreadable ${corruption} asset fails closed without throwing into the operations route`, () => {
         const { api, files } = fixture()

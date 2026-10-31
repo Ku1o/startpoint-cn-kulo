@@ -377,7 +377,9 @@ def prepare_overlay(base: str, head: str, dependency_root: str | None = None,
     """Separate runtime deletions from Git untracking during source-only migration."""
     effective = source_tree or head
     members, deleted = runtime_members(base, effective), deleted_runtime_members(base, effective)
-    verify_discovery_source_closure(base, effective, members)
+    # Discovery is an optional admin projection. Its runtime reader falls back
+    # locally when source inputs differ; a stale search index cannot block a release.
+    verify_content_runtime_inputs(base, effective, members)
     verify_native_source_closure(base, effective, members)
     if not uses_source_build(base) and not uses_source_build(effective):
         return members, deleted, None, None
@@ -446,40 +448,19 @@ def runtime_members(base: str, head: str) -> list[str]:
     return sorted(members)
 
 
-def verify_discovery_source_closure(base: str, head: str, members: list[str]) -> None:
-    """Changed discovery inputs must match every bound byte in this exact Git tree."""
-    index_path = "assets/content_discovery_runtime.json"
-    after = tree_entries(head)
-    if index_path not in after:
+def verify_content_runtime_inputs(base: str, head: str, members: list[str]) -> None:
+    """Required business data must exist and travel with the new reader; no index re-signing."""
+    before, after = tree_entries(base), tree_entries(head)
+    loader = "src/lib/content-resource-source.ts"
+    if loader not in after or b"assets/content_resource_source.json" not in committed_bytes(head, loader):
         return
-    try:
-        index = json.loads(committed_bytes(head, index_path))
-        inputs = index["sourceInputs"] if isinstance(index, dict) else None
-    except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as error:
-        raise SystemExit(f"关联资料索引无法读取：{error}") from error
-    if not isinstance(index, dict) or index.get("schemaVersion") != 2 or not isinstance(inputs, dict) or not inputs:
-        raise SystemExit("关联资料索引缺少有效的完整来源清单")
-    before = tree_entries(base)
-    if index_path not in members and not any(before.get(name) != after.get(name) for name in inputs):
-        return
-    if any(not isinstance(name, str) for name in inputs):
-        raise SystemExit("关联资料索引来源路径无效")
-    if {name for name in inputs if name.startswith("tools/")} != DISCOVERY_GENERATORS:
-        raise SystemExit("关联资料索引绑定的生成器与云包精确白名单不一致")
-    for name, expected in inputs.items():
-        if (not isinstance(name, str) or "\\" in name or not is_runtime_path(name)
-                or not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected)):
-            raise SystemExit(f"关联资料索引来源路径或摘要无效：{name}")
+    required = ["assets/content_resource_source.json", "assets/content_catalog.json",
+                "assets/content_history_quest_rules.json", "assets/content_history_shop_rules.json"]
+    for name in required:
         if name not in after or after[name][0] not in {"100644", "100755"}:
-            raise SystemExit(f"关联资料索引来源不是目标提交的普通文件：{name}")
+            raise SystemExit(f"内容运营必需业务文件缺失：{name}")
         if before.get(name) != after.get(name) and name not in members:
-            raise SystemExit(f"关联资料索引来源已更新但未进入云包：{name}")
-        try:
-            actual = hashlib.sha256(committed_bytes(head, name)).hexdigest()
-        except subprocess.CalledProcessError as error:
-            raise SystemExit(f"关联资料索引来源在目标提交中不存在：{name}") from error
-        if actual != expected:
-            raise SystemExit(f"关联资料索引来源与目标提交字节不符：{name}")
+            raise SystemExit(f"内容运营业务文件已变化但未进入云包：{name}")
 
 
 def verify_native_source_closure(base: str, head: str, members: list[str]) -> None:

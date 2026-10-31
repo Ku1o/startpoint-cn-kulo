@@ -199,7 +199,7 @@ test('deployment recovery uses genuine process exits and protects backups, froze
             assertLocks(fixture, true)
         } finally { fs.writeFileSync(state.backup, backupBytes) }
         assert.equal(shaFile(state.backup), state.backupSha256)
-        const inputPath = path.join(root, 'assets/content_discovery_runtime.json'), originalInputSha = shaFile(inputPath)
+        const inputPath = path.join(root, 'assets/content_resource_source.json'), originalInputSha = shaFile(inputPath)
         // Simulate changed raw input bytes for this one recovery process only.
         // Added JSON whitespace preserves semantics; no source/resource is written,
         // no receipt phase/fingerprint is forged, and the actual recover API runs.

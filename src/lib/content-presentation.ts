@@ -1,4 +1,3 @@
-import data from "../../assets/content_presentation.json"
 import { createHash } from "node:crypto"
 import { readFileSync, statSync } from "node:fs"
 import path from "node:path"
@@ -13,7 +12,20 @@ interface PresentationRow { title: string; type: string; images: string[]; subti
     displayTitleSource?: { kind: string };
     imageMissingReason?: string; titleSource: { kind: string; parentKey?: string } }
 interface Resource { archive: string; member: string; sha256: string; bytes: number; width: number; height: number }
-const manifest = data as unknown as { source: { manifestSha256: string }; rows: Record<string, PresentationRow>; resources: Record<string, Resource> }
+interface PresentationData { source: { manifestSha256: string }; rows: Record<string, PresentationRow>; resources: Record<string, Resource> }
+const root = path.resolve(__dirname, "../.."), salt = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy"
+const presentation = (() => {
+    try {
+        const bytes = readFileSync(path.join(root, "assets/content_presentation.json"))
+        const value = JSON.parse(bytes.toString("utf8")) as PresentationData
+        if (!value || !/^[a-f0-9]{64}$/.test(value.source?.manifestSha256) || !value.rows || !value.resources
+            || Array.isArray(value.rows) || Array.isArray(value.resources)
+            || Object.values(value.rows).some(row => !row || typeof row.title !== "string" || typeof row.type !== "string"
+                || !Array.isArray(row.images) || row.images.some(image => typeof image !== "string"))) throw new Error("Invalid presentation")
+        return { value, sha256: createHash("sha256").update(bytes).digest("hex") }
+    } catch { return { value: { source: { manifestSha256: "" }, rows: {}, resources: {} } as PresentationData, sha256: "" } }
+})()
+const manifest = presentation.value
 const lookup = (key: string): PresentationRow | undefined => Object.prototype.hasOwnProperty.call(manifest.rows, key) ? manifest.rows[key] : undefined
 /** Shared server labels for rows and filter options; consumers do not maintain a second type dictionary. */
 export const CONTENT_PRESENTATION_TYPE_LABELS: Readonly<Record<string, string>> = {
@@ -55,7 +67,6 @@ export function getContentPresentation(row: string | { key: string; type?: strin
         ...(native?.displayTitleSource && native.nativeName ? { originalTitle: native.nativeName } : {}) }
 }
 
-const root = path.resolve(__dirname, "../.."), salt = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy"
 const maxImageBytes = 8 * 1024 * 1024, maxCachedBytes = 32 * 1024 * 1024
 type ZipEntry = Awaited<ReturnType<typeof Open.file>>["files"][number]
 type Image = { bytes: Buffer; contentType: "image/png"; etag: string }
@@ -67,7 +78,7 @@ interface ThumbnailIndex {
     images: Record<string, { file: string; bytes: number; width: number; height: number }>
 }
 const hashPattern = /^[a-f0-9]{64}$/
-const presentationSha256 = createHash("sha256").update(readFileSync(path.join(root, "assets/content_presentation.json"))).digest("hex")
+const presentationSha256 = presentation.sha256
 const thumbnailRoot = path.join(root, "assets/content_thumbnails")
 const thumbnailIndex: ThumbnailIndex | null = (() => {
     try {

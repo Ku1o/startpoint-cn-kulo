@@ -1,55 +1,72 @@
 'use strict'
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os')
-const Module=require('node:module'),ts=require('typescript'),{createHash}=require('node:crypto'),{Open}=require('unzipper')
-const root=path.resolve(__dirname,'..'),sha=body=>createHash('sha256').update(body).digest('hex')
-const manifestPath='assets/asset-patch/manifest.json',archivePath='assets/asset-patch/active/pinball-1.4.350-1.4.351-1-ios-resource-closure.zip'
-function load(name){const file=path.join(root,'src/lib',name+'.ts'),m=new Module(file,module)
- m.filename=file;m.paths=Module._nodeModulePaths(path.dirname(file))
- m.require=name=>name.startsWith('.')&&fs.existsSync(path.resolve(path.dirname(file),name)+'.ts')
-  ?load(path.relative(path.join(root,'src/lib'),path.resolve(path.dirname(file),name))):Module.prototype.require.call(m,name)
- m._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,esModuleInterop:true}}).outputText,file)
- return m.exports}
-const {readContentResourceSourceSync:read}=load('content-resource-source')
-const source={assetVersion:'1.4.350',manifestSha256:'4cb3dd337ac062af6845591b85cf27d3bc203160923f74c2cf1c7a2883b76843'}
-const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v)
-function fixture(t){const base=path.resolve(process.env.STARPOINT_TEST_TMP_ROOT||os.tmpdir()),directory=fs.mkdtempSync(path.join(base,'content-resource-source-'))
- t.after(()=>{assert.equal(path.dirname(directory),base);fs.rmSync(directory,{recursive:true})})
- for(const name of [manifestPath,archivePath]){fs.mkdirSync(path.dirname(path.join(directory,name)),{recursive:true});fs.copyFileSync(path.join(root,name),path.join(directory,name))}
- return directory}
+const { test } = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs')
+const path = require('node:path'), os = require('node:os'), { createHash } = require('node:crypto'), { crc32 } = require('node:zlib')
+require('ts-node/register/transpile-only')
+const { readContentResourceSourceSync: read } = require('../src/lib/content-resource-source')
+const sha = body => createHash('sha256').update(body).digest('hex')
+const source = { assetVersion: '1.4.350', manifestSha256: '4cb3dd337ac062af6845591b85cf27d3bc203160923f74c2cf1c7a2883b76843' }
+const logicals = ['master/quest/event/advent_event.orderedmap', 'master/quest/event/advent_event_quest.orderedmap',
+    'master/gacha/gacha.orderedmap', 'master/shop/event_item_shop.orderedmap']
+const member = logical => { const value = createHash('sha1').update(logical + 'K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy').digest('hex'); return 'production/upload/' + value.slice(0, 2) + '/' + value.slice(2) }
+function zip(entries) {
+    const local = [], central = []; let offset = 0
+    for (const [logical, text] of Object.entries(entries)) {
+        const name = Buffer.from(member(logical)), body = Buffer.from(text), header = Buffer.alloc(30), entry = Buffer.alloc(46)
+        header.writeUInt32LE(0x04034b50); header.writeUInt16LE(20, 4); header.writeUInt32LE(crc32(body), 14)
+        header.writeUInt32LE(body.length, 18); header.writeUInt32LE(body.length, 22); header.writeUInt16LE(name.length, 26)
+        entry.writeUInt32LE(0x02014b50); entry.writeUInt16LE(20, 4); entry.writeUInt16LE(20, 6); entry.writeUInt32LE(crc32(body), 16)
+        entry.writeUInt32LE(body.length, 20); entry.writeUInt32LE(body.length, 24); entry.writeUInt16LE(name.length, 28); entry.writeUInt32LE(offset, 42)
+        local.push(header, name, body); central.push(entry, name); offset += header.length + name.length + body.length
+    }
+    const directory = Buffer.concat(central), end = Buffer.alloc(22)
+    end.writeUInt32LE(0x06054b50); end.writeUInt16LE(central.length / 2, 8); end.writeUInt16LE(central.length / 2, 10)
+    end.writeUInt32LE(directory.length, 12); end.writeUInt32LE(offset, 16)
+    return Buffer.concat([...local, directory, end])
+}
+function fixture(t) {
+    const base = path.resolve(process.env.STARPOINT_TEST_TMP_ROOT || os.tmpdir()), root = fs.mkdtempSync(path.join(base, 'content-source-'))
+    t.after(() => { assert.equal(path.dirname(root), base); fs.rmSync(root, { recursive: true }) })
+    const write = (relative, value) => { const file = path.join(root, relative); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)); return file }
+    const baseline = 'assets/asset-patch/active/base.zip', values = Object.fromEntries(logicals.map((name, i) => [name, 'reviewed business ' + i]))
+    write(baseline, zip(values))
+    const resources = Object.fromEntries(logicals.map(name => [name, { archive: baseline, sha256: sha(values[name]) }]))
+    write('assets/content_catalog.json', { resources }); write('assets/content_history_quest_rules.json', { source: { resources: {} } })
+    write('assets/content_history_shop_rules.json', { source: { resources: {} } })
+    const reference = { schemaVersion: 1, source, resources }
+    write('assets/content_resource_source.json', reference)
+    const manifest = { cdn_version: '1.4.350', patches: [{ enabled: true, archive: 'base.zip' }] }
+    write('assets/asset-patch/manifest.json', manifest)
+    const append = entries => { write('assets/asset-patch/active/update.zip', zip(entries)); manifest.cdn_version = '1.4.352'; manifest.patches.push({ enabled: true, archive: 'update.zip' }); write('assets/asset-patch/manifest.json', manifest) }
+    return { root, write, reference, manifest, values, append }
+}
 
-test('351 adds exactly five reviewed iOS members and leaves the complete 350 chain unchanged',async()=>{
- const manifest=JSON.parse(fs.readFileSync(path.join(root,manifestPath))),last=manifest.patches.pop()
- assert.equal(manifest.cdn_version,'1.4.351');assert.equal(manifest.patches.length,134);manifest.cdn_version='1.4.350'
- // Canonical hash captured independently from the original 350 manifest;
- // object key formatting is not part of this structural preservation proof.
- assert.equal(sha(canonical(manifest)),'27a56c0d1bf12e6443be22542fcf03d3964d8155839738e15821e4d68e00242f')
- const zip=await Open.file(path.join(root,archivePath))
- const expected=['17/b9a5dfae0310f093f659d31b801770a0fba7a7','31/94c5d899390a197ed6bb9a7b06206df8ca689e',
-  '53/e1857d76f211e567f6c775a194db62738e039c','96/b97133a2b5c5bc58a4f234d531960136f0729f','ce/d720392bdd8eeb25b339c2e3943f327fea27ba'].map(n=>'production/ios_upload/'+n).sort()
- assert.deepEqual(zip.files.map(f=>f.path).sort(),expected);assert.deepEqual([...last.files].sort(),expected)
- assert.deepEqual(read(),source)
+test('art, music, battle layout and version/format updates preserve the deployed content identity', t => {
+    const f = fixture(t)
+    assert.deepEqual(read(f.root), source)
+    f.append({ 'character/new.png': 'art', 'sound/music.mp3': 'music', 'master/battle/floor.orderedmap': 'new battle balance' })
+    assert.deepEqual(read(f.root), source)
+    f.write('assets/asset-patch/manifest.json', JSON.stringify(f.manifest, null, 3))
+    assert.deepEqual(read(f.root), source)
+    f.append({ [logicals[0]]: f.values[logicals[0]] })
+    assert.deepEqual(read(f.root), source, 'repacking identical business bytes remains compatible')
 })
-test('real native index regenerates deterministically and the production loader accepts every source',()=>{
- const {generate}=require('../tools/build-content-native-identities.cjs'),result=generate({root,check:true})
- assert.deepEqual(result.counts,{quests:268,shops:8771})
- const maps=load('content-native-identities-runtime').loadContentNativeIdentities({root})
- assert.equal(maps.quests.size,268);assert.equal(maps.shops.size,8771)
- assert.deepEqual(load('content-release-supplement').readContentReleaseSourceSync(),source)
+for (const logical of logicals) test('an actual changed business member is rejected: ' + logical, t => {
+    const f = fixture(t); read(f.root); f.append({ [logical]: 'changed business' })
+    assert.throws(() => read(f.root), error => /business definitions changed/.test(error.message) && error.message.includes(logical))
 })
-test('unknown manifests keep their own source and cannot inherit the 350 deployment receipt',t=>{
- const directory=fixture(t),file=path.join(directory,manifestPath),manifest=JSON.parse(fs.readFileSync(file))
- manifest.patches[0].enabled=!manifest.patches[0].enabled
- const raw=JSON.stringify(manifest);fs.writeFileSync(file,raw)
- assert.deepEqual(read(directory),{assetVersion:'1.4.351',manifestSha256:sha(raw)})
- assert.notDeepEqual(read(directory),source)
+test('archive mutation invalidates a warm cache even when manifest bytes are unchanged', t => {
+    const f = fixture(t); read(f.root)
+    f.write('assets/asset-patch/active/base.zip', zip({ ...f.values, [logicals[3]]: 'different price/stock' }))
+    assert.throws(() => read(f.root), /business definitions changed/)
 })
-for(const change of ['corrupt','missing'])test('exact manifest with '+change+' iOS archive fails closed',t=>{
- const directory=fixture(t),file=path.join(directory,archivePath)
- if(change==='missing')fs.unlinkSync(file);else{const bytes=fs.readFileSync(file);bytes[bytes.length-1]^=1;fs.writeFileSync(file,bytes)}
- assert.throws(()=>read(directory),change==='missing'?/ENOENT/:/archive identity mismatch/)
+test('missing archives, corrupt ZIPs and incomplete resource scope cannot inherit old controls', t => {
+    const f = fixture(t); read(f.root)
+    f.write('assets/asset-patch/active/base.zip', 'broken zip')
+    assert.throws(() => read(f.root))
+    f.write('assets/asset-patch/active/base.zip', zip(f.values)); fs.unlinkSync(path.join(f.root, 'assets/asset-patch/active/base.zip'))
+    assert.throws(() => read(f.root), /ENOENT/)
+    f.write('assets/asset-patch/active/base.zip', zip(f.values)); delete f.reference.resources[logicals[0]]
+    f.write('assets/content_resource_source.json', f.reference)
+    assert.throws(() => read(f.root), /scope/)
 })
-test('a manifest without a reviewed extension uses its actual version and hash',t=>{
- const directory=fixture(t),raw=JSON.stringify({cdn_version:'1.4.352',patches:[]})
- fs.writeFileSync(path.join(directory,manifestPath),raw);fs.unlinkSync(path.join(directory,archivePath))
- assert.deepEqual(read(directory),{assetVersion:'1.4.352',manifestSha256:sha(raw)})
-})
+test('the real resource chain retains the existing release source', () => assert.deepEqual(read(), source))

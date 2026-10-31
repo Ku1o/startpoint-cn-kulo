@@ -68,16 +68,12 @@ function legacyOffset(p, clock) {
 }
 function validateInputs(p) {
     if (fs.realpathSync(path.resolve(__dirname, '..')) !== p.root) throw Error('迁移工具必须从目标服务目录运行，不能混用另一工作树的程序')
-    const index = readJson(path.join(p.root, 'assets/content_discovery_runtime.json'))
-    if (index.schemaVersion !== 2 || !index.sourceInputs || !Object.keys(index.sourceInputs).length) throw Error('关联资料索引缺失或无效')
-    const mismatches = []
-    for (const [relative, expected] of Object.entries(index.sourceInputs)) {
-        const file = path.resolve(p.root, relative)
-        if (!inside(p.root, file) || !fs.existsSync(file) || sha(fs.readFileSync(file)) !== expected) mismatches.push(relative)
-    }
-    if (mismatches.length) throw Error('程序与关联索引不匹配：' + mismatches.join(', '))
-    return { discoveryInputs: Object.keys(index.sourceInputs).length,
-        discovery: sha(fs.readFileSync(path.join(p.root, 'assets/content_discovery_runtime.json'))),
+    // Search cards and thumbnails are optional admin projections. The runtime
+    // reader rejects stale projections locally; they cannot gate game startup.
+    return { contentResources: sha(fs.readFileSync(path.join(p.root, 'assets/content_resource_source.json'))),
+        catalog: sha(fs.readFileSync(path.join(p.root, 'assets/content_catalog.json'))),
+        questRules: sha(fs.readFileSync(path.join(p.root, 'assets/content_history_quest_rules.json'))),
+        shopRules: sha(fs.readFileSync(path.join(p.root, 'assets/content_history_shop_rules.json'))),
         contentPlan: sha(fs.readFileSync(path.join(p.root, 'assets/content_deployment_review_plan.json'))),
         boxExchangeReview: sha(fs.readFileSync(path.join(p.root, 'assets/content_box_exchange_review.json'))) }
 }
