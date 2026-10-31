@@ -2,7 +2,7 @@ import { randomInt } from "crypto";
 import { getPlayerCharacterSync } from "../data/domains/character"
 import { adjustPlayerExpPoolSync, getPlayerSync, updatePlayerSync } from "../data/domains/player"
 import { givePlayerItemSync } from "../data/domains/item"
-import { getRareScoreRewardGroup } from "./assets";
+import { getRareScoreRewardGroup, getScoreRewardGroup } from "./assets";
 import { givePlayerCharacterSync } from "./character";
 import { givePlayerEquipmentSync } from "./equipment";
 import { CharacterReward, CommonScoreReward, CurrencyReward, CurrencyScoreReward, DropScoreRewardId, EquipmentItemReward, GivePlayerScoreRewardsResult, ItemScoreReward, PlayerRewardResult, RareScoreRewardGroup, Reward, RewardType, ScoreReward, ScoreRewardType } from "./types";
@@ -12,6 +12,7 @@ import { gameVerboseLog } from "./game-logging";
 import { calculateFreeManaGrant } from "./mana";
 import { BossRewardContext, getBossRewardProfile, resolveBossTokenCount } from "./boss/reward-profile";
 import { rollExactScoreRewardChance, selectScoreRewardRows } from "./score-reward-rolls";
+import { resolveMechScoreRewardGroupId } from "./mech-score-rewards";
 
 const ELEMENT_TO_ENEMY_MAP: Record<number, number> = {
     0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 4,
@@ -48,6 +49,12 @@ export function givePlayerScoreRewardsSync(
     questElement?: number,
     bossRewardContext?: BossRewardContext,
 ): GivePlayerScoreRewardsResult {
+
+    const effectiveGroupId = resolveMechScoreRewardGroupId(bossRewardContext?.questId, groupId)
+    if (effectiveGroupId !== undefined && effectiveGroupId !== groupId) {
+        groupId = effectiveGroupId
+        scoreRewards = getScoreRewardGroup(effectiveGroupId) ?? undefined
+    }
 
     const dropScoreRewardIds: DropScoreRewardId[] = []
     const dropRareRewardIds: DropScoreRewardId[] = []

@@ -414,3 +414,9 @@
 - 运行文件为 `assets/asset-patch/active/pinball-1.4.133-1.4.134-1-abyss-race-gacha-art-20261008.zip`、完整 `assets/asset-patch/manifest.json`、`assets/cdndata/gacha_feature_content.json`。ZIP共19成员、12,158,571字节；manifest内摘要与成品一致。外层不交付散装production，内层ZIP保持完整字节。
 - feature仅变更990001/990002第一页到Movie，其余586个外层条目保留；无概率、券、兑换、数据库、保存ID、准入或APK/IPA变更。离线资源检查通过，实际客户端播放待验收。审计：`assets/asset-patch/audit/abyss-race-gacha-art-1.4.134/`。
 - 当前仅完成本地资源接入；未制作云服覆盖包、未部署云服。已下载旧同版资源的调试客户端须备份资源版本记录后回退至1.4.133，再正常重下。此条仅记录本批运行依赖，不扩大未来覆盖包范围。
+
+## 六属性决战机兵历史掉落恢复（2026-10-31，本地完成，未部署）
+
+- 服务端结算将六组精确匹配的机兵关卡及原生奖励组恢复为历史 `7000010`～`7000015`，各发对应齿轮基础1个及原蒸气核概率奖励；不再发替换后的机兵金币、紫币及共同功劳勋章。原倍率、已消耗强化加倍和稀有判定保持不变。
+- 运行源码为 `src/lib/quest.ts`、`src/lib/mech-score-rewards.ts`；资料查询同步更新 `assets/content_discovery.json`、`assets/content_discovery_runtime.json` 及其绑定来源 `tools/build-content-discovery-rewards.cjs`。采用时从匹配源码构建服务端；不需要数据库迁移、CDN增量或新客户端安装包，进入关卡前的客户端奖励预览未调整。
+- 六关单人/多人发奖、倍率、概率边界、事务回滚及相关回归共60项通过，类型检查通过。六关之外1016条资料逐行保留，原生运营身份未变；齿轮及蒸气核既有入手导航仍指向对应决战关卡。游戏实测、云端部署与验证待完成。

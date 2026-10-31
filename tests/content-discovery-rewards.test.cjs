@@ -54,6 +54,13 @@ test('full generated receipt covers every presentation parent and all 19 passes'
   assert.ok(result.rows['box_gacha:1'].rewards.some(r=>r.id===5100001&&r.kind==='equipment'),'box type 1 is equipment, not mission item numbering')
   assert.ok(result.rows['box_gacha:1'].characters.length,'box type 6 is a character, not generic element numbering')
   assert.ok(result.rows['advent_event:3'].rewards.some(r=>r.relation==='mission'),'exact pattern→quest mission links must be retained')
+  for(const [eventId,gear,core,groupId]of [[1001,40402,40408,7000010],[1002,40403,40409,7000011],
+    [1003,40404,40410,7000012],[1004,40401,40407,7000013],[1005,40406,40412,7000014],[1006,40405,40411,7000015]]) {
+    const row=result.rows['hard_multi_event:'+eventId]
+    for(const id of [gear,core])assert.ok(row.rewards.some(r=>r.id===id&&r.relation==='drop'),'missing restored mech material: '+id)
+    assert.ok(!row.rewards.some(r=>[49300,10000092,10000093].includes(r.id)&&r.relation==='drop'))
+    assert.ok(row.evidence.some(e=>e.field?.includes('scoreRewardGroup:'+groupId+'[')))
+  }
   const experience=result.rows['daily_exp_mana_event:1']
   assert.equal(experience.status,'verified')
   assert.ok(experience.rewards.some(r=>r.kind==='currency'&&r.id===4&&r.name==='玛纳'))

@@ -38,7 +38,7 @@ function pureLoader(repo, io) {
     'src/lib/equipment-awakening-rules.ts', 'src/lib/quest/finish/rogue-drop-schedule.ts',
     'src/lib/pass-card.ts', 'src/lib/mission/rewards.ts', 'src/lib/mission/awake-master-assets.ts',
     'src/lib/raid-event-config.ts', 'src/multi/rescue-fragment-reward.ts', 'src/multi/five-boss/rewards.ts',
-    'src/lib/types.ts'])
+    'src/lib/mech-score-rewards.ts', 'src/lib/types.ts'])
   function evaluate(relative, code, globals = {}) {
     const module = { exports: {} }, filename = path.join(repo, relative)
     const customRequire = spec => {
@@ -94,6 +94,7 @@ function build(options) {
   const tables = native.tables, assets = loader.load('src/lib/assets.ts'), rewards = loader.load('src/lib/mission/rewards.ts')
   const pass = loader.load('src/lib/pass-card.ts'), rescue = loader.load('src/multi/rescue-fragment-reward.ts')
   const types = loader.load('src/lib/types.ts'), raid = loader.load('src/lib/raid-event-config.ts')
+  const { resolveMechScoreRewardGroupId } = loader.load('src/lib/mech-score-rewards.ts')
   const raidOverall = loader.declarations('src/lib/raidEventGlobal.ts', ['RaidEventResponseRewardKind',
     'BATTLE_BANQUET_TOTAL_REWARDS','getBattleBanquetRewardsBetween','originalInteger','getRaidEventOverallRewardsBetween'],
     { nativeOverallRewards: io.json('assets/raid_event_overall_reward.json'), isSupportedRaidEventId: raid.isSupportedRaidEventId })
@@ -160,8 +161,11 @@ function build(options) {
       normal(key,{type:4,count:quest.manaReward},'drop',{...origin,field:origin.field+' → manaReward',consumer:'src/lib/quest/finish/single-finish-transaction.ts + multi-finish-transaction.ts'})
       normal(key,{type:5,count:quest.poolExpReward},'drop',{...origin,field:origin.field+' → poolExpReward',consumer:'src/lib/quest/finish/single-finish-transaction.ts + multi-finish-transaction.ts'})
     }
-    for (const [index, slot] of (nativeRule?.kind==='Story'?[]:quest.scoreRewardGroup ?? []).entries()) {
-      const at = { ...origin, field: origin.field + ` → scoreRewardGroup:${quest.scoreRewardGroupId}[${index}]`, consumer: 'src/lib/quest.ts#givePlayerScoreRewardsSync' }
+    const scoreGroupId = resolveMechScoreRewardGroupId(questId, quest.scoreRewardGroupId)
+    const scoreGroup = scoreGroupId === quest.scoreRewardGroupId ? quest.scoreRewardGroup
+      : assets.getScoreRewardGroup(scoreGroupId)
+    for (const [index, slot] of (nativeRule?.kind==='Story'?[]:scoreGroup ?? []).entries()) {
+      const at = { ...origin, field: origin.field + ` → scoreRewardGroup:${scoreGroupId}[${index}]`, consumer: 'src/lib/quest.ts#givePlayerScoreRewardsSync' }
       if (slot.type === 1 && Number(slot.rarity) > 0) {
         const rare = assets.getRareScoreRewardGroup(slot.id)
         if (!rare) gap(key, '缺少运行稀有奖励组：' + slot.id)

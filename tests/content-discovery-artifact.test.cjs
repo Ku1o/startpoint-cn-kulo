@@ -55,3 +55,13 @@ test('actual source reader retains shipped character and reward relations in sea
         assert.ok(match.reasons.some(reason => reason.endsWith('：' + entity.name)), 'Expected a relation-specific match reason')
     }
 })
+
+test('shipped mech search relations match the restored settlement materials', () => {
+    const reader = actualReader()
+    for (const [eventId, gear, core] of [[1001,40402,40408],[1002,40403,40409],[1003,40404,40410],
+        [1004,40401,40407],[1005,40406,40412],[1006,40405,40411]]) {
+        const row = reader.details('hard_multi_event:' + eventId)
+        for (const id of [gear, core]) assert.ok(row.rewards.some(r => r.kind === 'item' && r.id === id && r.relation === 'drop'))
+        assert.ok(!row.rewards.some(r => [49300,10000092,10000093].includes(r.id) && r.relation === 'drop'))
+    }
+})
