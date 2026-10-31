@@ -13,22 +13,23 @@
 - 同波非首位 boss 只保留自身增益，玩家减益和场地词缀只由首位 boss 施放。
 - 39 关 boss 血量 `c99` ×0.35，杂兵 `c97`、召唤物 `c98` 不动。
 
-地狱南瓜 P3（`funnel_level` 12 行，`general_boss` 的 `mod_hp_rage`、`mod_hp_rage_multi`，`general_boss_state`，`hp_rage_marker`，9 个 DSL，新增 `hp_boom_candle`）：
+地狱南瓜 P3（`funnel_level` 12 行，`general_boss` 的 `mod_hp_rage`、`mod_hp_rage_multi`，`general_boss_state`，`hp_rage_marker`，11 个 DSL，新增 `hp_boom_candle`、`hp_candle_clean`、`hp_candle_clean_multi`）：
 
 - 烛心 `hit` 300 → 6000，地狱档约 1566 万 → 3.13 亿一只。
 - 烛心入场 60 帧无敌。
 - 每只存活烛心给 boss 的加攻 +50% → +25%。
 - 大爆炸从普通伤害 3 段 ×2.0 改为全队最大 HP 50% 一段，每只存活烛心再加一段最大 HP 40%。
+- 大爆炸逐只结算后用 `EliminateFunnel` 清掉残留烛心，下一轮 6 种各一只。否则留存烛心加同种新实例时，按种类判断只算 5 段，组 9 占满后第 6 种还会被丢弃。这一条只在本边有，测试服 1.4.346 还没有。
 
 ## 校验
 
-- 档案：`pinball-1.4.351-1.4.352-1-fiveboss-pumpkin.zip`，3801728 字节，21 个成员，均在 `production/upload`。
-  SHA-256 `ec3fb17f2c7ecf77bf240b4b6725ffebd98ce01f03413d2e31c1eefd1853bd24`。
-- 21 个成员有 20 个与测试服 1.4.350 终态同字节。唯一不同的是 `boss_battle_quest`：
+- 档案：`pinball-1.4.351-1.4.352-1-fiveboss-pumpkin.zip`，3802489 字节，23 个成员，均在 `production/upload`。
+  SHA-256 `97d41317231d525b58f3ba8754aac0121d4ebc0599b0825b3a7ffd4f49c51cb6`。
+- 蜡烛清场之外的成员与测试服 1.4.350 终态的差异只有 `boss_battle_quest`：
   39 关 `c99` 与测试服一致，只有 32 关 `c119` 保留本链现值，其余列与 1.4.351 视图相同。
 - 除 `c99` 外，`boss_battle_quest` 分组 99 的其他列与 1.4.351 视图逐列相同；其他分组未变。
 
 ## 未验证
 
-真机和实战都没有打过这些改动。测试服 1.4.346、1.4.348–1.4.350 已上线但没有实战反馈，1.4.344 同样没有真机验证。
+真机和实战都没有打过这些改动。测试服 1.4.346、1.4.348–1.4.350 已上线但没有实战反馈，1.4.344 同样没有真机验证。蜡烛清场只做过静态核对，`EliminateFunnel` 走 `commitSuicide` 后是否照常执行烛心的死亡程序（撤加攻）没有实测。
 正式环境未部署。本边只有数据文件，没有服务端代码、数据库、APK、IPA 或准入变更。
