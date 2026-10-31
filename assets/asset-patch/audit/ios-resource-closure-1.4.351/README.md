@@ -36,7 +36,9 @@ python -B tools/fantasy-gauntlet-mod-tools/wf_ios_resource_audit.py --server-roo
 python -B -m unittest discover -s tools/fantasy-gauntlet-mod-tools/tests -p test_ios_resource_audit.py
 ```
 
-The runtime delivery consists of the new active ZIP and the cumulative
-manifest. Existing archives must be retained. There are no server-code,
+The runtime delivery consists of the new active ZIP, the cumulative manifest,
+and the canonical/runtime discovery indexes rebound to that manifest. Only
+their source identities change; all discovery rows remain intact.
+Existing archives must be retained. There are no server-code,
 database, character-stat, APK, IPA or admission changes. Signing, deployment
 and device verification are separate operations.
