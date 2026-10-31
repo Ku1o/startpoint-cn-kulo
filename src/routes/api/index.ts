@@ -24,7 +24,7 @@ import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { ensurePlayerClockStateForLoadSync } from "../../lib/server-clock-state";
 import { getDb } from "../../data/db";
 
-import { contentOperations } from "../../lib/content-operations";
+import { contentOperationsSnapshot } from "../../lib/content-operations-snapshot-cache";
 import { contentClientReload } from "../../lib/content-client-reload";
 
 interface LoadBody {
@@ -107,7 +107,7 @@ const routes = async (fastify: FastifyInstance) => {
                 asset_update: true,
                 viewer_id: viewerId
             }),
-            "data": { ...clientData, content_operations: contentOperations().snapshot(Date.now()) }
+            "data": { ...clientData, content_operations: contentOperationsSnapshot() }
         }
         await runPersistenceTransaction({ domain: "account", operation: "acknowledge_legacy_client_load" }, () => {
             contentClientReload().acknowledge(viewerId, loadedReloadEpoch)

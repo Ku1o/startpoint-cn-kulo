@@ -52,7 +52,7 @@ import { serializePlayerSnapshot } from "../../data/utils/client-player-snapshot
 import { formatClientDisplayDateTime } from "../../lib/client-display-time";
 import { withServerWorkAdmission } from "../../lib/shutdown-state";
 
-import { contentOperations } from "../../lib/content-operations";
+import { contentOperationsSnapshot } from "../../lib/content-operations-snapshot-cache";
 import { contentClientReload } from "../../lib/content-client-reload";
 import { getSpecialExchangeEntitlementsSync } from "../../lib/exchange-campaign-entitlements";
 import { getRetainedStarCrumbExchangeIds } from "../../lib/star-crumb-exchange-rules";
@@ -102,7 +102,7 @@ function fillClientDefaults(d: any) {
 function wrapOptionFields(d: any, playerId: number, resVer?: string, exBoostDrawResult: ClientExBoostDrawResult | null = null) {
     d.town_presentation = townThemeLoginSnapshot();
     d.town_presentation_load = true;
-    d.content_operations = contentOperations().snapshot(Date.now());
+    d.content_operations = contentOperationsSnapshot();
     d.star_crumb_exchange_retained_ids = getRetainedStarCrumbExchangeIds();
     const { getEffectiveVersion } = require("../../lib/version");
     d.available_asset_version = getEffectiveVersion();
@@ -161,7 +161,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
         reply.type("application/x-msgpack")
         return reply.send({ data_headers: generateDataHeaders({ viewer_id: body.viewer_id as number }),
-            data: { content_operations: contentOperations().snapshot(Date.now()),
+            data: { content_operations: contentOperationsSnapshot(),
                 star_crumb_exchange_retained_ids: getRetainedStarCrumbExchangeIds() } })
     })
 
