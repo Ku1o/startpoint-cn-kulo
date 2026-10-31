@@ -5,7 +5,14 @@ const player = f.create(), other = f.create(), utils = f.load('utils'), items = 
 const coordinator = f.load('lib/persistence-coordinator'), originalTransaction = coordinator.runPersistenceTransaction
 const selections = f.load('data/domains/shop-campaign-lineup'), quota = f.load('data/domains/shopPurchase')
 const originalDate = utils.getServerDate; let at = new Date('2022-12-23T12:00:00Z'), app
-const post = (url, body = {}) => app.inject({ method: 'POST', url, payload: { viewer_id: player.viewer, ...body } })
+const identities = f.load('lib/gameplay-request-identity')
+identities.initializeGameplayRequestIdentitySchemaSync(f.db)
+const loginToken = f.db.transaction(() => identities.issueGameplayLoginTokenSync(f.db, {
+    accountId: player.accountId, viewerId: player.viewer, udid: 'shop-lineup-fixture', expiresAt: Date.now() + 86400000,
+}))()
+let apiCount = 0
+const post = (url, body = {}) => app.inject({ method: 'POST', url, headers: { login_token: loginToken },
+    payload: { viewer_id: player.viewer, api_count: ++apiCount, ...body } })
 function data(response) { assert.equal(response.statusCode, 200, response.body); return unpack(Buffer.from(response.body, 'base64')).data }
 const campaign = { shop_type: 4, campaign_id: 10 }
 const buy = id => post('/buy', { shop_type: 4, shop_item_id: id, number: 1 })
@@ -19,7 +26,8 @@ function control(enabled) {
     f.db.transaction(() => {
         for (const key of ['challenge_dungeon_event:1', ...Object.entries(memberships).filter(([, value]) => value.campaignId === 10).map(([id]) => `event_item_shop:${id}`)]) {
             store.update(key, { expectedRevision: store.revision(), catalogDigest: store.digest, reason: 'Isolated campaign route fixture',
-                actionOverrides: { visible: review, exchange: review } }, Date.now())
+                actionOverrides: { visible: key === 'challenge_dungeon_event:1' ? { ...review,
+                    questKeys: Array.from({ length: 22 }, (_, i) => `13:${1001 + i}`) } : review, exchange: review } }, Date.now())
         }
     })()
 }

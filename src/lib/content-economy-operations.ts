@@ -1,4 +1,4 @@
-import { contentDecision } from "./content-operations"
+import { contentDecision, contentOperations } from "./content-operations"
 import { isPassCardEventActiveAt, type PassCardEventDefinition } from "./pass-card"
 import type { ContentAction } from "./content-operations-store"
 import { ShopType } from "./types"
@@ -9,6 +9,8 @@ import { getPassCardEventDefinition, getPassCardRewardDefinition } from "./pass-
 import passRewards from "../../assets/pass_card_reward.json"
 import { SPECIAL_EXCHANGE_DEFINITIONS, START_DASH_EXCHANGE_DEFINITIONS } from "./exchange-campaign-definitions"
 import { validShopQuotaRules } from "./shop-quota"
+import { challengeShopPeriodAllows } from "./content-challenge-shop-period"
+import { getServerDate } from "../utils"
 
 const shopTypes: Readonly<Record<number, string>> = {
     [ShopType.GENERAL]: "general_shop", [ShopType.STAR_GRAIN]: "star_grain_shop",
@@ -28,6 +30,16 @@ export function shopContentDecision(shopType: number, itemId: number, action: Co
     const parentType = mapping ? shopParentTypes[mapping.eventType] : undefined
     const parent = parentType && mapping ? contentDecision(parentType, mapping.eventId, action, realNowMs) : null
     if (product === false || parent === false) return false
+    if (parentType === "challenge_dungeon_event" && mapping?.eventId === 1
+        && (action === "visible" || action === "exchange")) {
+        const store = contentOperations(), key = "challenge_dungeon_event:1"
+        // Exchange follows the displayed period even after participation stops.
+        // A missing, expired or mixed visible scope cannot open historical stock.
+        if ((action === "visible" ? parent : store.allowed(key, "visible", realNowMs)) !== true) return false
+        const state = store.state(key)
+        const shown = state?.actionOverrides !== undefined ? state.actionOverrides.visible?.questKeys : state?.questKeys
+        if (!challengeShopPeriodAllows(itemId, shown, getServerDate())) return false
+    }
     // A parent's open gate does not verify each product or its separate quotas.
     return product === true ? true : null
 }
