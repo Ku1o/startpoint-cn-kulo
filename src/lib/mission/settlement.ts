@@ -149,7 +149,8 @@ function evaluateMissionCategories(
         ) : undefined
         for (const missionId of candidateMissionIds) {
             const progressEnabled = isMissionEnabledAt(category, missionId, evaluationTime, eventId)
-            const claimOnly = contentMissionDecision(category, missionId, "claim") === true
+            // Active missions already qualify; only closed entry needs claim-only admission.
+            const claimOnly = !progressEnabled && contentMissionDecision(category, missionId, "claim") === true
                 && isMissionEnabledAt(category, missionId, evaluationTime, eventId, "claim")
             if (!progressEnabled && !claimOnly) continue
             const missionKey = `${category}:${missionId}`
