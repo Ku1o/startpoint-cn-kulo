@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.351",
+  "cdn_version": "1.4.352",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -33760,6 +33760,76 @@
         "production/ios_upload/53/e1857d76f211e567f6c775a194db62738e039c",
         "production/ios_upload/96/b97133a2b5c5bc58a4f234d531960136f0729f",
         "production/ios_upload/ce/d720392bdd8eeb25b339c2e3943f327fea27ba"
+      ],
+      "created_at": "2026-10-31"
+    },
+    {
+      "id": "fiveboss-pumpkin-1.4.352",
+      "type": "patch",
+      "name": "五重减难与地狱南瓜 P3 烛心调整",
+      "description": "五重：防御 up 改 5 层驱散阶梯、登场减益去强制并减为 2 个、狂暴每只 boss 一份、全部 39 关 boss 血量 ×0.35；地狱南瓜 P3：烛心血量 ×20 并有入场无敌、大爆炸改最大 HP 比例伤害。未经实战验证。",
+      "version": "1.4.352",
+      "depends_on": "1.4.351",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.351-1.4.352-1-fiveboss-pumpkin.zip",
+      "archive_size": 3801728,
+      "chain": [
+        "pinball-1.4.351-1.4.352-1-fiveboss-pumpkin.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.351-1.4.352-1-fiveboss-pumpkin.zip",
+          "size": 3801728,
+          "sha256": "ec3fb17f2c7ecf77bf240b4b6725ffebd98ce01f03413d2e31c1eefd1853bd24",
+          "members": 21,
+          "files": [
+            "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+            "production/upload/14/badd617ecbfcdfc77cae50ebda4ce95a8639f7",
+            "production/upload/15/fa1d10bac1978add7ccd075c677451e59b6fb3",
+            "production/upload/1d/5759da68974fececdcb154ce123b47d0a4b8ee",
+            "production/upload/23/e497eb975bf0be06c7fad8baf3b6301ea3bd5f",
+            "production/upload/2e/534e3492d3b4efb4cf1ce00e8d827950f884ff",
+            "production/upload/43/e44913865259a2c134130056a8800756818a53",
+            "production/upload/67/fdcda060f9cbfd6afdf80554eedff593bd5f52",
+            "production/upload/71/890f6d802a36da50d2fed4143b95f76bcea8cd",
+            "production/upload/77/d39547cee5052ce00f4fcf952874cb651aaf36",
+            "production/upload/88/563b6958d14ae973bb5998bc1d6e01e2d24c48",
+            "production/upload/ad/dd80306c1243fb2c0098964a76c7d82077608a",
+            "production/upload/c4/7ba61dd9a3bdfec6db25010993309d1bd47cd0",
+            "production/upload/cd/84cfd1deb4c6344183e82bcc8c380d26a120e5",
+            "production/upload/d9/bb844dda0c19c11e4d537ed731b944eab08a44",
+            "production/upload/e8/465658d40cba642e047946149d250827e11579",
+            "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+            "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+            "production/upload/f1/922d6e8f156f08fa526170b956659c6dc40f3b",
+            "production/upload/f5/0cef8a8e349d70d21f3755880bb75dfd22159a",
+            "production/upload/fd/fbc5cc260978c853cfdbf44cade82991a90d64"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+        "production/upload/14/badd617ecbfcdfc77cae50ebda4ce95a8639f7",
+        "production/upload/15/fa1d10bac1978add7ccd075c677451e59b6fb3",
+        "production/upload/1d/5759da68974fececdcb154ce123b47d0a4b8ee",
+        "production/upload/23/e497eb975bf0be06c7fad8baf3b6301ea3bd5f",
+        "production/upload/2e/534e3492d3b4efb4cf1ce00e8d827950f884ff",
+        "production/upload/43/e44913865259a2c134130056a8800756818a53",
+        "production/upload/67/fdcda060f9cbfd6afdf80554eedff593bd5f52",
+        "production/upload/71/890f6d802a36da50d2fed4143b95f76bcea8cd",
+        "production/upload/77/d39547cee5052ce00f4fcf952874cb651aaf36",
+        "production/upload/88/563b6958d14ae973bb5998bc1d6e01e2d24c48",
+        "production/upload/ad/dd80306c1243fb2c0098964a76c7d82077608a",
+        "production/upload/c4/7ba61dd9a3bdfec6db25010993309d1bd47cd0",
+        "production/upload/cd/84cfd1deb4c6344183e82bcc8c380d26a120e5",
+        "production/upload/d9/bb844dda0c19c11e4d537ed731b944eab08a44",
+        "production/upload/e8/465658d40cba642e047946149d250827e11579",
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+        "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+        "production/upload/f1/922d6e8f156f08fa526170b956659c6dc40f3b",
+        "production/upload/f5/0cef8a8e349d70d21f3755880bb75dfd22159a",
+        "production/upload/fd/fbc5cc260978c853cfdbf44cade82991a90d64"
       ],
       "created_at": "2026-10-31"
     }
