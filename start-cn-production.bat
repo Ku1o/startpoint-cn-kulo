@@ -9,8 +9,10 @@ set "GACHA_VERBOSE_LOGS=false"
 set "GAME_VERBOSE_LOGS=false"
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\start-cn-logged.ps1" -RetentionDays 7
-if errorlevel 1 (
+set "exitCode=%errorlevel%"
+if not "%exitCode%"=="0" (
     echo.
     echo Failed to start CN StarPoint production mode.
     pause
 )
+exit /b %exitCode%
