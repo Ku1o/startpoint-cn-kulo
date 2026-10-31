@@ -351,7 +351,7 @@ export function applyContentReleaseSupplementSync(store: ContentOperationsStore,
         const action = { enabled: true, readiness: "verified", endsAtMs: null, evidence: `逐项发布核查 ${plan.evidenceDigest}` }
         const actionOverrides = key === CONTENT_RELEASE_PARENT ? {
             visible: action, enter: { ...action, questKeys: CONTENT_RELEASE_QUESTS }, exchange: action,
-        } : key === CONTENT_RELEASE_GACHA ? { visible: action, enter: action, exchange: { ...action, enabled: false } }
+        } : key === CONTENT_RELEASE_GACHA ? { visible: action, enter: action, exchange: action }
             : { visible: action, exchange: action }
         // A fresh product has no publication field. Existing controls never pass
         // through this branch, regardless of readiness or apparent default flags.

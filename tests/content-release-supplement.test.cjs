@@ -79,6 +79,10 @@ function sourceFixture(directory, data) {
   const write = (name, value) => fs.writeFileSync(path.join(directory, name), typeof value === 'string' ? value : JSON.stringify(value))
   write('assets/content_catalog.json', data)
   write('src/lib/content-operations-store.ts', fs.readFileSync(path.join(__dirname, '../src/lib/content-operations-store.ts'), 'utf8'))
+  write('src/lib/content-operations-defaults.ts', fs.readFileSync(path.join(__dirname, '../src/lib/content-operations-defaults.ts'), 'utf8'))
+  write('src/lib/content-native-presentation-rules.ts', fs.readFileSync(path.join(__dirname, '../src/lib/content-native-presentation-rules.ts'), 'utf8'))
+  fs.mkdirSync(path.join(directory, 'src/lib/types'), { recursive: true })
+  write('src/lib/types/quest.ts', fs.readFileSync(path.join(__dirname, '../src/lib/types/quest.ts'), 'utf8'))
   write('src/lib/content-july-reference.ts', 'export function isFixedJulyCandidate() { return false }')
   write('src/lib/content-operations.ts', `import data from '../../assets/content_catalog.json'; import {createHash} from 'node:crypto'; import {ContentOperationsStore} from './content-operations-store';
     export function createContentOperationsStore(db) { return new ContentOperationsStore(db,data,row=>row.type==='event_item_shop'?['visible','exchange']:['visible','enter','exchange'],row=>({digest:createHash('sha256').update('native:'+row.key).digest('hex'),matchesCatalog:true})) }`)
@@ -109,7 +113,7 @@ function actualCapture(f, previousCatalog, currentCatalog = f.store.catalog) {
 }
 function resign(plan) { const { digest, ...body } = plan; return { ...body, digest: sha(canonical(body)) } }
 
-test('350 plan creates exactly 31 products, ten quest scopes and the pool without new pool exchange', async t => {
+test('350 plan creates exactly 31 products, ten quest scopes and the pool with its earned-point exchange', async t => {
   const f = fixture(t), plan = build(f.store, evidence), before = guards.getDeploymentDatabaseFingerprintSync(f.db)
   assert.equal(plan.createKeys.length, 33)
   assert.equal(plan.products.length, 31); assert.equal(plan.questKeys.length, 10)
@@ -122,7 +126,7 @@ test('350 plan creates exactly 31 products, ten quest scopes and the pool withou
   assert.equal(f.store.catalog.source.assetVersion, '1.4.135', 'original catalog export is distinct from the release chain')
   assert.equal(f.store.allowed(gacha, 'visible', now), true)
   assert.equal(f.store.allowed(gacha, 'enter', now), true)
-  assert.equal(f.store.allowed(gacha, 'exchange', now), false)
+  assert.equal(f.store.allowed(gacha, 'exchange', now), true)
   for (const key of products) {
     const state = f.store.state(key)
     assert(!Object.hasOwn(state, 'published'))
@@ -136,6 +140,13 @@ test('350 plan creates exactly 31 products, ten quest scopes and the pool withou
   assert.equal(f.db.prepare('SELECT value FROM server_clock_state').get().value, 'real,legacyOffset=-5123')
   assert.equal(inspect(f.store).ready, true)
   assert.throws(() => build(f.store, evidence), /已经应用/)
+  patch(f.store, gacha, { exchange: false })
+  const closedPool = clone(f.store.state(gacha)), closedRevision = f.store.revision()
+  const repeated = await maintain(f, context => apply(f.store, plan, plan.digest, context, now + 1000))
+  assert.equal(repeated.applied, false)
+  assert.equal(f.store.revision(), closedRevision)
+  assert.deepEqual(f.store.state(gacha), closedPool, 'a later operator closure survives release replay')
+  assert.equal(f.store.allowed(gacha, 'exchange', now + 1000), false)
 })
 
 test('existing closed parent, product, scopes and finite deadlines win; later closes survive repeats', async t => {
@@ -143,16 +154,17 @@ test('existing closed parent, product, scopes and finite deadlines win; later cl
   patch(f.store, parent, { visible: true, enter: true, exchange: true }, { endsAtMs: now + 10000 })
   f.store.setPublished(parent, { published: false, expectedRevision: f.store.revision(), catalogDigest: f.store.digest, reason: 'manual close' }, now)
   patch(f.store, products[0], { visible: false, exchange: false }, { endsAtMs: now + 10000 })
-  patch(f.store, gacha, { visible: false, enter: false, exchange: true }, { endsAtMs: now + 10000 })
+  patch(f.store, gacha, { visible: true, enter: true, exchange: false }, { endsAtMs: now + 10000 })
   const parentBefore = clone(f.store.state(parent)), productBefore = clone(f.store.state(products[0]))
   const plan = build(f.store, evidence)
   const poolBefore = clone(f.store.state(gacha))
   assert.deepEqual(plan.preservedKeys, [parent, products[0], gacha])
-  assert.equal(plan.preservedControls.find(row => row.key === gacha).state.actionOverrides.enter.enabled, false)
+  assert.equal(plan.preservedControls.find(row => row.key === gacha).state.actionOverrides.exchange.enabled, false)
   await maintain(f, context => apply(f.store, plan, plan.digest, context, now))
   assert.deepEqual(f.store.state(parent), parentBefore)
   assert.deepEqual(f.store.state(products[0]), productBefore)
   assert.deepEqual(f.store.state(gacha), poolBefore)
+  assert.equal(f.store.allowed(gacha, 'exchange', now), false, 'an existing operator exchange closure wins')
   patch(f.store, products[1], { visible: false, exchange: false })
   f.db.prepare('UPDATE players SET save=?').run('new progress after release')
   const fingerprint = guards.getDeploymentDatabaseFingerprintSync(f.db), revision = f.store.revision()
@@ -160,6 +172,7 @@ test('existing closed parent, product, scopes and finite deadlines win; later cl
   assert.equal(result.applied, false); assert.equal(f.store.revision(), revision)
   assert.equal(guards.getDeploymentDatabaseFingerprintSync(f.db), fingerprint)
   assert.equal(f.store.allowed(products[1], 'visible', now), false)
+  assert.deepEqual(f.store.state(gacha), poolBefore, 'replaying the release cannot reopen an operator-closed exchange')
   assert.equal(inspect(f.store).ready, true)
 })
 
