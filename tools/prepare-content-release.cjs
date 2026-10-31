@@ -37,6 +37,8 @@ function main(args) {
     if (!equal(database, requested) || fs.statSync(database).nlink !== 1 || /(^|[\\/])(\.cdn|config)([\\/]|$)/i.test(database))
         throw Error('Use a physical, unaliased explicit database outside CDN/config')
     const output = path.resolve(options.output)
+    const summaryOutput = output + '.summary.json'
+    if (fs.existsSync(output) || fs.existsSync(summaryOutput)) throw Error('Use a new plan and summary output path')
     if (equal(output, database) || /\.(db|sqlite|sqlite3)(-(wal|shm))?$/i.test(output)
         || /(^|[\\/])(\.cdn|config)([\\/]|$)/i.test(output)) throw Error('Unsafe plan output path')
     const modulePath = path.resolve(__dirname, '../out/lib/content-release-supplement.js')
@@ -54,12 +56,17 @@ function main(args) {
         const envelope = { format: 1, kind: 'reviewed-content-release-supplement', targetDatabase: database,
             captureProducerSha256: producer.PRODUCER_SHA256, previousSource: capture?.previousSourceRoot,
             sourceModuleSha256: sha(fs.readFileSync(modulePath)), plan }
-        fs.writeFileSync(output, JSON.stringify(envelope, null, 2) + '\n', { flag: 'wx' })
-        console.log(JSON.stringify({ applied: false, planDigest: plan.digest, catalogDigest: plan.catalogDigest,
+        const encoded = JSON.stringify(envelope) + '\n', planBytes = Buffer.byteLength(encoded)
+        if (planBytes > 40 * 1024 * 1024) throw Error('Actual target plan exceeds 40 MiB; no oversized application plan was written')
+        fs.writeFileSync(output, encoded, { flag: 'wx' })
+        const summary = { applied: false, planDigest: plan.digest, catalogDigest: plan.catalogDigest,
             source: plan.source, newControls: plan.createKeys.length, preservedControls: plan.preservedKeys.length,
             preservedKeys: plan.preservedKeys, preservedSettings: plan.preservedControls,
-            identityBindings: plan.bindings.length, output,
-            note: 'Local target-specific review material. Existing closes/deadlines remain authoritative; application does not promise all content is open. No database writes.' }))
+            identityBindings: plan.bindings.length, output, summaryOutput,
+            planBytes,
+            note: 'Local target-specific review material. Existing closes/deadlines remain authoritative; application does not promise all content is open. No database writes.' }
+        fs.writeFileSync(summaryOutput, JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' })
+        console.log(JSON.stringify(summary))
         return envelope
     } finally { db.close() }
 }

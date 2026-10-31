@@ -16,10 +16,12 @@ function fileHash(file) {
   return hash.digest('hex')
 }
 const signature = stat => `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`
-function openSource(sourceRoot) {
+function openSource(sourceRoot, archiveRoot = sourceRoot) {
   const root = fs.realpathSync(sourceRoot), modules = new Map(), used = new Map(), archives = new Map(), tables = new Map()
+  const archiveSource = fs.realpathSync(archiveRoot)
   const compiled = fs.existsSync(path.join(root, 'out/lib/content-operations.js')), codeRoot = compiled ? 'out/lib' : 'src/lib'
-  const pristine = fs.existsSync(path.join(root, '.cdn')) ? fs.realpathSync(path.join(root, '.cdn')) : null
+  const cdn = fs.existsSync(path.join(root, '.cdn')) ? path.join(root, '.cdn') : path.join(archiveSource, '.cdn')
+  const pristine = fs.existsSync(cdn) ? fs.realpathSync(cdn) : null
   let capturedBytes = 0
   const inside = (base, file) => file === base || file.startsWith(base + path.sep)
   function resolveRead(file) {
@@ -30,8 +32,15 @@ function openSource(sourceRoot) {
     else throw Error('Capture read outside explicit source: ' + absolute)
     if (/^(?:config\/|\.env(?:\.|$)|\.database\/)/.test(relative) || /\.(?:db|sqlite|sqlite3)(?:-(?:wal|shm))?$/i.test(relative))
       throw Error('Capture cannot read private state: ' + relative)
-    const physical = fs.realpathSync(absolute), stat = fs.statSync(physical)
-    if (!inside(root, physical) && !(pristine && inside(pristine, physical))) throw Error('Capture source alias escapes approved roots')
+    // A sparse historical source keeps its own program/JSON bytes. Only missing
+    // archives may resolve through the explicitly shared immutable resource root.
+    const sharedArchive = /^assets\/asset-patch\/active\/[a-zA-Z0-9_.-]+\.zip$/.test(relative)
+    const sharedPristine = relative === '.cdn' || relative.startsWith('.cdn/')
+    const mapped = !fs.existsSync(absolute) && (sharedArchive || sharedPristine) ? path.join(archiveSource, relative) : absolute
+    const physical = fs.realpathSync(mapped), stat = fs.statSync(physical)
+    const sharedActivePath = path.join(archiveSource, relative)
+    const allowedActive = sharedArchive && fs.existsSync(sharedActivePath) && physical === fs.realpathSync(sharedActivePath)
+    if (!inside(root, physical) && !(pristine && inside(pristine, physical)) && !allowedActive) throw Error('Capture source alias escapes approved roots')
     if (stat.isFile()) {
       const book = physical.endsWith('.zip') ? archives : used, prior = book.get(relative)
       if (prior && (prior.physical !== physical || prior.signature !== signature(stat))) throw Error('Capture input changed: ' + relative)
@@ -74,6 +83,9 @@ function openSource(sourceRoot) {
     function requireActual(name) {
       if (name === 'node:fs' || name === 'fs') return reader
       if (name === 'better-sqlite3') return function () { throw Error('Capture cannot open a database') }
+      if (name === 'node:child_process' || name === 'child_process') return new Proxy({}, { get() {
+        return () => { throw Error('Capture cannot execute a child process') }
+      } })
       if (['node:path', 'path', 'node:crypto', 'crypto', 'node:zlib', 'zlib', 'node:util', 'util', 'node:assert/strict', 'assert/strict', 'node:async_hooks', 'async_hooks'].includes(name)) return require(name)
       if (name.startsWith('.')) return load(path.resolve(path.dirname(file), name))
       throw Error('Capture external/process module is forbidden: ' + name)
@@ -147,6 +159,19 @@ function openSource(sourceRoot) {
     // Always augment a parent capture: captureExactDefinition alone covers its
     // shop membership, not its actual quests, clear/score/rare rewards.
     if (store.questMembers.get(key)?.size) { dependencies.actualQuestsAndRewards = questValues(row); implemented = true }
+    if (row.type === 'advent_event' && Object.hasOwn(dependencies, 'assets/advent_event_quest.json#parent-definition')) {
+      const actual = dependencies.actualQuestsAndRewards, table = json('advent_event_quest.json'), selected = {}
+      assert(actual && Object.keys(actual).length, 'Cannot scope advent definition without actual quest accessors: ' + key)
+      for (const [member, capture] of Object.entries(actual)) {
+        const [category, id] = member.split(':')
+        assert(['7', '8'].includes(category) && table[id] && stable(table[id]) === stable(capture.serverRow),
+          'Advent source row does not match the actual getter: ' + member)
+        selected[id] = table[id]
+      }
+      // The parent owns these exact rows, not every other event in the table.
+      // Getter/reward closure above still detects any owned-row or reward edit.
+      dependencies['assets/advent_event_quest.json#parent-definition'] = selected
+    }
     const missions = missionValues(row)
     if (Object.keys(missions).length) { dependencies.actualMissionRewards = missions; implemented = true }
     if (row.type === 'gacha') {
@@ -197,6 +222,7 @@ function openSource(sourceRoot) {
       runtimeMatches: store.runtimeDefinitions.get(key)?.matchesCatalog === true,
       businessRow: Object.fromEntries(Object.entries(row).filter(([field]) => !provenance.has(field))),
       dependencies: Object.fromEntries(Object.entries(dependencies).map(([selector, value]) => [selector, sha(stable(value))])),
+      ...(['gacha:990001', 'gacha:990002'].includes(key) ? { approvedDeltaValues: { actualGacha: dependencies.actualGacha } } : {}),
       captureEngineSha256: PRODUCER_SHA256, operatorCapabilities: [...store.capabilities(row)], clientCapabilities: [...(store.clientCapabilities?.(row) || [])],
       questMembers: [...(store.questMembers.get(key) || [])], missionMembers: [...(store.missionMembers.get(key) || [])] }
   }
@@ -208,14 +234,15 @@ function openSource(sourceRoot) {
   return { root, store, describe, verify, receipt() { verify(); return { producerSha256: PRODUCER_SHA256,
     files: [...used.values()].sort((a, b) => a.relative.localeCompare(b.relative)), archives: [...archives.values()].sort((a, b) => a.relative.localeCompare(b.relative)) } } }
 }
-function createReleaseCaptureSession({ previousSource, currentSource = path.resolve(__dirname, '..') }) {
+function createReleaseCaptureSession({ previousSource, currentSource = path.resolve(__dirname, '..'), archiveSource = currentSource }) {
   const previousRoot = fs.realpathSync(previousSource), currentRoot = fs.realpathSync(currentSource)
+  const sharedArchives = fs.realpathSync(archiveSource)
   if (previousRoot === currentRoot) throw Error('Previous and current sources must be distinct pinned source roots')
-  const session = Object.freeze({ previousSourceRoot: previousRoot, currentSourceRoot: currentRoot,
+  const session = Object.freeze({ previousSourceRoot: previousRoot, currentSourceRoot: currentRoot, archiveSourceRoot: sharedArchives,
     capture(keys) {
       assert(Array.isArray(keys) && keys.length && keys.length <= 20000 && new Set(keys).size === keys.length, 'Invalid capture key set')
       function view(root) {
-        const source = openSource(root)
+        const source = openSource(root, sharedArchives)
         const records = {}, pending = []
         for (const key of keys) {
           try { records[key] = source.describe(key) }

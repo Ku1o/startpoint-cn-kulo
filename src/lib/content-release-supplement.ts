@@ -47,6 +47,7 @@ export interface ReleaseDefinitionCapture {
         businessRow: Record<string, unknown>; dependencies: Record<string, unknown>
         captureEngineSha256: string; operatorCapabilities: string[]; clientCapabilities: string[]
         questMembers: string[]; missionMembers: string[]
+        approvedDeltaValues?: { actualGacha: unknown }
     }>
 }
 export interface ReleaseIdentityReview { before: ReleaseDefinitionCapture; current: ReleaseDefinitionCapture }
@@ -155,9 +156,43 @@ function validateScope(store: ContentOperationsStore, source: ContentReleaseSour
     if (canonical([...(store.questMembers.get(CONTENT_RELEASE_PARENT) ?? [])].sort()) !== canonical([...CONTENT_RELEASE_QUESTS].sort())
         || store.missionMembers.get(CONTENT_RELEASE_PARENT)?.size) fail("本活动关卡范围不匹配")
 }
+/** Exact adopted two-pool transition, captured from the old 059ae525 inputs and
+ * the final unchanged pool masters. These hashes bind complete getter values:
+ * price, flags and retained weights cannot ride along as unrelated edits. */
+const approvedPoolTransitions: Record<string, { before: string; after: string }> = {
+    "gacha:990001": { before: "096af68cf3536d9fd42029908902e63536d9fb3f230eecf2dc6e390ce7378bf1", after: "b274aafe951ec6ab4f9211eaa415292cb3f18d45be744f13085cec6594a5e095" },
+    "gacha:990002": { before: "8c186fa4a5ad12697889f0eec1e0e8ab3ef646bd9bd1fb92826a783466cf0880", after: "cb16d9d0d656a48f7d30ce6057d785d9df4a180f2f8aa450b48fc8d284c4cf10" },
+}
+function approvedPoolDependencyChange(key: string, review: ReleaseIdentityReview): boolean {
+    const transition = approvedPoolTransitions[key], before = review.before.keys[key], after = review.current.keys[key]
+    if (review.before.catalogDigest !== "4bc3f197ffbff0fa0c6189483064bcdceaf2eacda3d7ee0e08603c314854f246"
+        || review.current.catalogDigest !== "3087581a1c2687d259cab3db82eeeca8c44668b50372473dd127221f8e4cdd9c") return false
+    if (key === "rush_event:700099") {
+        // Exact adopted addition of products 9700130..9700132. They remain
+        // outside this opening scope and retain the manual default-closed gate.
+        const pairs: Record<string, [string, string]> = {
+            "assets/event_item_shop.json#11/700099": ["1f60812400238e35c87dcc87f602d2aecb7d03ddd05e92aa2b260c91cf10a606", "be25d3a8aca33dfb26f9d692d266ba9760cec2d96079416aeeaeb78fd0b4eae8"],
+            "assets/event_item_shop_id_map.json#parent:11:700099": ["fea202fcff0d441124607c6dfec17fd80d67df9e1d7d3a4e8979240d1a652299", "bad29614e7e97b3bc27867f5a984e6c0e21ff5d9968035aa064b84cb156d1683"],
+        }
+        const left = { ...before.dependencies }, right = { ...after.dependencies }
+        for (const [selector, [oldHash, newHash]] of Object.entries(pairs)) {
+            if (left[selector] !== oldHash || right[selector] !== newHash) return false
+            delete left[selector]; delete right[selector]
+        }
+        return canonical(left) === canonical(right)
+    }
+    if (!transition || before.dependencies.actualGacha !== transition.before || after.dependencies.actualGacha !== transition.after
+        || !before.approvedDeltaValues || !after.approvedDeltaValues
+        || hash(before.approvedDeltaValues.actualGacha) !== transition.before || hash(after.approvedDeltaValues.actualGacha) !== transition.after)
+        return false
+    const left = { ...before.dependencies }, right = { ...after.dependencies }
+    delete left.actualGacha; delete right.actualGacha
+    // Payment/execution and campaign mapping must still be exactly equivalent.
+    return canonical(left) === canonical(right)
+}
 function validateBinding(store: ContentOperationsStore, key: string, state: ContentControl, review?: ReleaseIdentityReview): void {
     const before = review?.before, current = review?.current, old = before?.keys[key], next = current?.keys[key]
-    if (!before || !current || before.kind !== "pinned-original-store-capture" || current.kind !== before.kind
+    if (!review || !before || !current || before.kind !== "pinned-original-store-capture" || current.kind !== before.kind
         || before.catalogDigest !== state.catalogDigest || current.catalogDigest !== store.digest
         || !old || !next || old.key !== key || next.key !== key || old.contentDigest !== state.contentDigest
         || next.contentDigest !== store.contentDigests.get(key) || !old.runtimeMatches || !next.runtimeMatches
@@ -165,8 +200,10 @@ function validateBinding(store: ContentOperationsStore, key: string, state: Cont
         || !validHash(old.captureEngineSha256) || old.captureEngineSha256 !== next.captureEngineSha256
         || !old.dependencies || !Object.keys(old.dependencies).length || !next.dependencies || !Object.keys(next.dependencies).length)
         fail(`缺少同源原生字段身份复核：${key}`)
-    for (const field of ["businessRow", "dependencies", "operatorCapabilities", "clientCapabilities", "questMembers", "missionMembers"] as const)
+    for (const field of ["businessRow", "operatorCapabilities", "clientCapabilities", "questMembers", "missionMembers"] as const)
         if (canonical(old[field]) !== canonical(next[field])) fail(`原生业务字段发生变化，不能只重绑定：${key}/${field}`)
+    if (canonical(old.dependencies) !== canonical(next.dependencies) && !approvedPoolDependencyChange(key, review))
+        fail(`原生业务字段发生变化，不能只重绑定：${key}/dependencies`)
     const row = store.rows.get(key)!
     if (canonical(next.businessRow) !== canonical(businessRow(row))
         || canonical(next.operatorCapabilities) !== canonical([...store.capabilities(row)])

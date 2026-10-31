@@ -1,12 +1,24 @@
 param(
     [ValidateSet("Preview", "Apply", "Verify", "Rollback", "Release", "Recover")][string]$Mode = "Preview",
-    [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot)
+    [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$SupplementPlan,
+    [string]$PlanDigest
 )
 $ErrorActionPreference = "Stop"
 $deploymentRoot = (Resolve-Path -LiteralPath $ProjectRoot).ProviderPath
-$nodeExecutable = (Get-Command node -ErrorAction Stop).Source
+$nodeExecutable = (Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+if ([bool]$SupplementPlan -ne [bool]$PlanDigest) { throw 'SupplementPlan and PlanDigest must be provided together.' }
+if ($SupplementPlan -and $Mode -notin @('Preview', 'Apply', 'Verify')) { throw 'Supplement arguments are only valid for Preview, Apply or Verify.' }
+if ($SupplementPlan) {
+    $SupplementPlan = (Resolve-Path -LiteralPath $SupplementPlan).ProviderPath
+    if ($PlanDigest -notmatch '^[a-f0-9]{64}$') { throw 'PlanDigest must be the reviewed lowercase SHA256.' }
+}
 function Invoke-Deployment([string]$Command) {
-    & $nodeExecutable --env-file=.env scripts/time-content-deployment.cjs $Command --project $deploymentRoot
+    $deploymentArgs = @('--env-file=.env', 'scripts/time-content-deployment.cjs', $Command, '--project', $deploymentRoot)
+    if ($SupplementPlan -and $Command -in @('preview', 'apply', 'verify')) {
+        $deploymentArgs += @('--supplement', $SupplementPlan, '--plan-digest', $PlanDigest)
+    }
+    & $nodeExecutable @deploymentArgs
     if ($LASTEXITCODE -ne 0) { throw "Time/content command '$Command' failed. Service remains stopped; keep the backup and receipt." }
 }
 function Test-DeploymentAlreadyStopped {

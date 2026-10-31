@@ -9,7 +9,8 @@ require.extensions['.ts'] = (mod, filename) => {
   const result = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true }, reportDiagnostics: true })
   assert.equal(result.diagnostics.filter(item => item.category === ts.DiagnosticCategory.Error).length, 0)
-  mod._compile(result.outputText, filename)
+  const privateProbe = filename.endsWith('content-release-supplement.ts') ? '\nexports.__approvedTransition=approvedPoolDependencyChange;' : ''
+  mod._compile(result.outputText + privateProbe, filename)
 }
 let release, guards, Store
 try {
@@ -83,11 +84,14 @@ function sourceFixture(directory, data) {
     export function createContentOperationsStore(db) { return new ContentOperationsStore(db,data,row=>row.type==='event_item_shop'?['visible','exchange']:['visible','enter','exchange'],row=>({digest:createHash('sha256').update('native:'+row.key).digest('hex'),matchesCatalog:true})) }`)
   // Deliberately incomplete raw evidence: the fixed producer must ALSO call
   // the actual shop and quest/reward accessors, including rare reward closure.
-  write('src/lib/content-definition-evidence.ts', `export function captureExactDefinition(row) { return row.type==='advent_event'||row.type==='event_item_shop'?{dependencies:{rawDefinition:'unchanged'},loaders:{}}:null }`)
+  write('src/lib/content-definition-evidence.ts', `import {readFileSync} from 'node:fs';import path from 'node:path';
+    export function captureExactDefinition(row,root) { if(row.type==='advent_event')return {dependencies:{'assets/advent_event_quest.json#parent-definition':JSON.parse(readFileSync(path.join(root,'assets/advent_event_quest.json'),'utf8'))},loaders:{}};
+      return row.type==='event_item_shop'?{dependencies:{rawDefinition:'unchanged'},loaders:{}}:null }`)
   write('src/lib/content-quest-rules.ts', 'export function applyContentQuestRules(category,id,raw) { return raw }')
   write('src/lib/gacha-rules.ts', 'export const GACHA_PAYMENT_TYPES={FREE_VMONEY:1,VMONEY:2,TICKET:3,CAMPAIGN:4}; export const GACHA_EXEC_TYPES={single:1,ten:2}; export function isGachaExecAllowed(g,p,e) { return g.payments.includes(p)&&[1,2].includes(e) }')
   write('assets/actual_shop.json', Object.fromEntries(products.map(key => [key.split(':')[1], { costs: [{ id: 1, amount: 4 }], rewards: [{ type: 0, id: 2, count: 1 }], stock: 99 }])))
   write('assets/actual_quests.json', Object.fromEntries(quests.map(key => [key, { clearReward: { item: 3, count: 2 }, scoreRewardGroup: [{ type: 1, id: 7 }] }])))
+  write('assets/advent_event_quest.json', Object.fromEntries(quests.map(key => [key.split(':')[1], { clearReward: { item: 3, count: 2 }, scoreRewardGroup: [{ type: 1, id: 7 }] }])))
   write('assets/actual_rare.json', { 7: [{ type: 0, id: 9, count: 1 }] })
   write('assets/actual_gacha.json', { 42: { id: 42, price: 150, payments: [1, 2], contents: [1, 2] }, 990005: { id: 990005, price: 1, payments: [3], contents: [3] } })
   write('assets/actual_campaign.json', { 42: 70 })
@@ -318,4 +322,55 @@ test('preview domain import cannot mkdir or open the default database and restor
   assert.equal(loader._load, original)
   assert(!fs.existsSync(path.join(root, '.database')))
   assert.equal(require.cache[initializer], undefined)
+})
+
+test('advent capture scopes shared tables to actual owned rows and still rejects owned reward edits', t => {
+  const f = fixture(t, catalog('1.4.349', 'old')), old = store(f.db, catalog('1.4.349', 'old'))
+  patch(old, parent, { visible: false, enter: false, exchange: false })
+  const capture = actualCapture(f, old.catalog), file = path.join(capture.currentSourceRoot, 'assets/advent_event_quest.json')
+  const table = JSON.parse(fs.readFileSync(file, 'utf8'))
+  table[300099001] = { clearReward: { item: 88, count: 999 } }; fs.writeFileSync(file, JSON.stringify(table))
+  assert.equal(build(f.store, evidence, capture).bindings.length, 2, 'unrelated appended rows are not owned by this parent')
+  table[300097001].clearReward.count++; fs.writeFileSync(file, JSON.stringify(table))
+  assert.throws(() => build(f.store, evidence, capture), error => error.pendingIdentityReviews?.some(row => row.key === parent))
+})
+
+test('only the two fully pinned pool edits and exact closed Rush child additions qualify as adopted deltas', () => {
+  const fixed = require('./fixtures/content-release-350-transitions.json'), matches = release.__approvedTransition
+  for (const row of fixed.pools) {
+    const value = { before: { catalogDigest: fixed.previousCatalog, keys: {} }, current: { catalogDigest: fixed.currentCatalog, keys: {} } }
+    const before = { dependencies: { actualGacha: sha(canonical(row.before)), actualPaymentMatrix: sha('unchanged matrix'), actualGachaCampaignId: sha('unchanged campaign') }, approvedDeltaValues: { actualGacha: row.before } }
+    const after = { dependencies: { actualGacha: sha(canonical(row.after)), actualPaymentMatrix: sha('unchanged matrix'), actualGachaCampaignId: sha('unchanged campaign') }, approvedDeltaValues: { actualGacha: row.after } }
+    value.before.keys[row.key] = before; value.current.keys[row.key] = after
+    assert.equal(before.dependencies.actualGacha, row.previousValueSha256)
+    assert.equal(after.dependencies.actualGacha, row.currentValueSha256)
+    assert.equal(matches(row.key, value), true)
+    const price = clone(value); price.current.keys[row.key].approvedDeltaValues.actualGacha.price = 999
+    price.current.keys[row.key].dependencies.actualGacha = sha(canonical(price.current.keys[row.key].approvedDeltaValues.actualGacha))
+    assert.equal(matches(row.key, price), false)
+    const payment = clone(value); payment.current.keys[row.key].dependencies.actualPaymentMatrix = sha('changed ticket permission')
+    assert.equal(matches(row.key, payment), false)
+    const mapping = clone(value); mapping.current.keys[row.key].dependencies.actualGachaCampaignId = sha('changed campaign')
+    assert.equal(matches(row.key, mapping), false)
+  }
+  const key = 'rush_event:700099', value = { before: { catalogDigest: fixed.previousCatalog, keys: {} }, current: { catalogDigest: fixed.currentCatalog, keys: {} } }
+  value.before.keys[key] = { dependencies: { 'assets/event_item_shop.json#11/700099': '1f60812400238e35c87dcc87f602d2aecb7d03ddd05e92aa2b260c91cf10a606', 'assets/event_item_shop_id_map.json#parent:11:700099': 'fea202fcff0d441124607c6dfec17fd80d67df9e1d7d3a4e8979240d1a652299', actualQuestsAndRewards: sha('unchanged existing quests') } }
+  value.current.keys[key] = { dependencies: { 'assets/event_item_shop.json#11/700099': 'be25d3a8aca33dfb26f9d692d266ba9760cec2d96079416aeeaeb78fd0b4eae8', 'assets/event_item_shop_id_map.json#parent:11:700099': 'bad29614e7e97b3bc27867f5a984e6c0e21ff5d9968035aa064b84cb156d1683', actualQuestsAndRewards: sha('unchanged existing quests') } }
+  assert.equal(matches(key, value), true)
+  value.current.keys[key].dependencies.actualQuestsAndRewards = sha('unapproved reward edit')
+  assert.equal(matches(key, value), false)
+})
+
+test('loader accepts the measured plan class above 32 MiB and rejects files above 40 MiB', t => {
+  const f = fixture(t), plan = build(f.store, evidence), cli = require('../scripts/time-content-deployment.cjs')
+  const root = path.join(f.directory, 'sized-project'), modulePath = path.join(root, 'out/lib/content-release-supplement.js'), file = path.join(f.directory, 'sized-plan.json')
+  fs.mkdirSync(path.dirname(modulePath), { recursive: true }); fs.writeFileSync(modulePath, '// synthetic compiled module identity')
+  const envelope = { format: 1, kind: 'reviewed-content-release-supplement', targetDatabase: f.database, captureProducerSha256: producer.PRODUCER_SHA256,
+    sourceModuleSha256: sha(fs.readFileSync(modulePath)), plan }
+  const prefix = JSON.stringify(envelope)
+  fs.writeFileSync(file, prefix); fs.appendFileSync(file, Buffer.alloc(35 * 1024 * 1024 - Buffer.byteLength(prefix), 0x20))
+  t.after(() => { if (fs.existsSync(file)) fs.unlinkSync(file) })
+  assert.equal(cli.loadSupplement({ supplement: file, planDigest: plan.digest }, { root, database: f.database }).digest, plan.digest)
+  fs.appendFileSync(file, Buffer.alloc(6 * 1024 * 1024, 0x20))
+  assert.throws(() => cli.loadSupplement({ supplement: file, planDigest: plan.digest }, { root, database: f.database }), /40MiB/)
 })

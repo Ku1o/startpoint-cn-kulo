@@ -2,7 +2,7 @@
 
 程序更新和数据库迁移是两步。不要把本机或演练库的 `.database` 上传覆盖云服；玩家、领取记录和后台决定必须保留在目标服务器原库中。
 
-本批按固定 2025-07-20 常驻计划初始化，并补齐已经核查的历史控制。历史新参与保持关闭，既有权益继续按原领取条件处理。1020 个父项中 1018 个有持久控制状态；这只是状态覆盖数，不等于所有父项均可操作或已开放。`collect_item_event:5`、`collect_item_event:80003` 因原生任务或兑换范围为空保留未接管原因。迁移不等于全部开启，也不改变 Pass 商品的售卖策略。
+旧版固定 2025-07-20 常驻计划包含9599个控制项。本节保留其初始化与历史核查背景；已经迁移过的目标升级到350时，必须走下方的显式补充计划，不能重放旧初始化，也不能只替换旧目录摘要来绕过校验。历史新参与、既有领取权益、Pass策略和管理员决定继续保留。
 
 48 组原生奖励箱关联中，父活动的 `exchange` 同时是客户端奖励箱页窗口；首轮历史初始化将其中 47 组该动作留为未审核的关闭占位。当前补核只在父、箱原生关联和定义身份一致、初始审计链完整且没有后续运营编辑时，补上这 48 个父入口的独立审核。47 组历史新参与仍保持关闭，需管理员之后成对开启；已保存开启的 Raid 7/箱 28 维持其原决定。补核不授予活动商店商品兑换资格，也不清除既有箱池进度。已迁移但未补核的数据库须重新经 Preview/Apply/Verify 完成本批补核；Apply 不重放原内容或时钟迁移。任何父或箱曾额外编辑、审计不明的项目都使自动补核停止，并列出具体键待人工核对，不能强行覆盖管理员决定。该运营联动仍将父参与与箱池开关一起控制，不宣称完整复现原生的独立兑换尾窗。
 
@@ -13,16 +13,35 @@
 - 安排维护窗口，等待正在进行的多人房间结束。数据库中的旧局、结算凭据和领奖进度会保留，但内存中的房间和连接不能跨重启继续。
 - 备份本批将覆盖的程序文件；数据库由迁移工具通过 SQLite backup API 另行备份，包括 WAL 已提交内容。备份中含玩家数据，不能提交 Git 或公开发布。
 
-## 标准操作
+## 350标准操作：已有9599项的目标
 
-在服务器项目目录的 PowerShell 中执行：
+先只读核对目标库的真实时钟、旧初始化/部署/奖励箱标记、9599个必需控制项及目录身份。本机库与云服库分别生成计划，不能拿本机计划或数据库覆盖云服。缺失旧控制项、未知来源、未迁移时钟或未批准差异都应停止处理，不能退回重放旧初始化。
+
+按以下顺序维护：
+
+1. 更新前保留与目标旧身份对应的固定程序和必要主表；可复用已有稀疏旧源，不复制整个仓库或玩家库。旧源的实际访问器、目录和主表必须一致。缺少的只读归档可从保留的pristine/active链读取，旧程序和JSON不能借用新版本。
+2. 用旧版本配套入口停服、排空并确认端口及进程退出。保留目标配置、完整玩家数据和必要回退；迁移工具会另外完成并验证SQLite备份。
+3. 覆盖本批完整程序、编译产物和匹配索引，保留旧源资料；不覆盖`.env`、`config/`、准入配对、`.database/`或pristine CDN。
+4. 在目标服务目录执行显式只读预览。下面的审阅范围文件应来自本批交付；输出计划、摘要和备份均保留在本地私有维护目录。
+
+若目标`.env`配置了`DATA_DIR`，`--database`必须指向该目录内真实现有的`wdfp_data.db`；下面的`.database/wdfp_data.db`仅适用于默认库。维护命令和PowerShell包装器采用当前`PATH`中的Node，执行前须确认维护shell使用Node24、ABI137；单独设置`STARPOINT_NODE24`只影响启动器，不会切换这里的`node`命令。
 
 ```powershell
-.\scripts\migrate-time-content.ps1 -Mode Preview
-.\scripts\migrate-time-content.ps1 -Mode Apply
+$oldSource = '<固定旧程序与主表目录>'
+$planPath = '<新的私有维护目录>\release350-plan.json'
+$reviewDigest = (Get-FileHash -LiteralPath '<本批审阅范围文件>' -Algorithm SHA256).Hash.ToLowerInvariant()
+node --env-file=.env tools/prepare-content-release.cjs --database .database/wdfp_data.db --previous-source $oldSource --evidence $reviewDigest --output $planPath
+$summary = Get-Content -LiteralPath ($planPath + '.summary.json') -Raw | ConvertFrom-Json
+$planDigest = $summary.planDigest
+.\scripts\migrate-time-content.ps1 -Mode Preview -SupplementPlan $planPath -PlanDigest $planDigest
+.\scripts\migrate-time-content.ps1 -Mode Apply -SupplementPlan $planPath -PlanDigest $planDigest
 ```
 
-Preview 只检查，不改数据库。Apply 使用实例身份匹配的优雅停服入口，确认 HTTP 和联机端口停止，建立维护锁和备份，将内容与时间放在同一事务内迁移，读回验证后才释放锁并请求启动。重复执行已完成的迁移不会重置后来调整的后台开关或玩家进度。
+核对小摘要中的源版本、9599项身份绑定、本批新增及保留项目后再Apply。完整捕获计划使用紧凑JSON，上限40MiB；实测9599项计划约35.25MB。这个文件上限不提高Node或Job内存限制。
+
+本批仅新增父活动300097、31件万圣商品和990005卡池；父活动关卡范围为`7/8:300097001–300097005`。新卡池只开显示和进入，兑换关闭；其他现有关闭、范围、有限期限、库存和领取进度保留。旧池990001/990002及700099新商品的已采用数据调整只接受精确前后证据，不意味着重新开放这些旧控制。摘要列出既有关闭，因此应用成功不代表所有活动必然开放。
+
+Preview只读目标。Apply复用实例身份、停服证明、已验证备份及独占维护事务，重新捕获旧/新访问器，核对全部实际字段，再只更新已审阅身份和新增控制。已有真实时钟不重切换；旧初始化和奖励箱标记不重放。重复执行不会重置后来调整的后台开关或玩家进度。包装器验证后释放维护锁并请求启动；启动就绪与客户端表现仍须分别确认。
 
 日常停服运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop-cn-logged.ps1`。它通过本机命名管道按需通知日志启动器，再由父子 IPC 触发服务已有的排空流程；没有常驻的停服请求文件轮询。只有发出停服请求后，脚本才等待收尾回执、进程退出和监听释放；超时报告失败，不强制结束进程。
 
@@ -31,7 +50,7 @@ Preview 只检查，不改数据库。Apply 使用实例身份匹配的优雅停
 旧启动器若不支持优雅停服，工具会停止并说明原因，不会强杀。该版本的首次升级应在维护窗口通过原来受管的关闭入口停服，确认相关主进程、owner 和端口已退出，再执行下面的分步命令。不能将强制终止冒充已排空的优雅退出。
 
 ```powershell
-node --env-file=.env scripts/time-content-deployment.cjs apply
+node --env-file=.env scripts/time-content-deployment.cjs apply --supplement <计划路径> --plan-digest <已审阅摘要>
 node --env-file=.env scripts/time-content-deployment.cjs verify
 node --env-file=.env scripts/time-content-deployment.cjs release
 .\scripts\start-cn-logged.ps1
@@ -43,7 +62,7 @@ node --env-file=.env scripts/time-content-deployment.cjs release
 
 ## 中断与回退
 
-失败时保留维护锁和备份，禁止直接删除锁开服。迁移与内容初始化同一事务，事务失败全部撤回。进程在提交边界中断时使用：
+失败时保留维护锁和备份，禁止直接删除锁开服。补充身份、控制和审计写入处于同一事务，失败全部撤回；原初始化不重放。进程在提交边界中断时使用：
 
 ```powershell
 .\scripts\migrate-time-content.ps1 -Mode Recover
@@ -55,8 +74,8 @@ Recover 按完整数据库摘要识别本批迁移前或迁移后状态，不能
 
 ## 验收与交付范围
 
-- Verify 应分别报告真实时间、9599 个持久内容状态与 1018 个受管父项的身份核验、48 个奖励箱父入口补核标记，以及 2 个明确未接管原因；状态齐全不能代替后台各项实际可操作性或玩家端验证。5 个个人回归扭蛋仅提供已有资格兑换开关，不新增抽取资格。
+- Verify应核对真实时钟、原9599项与本批新控制的当前身份、原迁移标记及显式补充回执；状态齐全不能代替后台实际可操作性或玩家端验证。新内容只按批准范围配置，既有个人资格和明确关闭继续保留。
 - 启动就绪记录、后台实际时间/内容状态、原生登录及已有玩家进度分别验收。离线数据保全、后台浏览器通过不等于手机全部玩法已验收。
-- 云服覆盖包应包含本批 `src/`、其完整编译后的 `out/`、两份 discovery 索引、`assets/content_deployment_review_plan.json`、`assets/content_box_exchange_review.json`、相关已有内容定义、索引绑定的三个生成器、`scripts/` 中迁移/启动/停服文件及本批后台 `web/dist/` 构建产物。固定提交构建必须核对后台首页与完整成员清单。不能只复制 TypeScript 文件或只带数据计划。
+- 云服覆盖包应包含本批`src/`及完整`out/`、匹配索引和定义、原部署/奖励箱计划、`tools/prepare-content-release.cjs`、`tools/content-release-capture.cjs`、迁移/启动/停服脚本及本批后台产物。不能只复制TypeScript或本机生成的数据计划。固定旧程序资料、真实目标计划和备份另作私有维护材料，不加入Git或玩家下载渠道。
 - 既有交付台账记录为内容/CDN 延后、服务端选择性交付的混合范围。下一次正式打包必须先按服务器、内容和 CDN 分面核实已交付基线、当前云端文件与本批目标，再准备可核验的范围计划；普通整仓打包仍会拒绝直接跨越混合基线。
 - 本文是迁移流程，不表示已生成正式覆盖包、发布标签或部署云服。

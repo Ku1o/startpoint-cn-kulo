@@ -116,7 +116,19 @@ actual accessors. Unsupported types or unresolved source/resource differences
 are rejected and listed for review. Business fields, dependencies, capabilities
 and members must compare exactly. Keep the fixed old program/resources available
 through application; a successful receipt allows later verify/idempotent no-op
-without reopening the old tree. Local plans are bounded to 32 MiB.
+without reopening the old tree. Local plans use compact JSON with a 40 MiB limit:
+the actual 9599-control preview required 35,251,205 bytes. This file-size allowance
+does not change process memory budgets. The companion `.summary.json` contains the
+review digest, counts and preserved settings without loading the complete plan.
+
+The read-only old tree may be sparse: missing pristine/active ZIPs resolve only
+through the current service's retained immutable archive chain. Program files and
+master JSON never fall back to current bytes. Existing advent parents compare
+their exact owned raw quest rows plus actual quest/reward/rare outputs; unrelated
+new rows elsewhere in the shared table do not alter their identity evidence.
+The two adopted 990001/990002 pool edits and the three default-closed Rush shop
+additions have exact old/current getter or mapping hash pairs. Prices, unrelated
+pool edits, payment/campaign rules and any other changed dependencies are rejected.
 
 Identity-only writes change just catalog/content identities and revision, append
 audits, and preserve all other saved fields. Player tables and old audits are

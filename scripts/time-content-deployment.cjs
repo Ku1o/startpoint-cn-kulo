@@ -41,7 +41,7 @@ function loadSupplement(options, p) {
         return null
     }
     if (!/^[a-f0-9]{64}$/.test(options.planDigest || '')) throw Error('补充应用需要明确的 --plan-digest')
-    if (fs.statSync(options.supplement).size > 32 * 1024 * 1024) throw Error('补充计划超过32MiB')
+    if (fs.statSync(options.supplement).size > 40 * 1024 * 1024) throw Error('补充计划超过40MiB')
     const value = readJson(options.supplement)
     const same = (a, b) => process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b
     const modulePath = path.join(p.root, 'out/lib/content-release-supplement.js')
