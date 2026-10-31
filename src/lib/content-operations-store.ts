@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 import type { Database } from "better-sqlite3"
 import { isFixedJulyCandidate } from "./content-july-reference"
 import { defaultContentDecision } from "./content-operations-defaults"
+import { nativePresentationScopeError } from "./content-native-presentation-rules"
 
 export const CONTENT_ACTIONS = ["visible", "enter", "claim", "exchange"] as const
 export type ContentAction = typeof CONTENT_ACTIONS[number]
@@ -549,6 +550,8 @@ export class ContentOperationsStore {
                     const other = this.passKeys.some(otherKey => otherKey !== key && this.allowed(otherKey, "visible", nowMs) === true)
                     if (other) throw new ContentOperationError("当前客户端同一时间只支持一个通行证入口", 409)
                 }
+                const presentationError = nativePresentationScopeError(row, next)
+                if (presentationError) throw new ContentOperationError(presentationError, 409)
             }
             next.revision = revision + 1
             const json = JSON.stringify(next)
@@ -737,6 +740,13 @@ export class ContentOperationsStore {
                         .some(s => s.content_key.startsWith("pass_card_event:") && this.allowed(s.content_key,"visible",nowMs))
                     if (other) throw new ContentOperationError("当前客户端同一时间只支持一个通行证入口", 409)
                 }
+            }
+            const changesPresentation = partial
+                ? record(input.actionOverrides) && ("visible" in input.actionOverrides || "enter" in input.actionOverrides)
+                : input.questKeys !== undefined || record(input.flags) && ("visible" in input.flags || "enter" in input.flags)
+            if (changesPresentation) {
+                const presentationError = nativePresentationScopeError(row, next)
+                if (presentationError) throw new ContentOperationError(presentationError, 409)
             }
             next.revision = revision + 1
             const json = JSON.stringify(next)

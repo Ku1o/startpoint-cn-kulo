@@ -14,16 +14,31 @@ const operations=require('../out/lib/content-operations')
 const coordinator=require('../out/lib/persistence-coordinator')
 const originalTransaction=coordinator.runPersistenceTransaction
 const seed=require('../out/lib/seed-validator').default
-let app, playerId, viewerId, accessToken, adminCookie, baselineFiles
+let app, playerId, viewerId, accessToken, adminCookie, baselineFiles, gameplayToken
+let gachaApiCount=0
+const gachaRequests=new WeakMap()
 const paths=['assets/asset-patch/manifest.json','assets/content_catalog.json','assets/pass_card_event.json']
 const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(path.resolve(__dirname,'..',file))).digest('hex')
 function control(key,body={}) { const s=operations.contentOperations();return s.update(key,{expectedRevision:s.revision(),catalogDigest:s.digest,reason:'isolated test',...body},Date.now()) }
-function post(url,body) { return app.inject({method:'POST',url,payload:{viewer_id:viewerId,...body}}) }
+function post(url,body) {
+    const payload={viewer_id:viewerId,...body},headers={}
+    if(url.startsWith('/gacha/')) {
+        if(!gachaRequests.has(body))gachaRequests.set(body,{api_count:++gachaApiCount,request_id:body.request_id??crypto.randomUUID()})
+        Object.assign(payload,gachaRequests.get(body));headers.login_token=gameplayToken
+    }
+    return app.inject({method:'POST',url,payload,headers})
+}
 function adminRequest(request) {
     return app.inject(typeof request==='string'?{url:request,headers:{cookie:adminCookie}}:
         {...request,headers:{...request.headers,cookie:adminCookie}})
 }
 function balances() { return getDb().prepare('SELECT vmoney,free_vmoney FROM players WHERE id=?').get(playerId) }
+function gachaMutationState() {
+    const tables=['players_items','players_characters','players_equipment','players_gacha_info','players_gacha_campaigns',
+        'players_receive_history','player_operation_receipts']
+    return {balances:balances(),...Object.fromEntries(tables.map(table=>[table,getDb().prepare(`SELECT * FROM ${table} WHERE player_id=?`)
+        .all(playerId).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]))}
+}
 function clockState() {
     return Object.fromEntries(['server_time_migration_config','player_time_state','player_time_migration_ledger'].map(table=>[
         table,getDb().prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table)
@@ -32,6 +47,7 @@ function clockState() {
 }
 function decode(response) { assert.equal(response.statusCode,200,response.body);return unpack(Buffer.from(response.body,'base64')) }
 const open={readiness:'verified',evidence:'isolated fixture only',flags:{visible:true,enter:true,exchange:true},endsAtMs:null}
+const towerPeriod=Array.from({length:10},(_,index)=>`20:${1001+index}`)
 before(async()=>{
     baselineFiles=paths.map(hash);initializeDatabase()
     assert.ok(fs.realpathSync(getDb().name).startsWith(fs.realpathSync(temporary)+path.sep))
@@ -40,6 +56,10 @@ before(async()=>{
     require('../out/data/activeAccount').saveAccountDefaultPlayer(account.id,playerId)
     players.updatePlayerSync({id:playerId,vmoney:10000,freeVmoney:10000})
     getDb().prepare('INSERT INTO sessions(token,account_id,expires,type) VALUES(?,?,?,2)').run(String(viewerId),account.id,'2099-01-01T00:00:00.000Z')
+    const gameplay=require('../out/lib/gameplay-request-identity')
+    gameplay.initializeGameplayRequestIdentitySchemaSync(getDb())
+    gameplayToken=getDb().transaction(()=>gameplay.issueGameplayLoginTokenSync(getDb(),{accountId:account.id,viewerId,
+        udid:'content-operations-native-fixture',expiresAt:Date.parse('2099-01-01T00:00:00.000Z')}))()
     accessToken='content-operations-zat'
     getDb().prepare('INSERT INTO sessions(token,account_id,expires,type) VALUES(?,?,?,0)').run(accessToken,account.id,'2099-01-01T00:00:00.000Z')
     // Auth sessions live in the same process; use the real login route on a separate
@@ -135,19 +155,25 @@ test('gacha operator close is checked inside queued transaction without charging
         assert.equal(require('../out/data/domains/gacha').getPlayerGachaInfoSync(playerId,1),null)
     }finally{coordinator.runPersistenceTransaction=originalTransaction}
 })
-test('closed gacha rejects before planning or queueing',async()=>{
+test('closed gacha checks permanent receipts but rejects before planning, payment or reward writes',async()=>{
     control('gacha:1',{flags:{enter:false}})
-    let queued=false
+    const planner=require('../out/lib/gacha-exec-plan'),originalPlan=planner.buildGachaExecPlan
+    let queued=false,planned=false
+    planner.buildGachaExecPlan=(...args)=>{planned=true;return originalPlan(...args)}
     coordinator.runPersistenceTransaction=async(ctx,fn,options)=>{
         if(ctx.operation==='draw')queued=true
         return originalTransaction(ctx,fn,options)
     }
     try {
-        const before=balances()
-        assert.equal((await post('/gacha/exec',{gacha_id:1,payment_type:1,type:1,number_of_exec:1})).statusCode,400)
-        assert.equal(queued,false)
-        assert.deepEqual(balances(),before)
-    } finally { coordinator.runPersistenceTransaction=originalTransaction }
+        const before=gachaMutationState()
+        const response=await post('/gacha/exec',{gacha_id:1,payment_type:1,type:1,number_of_exec:1})
+        assert.equal(response.statusCode,400)
+        assert.equal(response.json().message,'Gacha is not available.')
+        // A settled retry must remain replayable after closure, so the existing
+        // writer transaction checks its permanent receipt before availability.
+        assert.equal(queued,true);assert.equal(planned,false)
+        assert.deepEqual(gachaMutationState(),before)
+    } finally { coordinator.runPersistenceTransaction=originalTransaction;planner.buildGachaExecPlan=originalPlan }
 })
 test('character and equipment exchange recheck closure, preserve points, and replay committed receipt',async()=>{
     const gachas=require('../out/data/domains/gacha')
@@ -175,14 +201,19 @@ test('character and equipment exchange recheck closure, preserve points, and rep
             return originalTransaction(ctx,fn,options)
         }
         try {
+            const before=gachaMutationState()
             const response=await post(route,body)
             assert.equal(response.statusCode,400,response.body)
-            assert.match(response.body,/exchange is closed/)
+            assert.equal(response.json().message,'Gacha exchange is closed.')
             assert.equal(queued,true)
             assert.equal(gachas.getPlayerGachaInfoSync(playerId,row.id).gachaExchangePoint,500)
+            assert.deepEqual(gachaMutationState(),before)
             queued=false
-            assert.equal((await post(route,body)).statusCode,400)
-            assert.equal(queued,false,'closed before queueing')
+            const closed=await post(route,body)
+            assert.equal(closed.statusCode,400)
+            assert.equal(closed.json().message,'Gacha exchange is closed.')
+            assert.equal(queued,true,'permanent receipt lookup precedes the closed-new-purchase gate')
+            assert.deepEqual(gachaMutationState(),before)
         } finally { coordinator.runPersistenceTransaction=originalTransaction }
         control(row.key,open)
         const settled=decode(await post(route,body))
@@ -194,7 +225,7 @@ test('character and equipment exchange recheck closure, preserve points, and rep
     }
 })
 test('queued tower closure preserves the previously registered legacy battle',async()=>{
-    control('tower_dungeon_event:1',{...open,flags:{visible:true,enter:true}})
+    control('tower_dungeon_event:1',{...open,flags:{visible:true,enter:true},questKeys:towerPeriod})
     const quests=require('../out/data/domains/quest_active')
     quests.insertPlayerActiveQuestSync(playerId,{playerId,category:20,questId:1001,playId:'legacy-tower-play',
         useBoostPoint:false,useBossBoostPoint:false,isAutoStartMode:false,isMulti:false,isMultiHost:false,
@@ -229,7 +260,7 @@ test('queued tower closure preserves the previously registered legacy battle',as
     assert.deepEqual(getDb().prepare('SELECT * FROM players_quest_progress WHERE player_id=? ORDER BY section,quest_id').all(playerId),progress)
 })
 test('manual permanent tower starts after master expiry, closing only blocks new starts',async()=>{
-    control('tower_dungeon_event:1',{...open,flags:{visible:true,enter:true}})
+    control('tower_dungeon_event:1',{...open,flags:{visible:true,enter:true},questKeys:towerPeriod})
     const expired=Date.parse('2040-01-01T00:00:00Z')
     assert.equal(operations.isContentQuestOpenAt(20,1001,expired),true)
     const body={category:20,quest_id:1001,party_id:1,play_id:'content-operator-tower',use_boost_point:false,use_boss_boost_point:false,is_auto_start_mode:false,api_count:1}
@@ -249,7 +280,7 @@ test('manual permanent tower starts after master expiry, closing only blocks new
     const after=progress();assert.ok(after.some(row=>row.quest_id===1001))
     decode(await post('/single/finish',finish))
     assert.deepEqual(progress(),after,'closed old battle settles once without resetting progress')
-    control('tower_dungeon_event:1',{...open,flags:{visible:true,enter:true}})
+    control('tower_dungeon_event:1',{...open,flags:{visible:true,enter:true},questKeys:towerPeriod})
     const reopened=decode(await post('/single/start',{...body,play_id:'reopened-tower',api_count:4}))
     assert.equal(reopened.data_headers.result_code,1)
     assert.deepEqual(progress(),after,'reopening keeps completed progress')
@@ -285,4 +316,52 @@ test('global controls survive player save export/import and do not alter V2 fing
     assert.equal(require('../out/data/domains/quest_active').getPlayerActiveQuestSync(playerId),null)
     const after=operations.contentOperations().snapshot(saved.server_time_ms)
     assert.deepEqual(after,saved)
+})
+
+test('beast period narrowing preserves registered old finish/replay and abort without losing earlier progress',async()=>{
+    const quests=require('../out/data/domains/quest_active')
+    const common=Array.from({length:19},(_,index)=>`13:${1001+index}`)
+    const beastPeriod=first=>[...common,...Array.from({length:3},(_,index)=>`13:${first+index}`)]
+    const action=questKeys=>({enabled:true,endsAtMs:null,readiness:'verified',evidence:'Native single beast period fixture',questKeys})
+    const selectPeriod=first=>control('challenge_dungeon_event:1',{actionOverrides:{visible:action(beastPeriod(first)),enter:action(beastPeriod(first))}})
+    const progress=()=>getDb().prepare('SELECT * FROM players_quest_progress WHERE player_id=? ORDER BY section,quest_id').all(playerId)
+    const inventory=()=>getDb().prepare('SELECT * FROM players_items WHERE player_id=? ORDER BY id').all(playerId)
+    for(const mode of ['finish','abort']) {
+        selectPeriod(1020)
+        const playId=`legacy-beast-${mode}`
+        quests.insertPlayerActiveQuestSync(playerId,{playerId,category:13,questId:1020,playId,
+            useBoostPoint:false,useBossBoostPoint:false,isAutoStartMode:false,isMulti:false,isMultiHost:false,
+            continueCount:0,startedAtMs:require('../out/utils').getServerDate().getTime()-1000,partySlot:1})
+        getDb().prepare('UPDATE players_active_quests SET clock_version=0 WHERE player_id=?').run(playerId)
+        const registered=quests.getPlayerActiveQuestSync(playerId), earlierProgress=progress(), earlierInventory=inventory()
+        const instance=operations.contentOperations().state('challenge_dungeon_event:1').instanceId
+        selectPeriod(1038)
+        assert.equal(operations.contentOperations().state('challenge_dungeon_event:1').instanceId,instance)
+        assert.deepEqual(progress(),earlierProgress)
+        assert.deepEqual(inventory(),earlierInventory)
+        assert.deepEqual(quests.getPlayerActiveQuestSync(playerId),registered)
+        const denied=decode(await post('/single/start',{category:13,quest_id:1020,party_id:1,play_id:`denied-beast-${mode}`,
+            use_boost_point:false,use_boss_boost_point:false,is_auto_start_mode:false,api_count:80}))
+        assert.equal(denied.data_headers.result_code,4050)
+        assert.deepEqual(quests.getPlayerActiveQuestSync(playerId),registered)
+        const body={category:13,quest_id:1020,play_id:playId,api_count:81}
+        if(mode==='finish') Object.assign(body,{continue_count:0,elapsed_time_ms:1000,score:12345,add_mana:0,
+            is_accomplished:true,is_restored:true,statistics:{clear_phase:1,party:{characters:[{id:1},null,null],
+                unison_characters:[null,null,null],equipments:[null,null,null],ability_soul_ids:[null,null,null]},zones:[]}})
+        const readResult=response=>mode==='abort'?response.json():decode(response)
+        const settled=readResult(await post(`/single/${mode}`,body))
+        assert.equal(settled.data_headers.result_code,1)
+        assert.equal(quests.getPlayerActiveQuestSync(playerId),null)
+        const afterPlayer=players.getPlayerSync(playerId), afterProgress=progress(), afterInventory=inventory()
+        if(mode==='finish') assert.ok(afterProgress.some(row=>row.section===13&&row.quest_id===1020&&row.finished===1))
+        else { assert.deepEqual(afterProgress,earlierProgress); assert.deepEqual(afterInventory,earlierInventory) }
+        const replay=readResult(await post(`/single/${mode}`,body))
+        if(mode==='finish') assert.deepEqual(replay,settled)
+        else assert.equal(replay.data_headers.result_code,1)
+        assert.deepEqual(players.getPlayerSync(playerId),afterPlayer)
+        assert.deepEqual(progress(),afterProgress)
+        assert.deepEqual(inventory(),afterInventory)
+        for(const previous of earlierProgress) if(previous.section!==13||previous.quest_id!==1020)
+            assert.deepEqual(afterProgress.find(row=>row.section===previous.section&&row.quest_id===previous.quest_id),previous)
+    }
 })

@@ -7,7 +7,7 @@ const sourceNames=[
  'src/lib/assets.ts','src/lib/stamina-cost.ts','src/lib/content-shop-rules.ts','src/lib/shop-quota.ts',
  'src/lib/types/shop.ts','src/lib/content-native-identities-runtime.ts',
  'src/lib/content-release-restrictions.ts','assets/quest_shop_availability_cnmod.json',
- 'src/lib/content-operations-store.ts','assets/content_client_shop_adapters.json',
+ 'src/lib/content-operations-store.ts','src/lib/content-native-presentation-rules.ts','assets/content_client_shop_adapters.json',
 ]
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex')
 function identity(file){const fd=fs.openSync(file,'r'),block=Buffer.allocUnsafe(65536),hash=crypto.createHash('sha256');let bytes=0

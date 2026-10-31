@@ -9,7 +9,7 @@ export const CONTENT_NATIVE_IDENTITY_SOURCES = [
     "src/lib/assets.ts", "src/lib/stamina-cost.ts", "src/lib/content-shop-rules.ts", "src/lib/shop-quota.ts",
     "src/lib/types/shop.ts", "src/lib/content-native-identities-runtime.ts",
     "src/lib/content-release-restrictions.ts", "assets/quest_shop_availability_cnmod.json",
-    "src/lib/content-operations-store.ts", "assets/content_client_shop_adapters.json",
+    "src/lib/content-operations-store.ts", "src/lib/content-native-presentation-rules.ts", "assets/content_client_shop_adapters.json",
 ] as const
 export interface ContentNativeIdentitiesIdentity {
     readonly schemaVersion: 1
