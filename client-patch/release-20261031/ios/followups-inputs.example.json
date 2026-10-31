@@ -1,0 +1,20 @@
+{
+  "work_dir": null,
+  "ios": {
+    "followup_public_ipa": {
+      "path": null,
+      "sha256": "f4e08c4e5a65de080ca323eaaa35c6a0af90280bf942edcfab050d73f84d3bd8",
+      "purpose": "Frozen release1031 public IPA before dispatch repair"
+    },
+    "followup_public_verification": {
+      "path": null,
+      "sha256": null,
+      "purpose": "Explicit original public package verification receipt"
+    },
+    "followup_party_input_record": {
+      "path": null,
+      "sha256": null,
+      "purpose": "Frozen F1069 baseline record with IPA 67dcd483 and complete ABC ccb1e564; never read the changing current registry"
+    }
+  }
+}

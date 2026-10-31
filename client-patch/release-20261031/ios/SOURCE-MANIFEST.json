@@ -46,8 +46,8 @@
     },
     {
       "repository_path": "client-patch/release-20261031/ios/REPOSITORY-DEPENDENCIES.json",
-      "sha256": "8299f849c554a9c718c4e3e609fc164ec2d60311426928039b31617331873316",
-      "bytes": 5715
+      "sha256": "29caa33916a6fd344bff1505cfa02cae1c096aa6c2eac5b8a44a278e0ed576cc",
+      "bytes": 5745
     },
     {
       "repository_path": "client-patch/release-20261031/ios/stage_entry.py",
@@ -253,6 +253,12 @@
       "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/runtime_symbols.py",
       "sha256": "811f6e7823c26828cd347bab381d16af95c4fcce79056394286dbd825df8ccc8",
       "bytes": 2487
+    },
+    {
+      "repository_path": "client-patch/release-20261031/ios/support/recipe-deps/pr43-ios/support/endpoint_reader.py",
+      "sha256": "bab48f0515f16f62ac2f7f4de0a0d938e5f5e8c7dfd7268474528b051d1b3c0e",
+      "original_source_sha256": "bab48f0515f16f62ac2f7f4de0a0d938e5f5e8c7dfd7268474528b051d1b3c0e",
+      "role": "live_constructor_origin_reader_dependency"
     }
   ],
   "repository_dependencies": [
@@ -358,10 +364,11 @@
     },
     {
       "repository_path": "client-patch/pr43-ios/support/fill_ios_aot_stub_bodies.py",
-      "sha256": "c63cc292eab8a6aeb1cfb3a039f68694097b8c25b70d3cc957fbff401bb2f3db",
+      "sha256": "e8ca0106f47a3aa9d29229e220da1a24a668736755a0368b6929b664db385750",
       "adopted_source_sha256": "e8ca0106f47a3aa9d29229e220da1a24a668736755a0368b6929b664db385750",
       "normalized_text_exact": true,
-      "role": "direct_import_or_parser_dependency"
+      "role": "direct_import_or_parser_dependency",
+      "source_bytes": "git_lf"
     },
     {
       "repository_path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/abcfmt.py",

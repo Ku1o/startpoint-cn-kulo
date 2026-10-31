@@ -1,0 +1,46 @@
+{
+  "input_augmented_sha256": "b8ec54f2a874ebb3ef92345804fd9bf2376258f2f839b1ed19cf15a20faa0025",
+  "output_sha256": "b5efa9ef2338f63ecdebe6a9fe17db6b2fbbfc327cd577e191248b07aa8affac",
+  "algorithm_source_sha256": "b8966b9a3a5ab709e7de77bbc7c47a7a63a7b176161cfceb9b2bbcdbf9f3e1b5",
+  "capacity": 422036,
+  "input_bytes": 422236,
+  "output_bytes": 421520,
+  "augmented_rows": 89122,
+  "selected_windows": [
+    [
+      31587,
+      31619
+    ],
+    [
+      32232,
+      32264
+    ],
+    [
+      32989,
+      33021
+    ],
+    [
+      33092,
+      33124
+    ],
+    [
+      34047,
+      34079
+    ],
+    [
+      34890,
+      34922
+    ],
+    [
+      35765,
+      35797
+    ],
+    [
+      36391,
+      36423
+    ]
+  ],
+  "probe": "audit/unwind-payload-dedup-probe01/RESULT.json",
+  "format": "standard compressed pages at most1021entries and4096bytes; exact payload reuse with independent first-level bases and LSDA ranges",
+  "original_algorithm_source_sha256": "09b517c4341df626d13da6f8caab405d02f0e29384f4455bdf037416861eba91"
+}

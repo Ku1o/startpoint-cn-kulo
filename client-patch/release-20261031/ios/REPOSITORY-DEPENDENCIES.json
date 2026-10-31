@@ -101,10 +101,11 @@
   },
   {
     "repository_path": "client-patch/pr43-ios/support/fill_ios_aot_stub_bodies.py",
-    "sha256": "c63cc292eab8a6aeb1cfb3a039f68694097b8c25b70d3cc957fbff401bb2f3db",
+    "sha256": "e8ca0106f47a3aa9d29229e220da1a24a668736755a0368b6929b664db385750",
     "adopted_source_sha256": "e8ca0106f47a3aa9d29229e220da1a24a668736755a0368b6929b664db385750",
     "normalized_text_exact": true,
-    "role": "direct_import_or_parser_dependency"
+    "role": "direct_import_or_parser_dependency",
+    "source_bytes": "git_lf"
   },
   {
     "repository_path": "client-patch/lens0907-0908/vendor/rank-button-p1/abc/abcfmt.py",
