@@ -1,0 +1,68 @@
+{
+  "status": "passed",
+  "archive_sha256": "2be5708ff19fd68088e2d97fbb13900e8e87e20157a7192e5b9b770db2ceb02c",
+  "files_read_back": 5,
+  "pair_validation": [
+    {
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_1.atf.deflate",
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    },
+    {
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_0.atf.deflate",
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    },
+    {
+      "logical": "character/samurai_robot_plum/ui/skill_cutin_0.atf.deflate",
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  ],
+  "independent_alpha_blocks": 131079,
+  "alpha_metrics": [
+    {
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_1.atf.deflate",
+      "mean_absolute_error": 0.2811393737792969,
+      "max_error": 42
+    },
+    {
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_0.atf.deflate",
+      "mean_absolute_error": 0.1527423858642578,
+      "max_error": 37
+    },
+    {
+      "logical": "character/samurai_robot_plum/ui/skill_cutin_0.atf.deflate",
+      "mean_absolute_error": 0.09478378295898438,
+      "max_error": 34
+    }
+  ],
+  "old_frames_metadata_and_rgba_preserved": 89,
+  "new_frames": [
+    "character_pedestal/common/wfx_round_ability_any",
+    "character_pedestal/common/wfx_round_main"
+  ],
+  "new_png_size": [
+    42,
+    2100
+  ],
+  "ios_native_executed": false,
+  "device_tested": false,
+  "cloud_deployed": false,
+  "audit_coverage": {
+    "android_resources": 206,
+    "atf_pairs": 203,
+    "shared_pairs": 3
+  },
+  "before_findings": 5,
+  "overlay_findings": 0
+}

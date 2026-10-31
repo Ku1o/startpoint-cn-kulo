@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.350",
+  "cdn_version": "1.4.351",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -33724,6 +33724,44 @@
         "production/upload/f1/45545165d8e23c0a8f393c1bfaac387573b6a8"
       ],
       "created_at": "2026-10-30"
+    },
+    {
+      "id": "ios-resource-closure-1.4.351",
+      "type": "patch",
+      "name": "iOS能力图标与技能切入图补齐",
+      "description": "补齐水杰拉德能力图标图集，并从当前原图更新风龙双切入图及梅的切入图；仅iOS资源。",
+      "version": "1.4.351",
+      "depends_on": "1.4.350",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.350-1.4.351-1-ios-resource-closure.zip",
+      "archive_size": 552471,
+      "chain": [
+        "pinball-1.4.350-1.4.351-1-ios-resource-closure.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.350-1.4.351-1-ios-resource-closure.zip",
+          "size": 552471,
+          "sha256": "2be5708ff19fd68088e2d97fbb13900e8e87e20157a7192e5b9b770db2ceb02c",
+          "members": 5,
+          "files": [
+            "production/ios_upload/17/b9a5dfae0310f093f659d31b801770a0fba7a7",
+            "production/ios_upload/31/94c5d899390a197ed6bb9a7b06206df8ca689e",
+            "production/ios_upload/53/e1857d76f211e567f6c775a194db62738e039c",
+            "production/ios_upload/96/b97133a2b5c5bc58a4f234d531960136f0729f",
+            "production/ios_upload/ce/d720392bdd8eeb25b339c2e3943f327fea27ba"
+          ]
+        }
+      ],
+      "files": [
+        "production/ios_upload/17/b9a5dfae0310f093f659d31b801770a0fba7a7",
+        "production/ios_upload/31/94c5d899390a197ed6bb9a7b06206df8ca689e",
+        "production/ios_upload/53/e1857d76f211e567f6c775a194db62738e039c",
+        "production/ios_upload/96/b97133a2b5c5bc58a4f234d531960136f0729f",
+        "production/ios_upload/ce/d720392bdd8eeb25b339c2e3943f327fea27ba"
+      ],
+      "created_at": "2026-10-31"
     }
   ],
   "generated_for": "official active chain"

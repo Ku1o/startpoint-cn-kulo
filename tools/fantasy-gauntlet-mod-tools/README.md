@@ -68,6 +68,16 @@ python wf_gui.py
 服务端分离且未通过同一个 profile 绑定时，可显式设 `WF_LIVE_CDN=1`。启用实时模式后若资源链断裂，
 工具会报错并停止读取，不会悄悄回退到旧 overlay。
 
+### iOS 平台资源完整性审查
+
+交付包含角色或共享图集的资源更新前，可直接审查当前有效链：
+
+```powershell
+python -B tools/fantasy-gauntlet-mod-tools/wf_ios_resource_audit.py --server-root <server-root> --report <task-report.json>
+```
+
+此检查同时读取官方/历史 iOS CDN、当前启用增量及登记 IPA 的内置图集，不物化资源库。它核对平台纹理槽、尺寸和 mip，发现缺少配对、源 PNG 更新后遗留的旧 iOS 纹理，以及共享图集漏配。特殊的 `skill_cutin_matched_*`、`skill_cutin_dragon` 路径也从当前裁切表解析。退出码 0 表示这些检查没有发现问题，不代表真机或全部游戏行为验收。待发布 ZIP 可以通过 `--overlay <zip>` 单独检查。
+
 ### 前提(先读)
 
 **CDN 直解不是凭空生成数据包**,而是**从你自己那份基础 CDN 本地重放**出来的。它替你省掉的是
