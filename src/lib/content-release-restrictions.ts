@@ -27,6 +27,22 @@ const record = (value: unknown): value is Record<string, unknown> =>
 const stripClosedQuestKeys = (value: unknown): unknown =>
     Array.isArray(value) ? value.filter(key => !quests.has(String(key))) : value
 
+function cloneDefaultPolicy(value: Record<string, unknown>): Record<string, unknown> {
+    // The native policy is a shallow tree of string lists. Copying those lists
+    // avoids structuredClone traversing roughly 80,000 immutable key strings.
+    // Unknown shapes retain the original general clone contract.
+    const actions = value.actions
+    const fields = ["closed_keys", "qualified_rights_keys", "legacy_keys"]
+    if (Object.keys(value).some(key => !["version", "explicit_actions_override_defaults", "actions"].includes(key))
+        || value.version !== 1 || value.explicit_actions_override_defaults !== true || !record(actions)
+        || Object.values(actions).some(scope => !record(scope) || Object.keys(scope).some(key => !fields.includes(key))
+            || fields.some(field => !Array.isArray(scope[field]) || !(scope[field] as unknown[]).every(key => typeof key === "string")))) {
+        return structuredClone(value)
+    }
+    return { ...value, actions: Object.fromEntries(Object.entries(actions).map(([action, scope]) => [action,
+        Object.fromEntries(fields.map(field => [field, [...(scope as Record<string, string[]>)[field]]]))])) }
+}
+
 /** Read-only wire projection: existing native clients consume these generic quest scopes. */
 export function projectReleaseClosedSnapshot(snapshot: ContentOperationsSnapshot): ContentOperationsSnapshot {
     const questKeys = [...quests]
@@ -51,7 +67,7 @@ export function projectReleaseClosedSnapshot(snapshot: ContentOperationsSnapshot
     catalog.push({ key: CLOSED_QUEST_CONTROL_KEY, type: "closed_boss_quests", id: 1, entry: null,
         server_actions: ["visible", "enter"], client_actions: ["visible", "enter"], parent_key: null,
         quest_keys: questKeys, mission_keys: [] })
-    const defaults = record(snapshot.default_policy) ? structuredClone(snapshot.default_policy) : undefined
+    const defaults = record(snapshot.default_policy) ? cloneDefaultPolicy(snapshot.default_policy) : undefined
     if (defaults && record(defaults.actions)) for (const action of ["visible", "exchange"]) {
         const scope = defaults.actions[action]
         if (!record(scope)) continue

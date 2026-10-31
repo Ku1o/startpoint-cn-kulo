@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import type { Database } from "better-sqlite3"
 import { isFixedJulyCandidate } from "./content-july-reference"
+import { defaultContentDecision } from "./content-operations-defaults"
 
 export const CONTENT_ACTIONS = ["visible", "enter", "claim", "exchange"] as const
 export type ContentAction = typeof CONTENT_ACTIONS[number]
@@ -129,6 +130,11 @@ export class ContentOperationsStore {
     readonly missionMembers = new Map<string, Set<string>>()
     private readonly catalogTypes: readonly string[]
     private managementScope?: { keys: readonly string[]; requested: ReadonlySet<string>; captured: ReadonlySet<string>; rows: readonly ContentCatalogRow[] }
+    private snapshotDefaults?: {
+        qualified: Array<{ key: string; action: ContentAction }>
+        signature: string
+        actions: Record<string, { closed_keys: string[]; qualified_rights_keys: string[]; legacy_keys: string[] }>
+    }
     constructor(readonly db: Database, readonly catalog: ContentCatalog,
         readonly capabilities: (row: ContentCatalogRow) => readonly ContentAction[],
         runtimeDefinition?: (row: ContentCatalogRow) => { digest: string; matchesCatalog: boolean },
@@ -430,6 +436,37 @@ export class ContentOperationsStore {
         }
         return Object.keys(flags).length ? flags : null
     }
+    private snapshotDefaultActions() {
+        const build = () => Object.fromEntries(CONTENT_ACTIONS.map(action => {
+            const closed: string[] = [], qualifiedRights: string[] = [], legacy: string[] = []
+            for (const row of this.catalog.rows) {
+                const decision = this.defaultAllowed(row.key, action)
+                if (decision === false) closed.push(row.key)
+                if (decision === true) qualifiedRights.push(row.key)
+                if (decision === null) legacy.push(row.key)
+            }
+            return [action, { closed_keys: closed, qualified_rights_keys: qualifiedRights, legacy_keys: legacy }]
+        }))
+        // Only the known pure production policy has a store-lifetime identity.
+        // Definition/capability changes can still revoke its qualified rights.
+        if (this.defaultPolicy !== defaultContentDecision) return build()
+        if (!this.snapshotDefaults) {
+            const qualified = CONTENT_ACTIONS.flatMap(action => this.catalog.rows
+                .filter(row => defaultContentDecision(row, action) === true).map(row => ({ key: row.key, action })))
+            this.snapshotDefaults = { qualified, signature: "", actions: {} }
+        }
+        const cached = this.snapshotDefaults
+        const signature = cached.qualified.map(({ key, action }) => this.defaultAllowed(key, action) === true ? "1" : "0").join("")
+        if (cached.signature !== signature || Object.keys(cached.actions).length === 0) {
+            cached.actions = build()
+            cached.signature = signature
+        }
+        // Response callers may mutate their result; no cached arrays escape.
+        return Object.fromEntries(CONTENT_ACTIONS.map(action => {
+            const scope = cached.actions[action]
+            return [action, { closed_keys: [...scope.closed_keys], qualified_rights_keys: [...scope.qualified_rights_keys], legacy_keys: [...scope.legacy_keys] }]
+        }))
+    }
     snapshot(nowMs: number): ContentOperationsSnapshot {
         if (!this.db.inTransaction) return this.db.transaction(() => this.snapshot(nowMs))()
         // Explicit full snapshot. Includes closed states, not just currently visible rows.
@@ -439,28 +476,20 @@ export class ContentOperationsStore {
         const savedStates = new Map(controlled.map(state => [state.key, state]))
         const effective = (key: string, action: ContentAction) => this.allowedWithLookup(key, action, nowMs, candidate => savedStates.get(candidate))
         // Closed/default entries are included in compact key lists. Omitting a stored state is never an implicit open.
-        const defaults = this.defaultPolicy ? Object.fromEntries(CONTENT_ACTIONS.map(action => {
-            const closed: string[] = [], qualifiedRights: string[] = [], legacy: string[] = []
-            for (const row of this.catalog.rows) {
-                const decision = this.defaultAllowed(row.key, action)
-                if (decision === false) closed.push(row.key)
-                if (decision === true) qualifiedRights.push(row.key)
-                if (decision === null) legacy.push(row.key)
-            }
-            return [action, { closed_keys: closed, qualified_rights_keys: qualifiedRights, legacy_keys: legacy }]
-        })) : undefined
+        const defaults = this.defaultPolicy ? this.snapshotDefaultActions() : undefined
         const snapshot: ContentOperationsSnapshot = { schema_version: 2, full_snapshot: true, revision: this.revision(), catalog_digest: this.digest,
             ...(defaults ? { default_policy: { version: 1, explicit_actions_override_defaults: true, actions: defaults } } : {}),
             server_time_ms: nowMs, states: controlled.map(s => {
                 const reportedActions = CONTENT_ACTIONS.filter(action => this.actionControl(s, action) || this.suspended(s, action))
+                const flags = Object.fromEntries(reportedActions.map(action => [action, effective(s.key, action) === true]))
                 return { key: s.key, instance_id: s.instanceId, permanent: s.endsAtMs === null, ends_at_ms: s.endsAtMs,
                     quest_keys: s.questKeys ?? null, mission_keys: s.missionKeys ?? null,
                     actions: Object.fromEntries(reportedActions.map(action => {
                         const override = this.actionControl(s, action)
-                        return [action, { enabled: effective(s.key, action) === true, ends_at_ms: override?.endsAtMs ?? null,
+                        return [action, { enabled: flags[action], ends_at_ms: override?.endsAtMs ?? null,
                             quest_keys: override?.questKeys ?? null, mission_keys: override?.missionKeys ?? null }]
                     })),
-                    ...Object.fromEntries(reportedActions.map(action => [action, effective(s.key, action) === true])) }
+                    ...flags }
             }), catalog: controlled.filter(s => this.rows.has(s.key)).map(s => {
                 const row = this.rows.get(s.key)!
                 return { key: row.key, type: row.type, id: row.id, entry: this.clientEntry?.(row) ?? null,
