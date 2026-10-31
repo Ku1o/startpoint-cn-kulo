@@ -173563,6 +173563,54 @@
         "src/lib/content-shop-rules.ts": "571a3e897d165bbe25a92e9be1979e1ed0ce63e20eb9e9c6f2058aec479890a2"
       },
       "previousServerDefinitionDigest": "ae261ae30595008fe0f8f249594c38cb899011479a572717b0eca7f5205214f1"
+    },
+    "boss_coin_shop:990099002": {
+      "schemaVersion": 1,
+      "key": "boss_coin_shop:990099002",
+      "oldDefinitionMatched": true,
+      "definitionDigest": "751a56314b4b5a5d7204933a036c972b2cf924184d84fcf5aa86112fe565927e",
+      "dependencyDigest": "75c214dc9d2c539744605c79bfb8062b333389a40629e8f75c2b30bfb19ce17b",
+      "loaders": {
+        "src/lib/assets.ts": "62261d5109f8da542fd007c7720e0611e88766fc2c0d35a03b6cbb4512a85150",
+        "src/lib/content-master.ts": "7a0b6dc5a01ca574d0d7d832a6985263f9a672a4c1b24ae4c37f8059b7fd471f",
+        "src/lib/shop-sales.ts": "80fa8e59885cb94693bdb303ce97f8b4f6a97e78dbece2ef368fc7fd9d8e91bc",
+        "src/lib/multi-special-exchange.ts": "15bfec5449524b003498c5b670420258163c0e8c36c233ac0d5aecd4b8bd61cd",
+        "src/lib/content-quest-rules.ts": "99fae075b418ade8b9bc7ffaf86541a4e5d9bc18835f8dbcc3b0c323853c436f",
+        "src/lib/content-shop-rules.ts": "571a3e897d165bbe25a92e9be1979e1ed0ce63e20eb9e9c6f2058aec479890a2"
+      },
+      "previousServerDefinitionDigest": "8e06a3484d726a26fdb42c97349c06e8a80f352ab983280d30d7fd87620f6078"
+    },
+    "boss_coin_shop:990099032": {
+      "schemaVersion": 1,
+      "key": "boss_coin_shop:990099032",
+      "oldDefinitionMatched": true,
+      "definitionDigest": "2b669903eea5d4e51d3c34844fe0acc35d924263a4b7c9f5853c59d3dcb57f0e",
+      "dependencyDigest": "35db963aae9828dd4fe3ddbbc0c9a6537cc7424044c529e87573a48da9d85ace",
+      "loaders": {
+        "src/lib/assets.ts": "62261d5109f8da542fd007c7720e0611e88766fc2c0d35a03b6cbb4512a85150",
+        "src/lib/content-master.ts": "7a0b6dc5a01ca574d0d7d832a6985263f9a672a4c1b24ae4c37f8059b7fd471f",
+        "src/lib/shop-sales.ts": "80fa8e59885cb94693bdb303ce97f8b4f6a97e78dbece2ef368fc7fd9d8e91bc",
+        "src/lib/multi-special-exchange.ts": "15bfec5449524b003498c5b670420258163c0e8c36c233ac0d5aecd4b8bd61cd",
+        "src/lib/content-quest-rules.ts": "99fae075b418ade8b9bc7ffaf86541a4e5d9bc18835f8dbcc3b0c323853c436f",
+        "src/lib/content-shop-rules.ts": "571a3e897d165bbe25a92e9be1979e1ed0ce63e20eb9e9c6f2058aec479890a2"
+      },
+      "previousServerDefinitionDigest": "bdffcf6751975fa4185d47186275922e083ee7ade177ffda6984eaf07bcab9f6"
+    },
+    "boss_coin_shop:990099033": {
+      "schemaVersion": 1,
+      "key": "boss_coin_shop:990099033",
+      "oldDefinitionMatched": true,
+      "definitionDigest": "fd2252e8ecebe27366ca8ef8eef764049b5860d427eccf9ff44388fcf6b64d43",
+      "dependencyDigest": "b99a87148d3a9ba0137bb3b454f430ed6d10e64badb17f7e045022895d0968a6",
+      "loaders": {
+        "src/lib/assets.ts": "62261d5109f8da542fd007c7720e0611e88766fc2c0d35a03b6cbb4512a85150",
+        "src/lib/content-master.ts": "7a0b6dc5a01ca574d0d7d832a6985263f9a672a4c1b24ae4c37f8059b7fd471f",
+        "src/lib/shop-sales.ts": "80fa8e59885cb94693bdb303ce97f8b4f6a97e78dbece2ef368fc7fd9d8e91bc",
+        "src/lib/multi-special-exchange.ts": "15bfec5449524b003498c5b670420258163c0e8c36c233ac0d5aecd4b8bd61cd",
+        "src/lib/content-quest-rules.ts": "99fae075b418ade8b9bc7ffaf86541a4e5d9bc18835f8dbcc3b0c323853c436f",
+        "src/lib/content-shop-rules.ts": "571a3e897d165bbe25a92e9be1979e1ed0ce63e20eb9e9c6f2058aec479890a2"
+      },
+      "previousServerDefinitionDigest": "67199eb29ea59a8ba553e5bc6dd308b6351f125e18d8bfe44b2b60737c144f9f"
     }
   },
   "existingEvidenceRebind": {
