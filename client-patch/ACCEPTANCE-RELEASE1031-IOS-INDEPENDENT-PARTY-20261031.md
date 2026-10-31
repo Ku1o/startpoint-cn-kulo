@@ -31,7 +31,7 @@
 ## 验证与边界
 
 - 复用对应此精确成品的独立读回：3个函数、45处重定位、6处方法表绑定，实际ARM64参数/返回寄存器与原入口分支通过；全部825638旧rebase及89124旧展开边界保留。
-- 对应完整ABC的80条桌面AIR断言、category4负例、5项真实服务端编队合同与4项既有编队保护通过；桌面场景仍使用受限替身，不代表执行iOS原生。
+- 对应完整ABC的80条桌面AIR断言、category4负例、1项真实服务端编队合同与4项既有编队保护通过；桌面场景仍使用受限替身，不代表执行iOS原生。
 - 登记后执行 `python -B client-patch/verify_ios_baseline.py`，核对实际IPA、native、SWF、完整ABC/AOT摘要、方法数和包身份。回执位于 `F:/codex/work/production-release-20261031/client/sync-client-source-20261031/identity-ios.log`。
 - 原生/ABI回执位于修复目录 `verify-review/final02.json`、`final02-party-proof.json`、`abi01.json`；原构建报告保持生成时的登记与Git状态，后续登记不改写冻结回执。
 

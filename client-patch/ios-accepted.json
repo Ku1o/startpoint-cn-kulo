@@ -693,7 +693,7 @@
     "relocations_checked": 45,
     "method_table_sites": 6,
     "air_assertions": 80,
-    "server_contract_tests": 5,
+    "server_contract_tests": 1,
     "existing_party_edit_guards": 4,
     "old_global_pointers_preserved": 825638,
     "old_unwind_boundaries_preserved": 89124,
