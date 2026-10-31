@@ -3,6 +3,7 @@
 
 import contextlib
 import hashlib
+import hashlib
 import importlib.util
 import io
 import json
@@ -328,6 +329,40 @@ class CloudOverlayReleaseTest(unittest.TestCase):
             self.invoke("--release-tag", self.release_tag(), "--publish-tag", "--base", self.base)
         self.assertEqual(self.run_git("tag", "--list"), "")
         self.assertEqual(self.run_git("ls-remote", "--tags", "origin"), "")
+
+    def test_native_identity_source_closure_rejects_stale_index_and_anchor(self):
+        source = "assets/asset-patch/manifest.json"
+        loader = "src/lib/content-native-identities-runtime.ts"
+        index = "assets/content_native_identities_runtime.json"
+        anchor = "src/lib/content-native-identities-identity.ts"
+        self.write(source, b'{"cdn_version":"1.4.350"}\n')
+        self.write(loader, ('export const CONTENT_NATIVE_IDENTITY_SOURCES = ["' + source + '"] as const\n').encode())
+
+        def regenerate():
+            body = (self.repo / source).read_bytes()
+            sources = {source: {"sha256": hashlib.sha256(body).hexdigest(), "bytes": len(body)}}
+            payload = json.dumps({"schemaVersion": 1, "sources": sources}).encode()
+            self.write(index, payload)
+            value = {"schemaVersion": 1, "indexSha256": hashlib.sha256(payload).hexdigest(), "sources": sources}
+            self.write(anchor, ('export const CONTENT_NATIVE_IDENTITIES_IDENTITY = Object.freeze(' + json.dumps(value) + ' as const)\n').encode())
+
+        regenerate()
+        base = self.commit("native source baseline")
+        self.write(source, b'{"cdn_version":"1.4.351"}\n')
+        stale = self.commit("changed manifest without native identities")
+        members = self.tool.runtime_members(base, stale)
+        with self.assertRaisesRegex(SystemExit, "native source identity mismatch"):
+            self.tool.verify_native_source_closure(base, stale, members)
+        regenerate()
+        current = self.commit("refresh native identities")
+        members = self.tool.runtime_members(base, current)
+        self.tool.verify_native_source_closure(base, current, members)
+        with self.assertRaisesRegex(SystemExit, "missing from overlay"):
+            self.tool.verify_native_source_closure(base, current, [p for p in members if p != anchor])
+        self.write(anchor, (self.repo / anchor).read_bytes().replace(b'"indexSha256": "', b'"indexSha256": "f'))
+        invalid = self.commit("anchor mismatch")
+        with self.assertRaisesRegex(SystemExit, "source anchor disagree"):
+            self.tool.verify_native_source_closure(base, invalid, self.tool.runtime_members(base, invalid))
 
     def test_delete_only_delivery_and_no_record(self):
         base = self.head

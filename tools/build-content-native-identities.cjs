@@ -8,6 +8,8 @@ const sourceNames=[
  'src/lib/types/shop.ts','src/lib/content-native-identities-runtime.ts',
  'src/lib/content-release-restrictions.ts','assets/quest_shop_availability_cnmod.json',
  'src/lib/content-operations-store.ts','src/lib/content-native-presentation-rules.ts','assets/content_client_shop_adapters.json',
+ 'src/lib/content-resource-source.ts',
+ 'assets/asset-patch/active/pinball-1.4.350-1.4.351-1-ios-resource-closure.zip',
 ]
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex')
 function identity(file){const fd=fs.openSync(file,'r'),block=Buffer.allocUnsafe(65536),hash=crypto.createHash('sha256');let bytes=0
@@ -22,9 +24,12 @@ function captureOriginalNativeIdentities(root){
  assert.equal(declarations.length,2,'native identity function boundary changed');assert.equal(owners.length,1,'native owner boundary changed')
  const catalog=JSON.parse(fs.readFileSync(path.join(root,'assets/content_catalog.json'),'utf8'))
  const javascript=ts.transpileModule([...owners,...declarations].map(n=>n.getText(ast)).join('\n'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText
- const invoke=new Function('contentCatalog','createHash','readFileSync','path','__dirname',
+ const resourceSourceFile=path.join(root,'src/lib/content-resource-source.ts'),resourceModule={exports:{}}
+ const resourceCode=ts.transpileModule(fs.readFileSync(resourceSourceFile,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,esModuleInterop:true}}).outputText
+ new Function('exports','require','__dirname',resourceCode)(resourceModule.exports,require,path.join(root,'src/lib'))
+ const invoke=new Function('contentCatalog','createHash','readFileSync','path','__dirname','readContentResourceSourceSync',
   'let nativeQuestIdentities;let nativeShopIdentities;'+javascript+'\nnativeQuestIdentity("");nativeShopIdentity("");return {quests:[...nativeQuestIdentities],shops:[...nativeShopIdentities]};')
- const result=invoke(catalog,crypto.createHash,fs.readFileSync,path,path.join(root,'src/lib'))
+ const result=invoke(catalog,crypto.createHash,fs.readFileSync,path,path.join(root,'src/lib'),resourceModule.exports.readContentResourceSourceSync)
  assert.ok(result.quests.length>0&&result.shops.length>0,'original algorithm rejected native identity inputs')
  for(const [name,values] of Object.entries(result))for(const [key,digest] of values){assert.match(key,/^[a-z_]+:\d+$/);assert.match(digest,/^[a-f0-9]{64}$/)}
  return result
@@ -47,7 +52,7 @@ function generate(options={}){
  else{for(const file of [output,identityFile]){fs.mkdirSync(path.dirname(file),{recursive:true});if(!options.overwrite)assert.equal(fs.existsSync(file),false,'refuse overwrite: '+file)}
   fs.writeFileSync(output,body);fs.writeFileSync(identityFile,typescript)}
  const report={status:options.check?'deterministic_native_identities_match':'generated',output,identityFile,indexBytes:Buffer.byteLength(body),identityBytes:Buffer.byteLength(typescript),
-  indexSha256:anchor.indexSha256,sourceCount:sourceNames.length,counts:value.counts,sources,method:'Unmodified two AST native identity functions and nativeShopOwners; original complete rule objects, insertion order and native source hashes'}
+  indexSha256:anchor.indexSha256,sourceCount:sourceNames.length,counts:value.counts,sources,method:'Two AST native identity functions and nativeShopOwners; reviewed resource-only source continuity; complete original rule objects, insertion order and native source hashes'}
  if(options.report){fs.mkdirSync(path.dirname(options.report),{recursive:true});fs.writeFileSync(options.report,JSON.stringify(report,null,2)+'\n',{flag:'wx'})}return report
 }
 if(require.main===module){try{const args=process.argv.slice(2),options={};for(let i=0;i<args.length;i++){

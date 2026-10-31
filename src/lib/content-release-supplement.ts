@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 import path from "node:path"
+import { readContentResourceSourceSync } from "./content-resource-source"
 import type { Database } from "better-sqlite3"
 import { ContentOperationError, type ContentControl, type ContentOperationsStore } from "./content-operations-store"
 import { assertDeploymentMaintenanceContextSync, getDeploymentDatabaseFingerprintSync,
@@ -87,8 +88,7 @@ export function readContentDeploymentRequiredKeysSync(): readonly string[] {
 }
 /** Catalog.source describes its original master export, not the terminal CDN. */
 export function readContentReleaseSourceSync(): ContentReleaseSource {
-    const bytes = readFileSync(path.resolve(__dirname, "../../assets/asset-patch/manifest.json"))
-    return { assetVersion: JSON.parse(bytes.toString("utf8")).cdn_version, manifestSha256: createHash("sha256").update(bytes).digest("hex") }
+    return readContentResourceSourceSync()
 }
 export interface ContentReleasePlan {
     schemaVersion: 1; releaseId: typeof CONTENT_RELEASE_ID; digest: string; evidenceDigest: string

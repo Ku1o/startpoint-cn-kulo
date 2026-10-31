@@ -378,6 +378,7 @@ def prepare_overlay(base: str, head: str, dependency_root: str | None = None,
     effective = source_tree or head
     members, deleted = runtime_members(base, effective), deleted_runtime_members(base, effective)
     verify_discovery_source_closure(base, effective, members)
+    verify_native_source_closure(base, effective, members)
     if not uses_source_build(base) and not uses_source_build(effective):
         return members, deleted, None, None
     if build_root is not None:
@@ -479,6 +480,48 @@ def verify_discovery_source_closure(base: str, head: str, members: list[str]) ->
             raise SystemExit(f"关联资料索引来源在目标提交中不存在：{name}") from error
         if actual != expected:
             raise SystemExit(f"关联资料索引来源与目标提交字节不符：{name}")
+
+
+def verify_native_source_closure(base: str, head: str, members: list[str]) -> None:
+    """Never ship a changed native input with an old index or compiled anchor."""
+    index_path = "assets/content_native_identities_runtime.json"
+    anchor_path = "src/lib/content-native-identities-identity.ts"
+    after, before = tree_entries(head), tree_entries(base)
+    if index_path not in after:
+        return
+    try:
+        raw = committed_bytes(head, index_path)
+        index = json.loads(raw)
+        sources = index["sources"]
+        if index.get("schemaVersion") != 1 or not isinstance(sources, dict) or not sources:
+            raise ValueError("invalid native index source scope")
+        if not any(before.get(name) != after.get(name) for name in [index_path, anchor_path, *sources]):
+            return
+        anchor_text = committed_bytes(head, anchor_path).decode("utf-8")
+        match = re.search(r"Object\.freeze\((\{.*\}) as const\)", anchor_text, re.S)
+        anchor = json.loads(match.group(1)) if match else None
+        if (not isinstance(anchor, dict) or anchor.get("schemaVersion") != 1
+                or anchor.get("indexSha256") != hashlib.sha256(raw).hexdigest()
+                or anchor.get("sources") != sources):
+            raise ValueError("native index and generated source anchor disagree")
+        loader = committed_bytes(head, "src/lib/content-native-identities-runtime.ts").decode("utf-8")
+        scope = re.search(r"CONTENT_NATIVE_IDENTITY_SOURCES\s*=\s*\[(.*?)\]\s*as const", loader, re.S)
+        expected = re.findall(r'"([^"\n]+)"', scope.group(1)) if scope else []
+        if not expected or set(expected) != set(sources) or len(expected) != len(sources):
+            raise ValueError("native loader and index source scope disagree")
+        for name, identity in sources.items():
+            if (not is_runtime_path(name) or "\\" in name or name not in after
+                    or after[name][0] not in {"100644", "100755"}
+                    or not isinstance(identity, dict) or set(identity) != {"sha256", "bytes"}):
+                raise ValueError(f"invalid native input: {name}")
+            body = committed_bytes(head, name)
+            if identity != {"sha256": hashlib.sha256(body).hexdigest(), "bytes": len(body)}:
+                raise ValueError(f"native source identity mismatch: {name}")
+        for name in [index_path, anchor_path, *sources]:
+            if before.get(name) != after.get(name) and name not in members:
+                raise ValueError(f"changed native identity input missing from overlay: {name}")
+    except (subprocess.CalledProcessError, ValueError, KeyError, TypeError, UnicodeError) as error:
+        raise SystemExit(f"原生内容身份索引闭环不完整：{error}") from error
 
 
 def deleted_runtime_members(base: str, head: str) -> list[str]:

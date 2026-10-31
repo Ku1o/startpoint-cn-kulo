@@ -10,6 +10,8 @@ export const CONTENT_NATIVE_IDENTITY_SOURCES = [
     "src/lib/types/shop.ts", "src/lib/content-native-identities-runtime.ts",
     "src/lib/content-release-restrictions.ts", "assets/quest_shop_availability_cnmod.json",
     "src/lib/content-operations-store.ts", "src/lib/content-native-presentation-rules.ts", "assets/content_client_shop_adapters.json",
+    "src/lib/content-resource-source.ts",
+    "assets/asset-patch/active/pinball-1.4.350-1.4.351-1-ios-resource-closure.zip",
 ] as const
 export interface ContentNativeIdentitiesIdentity {
     readonly schemaVersion: 1

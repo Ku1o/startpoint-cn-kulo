@@ -18,7 +18,7 @@ const types=new Set(['gacha','advent_event','ranking_event','story_event','daily
 
 test('all historical/native parents have original names and Chinese display categories without date filtering',()=>{
     const expected=catalog.rows.filter(row=>types.has(row.type))
-    assert.equal(expected.length,1020)
+    assert.equal(expected.length,1022)
     assert.deepEqual(Object.keys(manifest.rows).sort(),expected.map(row=>row.key).sort())
     assert.deepEqual(CONTENT_PRESENTATION_GROUPS.map(group=>group.key),['events','gacha','missions','exchange'])
     for(const row of expected) {
@@ -98,7 +98,7 @@ test('seven same-name Rush switches have stable display-only sequence without re
 
 test('every declared original banner is lazily decoded to browser PNG with stable ETags and shared-image caching',async()=>{
     const available=Object.entries(manifest.rows).filter(([,row])=>row.images.length).map(([key])=>key)
-    assert.equal(available.length,784)
+    assert.equal(available.length,786)
     for(const key of available) {
         const image=await readContentPresentationImage(key)
         assert.ok(image,key)

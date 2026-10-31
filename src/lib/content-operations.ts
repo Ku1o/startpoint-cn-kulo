@@ -1,6 +1,7 @@
 import catalogData from "../../assets/content_catalog.json"
 import { loadContentHistoryDefinitionRuntime } from "./content-history-definition-runtime"
 import { loadContentNativeIdentities } from "./content-native-identities-runtime"
+import { readContentResourceSourceSync } from "./content-resource-source"
 import { getDb } from "../data/db"
 import { serverGachas } from "./content-master"
 import { ContentAction, ContentCatalog, ContentCatalogRow, ContentOperationsStore, initializeContentOperationsSchema } from "./content-operations-store"
@@ -76,7 +77,7 @@ function nativeQuestIdentity(key: string): string | undefined {
             const root = path.resolve(__dirname, "../..")
             const rules = JSON.parse(readFileSync(path.join(root, "assets/content_history_quest_rules.json"), "utf8"))
             const catalogSha256 = createHash("sha256").update(readFileSync(path.join(root, "assets/content_catalog.json"))).digest("hex")
-            const manifestSha256 = createHash("sha256").update(readFileSync(path.join(root, "assets/asset-patch/manifest.json"))).digest("hex")
+            const { manifestSha256 } = readContentResourceSourceSync(root)
             if (rules.schemaVersion !== 1 || rules.source?.manifestSha256 !== manifestSha256
                 || rules.source?.catalogSha256 !== catalogSha256 || !rules.quests) return undefined
             const adapter = createHash("sha256").update(readFileSync(path.join(root, "src/lib/content-quest-rules.ts"))).digest("hex")
@@ -103,7 +104,7 @@ function nativeShopIdentity(key: string): string | undefined {
             const root = path.resolve(__dirname, "../..")
             const rules = JSON.parse(readFileSync(path.join(root, "assets/content_history_shop_rules.json"), "utf8"))
             const catalogSha256 = createHash("sha256").update(readFileSync(path.join(root, "assets/content_catalog.json"))).digest("hex")
-            const manifestSha256 = createHash("sha256").update(readFileSync(path.join(root, "assets/asset-patch/manifest.json"))).digest("hex")
+            const { manifestSha256 } = readContentResourceSourceSync(root)
             const members = contentCatalog.rows.filter(row => row.type === "event_item_shop" && row.parentKey)
             if (rules.schemaVersion !== 1 || rules.source?.catalogSha256 !== catalogSha256
                 || rules.source?.manifestSha256 !== manifestSha256 || !rules.products
