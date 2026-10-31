@@ -12,6 +12,7 @@ let gateway: RoomCommandGateway | undefined
 let executor: RoomCommandExecutor | undefined
 let processTransport: CommandProcessTransport | undefined
 let starting: Promise<void> | undefined
+let failureCleanup: Promise<void> | undefined
 let phase: "idle" | "starting" | "running" | "quiescing" | "stopped" | "failed" = "idle"
 let quiesced: Promise<void> | undefined
 let stopped: Promise<void> | undefined
@@ -126,6 +127,10 @@ async function startRealtimeOwner(): Promise<void> {
 export async function startRealtimeSessionServer(): Promise<void> {
     if (isServerShuttingDown()) throw Object.assign(new Error("SERVER_CLOSING"), { code: "SERVER_CLOSING" })
     if (phase === "quiescing") throw new Error("REALTIME_OWNER_UNAVAILABLE")
+    if (phase === "failed") {
+        await failureCleanup
+        if (isServerShuttingDown()) throw Object.assign(new Error("SERVER_CLOSING"), { code: "SERVER_CLOSING" })
+    }
     if (phase === "stopped" || phase === "failed") {
         gateway = undefined; executor = undefined; processTransport = undefined; starting = undefined
         quiesced = undefined; stopped = undefined; phase = "idle"
@@ -175,10 +180,18 @@ export function stopRealtimeSessionServer(): Promise<void> {
 export async function failRealtimeOwner(): Promise<void> {
     if (phase === "failed") return
     phase = "failed"
+    const events = require("./durable-owner-event") as typeof import("./durable-owner-event")
+    events.sealDurableOwnerEvents()
     gateway?.close()
     executor?.close()
     if (!isRealtimeParent()) { await require("../tcp/server").stopSessionServer(); return }
-    await processTransport?.abort()
+    failureCleanup = (async () => {
+        await processTransport?.abort()
+        // Old notifications retain their original gateway and finite reconciliation
+        // budget. Waiting for them is not a failed fork and must not exhaust respawns.
+        await events.drainDurableOwnerEvents()
+    })()
+    await failureCleanup
     scheduleRealtimeOwnerRespawn()
 }
 

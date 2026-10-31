@@ -6,12 +6,14 @@ import { createAcceptedRealtimeBusinessScope } from "./parent-business-admission
 import { assertServerAcceptingWork, hasServerWorkAdmission } from "../../lib/shutdown-state"
 
 interface Event { id: string; kind: string; payload: unknown; bytes: number; at: number; attempts: number; timer?: NodeJS.Timeout;
-    admission: ReturnType<typeof createAcceptedRealtimeBusinessScope> }
+    admission: ReturnType<typeof createAcceptedRealtimeBusinessScope>;
+    gateway: Pick<RoomCommandGateway, "execute" | "queryResult"> }
 /** Reconcile already-durable notifications, never replay a payment or change the original command ID. */
 export class DurableOwnerEventPublisher {
     private readonly events = new Map<string, Event>()
     private bytes = 0
     private quiescing = false
+    private sealed = false
     private readonly waiters = new Set<() => void>()
     constructor(private readonly gateway: () => Pick<RoomCommandGateway, "execute" | "queryResult"> = getRoomCommandGateway,
         private readonly failOwner: () => Promise<void> = failRealtimeOwner,
@@ -40,6 +42,9 @@ export class DurableOwnerEventPublisher {
     }
     async publish(kind: string, input: unknown): Promise<unknown | undefined> {
         assertServerAcceptingWork()
+        // The durable decision already committed; an unavailable owner must not
+        // turn its HTTP response into a failure or replay its business write.
+        if (this.sealed) return undefined
         if (this.quiescing && !hasServerWorkAdmission()) throw Object.assign(new Error("SERVER_CLOSING"), { code: "SERVER_CLOSING" })
         const payload = cloneCommandJson(input), bytes = commandJsonBytes(payload)
         if (this.events.size >= 128 || this.bytes + bytes > 4 * 1024 * 1024 || bytes > 256 * 1024) {
@@ -47,11 +52,18 @@ export class DurableOwnerEventPublisher {
             console.error("[MULTI-REALTIME] durable event budget exhausted; owner sealed")
             return undefined
         }
+        let ownerGateway: Pick<RoomCommandGateway, "execute" | "queryResult">
+        try { ownerGateway = this.gateway() }
+        catch {
+            await this.failOwner()
+            return undefined
+        }
         const id = createRoomCommandId()
-        const event: Event = { id, kind, payload, bytes, at: performance.now(), attempts: 0,
+        // A retry belongs to the original owner, never to a replacement epoch.
+        const event: Event = { id, kind, payload, bytes, at: performance.now(), attempts: 0, gateway: ownerGateway,
             admission: createAcceptedRealtimeBusinessScope({ ownerEpoch: "durable-decision", commandId: id }) }
         this.events.set(event.id, event); this.bytes += bytes
-        try { return this.accepted(event, await event.admission.run(() => this.gateway().execute(kind, payload, { commandId: event.id }))) }
+        try { return this.accepted(event, await event.admission.run(() => event.gateway.execute(kind, payload, { commandId: event.id }))) }
         catch (error) {
             if (error instanceof Error && error.message === "DURABLE_START_DECLINED") { await this.failure(event, error); return undefined }
             console.warn(`[MULTI-REALTIME] durable event awaiting application confirmation kind=${kind}`)
@@ -69,11 +81,11 @@ export class DurableOwnerEventPublisher {
             await this.failure(event, new Error("DURABLE_EVENT_CONFIRMATION_DEADLINE")); return
         }
         try {
-            const result = await this.gateway().queryResult(event.id)
+            const result = await event.gateway.queryResult(event.id)
             if (result.status === "completed") { this.accepted(event, result.value); return }
             if (result.status !== "pending") {
                 // The executor deduplicates this exact ID even after a lost ACK.
-                this.accepted(event, await this.gateway().execute(event.kind, event.payload, { commandId: event.id }))
+                this.accepted(event, await event.gateway.execute(event.kind, event.payload, { commandId: event.id }))
                 return
             }
         } catch (error) {
@@ -82,8 +94,11 @@ export class DurableOwnerEventPublisher {
         this.schedule(event)
     }
     quiesce(): void { this.quiescing = true }
+    /** Failed authority cannot accept even already-admitted new notifications. */
+    seal(): void { this.sealed = true }
     resume(): void {
         if (this.events.size) throw new Error("DURABLE_EVENTS_STILL_PENDING")
+        this.sealed = false
         this.quiescing = false
     }
     async drain(): Promise<void> {
@@ -96,5 +111,6 @@ export function publishDurableOwnerDecision(kind: string, payload: unknown): Pro
 }
 export function inspectDurableOwnerEvents() { return publisher.inspect() }
 export function quiesceDurableOwnerEvents(): void { publisher.quiesce() }
+export function sealDurableOwnerEvents(): void { publisher.seal() }
 export function drainDurableOwnerEvents(): Promise<void> { return publisher.drain() }
 export function resumeDurableOwnerEvents(): void { publisher.resume() }

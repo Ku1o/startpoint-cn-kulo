@@ -68,3 +68,30 @@ test('a definitively stale old settlement does not close or mutate the current r
     assert.deepEqual(await publisher.publish('battle.settlement.committed', { originalInstance: 'old' }), value)
     assert.equal(failures, 0); assert.equal(publisher.inspect().pending, 0)
 })
+
+test('reconciliation stays bound to its original gateway and sealing rejects new decisions', async t => {
+    quiet(t); let failures = 0, oldQueries = 0, replacementCalls = 0
+    const original = {
+        execute: async () => { throw Error('lost original ACK') },
+        queryResult: async id => { oldQueries++; return { commandId: id, ownerEpoch: 'original', status: 'completed', outcomeUnknown: false, value: { applied: true } } },
+    }
+    let gateway = original
+    const publisher = new DurableOwnerEventPublisher(() => gateway, async () => failures++, 5, 300)
+    await publisher.publish('battle.settlement.committed', { durableBalance: 77 })
+    publisher.seal()
+    gateway = { execute: async () => { replacementCalls++ }, queryResult: async () => { replacementCalls++ } }
+    assert.equal(await publisher.publish('fiveBoss.start.commit', {}), undefined)
+    await until(() => publisher.inspect().pending === 0)
+    await publisher.drain()
+    assert.equal(oldQueries, 1); assert.equal(replacementCalls, 0); assert.equal(failures, 0)
+    publisher.resume()
+    gateway = { execute: async () => ({ applied: true }), queryResult: async () => assert.fail('known result') }
+    assert.deepEqual(await publisher.publish('battle.settlement.committed', {}), { applied: true })
+})
+
+test('an unavailable gateway seals authority without rejecting the already committed decision', async t => {
+    quiet(t); let failures = 0
+    const publisher = new DurableOwnerEventPublisher(() => { throw Error('owner unavailable') }, async () => failures++)
+    assert.equal(await publisher.publish('battle.abort.committed', { alreadyCommitted: true }), undefined)
+    assert.equal(failures, 1); assert.equal(publisher.inspect().pending, 0)
+})
