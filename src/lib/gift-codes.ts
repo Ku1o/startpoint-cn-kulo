@@ -87,9 +87,12 @@ export function redeemGiftCodeWithinTransactionSync(playerId: number, key: unkno
     const player = getPlayerSync(playerId)
     if (!player) throw new Error("Gift player disappeared")
     const sum = (type: number) => rewards.filter(entry => entry.type === type).reduce((total, entry) => total + entry.number, 0)
+    const mana = sum(8), vmoney = sum(4), exp = sum(9)
     // Never consume a code while silently clipping its currency reward.
-    if (!canReceiveMana(player, sum(8)) || player.freeVmoney + sum(4) > getConfigSync().max_virtual_money
-        || player.expPool + sum(9) > MAX) throw new GiftInputError("资源容量不足，礼包码尚未使用")
+    // Legacy over-cap balances cannot block gifts which do not add that currency.
+    if ((mana > 0 && !canReceiveMana(player, mana))
+        || (vmoney > 0 && player.freeVmoney + vmoney > getConfigSync().max_virtual_money)
+        || (exp > 0 && player.expPool + exp > MAX)) throw new GiftInputError("资源容量不足，礼包码尚未使用")
     const itemTotals = new Map<number, number>()
     for (const reward of rewards) if (reward.type === 1) itemTotals.set(reward.type_id!, (itemTotals.get(reward.type_id!) ?? 0) + reward.number)
     for (const [id, count] of itemTotals) if ((getPlayerItemSync(playerId, id) ?? 0) + count > MAX)

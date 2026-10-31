@@ -94,6 +94,64 @@ test('gift concurrent receive grants once, records history, projects final balan
     assert.equal(ok(await admin('GET')).gifts.find(row => row.id === gift.id).redeemed_count, 2)
 })
 
+test('noncurrency gifts preserve legacy over-cap balances, roll back late failures and redeem once', async () => {
+    const balances = player => ({ freeVmoney: player.freeVmoney, freeMana: player.freeMana,
+        paidMana: player.paidMana, expPool: player.expPool })
+    const cases = [
+        { freeVmoney: Math.max(5100075, load('lib/assets').getConfigSync().max_virtual_money + 1) },
+        { freeMana: load('lib/mana').getMaxManaSync() + 1, paidMana: 0 },
+        { expPool: 2147483648 },
+    ]
+    const rewards = [159985, 139985, 169985].map(type_id => ({ type: 5, type_id, number: 1 }))
+        .concat([{ type: 1, type_id: 50102, number: 10 }])
+    for (const legacy of cases) {
+        const p = fixture(), gift = await code(rewards)
+        players.updatePlayerSync({ id: p.id, ...legacy })
+        const oldBalances = balances(players.getPlayerSync(p.id))
+        const oldItems = inventory.getPlayerItemSync(p.id, 50102) ?? 0
+        const result = ok(await post(p, '/gift/receive', { key: gift.key })).data
+        assert.equal(result.result_code, 1)
+        assert.deepEqual(result.all_gift_info, rewards)
+        assert.equal(result.character_list.length, 3)
+        assert.equal(inventory.getPlayerItemSync(p.id, 50102), oldItems + 10)
+        assert.deepEqual(balances(players.getPlayerSync(p.id)), oldBalances)
+        assert.equal(result.user_info.free_vmoney, oldBalances.freeVmoney)
+        assert.equal(receiptCount(p, 'gift_code_redemption'), 1)
+        const earned = saves.createPlayerSaveSnapshotV2Sync(p.id).data.tables
+        assert.equal(ok(await post(p, '/gift/receive', { key: gift.key })).data.result_code, 6104)
+        assert.deepEqual(saves.createPlayerSaveSnapshotV2Sync(p.id).data.tables, earned)
+
+        const rollback = fixture()
+        players.updatePlayerSync({ id: rollback.id, ...legacy })
+        const before = saves.createPlayerSaveSnapshotV2Sync(rollback.id).data.tables
+        db.exec(`CREATE TEMP TRIGGER fail_legacy_gift_receipt BEFORE INSERT ON player_operation_receipts WHEN NEW.operation='gift_code_redemption' BEGIN SELECT RAISE(ABORT,'legacy gift fault'); END`)
+        try { assert.equal((await post(rollback, '/gift/receive', { key: gift.key })).statusCode, 500) }
+        finally { db.exec('DROP TRIGGER fail_legacy_gift_receipt') }
+        assert.deepEqual(saves.createPlayerSaveSnapshotV2Sync(rollback.id).data.tables, before)
+        assert.equal(receiptCount(rollback, 'gift_code_redemption'), 0)
+        assert.equal(ok(await post(rollback, '/gift/receive', { key: gift.key })).data.result_code, 1)
+    }
+})
+
+test('gift currency additions still reject overflow without consuming the code or granting other rewards', async () => {
+    const cases = [
+        { type: 4, balance: { freeVmoney: load('lib/assets').getConfigSync().max_virtual_money - 1 } },
+        { type: 8, balance: { freeMana: load('lib/mana').getMaxManaSync() - 1, paidMana: 0 } },
+        { type: 9, balance: { expPool: 2147483646 } },
+    ]
+    for (const entry of cases) {
+        const p = fixture(), gift = await code([{ type: entry.type, type_id: null, number: 2 },
+            { type: 1, type_id: 50102, number: 10 }])
+        players.updatePlayerSync({ id: p.id, ...entry.balance })
+        const before = saves.createPlayerSaveSnapshotV2Sync(p.id).data.tables
+        const rejected = await post(p, '/gift/receive', { key: gift.key })
+        assert.equal(rejected.statusCode, 400)
+        assert.match(rejected.json().error, /资源容量不足/)
+        assert.deepEqual(saves.createPlayerSaveSnapshotV2Sync(p.id).data.tables, before)
+        assert.equal(receiptCount(p, 'gift_code_redemption'), 0)
+    }
+})
+
 test('gift late ledger failure rolls back grants and history; capacity rejection leaves code unclaimed', async () => {
     const p = fixture(), gift = await code([{ type: 4, type_id: null, number: 19 }, { type: 1, type_id: 100000, number: 5 }])
     const before = saves.createPlayerSaveSnapshotV2Sync(p.id).data.tables
