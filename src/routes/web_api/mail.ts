@@ -23,7 +23,8 @@ import {
     updateDailyVmoneyMailConfigSync,
     validateDailyVmoneyMailConfigUpdate,
 } from "../../lib/daily-vmoney-mail"
-import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
+import { withServerWorkAdmission } from "../../lib/shutdown-state"
 
 // Pre-built CDN validation sets
 const CDN_CHAR_IDS: Set<number> = new Set(Object.keys(characterData).map(Number))
@@ -217,29 +218,34 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const timestamps = buildAdminMailTimestamps()
-        let sentCount = 0
-
-        for (const playerId of targetPlayerIds) {
-            try {
-                runPersistenceTransactionSync({
-                    domain: "mail", playerId, operation: "admin_send_mail",
-                }, () => insertMailSync(playerId, {
-                    reason_id: 0,
-                    subject,
-                    description: desc,
-                    type: mailType,
-                    type_id: typeId,
-                    number: count,
-                    receive_time: "0000-00-00 00:00:00",
-                    create_time: timestamps.databaseTime,
-                    reward_period_limited: 0,
-                    reward_limit_time: null,
-                }))
-                sentCount++
-            } catch {
-                // skip invalid players
+        // The accepted batch owns its lifetime across yields, including close.
+        // Each player's normal async transaction lets IPC and HTTP progress;
+        // enqueueing the entire recipient list at once would exhaust admission.
+        const sentCount = await withServerWorkAdmission(async () => {
+            let sent = 0
+            for (const playerId of targetPlayerIds) {
+                try {
+                    await runPersistenceTransaction({
+                        domain: "mail", playerId, operation: "admin_send_mail",
+                    }, () => insertMailSync(playerId, {
+                        reason_id: 0,
+                        subject,
+                        description: desc,
+                        type: mailType,
+                        type_id: typeId,
+                        number: count,
+                        receive_time: "0000-00-00 00:00:00",
+                        create_time: timestamps.databaseTime,
+                        reward_period_limited: 0,
+                        reward_limit_time: null,
+                    }))
+                    sent++
+                } catch {
+                    // A failed recipient must not suppress the remaining mail.
+                }
             }
-        }
+            return sent
+        })
 
         // 记录群发历史（最近 MAX_HISTORY 条）
         sendHistory.unshift({
