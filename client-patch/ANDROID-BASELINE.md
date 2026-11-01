@@ -1,25 +1,25 @@
 # Android APK/SWF：当前后续开发基线
 
-2026-10-31 当前选择 release1031 最终累计 Android 公网签名包，登记为 `accepted_offline`。后续 Android 修改从此包继续；精确身份以 [android-accepted.json](android-accepted.json) 的 `variants.public` 为准，范围见 [release1031 登记记录](ACCEPTANCE-RELEASE1031-ANDROID-PUBLIC-20261031.md)。
+2026-11-01 当前选择包含教程及独立编队装备提示 C8601 修复的累计 Android 公网签名包，登记为 `accepted_offline`。后续 Android 修改从此包继续；精确身份以 [android-accepted.json](android-accepted.json) 的 `variants.public` 为准，范围见 [双端 C8601 登记记录](ACCEPTANCE-STARTUP-EQUIPMENT-C8601-20261101.md)。
 
 | 项目 | 当前登记 |
 | --- | --- |
-| 默认变体 | `public`，release1031最终累计包；保留的 `lan` 仍为较早R11 |
+| 默认变体 | `public`，C8601修复累计包；保留的 `lan` 仍为较早R11 |
 | 准入 ID | `android-181-r1031-final-public-20261031`，使用本批既有配对；本次登记不再分配新号 |
 | 架构 | ARM64 与 x86_64 |
-| 证据层级 | 最终包身份、签名/对齐、真实载荷逆变换及结构读回；前批受控AIR和有限设备覆盖单列，未新增最终公网包的设备或公网游戏验收 |
+| 证据层级 | 最终包身份、签名/对齐、三方法插入及非目标字节保全、28条受控AIR断言；未新增当前公网包的设备或公网游戏验收 |
 
 R11 包含后台活动和卡池状态桥接、真实时间同步及重新登录通知、历史玩法入口、原有时间栏的常驻/截止显示与通行证排版、兑换期及星之碎片列表修复、个人“一览”常驻，以及登录后读取主城主题。每日任务计数和兑换资格等权威规则在服务端，不能仅凭 SWF 推定完整玩法可用。主城音乐继续遵循玩家自选优先、主题默认音乐其次的现有规则。
 
-release1031继续保留上述R11累计内容，并包含本批已选功能、设置、教程日期守卫、trigger9000机制及冲刺缺失helper修复。后续需要内网版时，从当前公网累计载荷转换；本次仅登记，不制作或发布新包。旧完整登记及其选择历史保留在 `lineage.previous_android_baseline_registration`，保留的 `variants.lan` 不自动取得本批新增功能。旧包不能替代当前默认功能输入。
+当前包保留上述R11、release1031累计内容，并补入教程提前读取普通分类表及三种独立编队装备提示/排序修复。后续需要内网版时，从当前公网累计载荷转换；本次登记既有成品，不重新封包。旧完整登记及其选择历史保留在 `lineage.previous_android_baseline_registration`，保留的 `variants.lan` 不自动取得本批新增功能。旧包不能替代当前默认功能输入。
 
-当前 SWF 有306个DoABC，主 `boot_ffc6` 为零基ordinal `305`、原始tag index `368`；主ABC方法体92766，整个SWF方法体97013，两者不能混用。实际包的AIR UUID为 `95dfe546-7124-4e0f-a728-54960fd72204`；登记不更换UUID，每次修改SWF再封包时仍须分配新UUID并保留包名、版本和平台签名。
+当前 SWF 有306个DoABC，主 `boot_ffc6` 为零基ordinal `305`、原始tag index `368`；主ABC方法体92766，整个SWF方法体97013，两者不能混用。实际包的AIR UUID为 `95dfe546-7124-4e0f-a728-3e16e14d0b27`；登记不更换UUID，每次修改SWF再封包时仍须分配新UUID并保留包名、版本和平台签名。
 
 ```powershell
 python -B client-patch/verify_android_baseline.py --variant public
 ```
 
-`--variant lan` 只验证保留的旧R11内网包，不代表它与当前release1031功能对等。R4及加载修复r2仍不采用，先前 [回退记录](ANDROID-BASELINE-ROLLBACK-20261017.md)保留历史事实。本次只登记已有APK，不制作新包、不变更运行配置或云端、不改iOS登记。
+`--variant lan` 只验证保留的旧R11内网包，不代表它与当前累计包功能对等。R4及加载修复r2仍不采用，先前 [回退记录](ANDROID-BASELINE-ROLLBACK-20261017.md)保留历史事实。双端本次一并登记已有成品，不制作新包、不变更运行配置或云端。
 
 以下为仍须保留的历史累计方法，容器索引按各历史步骤记录，不代表当前主 ABC 索引。
 

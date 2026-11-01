@@ -1,8 +1,8 @@
 # Android APK/SWF 工作入口
 
-2026-10-31 当前后续开发基线为 release1031 最终累计 Android 公网签名 APK，登记层级为 `accepted_offline`，默认读取 [android-accepted.json](android-accepted.json) 的 `variants.public`。身份与验证范围见 [release1031 Android 登记记录](ACCEPTANCE-RELEASE1031-ANDROID-PUBLIC-20261031.md)。新包包含本批累计修改及教程日期、trigger9000和冲刺缺失helper修复；先前 R11 及更早登记保留历史追溯。R4、加载修复 r2、Q1/Q2/Q3 仍不采用。
+2026-11-01 当前后续开发基线为包含教程及独立编队装备提示 C8601 修复的累计 Android 公网签名 APK，登记层级为 `accepted_offline`，默认读取 [android-accepted.json](android-accepted.json) 的 `variants.public`。身份、配方与验证范围见 [双端 C8601 基线登记](ACCEPTANCE-STARTUP-EQUIPMENT-C8601-20261101.md)。保留 release1031 累计修改及此前教程日期、trigger9000和冲刺缺失helper修复；先前登记保留历史追溯。R4、加载修复 r2、Q1/Q2/Q3 仍不采用。
 
-当前 Android 直接基线以 [android-accepted.json](android-accepted.json) 的 `default_variant` 和 `baseline_selection` 为准，默认选择 `public`；保留的 `variants.lan` 仍为较早 R11，不是同功能release1031内网包，后续内网版应从当前公网累计基线转换。从登记读取成品路径、哈希、地址、ABC 身份、准入号、验收层级及对应审计/方法文档；不按旧日期、文件名或历史报告选包。公网版使用本批既有 `android-181-r1031-final-public-20261031` 配对，本次登记不生成密钥或更改服务端允许名单。历史累计实现入口仍保留；最终公网包未新增设备、公网登录或云端准入验收。
+当前 Android 直接基线以 [android-accepted.json](android-accepted.json) 的 `default_variant` 和 `baseline_selection` 为准，默认选择 `public`；保留的 `variants.lan` 仍为较早 R11，不是同功能内网包，后续内网版应从当前公网累计基线转换。从登记读取成品路径、哈希、地址、ABC 身份、准入号、验收层级及对应审计/方法文档；不按旧日期、文件名或历史报告选包。公网版沿用 `android-181-r1031-final-public-20261031` 配对，本次登记不生成密钥或更改服务端允许名单。历史累计实现入口仍保留；当前公网包未新增设备、公网登录或云端准入验收。
 
 - 实际选择、解包或修改 Android APK/SWF 输入时，读取本目录 `ANDROID-BASELINE.md`、所选 `android-accepted.json` 变体及相关补丁文档；已加载且未变的规则不重读。JSON 中登记的已验收公网/内网成品是当前直接基线，其他文档的旧哈希只代表历史步骤；仅整理文档不触发包身份校验。
 - 对所选实际输入运行 `python client-patch/verify_android_baseline.py --variant public` 或 `--variant lan`，回读 APK、内嵌 SWF 和 AIR UUID。同任务登记、成品及相关校验条件未变时复用有效结果，不因切换步骤或收尾重跑；输入/登记变化或身份矛盾时补查。输入缺失或不匹配时不得按日期、文件名或旧报告另选 APK，也不得跳过哈希保护。新成品按其自身最终载荷验证，不能沿用基线结果。
@@ -13,7 +13,7 @@
 
 # iOS IPA 工作入口
 
-2026-10-31 当前 iOS 后续开发基线为 release1031 累计功能、主城继承派发、战斗 F1069 缺失方法及独立编队原生入口修复的 ARM64 公网未签名 IPA，登记层级 `accepted_offline`。身份、源码配方与范围见 [release1031 iOS 基线登记](ACCEPTANCE-RELEASE1031-IOS-INDEPENDENT-PARTY-20261031.md)，精确输入读取 [ios-accepted.json](ios-accepted.json)。沿用本批既有公网地址及 `ios-184-r1031-final-public-20261031` 准入配对，本次登记不再分配新号或修改云服。当前无同功能内网变体，需要内网版时从该公网基线转换；10-25 及更早登记完整保留于 lineage，仅作历史复现。未执行新包的 iOS 原生、真机战斗、重签安装或公网登录，不能将离线登记解释为已完成真机复测。
+2026-11-01 当前 iOS 后续开发基线为包含教程及独立编队装备提示 C8601 修复的累计 ARM64 公网未签名 IPA，登记层级 `accepted_offline`。保留 release1031、主城继承派发、战斗 F1069 及独立编队原生入口等累计修复。身份、源码配方与范围见 [双端 C8601 基线登记](ACCEPTANCE-STARTUP-EQUIPMENT-C8601-20261101.md)，精确输入读取 [ios-accepted.json](ios-accepted.json)。沿用既有公网地址及 `ios-184-r1031-final-public-20261031` 配对，本次登记不再分配新号或修改云服。当前无同功能内网变体，需要内网版时从该公网基线转换；此前登记完整保留于 lineage，仅作历史复现。未执行新包的 iOS 原生、真机战斗、重签安装或公网登录，不能将离线登记解释为已完成真机复测。
 
 当前 iOS 直接基线以 [ios-accepted.json](ios-accepted.json) 为准。成品路径、哈希、地址、准入号、完整 ABC/AOT 身份和方法数量、验收层级读取登记及其引用的审计/方法文档；离线校验不代表真机验收，旧包的验收状态不自动继承给新包。以下内容用于保留累计功能、平台差异和已验证方法，不重复维护当前成品身份。
 
