@@ -84,7 +84,13 @@ def packmap(rows: dict[str, bytes]) -> bytes:
 
 
 def decode_leaf(chunk: bytes) -> str:
-    return zlib.decompress(chunk).decode("utf-8") if chunk else ""
+    if not chunk:
+        return ""
+    decoder = zlib.decompressobj()
+    text = decoder.decompress(chunk) + decoder.flush()
+    if not decoder.eof or decoder.unused_data:
+        raise ValueError("Corrupt orderedmap leaf stream")
+    return text.decode("utf-8")
 
 
 def encode_leaf(text: str) -> bytes:
@@ -224,21 +230,34 @@ def verify_manifest(root: Path, manifest: dict) -> dict:
         raise ValueError("Repair does not follow the reviewed 1.4.353 edge")
     base["cdn_version"] = BASE_VERSION
     expected_entries = build_entries(root, base)
-    expected = archive_bytes(expected_entries)
     actual = (root / "assets/asset-patch/active" / ARCHIVE).read_bytes()
+    if len(actual) > 5 * 1024 * 1024:
+        raise ValueError("Archive exceeds 5 MiB limit")
     names = sorted(expected_entries)
     receipt = patch["archive_integrity"]
     if (patch["depends_on"] != BASE_VERSION or patch["archive"] != ARCHIVE
             or patch["chain"] != [ARCHIVE] or patch["files"] != names
             or patch["archive_size"] != len(actual) or len(receipt) != 1
             or receipt[0] != {"name": ARCHIVE, "size": len(actual), "sha256": sha(actual),
-                              "members": len(names), "files": names} or actual != expected):
+                              "members": len(names), "files": names}):
         raise ValueError("Repair archive/manifest differs from the scoped recipe")
     with zipfile.ZipFile(io.BytesIO(actual)) as source:
         if source.testzip() is not None or source.namelist() != names:
             raise ValueError("Repair ZIP integrity mismatch")
+        target_keys = {member(ABILITY_LP): ABILITY_KEY, member(CAS_LP): CAS_KEY}
         for name in names:
-            rawmap(source.read(name))
+            expected_rows = rawmap(expected_entries[name])
+            actual_rows = rawmap(source.read(name))
+            if list(actual_rows) != list(expected_rows):
+                raise ValueError("Repair orderedmap key order or key set drifted")
+            for key, expected_leaf in expected_rows.items():
+                # Index/target compression and ZIP metadata may differ across zlib versions.
+                # All unrelated leaves must retain their original compressed bytes.
+                if key == target_keys[name]:
+                    if decode_leaf(actual_rows[key]) != decode_leaf(expected_leaf):
+                        raise ValueError("Repair target leaf text differs from the scoped recipe")
+                elif actual_rows[key] != expected_leaf:
+                    raise ValueError("Unrelated orderedmap leaf bytes drifted")
     return {"version": VERSION, "members": len(names), "bytes": len(actual), "sha256": sha(actual)}
 
 

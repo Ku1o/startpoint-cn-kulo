@@ -15,7 +15,7 @@ import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools/fantasy-gauntlet-mod-tools"))
-from wf_dsl import encode_amf3, parse_dsl
+from wf_dsl import _Parser as Amf3Parser, encode_amf3, parse_dsl
 from wf_dsl_sig import validate_action_dsl
 
 SALT = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy"
@@ -76,8 +76,21 @@ def commands(tree, name: str):
             yield from commands(child, name)
 
 
+def inflate_complete(payload: bytes, wbits: int = zlib.MAX_WBITS) -> bytes:
+    decoder = zlib.decompressobj(wbits)
+    raw = decoder.decompress(payload) + decoder.flush()
+    if not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
+        raise ValueError("Incomplete or trailing compressed resource data")
+    return raw
+
+
 def decode_dsl(payload: bytes):
-    tree = parse_dsl(zlib.decompress(payload, -15))["tree"]
+    raw = inflate_complete(payload, -15)
+    # parse_dsl does not expose how many bytes its parser consumed.
+    parser = Amf3Parser(raw)
+    tree = parser.read_value()
+    if parser.i != len(raw):
+        raise ValueError("Trailing DSL AMF3 data")
     validate_action_dsl(tree)
     return tree
 
@@ -136,7 +149,7 @@ def packmap(rows: dict[str, bytes]) -> bytes:
 
 
 def decode_leaf(chunk: bytes) -> str:
-    return zlib.decompress(chunk).decode("utf-8") if chunk else ""
+    return inflate_complete(chunk).decode("utf-8") if chunk else ""
 
 
 def encode_leaf(text: str) -> bytes:
@@ -342,6 +355,24 @@ def verify(root: Path) -> dict:
     return verify_manifest(root, manifest)
 
 
+def verify_boss_battle_quest(actual: bytes, expected: bytes) -> None:
+    """Allow target/index compression changes while preserving all other raw blocks."""
+    for key, label in (("1", "chapters"), ("99", "groups")):
+        actual_rows = rawmap(actual)
+        expected_rows = rawmap(expected)
+        if (list(actual_rows) != list(expected_rows)
+                or any(actual_rows[k] != expected_rows[k] for k in expected_rows if k != key)):
+            raise ValueError(f"Unrelated boss_battle_quest {label} drifted")
+        actual, expected = actual_rows[key], expected_rows[key]
+    actual_rows = rawmap(actual)
+    expected_rows = rawmap(expected)
+    if list(actual_rows) != list(expected_rows):
+        raise ValueError("Group 99 quest key order drifted")
+    for qid in expected_rows:
+        if decode_leaf(actual_rows[qid]) != decode_leaf(expected_rows[qid]):
+            raise ValueError(f"Five-boss quest {qid} differs from the scoped recipe")
+
+
 def verify_manifest(root: Path, manifest: dict) -> dict:
     matches = [index for index, patch in enumerate(manifest["patches"]) if patch["version"] == VERSION]
     if len(matches) != 1 or not matches[0]:
@@ -354,15 +385,16 @@ def verify_manifest(root: Path, manifest: dict) -> dict:
         raise ValueError("Edge 1.4.355 does not follow the reviewed 1.4.354 edge")
     base["cdn_version"] = BASE_VERSION
     expected_entries = build_entries(root, base)
-    expected = archive_bytes(expected_entries)
     actual = (root / "assets/asset-patch/active" / ARCHIVE).read_bytes()
+    if len(actual) > 5 * 1024 * 1024:
+        raise ValueError("Archive exceeds 5 MiB limit")
     names = sorted(expected_entries)
     receipt = patch["archive_integrity"]
     if (patch["depends_on"] != BASE_VERSION or patch["archive"] != ARCHIVE
             or patch["chain"] != [ARCHIVE] or patch["files"] != names
             or patch["archive_size"] != len(actual) or len(receipt) != 1
             or receipt[0] != {"name": ARCHIVE, "size": len(actual), "sha256": sha(actual),
-                              "members": len(names), "files": names} or actual != expected):
+                              "members": len(names), "files": names}):
         raise ValueError("Five-boss 1.4.355 archive/manifest differs from the scoped recipe")
     bbq_member = member(BBQ_LP)
     with zipfile.ZipFile(io.BytesIO(actual)) as source:
@@ -371,9 +403,9 @@ def verify_manifest(root: Path, manifest: dict) -> dict:
         for name in names:
             payload = source.read(name)
             if name == bbq_member:
-                extract_group99_rows(payload)
-            else:
-                decode_dsl(payload)
+                verify_boss_battle_quest(payload, expected_entries[name])
+            elif decode_dsl(payload) != decode_dsl(expected_entries[name]):
+                raise ValueError(f"Five-boss DSL {name} differs from the scoped recipe")
     return {"version": VERSION, "members": len(names), "bytes": len(actual), "sha256": sha(actual)}
 
 

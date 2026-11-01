@@ -14,8 +14,8 @@
 - 档案：`pinball-1.4.353-1.4.354-1-gerald-fever-toggle.zip`，311871 字节，2 个成员，均在 `production/upload`。
   SHA-256 `815e297ae95510bc854188722fb537abe0f4591e274625870d7fd4f74941c52c`。
 - `python -B tools/build-gerald-fever-toggle.py --write`：仅从 1.4.353 有效链生成新包，拒绝覆盖既有归档。
-- `python -B tools/build-gerald-fever-toggle.py`：核对归档、完整成员、CRC、manifest、固有状态前置约束与主表回读。
-- `python -B tests/gerald-fever-toggle.test.py`：键级范围、非目标键原压缩字节保持、错误前像拒绝、后续版本兼容及双端共用根回归。
+- `python -B tools/build-gerald-fever-toggle.py`：核对实包与 manifest 的 SHA-256、大小、完整成员和 CRC，验证固有状态前置约束；两张主表必须保持完整键集与键顺序，非目标叶保留原压缩字节，目标叶解压文本须与配方一致。校验不要求本机重新压缩后与原 ZIP 逐字节相同，允许有相同内容的合法索引/目标叶压缩表示及 ZIP 封装差异；目标压缩流截断或尾随数据仍拒绝。
+- `python -B tests/gerald-fever-toggle.test.py`：键级范围、非目标键原压缩字节保持、错误前像拒绝、后续版本兼容及双端共用根回归；另覆盖合法重压缩与封装变化，以及更新回执后仍拒绝目标篡改、非目标叶重压缩、键集/顺序改变、错误 SHA 和额外成员。
 
 这些是离线资源和静态契约验证，未做手机实战或联机同步验收。
 云端尚未部署。已下载资源的回退须追加还原边，不能只撤掉 manifest 记录。
