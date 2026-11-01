@@ -160,6 +160,13 @@ export function contentOperations(): ContentOperationsStore {
     }
     return store
 }
+/** The synchronous evaluation owns decoded-state reuse; final grants keep fresh authorization. */
+export function withContentOperationsDecisionScope<T>(operation: () => T): T {
+    // Do not move lazy store initialization ahead of the first actual managed decision.
+    // A cold evaluation uses the original fresh path; later evaluations reuse decoding.
+    const store = stores.get(getDb())
+    return store ? store.withDecisionScope(operation) : operation()
+}
 /** Explicit offline callers supply their own connection; this never opens or initializes a database. */
 export function createContentOperationsStore(db: Database): ContentOperationsStore {
     return new ContentOperationsStore(db, contentCatalog, contentCapabilities, runtimeDefinition, clientEntry, contentClientCapabilities,

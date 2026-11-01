@@ -54,18 +54,42 @@ function fixture(t, enter, claim, combo = 0, savedProgress = 0) {
     }, Date.now())
     control(enter, claim)
     const checks = { enter: 0, claim: 0 }, stateReads = { enter: 0, claim: 0 }
+    const scope = { depth: 0, calls: 0, claimDepths: [] }
+    t.mock.method(operations, 'withContentOperationsDecisionScope', operation => store.withDecisionScope(() => {
+        scope.calls++
+        scope.depth++
+        try { return operation() }
+        finally { scope.depth-- }
+    }))
     let activeAction
     const prepare = db.prepare.bind(db)
+    const observedStatements = new WeakSet()
+    const stateSql = 'SELECT value_json FROM content_operations_state WHERE content_key=?'
+    const observeStatement = statement => {
+        if (!observedStatements.has(statement)) {
+            observedStatements.add(statement)
+            const get = statement.get
+            t.mock.method(statement, 'get', function (...args) {
+                if (activeAction) stateReads[activeAction]++
+                return get.apply(this, args)
+            })
+        }
+        return statement
+    }
     t.mock.method(db, 'prepare', sql => {
-        if (activeAction && sql === 'SELECT value_json FROM content_operations_state WHERE content_key=?') stateReads[activeAction]++
-        return prepare(sql)
+        const statement = prepare(sql)
+        return sql === stateSql ? observeStatement(statement) : statement
     })
+    // The connection survives across cases, so the cached statement may already
+    // exist before this case installs its observer.
+    observeStatement(load('lib/cached-statement').cachedStatement(db, stateSql))
     // Only substitute ownership for this one native mission. The decision still
     // uses real SQLite controls, strict decoding, action readiness and scopes.
     const originalDecision = operations.contentMissionDecision
     t.mock.method(operations, 'contentMissionDecision', (category, missionId, action, nowMs = Date.now()) => {
         if (category !== 1 || missionId !== 1) return originalDecision(category, missionId, action, nowMs)
         checks[action]++
+        if (action === 'claim') scope.claimDepths.push(scope.depth)
         const previous = activeAction
         activeAction = action
         try { return store.scopedAllowed('mission_regular:1', 'mission', '1:1', action, nowMs) }
@@ -76,7 +100,7 @@ function fixture(t, enter, claim, combo = 0, savedProgress = 0) {
     const balance = () => players.getPlayerSync(player.id).freeVmoney
     const saved = () => ({ player: players.getPlayerSync(player.id),
         missions: missions.getPlayerCategoryMissionsSync(player.id, 1) })
-    return { player, control, checks, stateReads, settle, progress, balance, saved }
+    return { player, control, checks, stateReads, settle, progress, balance, saved, scope }
 }
 
 test('an open mission below its first reward updates progress without any preliminary claim SQL', t => {
@@ -101,6 +125,7 @@ test('enter permission without claim permission updates progress but the final c
     assert.equal(f.balance(), balance)
     assert.equal(f.checks.claim, 1, 'the remaining check belongs to the one pending reward stage')
     assert.equal(f.stateReads.claim, 1)
+    assert.deepEqual(f.scope.claimDepths, [0], 'final claim authorization must run after the evaluation scope has ended')
     assert.deepEqual(f.progress().stages, [])
 })
 
@@ -140,6 +165,9 @@ test('claim permission revoked after real computation is re-read before granting
     assert.equal(computed, 1)
     assert.equal(f.progress().progress, 10)
     assert.equal(f.stateReads.claim, 1, 'final authorization must still read the newly revoked state')
+    assert.ok(f.scope.calls > 0, 'the real settlement must create a bounded evaluation scope')
+    assert.deepEqual(f.scope.claimDepths, [0], 'revoked claim must be re-read outside the evaluation cache scope')
+    assert.equal(f.scope.depth, 0)
     assert.deepEqual(result.settlement.missionInfo, [])
     assert.equal(f.balance(), balance)
 })

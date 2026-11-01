@@ -3,8 +3,15 @@ import type { Database } from "better-sqlite3"
 import { isFixedJulyCandidate } from "./content-july-reference"
 import { defaultContentDecision } from "./content-operations-defaults"
 import { nativePresentationScopeError } from "./content-native-presentation-rules"
+import { cachedStatement } from "./cached-statement"
 
 export const CONTENT_ACTIONS = ["visible", "enter", "claim", "exchange"] as const
+const DECISION_SCOPE_MAX_ENTRIES = 1024
+const DECISION_SCOPE_MAX_RAW_BYTES = 4 * 1024 * 1024
+interface ContentDecisionScope {
+    entries: Map<string, { raw: string; state: ContentControl }>
+    rawBytes: number
+}
 export type ContentAction = typeof CONTENT_ACTIONS[number]
 export type ContentReadiness = "unverified" | "current_baseline" | "verified" | "blocked"
 export interface ContentOperationsSnapshot {
@@ -130,6 +137,7 @@ export class ContentOperationsStore {
     readonly questMembers = new Map<string, Set<string>>()
     readonly missionMembers = new Map<string, Set<string>>()
     private readonly catalogTypes: readonly string[]
+    private decisionScope?: ContentDecisionScope
     private managementScope?: { keys: readonly string[]; requested: ReadonlySet<string>; captured: ReadonlySet<string>; rows: readonly ContentCatalogRow[] }
     private snapshotDefaults?: {
         qualified: Array<{ key: string; action: ContentAction }>
@@ -182,11 +190,51 @@ export class ContentOperationsStore {
         }))
     }
     revision(): number {
-        return (this.db.prepare("SELECT revision FROM content_operations_meta WHERE id=1").get() as { revision: number }).revision
+        return (cachedStatement(this.db, "SELECT revision FROM content_operations_meta WHERE id=1").get() as { revision: number }).revision
     }
     state(key: string): ContentControl | null {
-        const result = this.db.prepare("SELECT value_json FROM content_operations_state WHERE content_key=?").get(key) as { value_json: string } | undefined
+        const result = this.readStateRow(key)
         return result ? this.decodeState(key, result.value_json) : null
+    }
+    /** Synchronous evaluation only; the caller must finish before grants or the next cascade round.
+     * Public state() keeps returning independent mutable values, never these private decoded objects.
+     */
+    withDecisionScope<T>(operation: () => T): T {
+        const previous = this.decisionScope
+        const scope: ContentDecisionScope = { entries: new Map(), rawBytes: 0 }
+        this.decisionScope = scope
+        try { return operation() }
+        finally {
+            scope.entries.clear()
+            this.decisionScope = previous
+        }
+    }
+    private readStateRow(key: string): { value_json: string } | undefined {
+        return cachedStatement(this.db, "SELECT value_json FROM content_operations_state WHERE content_key=?")
+            .get(key) as { value_json: string } | undefined
+    }
+    private decisionState(key: string): ContentControl | null {
+        // Always re-execute SQL: same-transaction updates, direct writes, missing rows and rollbacks
+        // must be visible even without a revision change. Only decoding identical raw text is reused.
+        const result = this.readStateRow(key), scope = this.decisionScope
+        if (!scope) return result ? this.decodeState(key, result.value_json) : null
+        const previous = scope.entries.get(key)
+        if (result && previous?.raw === result.value_json) return previous.state
+        if (previous) {
+            scope.entries.delete(key)
+            scope.rawBytes -= previous.raw.length * 2
+        }
+        if (!result) return null
+        const state = this.decodeState(key, result.value_json)
+        // Bound retained UTF-16 input and entry count, not total process memory. Oversized/overflow
+        // controls still follow the exact fresh-read decoder; no eviction churn or alternate policy.
+        const rawBytes = result.value_json.length * 2
+        if (scope.entries.size < DECISION_SCOPE_MAX_ENTRIES
+            && scope.rawBytes + rawBytes <= DECISION_SCOPE_MAX_RAW_BYTES) {
+            scope.entries.set(key, { raw: result.value_json, state })
+            scope.rawBytes += rawBytes
+        }
+        return state
     }
     private decodeState(key: string, json: string): ContentControl {
         let parsed: unknown
@@ -277,8 +325,8 @@ export class ContentOperationsStore {
     }
     /** null means a core permanent action retains its original business rule. */
     allowed(key: string, action: ContentAction, nowMs: number): boolean | null {
-        const state = this.state(key)
-        return this.allowedWithLookup(key, action, nowMs, candidate => candidate === key ? state : this.state(candidate))
+        const state = this.decisionState(key)
+        return this.allowedWithLookup(key, action, nowMs, candidate => candidate === key ? state : this.decisionState(candidate))
     }
     private localAllowed(key: string, action: ContentAction, nowMs: number, lookup: (key: string) => ContentControl | null | undefined): boolean | null {
         const state = lookup(key)
@@ -304,8 +352,8 @@ export class ContentOperationsStore {
         return local
     }
     scopedAllowed(key: string, kind: "quest" | "mission", member: string, action: ContentAction, nowMs: number): boolean | null {
-        const state = this.state(key)
-        const effective = () => this.allowedWithLookup(key, action, nowMs, candidate => candidate === key ? state : this.state(candidate))
+        const state = this.decisionState(key)
+        const effective = () => this.allowedWithLookup(key, action, nowMs, candidate => candidate === key ? state : this.decisionState(candidate))
         if (!state) return effective()
         if (this.suspended(state, action)) return false
         const override = this.actionControl(state, action)

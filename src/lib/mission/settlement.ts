@@ -15,7 +15,7 @@ import { getMissionMasterDefinition } from "./master-data"
 import { runPersistenceTransaction, runPersistenceTransactionSync, runWriterCommand } from "../persistence-coordinator"
 import { MISSION_SETTLE_CATEGORIES, type MissionSettleCategoriesArgs } from "../persistence/command-names"
 import { MissionEvaluationReadContext } from "./evaluation-context"
-import { contentMissionDecision } from "../content-operations"
+import { contentMissionDecision, withContentOperationsDecisionScope } from "../content-operations"
 import { getDegreeMissionIdsForConditionTypes } from "./computer-degree"
 import { getEventItemMissionIdsForItems } from "./computer-event-safe"
 import { getMissionsByPattern } from "./patterns"
@@ -357,7 +357,9 @@ export function settleMissionCategoriesWithProgress(
             let settlement = emptyMissionSettlementResult()
             const progress = new Map<string, MissionSettlementProgress>()
             for (let round = 0; round < MAX_SETTLEMENT_CASCADE_ROUNDS; round++) {
-                const evaluation = evaluateMissionCategories(playerId, scopes, evaluationTime)
+                const evaluation = withContentOperationsDecisionScope(() => (
+                    evaluateMissionCategories(playerId, scopes, evaluationTime)
+                ))
                 for (const row of evaluatedProgressOf(evaluation.evaluatedMissions)) {
                     progress.set(`${row.category}:${row.missionId}`, row)
                 }
