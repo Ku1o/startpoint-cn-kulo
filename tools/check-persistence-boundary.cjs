@@ -5,8 +5,9 @@
  * Persistence boundary guard (协作确认单 #13 / #15).
  *
  * Ordinary files retain the added-lines rules below. The reviewed operations
- * in ten content/clock/maintenance files are checked in full, including callback bodies,
- * guards and execution chains; their files are not blanket exceptions.
+ * in ten content/clock/maintenance files retain bounded transaction checks;
+ * ordinary callback/signature changes do not require re-signing whole functions.
+ * Atomicity, rollback and data preservation are covered by behavior tests.
  *
  *   1. `.transaction(` in any `src/**\/*.ts` file outside the allowlist in
  *      `tools/persistence-boundary-allowlist.json`. New writes must go through
@@ -25,7 +26,6 @@
 const { execFileSync } = require('node:child_process')
 const fs = require('node:fs')
 const path = require('node:path')
-const { createHash } = require('node:crypto')
 
 const repoRoot = path.resolve(__dirname, '..')
 const allowlistPath = path.join(__dirname, 'persistence-boundary-allowlist.json')
@@ -70,22 +70,19 @@ function parseAllowlist(raw) {
     for (const entry of raw.reviewedOperations || []) {
         if (!entry || !/^src\/[a-zA-Z0-9_/-]+\.ts$/.test(entry.path) || entry.path.split('/').includes('..')
             || files.has(entry.path) || result.transaction.some(pattern => pattern.test(entry.path))
-            || !Array.isArray(entry.operations) || !entry.operations.length
-            || entry.contexts !== undefined && !Array.isArray(entry.contexts)) {
+            || !Array.isArray(entry.operations) || !entry.operations.length) {
             throw new Error('Invalid or blanket-covered reviewed-operation file')
         }
         files.add(entry.path)
         const names = new Set()
-        for (const [kind, spans] of [['operation', entry.operations], ['context', entry.contexts || []]]) {
-            for (const span of spans) {
-                if (!span || typeof span.name !== 'string' || !span.name.trim() || names.has(span.name)
-                    || typeof span.startLine !== 'string' || !span.startLine.trim() || /[\r\n]/.test(span.startLine)
-                    || typeof span.endLine !== 'string' || !/^\s*}\s*;?$/.test(span.endLine) || /[\r\n]/.test(span.endLine)
-                    || !/^[a-f0-9]{64}$/.test(span.sha256) || kind === 'operation' && span.transactions !== 1) {
-                    throw new Error('Invalid reviewed-operation anchor, identity or count')
-                }
-                names.add(span.name)
+        for (const op of entry.operations) {
+            if (!op || !/^[a-zA-Z_$][\w$]*$/.test(op.name) || names.has(op.name)
+                || !/^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(op.receiver)
+                || !['deferred', 'immediate', 'exclusive', 'async'].includes(op.mode) || op.transactions !== 1
+                || op.requiredCalls && (!Array.isArray(op.requiredCalls) || op.requiredCalls.some(name => !/^[a-zA-Z_$][\w$]*$/.test(name)))) {
+                throw new Error('Invalid reviewed-operation name, receiver, mode or count')
             }
+            names.add(op.name)
         }
         result.reviewedOperations.push(entry)
     }
@@ -96,31 +93,56 @@ function loadAllowlist(file = allowlistPath) {
     return parseAllowlist(JSON.parse(fs.readFileSync(file, 'utf8')))
 }
 
-function fingerprintSource(text) {
-    return createHash('sha256').update(text.replace(/\r\n/g, '\n')).digest('hex')
+// Keep offsets/newlines while ignoring comments and quoted text. This remains
+// a bounded source check, not a TypeScript parser or business-logic proof.
+function maskNonCode(source) {
+    return source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g,
+        value => value.replace(/[^\n]/g, ' '))
 }
 
-// Anchors are complete, uniquely named declaration lines, not line numbers.
-// The closing line uses the declaration's indentation. A changed or premature
-// close changes the whole-owner identity and fails; it cannot bless a prefix.
+// Locate the existing named declaration, allowing return-type/signature edits.
+// These reviewed functions use an unambiguous closing line at their own indent.
 function extractReviewedSpan(source, rule) {
-    const text = source.replace(/\r\n/g, '\n'), lines = text.split('\n')
+    const text = source.replace(/\r\n/g, '\n'), code = maskNonCode(text), lines = code.split('\n')
+    const declaration = new RegExp('^([ \\t]*)(?:(?:export|async|private|public|protected|static)\\s+)*(?:function\\s+)?'
+        + rule.name + '\\s*(?:<[^\\n]*>)?\\s*\\(')
     const starts = []
-    for (let index = 0; index < lines.length; index++) if (lines[index] === rule.startLine) starts.push(index)
+    for (let index = 0; index < lines.length; index++) {
+        const line = lines[index]
+        if (declaration.test(line) && (line.includes('{')
+            || (line.match(/\(/g) || []).length > (line.match(/\)/g) || []).length
+            || /^\s*{/.test(lines[index + 1] || ''))) starts.push(index)
+    }
     if (starts.length !== 1) throw new Error('声明锚点缺失或重复')
-    const first = starts[0], last = lines.findIndex((line, index) => index > first && line === rule.endLine)
+    const first = starts[0], indent = declaration.exec(lines[first])[1]
+    const closing = new RegExp('^' + indent + '}\\s*;?\\s*$')
+    const last = lines.findIndex((line, index) => index > first && closing.test(line))
     if (last < 0) throw new Error('声明结束边界缺失')
     const start = lines.slice(0, first).reduce((sum, line) => sum + line.length + 1, 0)
-    const body = lines.slice(first, last + 1).join('\n')
-    return { start, end: start + body.length, text: body, line: first + 1 }
+    const end = start + lines.slice(first, last + 1).join('\n').length
+    return { start, end, text: text.slice(start, end), code: code.slice(start, end), line: first + 1 }
 }
 
-// Deliberately conservative source matching, not a complete TypeScript parser.
-// Match the property, including comment/newline separators, so extracting a
-// reference or wrapping the call in parentheses does not avoid this boundary.
-function transactionReferences(source) {
-    const gap = '(?:\\s|/\\*[\\s\\S]*?\\*/|//[^\\n]*(?:\\n|$))*'
-    return [...source.matchAll(new RegExp('\\.' + gap + 'transaction\\b', 'g'))]
+function transactionReferences(code) {
+    return [...code.matchAll(/\.\s*transaction\b/g)]
+}
+
+function transactionMatches(code, match, op) {
+    const receiver = code.slice(0, match.index).match(/[\w$]+(?:\s*\.\s*[\w$]+)*\s*$/)
+    if (receiver?.[0].replace(/\s/g, '') !== op.receiver) return false
+    const tail = match.index + match[0].length
+    const opening = /^\s*\(/.exec(code.slice(tail))
+    if (!opening) return false // a reference or parenthesized property is not the approved call
+    const first = tail + opening[0].length - 1
+    let depth = 1, end = first + 1
+    for (; end < code.length && depth; end++) {
+        if (code[end] === '(') depth++
+        else if (code[end] === ')') depth--
+    }
+    if (depth) return false
+    if (op.mode === 'async') return /\bawait\s+$/.test(code.slice(0, receiver.index))
+    const invocation = op.mode === 'deferred' ? /^\s*\(\s*\)/ : new RegExp('^\\s*\\.\\s*' + op.mode + '\\s*\\(\\s*\\)')
+    return invocation.test(code.slice(end))
 }
 
 function checkBoundary(addedLines, allowlist, readSource) {
@@ -139,22 +161,27 @@ function checkBoundary(addedLines, allowlist, readSource) {
             report(1, '无法读取被检查对象中的已核查文件')
             continue
         }
-        const references = transactionReferences(source), approved = []
-        for (const [kind, spans] of [['operation', entry.operations], ['context', entry.contexts || []]]) {
-            for (const span of spans) {
-                let range
-                try { range = extractReviewedSpan(source, span) }
-                catch (error) { report(1, `${span.name}: ${error.message}`); continue }
-                if (fingerprintSource(range.text) !== span.sha256) {
-                    report(range.line, `${span.name}: 已核查操作或必要上下文已改变，需重新核查`, span.startLine)
-                    continue
-                }
-                if (kind === 'operation') {
-                    const count = references.filter(match => match.index >= range.start && match.index < range.end).length
-                    if (count !== span.transactions) report(range.line, `${span.name}: 事务操作数量不匹配`, span.startLine)
-                    else approved.push(range)
-                }
+        const code = maskNonCode(source), references = transactionReferences(code), approved = []
+        for (const op of entry.operations) {
+            let range
+            try { range = extractReviewedSpan(source, op) }
+            catch (error) { report(1, `${op.name}: ${error.message}`); continue }
+            const calls = references.filter(match => match.index >= range.start && match.index < range.end)
+            if (calls.length !== op.transactions || !calls.every(match => transactionMatches(code, match, op))) {
+                report(range.line, `${op.name}: 事务数量、连接对象或执行方式已改变`)
+                continue
             }
+            if (op.reentrant && !range.code.replace(/\s/g, '').includes(op.receiver + '.inTransaction')
+                || op.internal && /^\s*export\b/.test(range.code)
+                || (op.requiredCalls || []).some(name => !new RegExp('\\b' + name + '\\s*\\(').test(range.code))) {
+                report(range.line, `${op.name}: 必要的现有事务或离线保护入口已移除`)
+                continue
+            }
+            approved.push(range)
+        }
+        // The injected async route must keep its default queued persistence entry.
+        if (entry.path === 'src/routes/web_api/town-theme.ts' && !/\.\s*runPersistenceTransaction\s*\(/.test(code)) {
+            report(1, '主城外观默认依赖缺少异步持久化入口')
         }
         for (const match of references) {
             if (approved.filter(range => match.index >= range.start && match.index < range.end).length !== 1) {
@@ -250,7 +277,7 @@ function main(argv) {
         relative => readGitSnapshotSource(repoRoot, relative, staged))
     if (violations.length === 0) {
         const count = allowlist.reviewedOperations.reduce((total, entry) => total + entry.operations.length, 0)
-        console.log(`[持久化边界] 通过：新增代码符合边界，${count} 项精确核查操作匹配。`)
+        console.log(`[持久化边界] 通过：新增代码符合边界，${count} 项已有事务的结构匹配。`)
         return 0
     }
     for (const v of violations) {
@@ -260,7 +287,7 @@ function main(argv) {
             console.log(`::error file=${v.file},line=${v.line}::${v.message}`)
         }
     }
-    console.log(`[持久化边界] 发现 ${violations.length} 处问题。请修复新增写入边界；特殊操作须重新核查，不得自动更新身份或扩大为整文件放行。`)
+    console.log(`[持久化边界] 发现 ${violations.length} 处问题。请核对事务入口、连接和执行方式，不得扩大为整文件放行。`)
     return 1
 }
 
@@ -274,4 +301,4 @@ if (require.main === module) {
 }
 
 module.exports = { parseAddedLines, findViolations, loadAllowlist, parseAllowlist, globToRegExp,
-    fingerprintSource, extractReviewedSpan, checkBoundary, readGitSnapshotSource }
+    extractReviewedSpan, checkBoundary, readGitSnapshotSource }

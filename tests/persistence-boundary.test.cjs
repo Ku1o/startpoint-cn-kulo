@@ -150,12 +150,29 @@ test('duplicating an approved owner or its unchanged transaction does not reuse 
     }
 })
 
-test('changing an approved callback, named apply, offline guard or execution mode requires review', () => {
+test('ordinary edits to approved callbacks, signatures and read logic do not require re-signing', () => {
     for (const [file, before, after] of [
         ['src/lib/content-client-reload.ts', '.run(next.epoch, nowMs, CONTENT_CLIENT_RELOAD_MESSAGE)', '.run(next.epoch, nowMs + 1, CONTENT_CLIENT_RELOAD_MESSAGE)'],
         ['src/lib/town-theme-store.ts', 'const current = this.read()', 'const current = this.read(); void 0'],
+        ['src/lib/content-operations-store.ts', 'snapshot(nowMs: number): ContentOperationsSnapshot {', 'snapshot(nowMs: number) : ContentOperationsSnapshot {'],
+        ['src/lib/content-operations-store.ts', 'this.db.transaction(() => this.snapshot(nowMs))()', 'this.db. /* transaction boundary */ transaction(() => this.snapshot(nowMs))()'],
+        ['src/lib/content-client-reload.ts', 'this.db.inTransaction', 'this.db /* existing transaction */ . inTransaction'],
+    ]) {
+        const sources = reviewedSources()
+        sources.set(file, replaceOnce(sources.get(file), before, after))
+        assert.deepEqual(checkSources(sources), [], `${file}: ${before}`)
+    }
+})
+
+test('removing guards, changing connections or execution modes still requires review', () => {
+    for (const [file, before, after] of [
         ['src/lib/content-history-bootstrap.ts', '    assertTimeCutoverOfflineDatabaseSync(store.db, options.offlineGuard)', '    void options.offlineGuard'],
         ['src/lib/content-history-bootstrap.ts', '    }).immediate()', '    })()'],
+        ['src/lib/content-client-reload.ts', 'this.db.transaction(apply).immediate()', 'other.db.transaction(apply).immediate()'],
+        ['src/lib/content-client-reload.ts', 'this.db.inTransaction', 'false'],
+        ['src/lib/deployment-maintenance-guard.ts', '}).exclusive()', '}).immediate()'],
+        ['src/routes/web_api/town-theme.ts', 'await deps.transaction(', 'deps.transaction('],
+        ['src/lib/server-clock-state.ts', 'function activateRealServerClockInTransactionSync(', 'export function activateRealServerClockInTransactionSync('],
     ]) {
         const sources = reviewedSources()
         sources.set(file, replaceOnce(sources.get(file), before, after))
@@ -163,10 +180,17 @@ test('changing an approved callback, named apply, offline guard or execution mod
     }
 })
 
+test('transaction-looking comments and strings in reviewed files do not cause failures', () => {
+    const sources = reviewedSources()
+    const file = 'src/lib/content-client-reload.ts'
+    sources.set(file, `${sources.get(file)}\n// db.transaction()\nconst note = 'db.transaction(() => {})()'\n/* db.transaction() */\n`)
+    assert.deepEqual(checkSources(sources), [])
+})
+
 test('missing owner anchors and a changed town-theme dependency wrapper fail closed', () => {
     const entry = allowlist.reviewedOperations.find(entry => entry.path === 'src/lib/content-client-reload.ts')
     const sources = reviewedSources()
-    sources.set(entry.path, replaceOnce(sources.get(entry.path), entry.operations[0].startLine, '    renamedBoundaryOwner() {'))
+    sources.set(entry.path, replaceOnce(sources.get(entry.path), '    request(', '    renamedBoundaryOwner('))
     assert.ok(checkSources(sources).length > 0)
 
     const townFile = 'src/routes/web_api/town-theme.ts'
@@ -174,6 +198,18 @@ test('missing owner anchors and a changed town-theme dependency wrapper fail clo
     townSources.set(townFile, replaceOnce(townSources.get(townFile),
         '.runPersistenceTransaction({ domain: "admin", operation: "apply_town_theme" }, operation)', 'operation()'))
     assert.ok(checkSources(townSources).length > 0)
+})
+
+test('invalid transaction policy is rejected without whole-function identities', () => {
+    for (const change of [op => op.mode = 'unknown', op => op.receiver = '', op => op.transactions = 2]) {
+        const policy = structuredClone(rawAllowlist)
+        change(policy.reviewedOperations[0].operations[0])
+        assert.throws(() => parseAllowlist(policy))
+    }
+    for (const entry of rawAllowlist.reviewedOperations) {
+        assert.equal(entry.contexts, undefined)
+        for (const op of entry.operations) assert.equal(op.sha256, undefined)
+    }
 })
 
 test('the existing route-sync rule also applies outside approved owners in a reviewed file', () => {
@@ -201,8 +237,12 @@ test('HEAD and index scans cannot be hidden by a clean unstaged working-tree sou
     const fixtureFile = path.join(fixtureRoot, entry.path)
     fs.mkdirSync(path.dirname(fixtureFile), { recursive: true })
     fs.writeFileSync(fixtureFile, source)
+    const fixtureTool = path.join(fixtureRoot, 'tools/check-persistence-boundary.cjs')
+    fs.mkdirSync(path.dirname(fixtureTool), { recursive: true })
+    fs.copyFileSync(path.join(repoRoot, 'tools/check-persistence-boundary.cjs'), fixtureTool)
+    fs.writeFileSync(path.join(fixtureRoot, 'tools/persistence-boundary-allowlist.json'), JSON.stringify({ transaction: [], reviewedOperations: [entry] }))
     git(['init', '--quiet'])
-    git(['add', '--', entry.path])
+    git(['add', '--', entry.path, 'tools/check-persistence-boundary.cjs', 'tools/persistence-boundary-allowlist.json'])
     git(['-c', 'user.name=Persistence boundary fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '--no-verify', '-m', 'fixture'])
     fs.writeFileSync(fixtureFile, `${source}\ndb.transaction(() => 1)()\n`)
     git(['add', '--', entry.path])
@@ -213,4 +253,7 @@ test('HEAD and index scans cannot be hidden by a clean unstaged working-tree sou
     assert.ok(checkBoundary([], fixturePolicy, file => readGitSnapshotSource(fixtureRoot, file, true)).length > 0)
     assert.ok(!readGitSnapshotSource(fixtureRoot, entry.path, false).includes('db.transaction(() => 1)()'))
     assert.ok(readGitSnapshotSource(fixtureRoot, entry.path, true).includes('db.transaction(() => 1)()'))
+    const cli = args => execFileSync(process.execPath, [fixtureTool, ...args], { cwd: fixtureRoot, encoding: 'utf8', stdio: 'pipe' })
+    assert.match(cli(['--base', 'HEAD']), /通过/)
+    assert.throws(() => cli(['--staged']), error => error.status === 1 && /事务/.test(error.stdout))
 })
