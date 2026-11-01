@@ -1,0 +1,25 @@
+# Tutorial and occupied-equipment C8601 repair
+
+The repaired packages are registered in the platform accepted JSON files. Subsequent development starts from those cumulative packages. This directory reproduces the historical three-method delta from the frozen pre-repair inputs; do not replay it on the repaired baseline.
+
+`ContentOperationsState.questDecision` previously required the ordinary quest-category master before deciding whether a quest was managed. Tutorial loading only registers bundled masters, so the tutorial can have an empty category map. The exact native tutorial class now returns the existing `-1` fallback before accessing that map. All three period entry points retain their original tutorial rules.
+
+Independent Rush parties use categories 5/6/7. `EquipmentSellableStatusResolver` only assigned occupied-equipment text for categories 1–4. The patch maps 5–7 to the existing Rush display category on the switch operand, and normalizes only the priority method's local parameter. It does not change stored categories, party membership, equipment protection or eligibility. Unknown categories retain their original failure behavior.
+
+`build_swf.py --apk <release1031-public.apk> --record <frozen-input-registry.json> --work <new-directory>` pins the original APK (`ca180d7d...`) and SWF (`a4f73ebf...`) and inserts code into exactly three method bodies. Use the pre-repair registry snapshot, not the promoted current registry. Existing instructions and control-flow edges have insertion proofs; other bodies, existing pools, signatures and class layouts remain unchanged. It produces an SWF and receipt, with no APK, registry, endpoint, admission or resource-chain writes. Do not replay it on a previously patched input.
+
+`test_native.py` reuses the content-operations production-method importer and sealed state fixtures. Invoke it through the documented local background runner with `--native-regression`, `--work`, `--production-work`, `--sdk` and `--java`. Frozen production inputs use `content-operations-android.swf` and its actual `production-helper.abc`. `--expect-c8601-baseline` checks the old tutorial and independent-category negatives. The scoped suite executes the actual selected helper and native method bodies; support state and asset lookup are controlled fixtures. It does not run the full game, graphics or iOS native code.
+
+APK packaging must start from the registered cumulative public APK, rotate the AIR identity in Manifest and DEX, preserve all other payloads, and use the established signer and alignment checks. An APK does not authorize overwriting an IPA or promoting either platform's accepted registry. Any iOS adoption requires its own native entry, ABI, unwind and final-package verification.
+
+## iOS cumulative port
+
+`ios_repair.py` runs `prepare`, `compile`, `link`, `finalize`, then `package` as separate bounded stages. Each invocation requires `--inputs <private.json>` and `--output <task-local-path>`; compile also takes `--prepared <port.json>`, link adds `--compiled <compile-report.json>`, and package takes `--linked <link-report.json>`. Run every stage through `release-20261031/ios/support/process/run_bounded.py` with a 1536 MiB limit and 180 second timeout. Do not use an unrestricted fallback.
+
+The private JSON supplies `task`, `work_dir`, `previous`, `baseline_record`, `android_swf`, `android_swf_sha256`, and `ios` paths for `libraries`, `sdk`, `dependencies`, `runtime_stubs`. The frozen pre-repair registry record has an `artifact` object. Inputs are the prior cumulative independent-party IPA (`1990178a...`), its complete ABC, and the verified Android donor. Existing layout, signatures and pool prefixes remain fixed. Exactly iOS methods 76815, 76817 and 101555 receive the normalized donor instructions; they are recompiled under their real owners. Original game methods bind both tables, while the appended content helper has only an active-table entry.
+
+`ios_switch.py` recognizes the actual compiler's direct W-register selector with CMP/HI, signed table load, and a separate sum register. Existing table ownership, code-boundary, relocation and no-unwind checks remain mandatory. `test_ios_verify.py` checks three real tables, fifteen byte-corruption negatives, and final-native receiver/argument/MethodEnv instructions.
+
+`verify_ios.py --inputs ... --package-report ... --output ...` independently reads the actual IPA and reuses the cumulative verifier. It checks all non-target ZIP members, ABC/runtime preservation, entry/table rebinding, object relocations, previous native functions, equipment ranges, loader metadata, EH and unwind semantics. Run it through the same bounded launcher. `test_ios_verify.py` additionally takes `--linked`, `--proof` (the generated proof JSON), and `--output`.
+
+The result remains an unsigned offline candidate. Signing models and static native checks do not establish iOS execution, device acceptance or registry promotion. No server/configuration/CDN deployment is performed by these client scripts.

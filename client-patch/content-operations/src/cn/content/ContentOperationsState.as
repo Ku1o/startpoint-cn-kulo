@@ -721,6 +721,9 @@ package cn.content {
         }
         public static function towerDecision(logic:Object,action:String):int { return decision(towerKey(logic),action); }
         public static function questDecision(logic:Object,action:String):int {
+            // Tutorial loading only registers bundled masters. It must retain
+            // the native period rules without reading the ordinary category table.
+            if (getQualifiedClassName(logic) == "pinball.common.data.tutorial::TutorialQuestLogic") return -1;
             if (!logic.hasOwnProperty("id")) return -1;
             var category:int=int(logic.get_category().id);
             var questKey:String = category + ":" + logic.id;
