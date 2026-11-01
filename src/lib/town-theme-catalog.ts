@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { readFileSync, realpathSync, statSync } from "node:fs"
 import path from "node:path"
+import { readWinningContentResourceHashesSync } from "./content-definition-evidence"
 
 const HASH = /^[a-f0-9]{64}$/
 const KEY = /^[a-z][a-z0-9_]{0,63}$/
@@ -139,8 +140,7 @@ export function loadTownThemeCatalog(assetRoot = path.resolve(__dirname, "../../
         const receipt: unknown = JSON.parse(receiptBytes.toString("utf8")), receiptDigest = townThemeHash(receiptBytes)
         if (!townThemeRecord(receipt) || receipt.schemaVersion !== 1 || typeof receipt.manifestSha256 !== "string" || !HASH.test(receipt.manifestSha256)
             || typeof receipt.resourceVersion !== "string" || !/^\d+\.\d+\.\d+$/.test(receipt.resourceVersion)
-            || !Array.isArray(receipt.themes) || receipt.themes.length !== catalog.themes.length
-            || receipt.manifestSha256 !== townThemeHash(readBounded(assetRoot, "asset-patch/manifest.json", 16 * 1024 * 1024))) throw new Error("invalid_resource_receipt")
+            || !Array.isArray(receipt.themes) || receipt.themes.length !== catalog.themes.length) throw new Error("invalid_resource_receipt")
         const receipts = new Map<string, Record<string, unknown>>()
         for (const entry of receipt.themes) {
             if (!townThemeRecord(entry) || typeof entry.id !== "string" || receipts.has(entry.id)) throw new Error("invalid_resource_receipt")
@@ -189,6 +189,23 @@ export function loadTownThemeCatalog(assetRoot = path.resolve(__dirname, "../../
             themes.push(Object.freeze({ id: value.id, name: value.name, description: value.description, nativeTownContentId: value.nativeTownContentId as number,
                 thumbnail: Object.freeze({ file: thumb.file as string, sha256: thumb.sha256, width: thumb.width as number, height: thumb.height as number }),
                 nativeRow: Object.freeze([...value.nativeRow]), resourceVersion: value.resourceVersion, originalPeriods: periods }))
+        }
+        // The manifest is provenance, not the identity of every theme. For an
+        // extended/repacked chain, check only the verified native table and its
+        // actual resources; unrelated battle/art updates do not disable themes.
+        if (receipt.manifestSha256 !== townThemeHash(readBounded(assetRoot, "asset-patch/manifest.json", 16 * 1024 * 1024))) {
+            const resources: Record<string, { archive: string; sha256: string }> = {}
+            const identities: unknown[] = [receipt.master, ...receipt.themes.flatMap(entry => (entry as Record<string, unknown>).resources as unknown[])]
+            for (const identity of identities) {
+                if (!townThemeRecord(identity) || typeof identity.path !== "string" || !resource(identity.path)
+                    || typeof identity.sha256 !== "string" || !HASH.test(identity.sha256)
+                    || typeof identity.archive !== "string"
+                    || !/^(?:\.cdn\/cn\/archive-common-(?:full|diff)|assets\/asset-patch\/active)\/[a-zA-Z0-9][a-zA-Z0-9._-]*\.zip$/.test(identity.archive)
+                    || resources[identity.path] && resources[identity.path].sha256 !== identity.sha256) throw new Error("invalid_theme_resource_source")
+                resources[identity.path] = { archive: identity.archive, sha256: identity.sha256 }
+            }
+            const actual = readWinningContentResourceHashesSync(path.resolve(assetRoot, ".."), resources)
+            if (Object.entries(resources).some(([logical, expected]) => actual[logical] !== expected.sha256)) throw new Error("theme_resources_changed")
         }
         return new TownThemeCatalog(digest, themes, images, null, semanticResources)
     } catch {

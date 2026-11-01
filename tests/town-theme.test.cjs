@@ -21,9 +21,11 @@ test('deployed catalog and real thumbnails match the verified receipt, native ro
         assert.equal(catalog.find(row.id).nativeTownContentId, row.nativeTownContentId)
     }
 })
-function assets(t, count = 6) {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'town-theme-'))
-    t.after(() => fs.rmSync(root, { recursive: true }))
+function assets(t, count = 6, projectLayout = false) {
+    const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'town-theme-'))
+    t.after(() => fs.rmSync(parent, { recursive: true }))
+    const root = projectLayout ? path.join(parent, 'assets') : parent
+    fs.mkdirSync(root, { recursive: true })
     fs.mkdirSync(path.join(root, 'town_theme_thumbnails')); fs.mkdirSync(path.join(root, 'asset-patch'))
     // Minimal bounded WebP container header used only to test parser identity/dimensions.
     const thumbnail = Buffer.alloc(30)
@@ -68,6 +70,57 @@ function republish(a, requireValid = true) {
     if (requireValid) assert.equal(catalog.degradedReason, null, 'modified synthetic catalog must still have valid receipt/native/resource identities')
     return catalog
 }
+
+test('unrelated manifest extensions keep themes; changed, missing or corrupt theme resources are rejected', t => {
+    const { createHash } = require('node:crypto'), { crc32 } = require('node:zlib')
+    const a = assets(t, 1, true), archive = 'assets/asset-patch/active/base.zip'
+    const member = logical => {
+        const hash = createHash('sha1').update(logical + 'K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy').digest('hex')
+        return `production/upload/${hash.slice(0, 2)}/${hash.slice(2)}`
+    }
+    function zip(entries) {
+        const local = [], central = []; let offset = 0
+        for (const [logical, text] of Object.entries(entries)) {
+            const name = Buffer.from(member(logical)), body = Buffer.from(text), header = Buffer.alloc(30), entry = Buffer.alloc(46)
+            header.writeUInt32LE(0x04034b50); header.writeUInt16LE(20, 4); header.writeUInt32LE(crc32(body), 14)
+            header.writeUInt32LE(body.length, 18); header.writeUInt32LE(body.length, 22); header.writeUInt16LE(name.length, 26)
+            entry.writeUInt32LE(0x02014b50); entry.writeUInt16LE(20, 4); entry.writeUInt16LE(20, 6); entry.writeUInt32LE(crc32(body), 16)
+            entry.writeUInt32LE(body.length, 20); entry.writeUInt32LE(body.length, 24); entry.writeUInt16LE(name.length, 28); entry.writeUInt32LE(offset, 42)
+            local.push(header, name, body); central.push(entry, name); offset += header.length + name.length + body.length
+        }
+        const directory = Buffer.concat(central), end = Buffer.alloc(22)
+        end.writeUInt32LE(0x06054b50); end.writeUInt16LE(central.length / 2, 8); end.writeUInt16LE(central.length / 2, 10)
+        end.writeUInt32LE(directory.length, 12); end.writeUInt32LE(offset, 16)
+        return Buffer.concat([...local, directory, end])
+    }
+    a.receipt.master = { path: 'master/town/town_content.orderedmap', archive, sha256: townThemeHash('native table') }
+    const entries = { [a.receipt.master.path]: 'native table' }
+    for (const identity of a.receipt.themes[0].resources) {
+        entries[identity.path] = `verified ${identity.path}`
+        Object.assign(identity, { archive, sha256: townThemeHash(entries[identity.path]), size: Buffer.byteLength(entries[identity.path]) })
+    }
+    const active = path.join(a.root, 'asset-patch/active')
+    fs.mkdirSync(active)
+    fs.writeFileSync(path.join(active, 'base.zip'), zip(entries))
+    // Keep the original receipt provenance while extending the active chain.
+    const manifest = { cdn_version: '1.4.353', patches: [{ enabled: true, archive: 'base.zip' }, { enabled: true, archive: 'extra.zip' }] }
+    fs.writeFileSync(path.join(a.root, 'asset-patch/manifest.json'), JSON.stringify(manifest))
+    const extra = path.join(active, 'extra.zip')
+    fs.writeFileSync(extra, zip({ 'master/battle/new.orderedmap': 'unrelated battle' }))
+    const catalog = republish(a)
+    assert.equal(catalog.listing().length, 1)
+    const selected = a.receipt.themes[0].resources[0].path
+    for (const logical of [selected, a.receipt.master.path]) {
+        fs.writeFileSync(extra, zip({ [logical]: 'changed theme dependency' }))
+        assert.notEqual(loadTownThemeCatalog(a.root).degradedReason, null, logical)
+    }
+    fs.writeFileSync(extra, zip({ [selected]: entries[selected] }))
+    assert.equal(loadTownThemeCatalog(a.root).degradedReason, null, 'identical repack is compatible')
+    fs.writeFileSync(extra, Buffer.from('invalid zip'))
+    assert.notEqual(loadTownThemeCatalog(a.root).degradedReason, null)
+    fs.unlinkSync(extra)
+    assert.notEqual(loadTownThemeCatalog(a.root).degradedReason, null)
+})
 function fixture(t, count = 6) {
     const a = assets(t, count), db = new Sqlite(':memory:')
     t.after(() => db.close())
