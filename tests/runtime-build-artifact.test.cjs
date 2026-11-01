@@ -4,6 +4,8 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
+const vm = require('node:vm')
+const { createRequire } = require('node:module')
 const { execFileSync, spawnSync } = require('node:child_process')
 const { test, after } = require('node:test')
 const { buildRuntimeArtifact } = require('../tools/build-runtime-artifact.cjs')
@@ -25,7 +27,7 @@ fs.writeFileSync(path.join(dependencyRoot, 'node_modules/.package-lock.json'), J
 after(() => fs.rmSync(root, { recursive: true, force: true }))
 
 let sequence = 0
-function fixture() {
+function fixture(options = {}) {
     const repo = path.join(root, `repo-${++sequence}`)
     fs.mkdirSync(repo)
     const git = args => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
@@ -40,11 +42,60 @@ function fixture() {
     write('tools/runtime-build-policy.json', JSON.stringify({ schema: 1, output_dir: 'out', toolchain: { node: '24.19.0', npm: '11.17.0', typescript: '5.4.5' }, required_outputs: ['out/runtime.js', 'out/worker.js'] }))
     write('src/runtime.ts', 'export const value = 1\n')
     write('src/worker.ts', 'export const worker = true\n')
-    git(['add', '.gitignore', 'package.json', 'package-lock.json', 'tsconfig.json', 'tools/runtime-build-policy.json', 'src/runtime.ts', 'src/worker.ts'])
+    const adminNames = options.admin ? ['admin/package.json', 'admin/package-lock.json', 'admin/index.html', 'admin/tsconfig.json', 'admin/vite.config.ts', 'admin/src/main.ts'] : []
+    if (options.admin) {
+        write(adminNames[0], JSON.stringify({ name: 'admin-fixture', version: '1.0.0', scripts: { build: 'tsc -b && vite build' } }))
+        write(adminNames[1], JSON.stringify({ name: 'admin-fixture', lockfileVersion: 3, packages: { '': { name: 'admin-fixture', version: '1.0.0' } } }))
+        write(adminNames[2], '<div id="root"></div>\n')
+        write(adminNames[3], '{}\n')
+        write(adminNames[4], 'export default {}\n')
+        write(adminNames[5], 'export const label = "admin-committed"\n')
+    }
+    git(['add', '.gitignore', 'package.json', 'package-lock.json', 'tsconfig.json', 'tools/runtime-build-policy.json', 'src/runtime.ts', 'src/worker.ts', ...adminNames])
     git(['commit', '-qm', 'fixture'])
     const source = git(['rev-parse', 'HEAD'])
     const output = path.join(root, `output-${sequence}`)
     return { repo, git, write, source, output, build: extra => buildRuntimeArtifact({ repo, source, output, dependencyRoot, ...extra }), check: extra => checkOutArtifacts({ repo, dependencyRoot, ...extra }) }
+}
+
+// Observe npm at the existing child-process boundary. Git and the real compiler
+// still run normally; no network install or global npm/PATH replacement is used.
+function observedTools() {
+    const calls = [], cache = new Map()
+    function loadTool(name) {
+        if (cache.has(name)) return cache.get(name)
+        const filename = path.join(repoRoot, 'tools', name), localRequire = createRequire(filename)
+        const loaded = { exports: {} }
+        const requireTool = id => {
+            if (id === './build-runtime-artifact.cjs') return loadTool('build-runtime-artifact.cjs')
+            if (id !== 'node:child_process') return localRequire(id)
+            return { ...localRequire(id), execFileSync(command, args, options) {
+                const nodeNpm = command === process.execPath && /[\\/]npm-cli\.js$/.test(args[0] || '')
+                const directNpm = /^npm(?:\.cmd)?$/i.test(path.basename(command))
+                if (!nodeNpm && !directNpm) return execFileSync(command, args, options)
+                const npmArgs = nodeNpm ? args.slice(1) : args
+                if (npmArgs[0] === '--version') return '11.17.0\n'
+                const component = path.basename(options.cwd) === 'admin' ? 'admin' : 'server'
+                calls.push({ component, args: npmArgs })
+                if (component !== 'admin') throw new Error('Unexpected server npm installation/build')
+                if (npmArgs[0] === 'ci') return ''
+                assert.deepEqual(npmArgs, ['run', 'build'])
+                const source = fs.readFileSync(path.join(options.cwd, 'src/main.ts'), 'utf8')
+                calls[calls.length - 1].source = source
+                if (source.includes('ADMIN_BUILD_FAIL')) throw new Error('Fixture admin compilation failed')
+                const dist = path.resolve(options.cwd, '../web/dist')
+                fs.mkdirSync(dist, { recursive: true })
+                fs.writeFileSync(path.join(dist, 'index.html'), source)
+                return ''
+            } }
+        }
+        const wrapper = vm.runInThisContext(`(function(exports, require, module, __filename, __dirname) {\n${fs.readFileSync(filename, 'utf8').replace(/^#![^\n]*\n/, '')}\n})`, { filename })
+        wrapper(loaded.exports, requireTool, loaded, filename, path.dirname(filename))
+        cache.set(name, loaded.exports)
+        return loaded.exports
+    }
+    return { calls, build: loadTool('build-runtime-artifact.cjs').buildRuntimeArtifact,
+        check: loadTool('check-out-artifacts.cjs').checkOutArtifacts }
 }
 
 test('fixed commit ignores dirty source and poisoned historical output; CLI emits only identity JSON', () => {
@@ -114,7 +165,9 @@ test('new or changed tracked outputs fail; removing all tracked outputs is legal
     f.git(['add', '-f', 'out/runtime.js'])
     assert.throws(() => f.check(), /prohibits tracked out/)
     f.git(['rm', '--cached', '-f', '--', 'out/runtime.js'])
-    assert.equal(f.check().skipped, false)
+    const removed = f.check()
+    assert.equal(removed.skipped, true)
+    assert.deepEqual(removed.components, [])
 })
 
 test('compile error and missing worker leave no plausible complete output', () => {
@@ -215,4 +268,109 @@ test('an absolute tsconfig root cannot read ambient declarations outside isolate
     f.write('tsconfig.json', JSON.stringify({ compilerOptions: { rootDir: 'src', outDir: 'out' }, files: ['src/runtime.ts', 'src/worker.ts', external] }))
     f.git(['add', 'src/runtime.ts', 'tsconfig.json'])
     assert.throws(() => f.check(), /Compiler input escapes isolated/)
+})
+
+test('server-only build emits real TypeScript outputs without any admin install or build', () => {
+    const f = fixture({ admin: true }), observed = observedTools()
+    const built = observed.build({ repo: f.repo, source: f.source, output: f.output, dependencyRoot, components: ['server'] })
+    assert.deepEqual(built.components, ['server'])
+    assert.deepEqual(built.files, ['out/runtime.js', 'out/worker.js'])
+    assert.match(fs.readFileSync(path.join(f.output, 'out/runtime.js'), 'utf8'), /value = 1/)
+    assert.equal(fs.existsSync(path.join(f.output, 'web')), false)
+    assert.deepEqual(observed.calls, [])
+})
+
+test('admin-only build ignores broken server inputs and never resolves server dependencies', () => {
+    const f = fixture({ admin: true }), observed = observedTools()
+    f.write('src/runtime.ts', 'export const value: number = "server compile must not run"\n')
+    f.write('tsconfig.json', 'invalid server tsconfig !\n')
+    f.write('package.json', JSON.stringify({ ...pkg, dependencies: { unavailable: '0.0.0' } }))
+    f.git(['add', 'src/runtime.ts', 'tsconfig.json', 'package.json'])
+    const built = observed.build({ repo: f.repo, inputMode: 'index', output: f.output,
+        dependencyRoot: path.join(root, 'server-dependencies-must-not-be-read'), components: ['admin'] })
+    assert.deepEqual(built.components, ['admin'])
+    assert.deepEqual(built.files, ['web/dist/index.html'])
+    assert.equal(fs.existsSync(path.join(f.output, 'out')), false)
+    assert.match(fs.readFileSync(path.join(f.output, 'web/dist/index.html'), 'utf8'), /admin-committed/)
+    assert.deepEqual(observed.calls.map(call => [call.component, call.args[0]]), [['admin', 'ci'], ['admin', 'run']])
+})
+
+test('default build retains both complete server and admin artifacts', () => {
+    const f = fixture({ admin: true }), observed = observedTools()
+    const built = observed.build({ repo: f.repo, source: f.source, output: f.output, dependencyRoot })
+    assert.deepEqual(built.files, ['out/runtime.js', 'out/worker.js', 'web/dist/index.html'])
+    for (const file of built.files) assert.equal(fs.statSync(path.join(f.output, file)).isFile(), true)
+    assert.deepEqual(observed.calls.map(call => [call.component, call.args[0]]), [['admin', 'ci'], ['admin', 'run']])
+})
+
+test('automatic checks select server or admin and skip docs, tests and CDN-only inputs', () => {
+    for (const [filename, contents, expected] of [
+        ['src/runtime.ts', 'export const value = 2\n', ['server']],
+        ['admin/src/main.ts', 'export const label = "admin-staged"\n', ['admin']],
+        ['docs/notes.md', 'documentation only\n', []],
+        ['tests/example.test.cjs', 'throw new Error("not build input")\n', []],
+        ['assets/asset-patch/manifest.json', '{"version":"fixture"}\n', []],
+        ['assets/asset-patch/active/example.zip', 'CDN bytes\n', []],
+    ]) {
+        const f = fixture({ admin: true }), observed = observedTools()
+        f.write(filename, contents); f.git(['add', filename])
+        const result = observed.check({ repo: f.repo, dependencyRoot })
+        assert.deepEqual(result.components, expected, filename)
+        assert.equal(result.skipped, expected.length === 0, filename)
+        assert.deepEqual(observed.calls.map(call => call.component), expected.includes('admin') ? ['admin', 'admin'] : [], filename)
+        if (expected.length) assert.equal(result.files.some(file => file.startsWith('out/')), expected.includes('server'), filename)
+    }
+})
+
+test('task base includes committed server changes and staged admin inputs without borrowing dirty worktree repairs', () => {
+    const f = fixture({ admin: true }), observed = observedTools()
+    f.write('src/runtime.ts', 'export const value = 7\n')
+    f.git(['add', 'src/runtime.ts']); f.git(['commit', '-qm', 'first-task-change'])
+    f.write('admin/src/main.ts', 'export const label = "admin-staged"\n')
+    f.git(['add', 'admin/src/main.ts'])
+    f.write('src/runtime.ts', 'export const value: number = "unstaged poison"\n')
+    f.write('admin/src/main.ts', 'ADMIN_BUILD_FAIL\n')
+    const result = observed.check({ repo: f.repo, dependencyRoot, base: f.source })
+    assert.equal(result.mode, 'index')
+    assert.equal(result.skipped, false)
+    assert.deepEqual(result.components, ['server', 'admin'])
+    assert.deepEqual(result.files, ['out/runtime.js', 'out/worker.js', 'web/dist/index.html'])
+    assert.match(observed.calls.find(call => call.args[0] === 'run').source, /admin-staged/)
+    assert.throws(() => observed.check({ repo: f.repo, dependencyRoot, base: f.source, worktree: true }), /TS2322|admin compilation failed/)
+})
+
+test('committed compile errors remain checked from the task base after the index becomes clean', () => {
+    const f = fixture(), observed = observedTools()
+    f.write('src/runtime.ts', 'export const value: number = "committed invalid code"\n')
+    f.git(['add', 'src/runtime.ts']); f.git(['commit', '-qm', 'invalid-task-change'])
+    f.write('src/runtime.ts', 'export const value = 9\n')
+    assert.throws(() => observed.check({ repo: f.repo, dependencyRoot, base: f.source }), /TS2322/)
+    const cli = spawnSync(process.execPath, [path.join(repoRoot, 'tools/check-out-artifacts.cjs'),
+        '--repo', f.repo, '--dependency-root', dependencyRoot, '--base', f.source], { encoding: 'utf8' })
+    assert.notEqual(cli.status, 0)
+    assert.match(cli.stderr, /TS2322/)
+})
+
+test('invalid, empty, noncommit and unrelated bases cannot silently skip a docs-only check', () => {
+    const f = fixture(), observed = observedTools()
+    f.write('docs/notes.md', 'docs only\n'); f.git(['add', 'docs/notes.md'])
+    const tree = f.git(['rev-parse', `${f.source}^{tree}`])
+    const unrelated = f.git(['commit-tree', tree, '-m', 'unrelated-root'])
+    for (const base of ['', ' ', null, 42, 'does-not-exist', '0'.repeat(40), tree, unrelated]) {
+        assert.throws(() => observed.check({ repo: f.repo, dependencyRoot, base }), undefined, `must reject base ${JSON.stringify(base)}`)
+    }
+    assert.deepEqual(observed.calls, [])
+    const cli = spawnSync(process.execPath, [path.join(repoRoot, 'tools/check-out-artifacts.cjs'), '--repo', f.repo, '--base'], { encoding: 'utf8' })
+    assert.notEqual(cli.status, 0)
+    assert.match(cli.stderr, /base|argument/i)
+})
+
+test('--all explicitly builds both components even when only documentation changed', () => {
+    const f = fixture({ admin: true }), observed = observedTools()
+    f.write('docs/notes.md', 'docs only\n'); f.git(['add', 'docs/notes.md'])
+    const result = observed.check({ repo: f.repo, dependencyRoot, all: true })
+    assert.equal(result.skipped, false)
+    assert.deepEqual(result.components, ['server', 'admin'])
+    assert.deepEqual(result.files, ['out/runtime.js', 'out/worker.js', 'web/dist/index.html'])
+    assert.equal(observed.calls.some(call => call.component === 'admin' && call.args[0] === 'ci'), true)
 })

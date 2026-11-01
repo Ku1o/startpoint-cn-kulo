@@ -40,6 +40,17 @@ function inputEntries(repo, source, mode) {
         return { name, oid: fields[mode === 'index' ? 1 : 2] }
     }).filter(Boolean)
 }
+function buildComponents(options) {
+    if (options.components === undefined) return ['server', 'admin']
+    if (!Array.isArray(options.components) || !options.components.length || options.components.length > 2
+        || options.components.some(name => !['server', 'admin'].includes(name))
+        || new Set(options.components).size !== options.components.length) throw new Error('Invalid runtime build components')
+    return ['server', 'admin'].filter(name => options.components.includes(name))
+}
+function componentInput(name, components) {
+    if (['package.json', 'package-lock.json', POLICY].includes(name)) return true
+    return name.startsWith('admin/') ? components.includes('admin') : components.includes('server')
+}
 function resolveBuildInput(options) {
     const repo = path.resolve(options.repo || '.')
     const mode = options.inputMode || 'commit'
@@ -51,7 +62,9 @@ function resolveBuildInput(options) {
     const sourceTree = hasTree ? options.sourceTree : null
     // Do not peel commits/tags here: the recipe must supply an existing tree.
     if (sourceTree && git(repo, ['cat-file', '-t', sourceTree]).trim() !== 'tree') throw new Error('--source-tree must identify a Git tree object')
-    return { repo, mode, source, sourceTree, entries: inputEntries(repo, sourceTree || source, mode) }
+    const components = buildComponents(options)
+    return { repo, mode, source, sourceTree,
+        entries: inputEntries(repo, sourceTree || source, mode).filter(entry => componentInput(entry.name, components)) }
 }
 function buildInputIdentity(input, scratch) {
     const { source, sourceTree, mode, entries } = input
@@ -180,6 +193,7 @@ function buildAdminArtifact(scratch, output, entries) {
     return files
 }
 function buildRuntimeArtifact(options) {
+    const components = buildComponents(options)
     const input = resolveBuildInput(options)
     const { repo, mode, entries } = input
     const output = path.resolve(options.output)
@@ -202,88 +216,97 @@ function buildRuntimeArtifact(options) {
         const npm = npmVersion()
         if (node !== policy.toolchain.node || npm !== policy.toolchain.npm) throw new Error(`Toolchain mismatch: Node ${node}, npm ${npm}`)
         const lockBytes = fs.readFileSync(path.join(scratch, 'package-lock.json'))
-        const sourcePackage = json(path.join(scratch, 'package.json'))
-        const lockedPackage = JSON.parse(lockBytes.toString('utf8')).packages?.['']
-        const sortedPairs = value => JSON.stringify(Object.entries(value || {}).sort(([a], [b]) => a.localeCompare(b)))
-        if (!lockedPackage || ['dependencies', 'devDependencies', 'optionalDependencies'].some(key => sortedPairs(sourcePackage[key]) !== sortedPairs(lockedPackage[key]))) throw new Error('Source package.json dependencies do not match package-lock.json')
-        let dependencyRoot = scratch
-        if (options.dependencyRoot) dependencyRoot = fs.realpathSync(options.dependencyRoot)
-        else npmCi(scratch)
-        const ts = validateDependencies(dependencyRoot, lockBytes, policy)
-        if (dependencyRoot !== scratch) fs.symlinkSync(path.join(dependencyRoot, 'node_modules'), path.join(scratch, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir')
-        const configFile = path.join(scratch, 'tsconfig.json')
-        const config = ts.readConfigFile(configFile, ts.sys.readFile)
-        if (config.error) throw new Error(ts.flattenDiagnosticMessageText(config.error.messageText, '\n'))
-        // Extends must not read shared worktree or machine-local configuration.
-        if (config.config.extends || config.config.references) throw new Error('Runtime build requires a standalone tsconfig')
-        const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, scratch)
-        if (parsed.errors.length) throw new Error(ts.formatDiagnosticsWithColorAndContext(parsed.errors, { getCanonicalFileName: p => p, getCurrentDirectory: () => scratch, getNewLine: () => '\n' }))
-        const emitRoot = path.join(scratch, 'out')
-        if (!parsed.options.outDir || path.resolve(parsed.options.outDir) !== emitRoot || parsed.options.outFile || parsed.options.declarationDir && !inside(emitRoot, path.resolve(parsed.options.declarationDir))) throw new Error('Compiler output must remain inside out/')
-        const compilerOptions = { ...parsed.options, noEmitOnError: true, incremental: false, composite: false, tsBuildInfoFile: undefined }
-        const roots = [...new Set([...parsed.fileNames, ...entries.filter(e => /^src\/.*\.tsx?$/.test(e.name)).map(e => path.join(scratch, e.name))])]
-        const host = ts.createCompilerHost(compilerOptions)
-        const dependencyModules = fs.realpathSync(path.join(dependencyRoot, 'node_modules'))
-        const allowed = filename => {
-            const absolute = path.resolve(filename)
-            if (!inside(scratch, absolute) && !inside(dependencyModules, absolute)) return false
-            if (fs.existsSync(absolute)) {
-                const real = fs.realpathSync(absolute)
-                return inside(scratch, real) || inside(dependencyModules, real)
+        let serverFiles = []
+        let serverMetadata = { typescript_version: null, dependency_source: 'admin-npm-ci', root_dir: null }
+        if (components.includes('server')) {
+            const sourcePackage = json(path.join(scratch, 'package.json'))
+            const lockedPackage = JSON.parse(lockBytes.toString('utf8')).packages?.['']
+            const sortedPairs = value => JSON.stringify(Object.entries(value || {}).sort(([a], [b]) => a.localeCompare(b)))
+            if (!lockedPackage || ['dependencies', 'devDependencies', 'optionalDependencies'].some(key => sortedPairs(sourcePackage[key]) !== sortedPairs(lockedPackage[key]))) throw new Error('Source package.json dependencies do not match package-lock.json')
+            let dependencyRoot = scratch
+            if (options.dependencyRoot) dependencyRoot = fs.realpathSync(options.dependencyRoot)
+            else npmCi(scratch)
+            const ts = validateDependencies(dependencyRoot, lockBytes, policy)
+            if (dependencyRoot !== scratch) fs.symlinkSync(path.join(dependencyRoot, 'node_modules'), path.join(scratch, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir')
+            const configFile = path.join(scratch, 'tsconfig.json')
+            const config = ts.readConfigFile(configFile, ts.sys.readFile)
+            if (config.error) throw new Error(ts.flattenDiagnosticMessageText(config.error.messageText, '\n'))
+            // Extends must not read shared worktree or machine-local configuration.
+            if (config.config.extends || config.config.references) throw new Error('Runtime build requires a standalone tsconfig')
+            const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, scratch)
+            if (parsed.errors.length) throw new Error(ts.formatDiagnosticsWithColorAndContext(parsed.errors, { getCanonicalFileName: p => p, getCurrentDirectory: () => scratch, getNewLine: () => '\n' }))
+            const emitRoot = path.join(scratch, 'out')
+            if (!parsed.options.outDir || path.resolve(parsed.options.outDir) !== emitRoot || parsed.options.outFile || parsed.options.declarationDir && !inside(emitRoot, path.resolve(parsed.options.declarationDir))) throw new Error('Compiler output must remain inside out/')
+            const compilerOptions = { ...parsed.options, noEmitOnError: true, incremental: false, composite: false, tsBuildInfoFile: undefined }
+            const roots = [...new Set([...parsed.fileNames, ...entries.filter(e => /^src\/.*\.tsx?$/.test(e.name)).map(e => path.join(scratch, e.name))])]
+            const host = ts.createCompilerHost(compilerOptions)
+            const dependencyModules = fs.realpathSync(path.join(dependencyRoot, 'node_modules'))
+            const allowed = filename => {
+                const absolute = path.resolve(filename)
+                if (!inside(scratch, absolute) && !inside(dependencyModules, absolute)) return false
+                if (fs.existsSync(absolute)) {
+                    const real = fs.realpathSync(absolute)
+                    return inside(scratch, real) || inside(dependencyModules, real)
+                }
+                return true
             }
-            return true
-        }
-        if (roots.some(filename => !allowed(filename))) throw new Error('Compiler input escapes isolated source/dependencies')
-        const originalGetSourceFile = host.getSourceFile.bind(host)
-        host.getSourceFile = (filename, ...args) => allowed(filename) ? originalGetSourceFile(filename, ...args) : undefined
-        host.getCurrentDirectory = () => scratch
-        for (const name of ['readFile', 'fileExists', 'directoryExists']) {
-            const original = host[name]?.bind(host)
-            if (original) host[name] = filename => allowed(filename) ? original(filename) : name === 'readFile' ? undefined : false
-        }
-        const emitted = new Set()
-        host.writeFile = (filename, data, bom) => {
-            const absolute = path.resolve(filename)
-            // TypeScript leaves imported JSON outside rootDir at its original
-            // assets location. Those committed static inputs are not out emits.
-            if (!inside(emitRoot, absolute)) {
-                const relative = slash(path.relative(scratch, absolute))
-                if ((relative.startsWith('assets/') && relative.endsWith('.json') || relative === 'docs/generated/character_table.json') && fs.existsSync(absolute) && fs.readFileSync(absolute, 'utf8').replace(/^\uFEFF/, '') === data.replace(/^\uFEFF/, '')) return
-                throw new Error(`Compiler output escapes out/: ${relative}`)
+            if (roots.some(filename => !allowed(filename))) throw new Error('Compiler input escapes isolated source/dependencies')
+            const originalGetSourceFile = host.getSourceFile.bind(host)
+            host.getSourceFile = (filename, ...args) => allowed(filename) ? originalGetSourceFile(filename, ...args) : undefined
+            host.getCurrentDirectory = () => scratch
+            for (const name of ['readFile', 'fileExists', 'directoryExists']) {
+                const original = host[name]?.bind(host)
+                if (original) host[name] = filename => allowed(filename) ? original(filename) : name === 'readFile' ? undefined : false
             }
-            fs.mkdirSync(path.dirname(absolute), { recursive: true })
-            fs.writeFileSync(absolute, `${bom ? '\uFEFF' : ''}${data}`)
-            emitted.add(slash(path.relative(scratch, absolute)))
-        }
-        const program = ts.createProgram(roots, compilerOptions, host)
-        const diagnostics = ts.getPreEmitDiagnostics(program)
-        if (diagnostics.some(d => d.category === ts.DiagnosticCategory.Error)) throw new Error(ts.formatDiagnostics(diagnostics, { getCanonicalFileName: p => p, getCurrentDirectory: () => scratch, getNewLine: () => '\n' }))
-        const result = program.emit()
-        if (result.emitSkipped || result.diagnostics.some(d => d.category === ts.DiagnosticCategory.Error)) throw new Error('TypeScript emit failed')
-        for (const filename of policy.required_outputs) if (!emitted.has(filename)) throw new Error(`Missing required runtime output: ${filename}`)
-        for (const filename of emitted) {
-            if (!filename.endsWith('.js')) continue
-            const absolute = path.join(scratch, filename)
-            const tree = ts.createSourceFile(filename, fs.readFileSync(absolute, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
-            const checkReference = reference => {
-                if (!reference.startsWith('.')) return
-                const target = path.resolve(path.dirname(absolute), reference)
-                const candidates = [target, `${target}.js`, `${target}.json`, path.join(target, 'index.js')]
-                if (!inside(scratch, target) || !candidates.some(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile())) throw new Error(`Missing relative runtime dependency: ${filename} -> ${reference}`)
+            const emitted = new Set()
+            host.writeFile = (filename, data, bom) => {
+                const absolute = path.resolve(filename)
+                // TypeScript leaves imported JSON outside rootDir at its original
+                // assets location. Those committed static inputs are not out emits.
+                if (!inside(emitRoot, absolute)) {
+                    const relative = slash(path.relative(scratch, absolute))
+                    if ((relative.startsWith('assets/') && relative.endsWith('.json') || relative === 'docs/generated/character_table.json') && fs.existsSync(absolute) && fs.readFileSync(absolute, 'utf8').replace(/^\uFEFF/, '') === data.replace(/^\uFEFF/, '')) return
+                    throw new Error(`Compiler output escapes out/: ${relative}`)
+                }
+                fs.mkdirSync(path.dirname(absolute), { recursive: true })
+                fs.writeFileSync(absolute, `${bom ? '\uFEFF' : ''}${data}`)
+                emitted.add(slash(path.relative(scratch, absolute)))
             }
-            const visit = node => {
-                if (ts.isCallExpression(node) && (node.expression.kind === ts.SyntaxKind.ImportKeyword || ts.isIdentifier(node.expression) && node.expression.text === 'require') && node.arguments.length && ts.isStringLiteralLike(node.arguments[0])) checkReference(node.arguments[0].text)
-                if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteralLike(node.moduleSpecifier)) checkReference(node.moduleSpecifier.text)
-                ts.forEachChild(node, visit)
+            const program = ts.createProgram(roots, compilerOptions, host)
+            const diagnostics = ts.getPreEmitDiagnostics(program)
+            if (diagnostics.some(d => d.category === ts.DiagnosticCategory.Error)) throw new Error(ts.formatDiagnostics(diagnostics, { getCanonicalFileName: p => p, getCurrentDirectory: () => scratch, getNewLine: () => '\n' }))
+            const result = program.emit()
+            if (result.emitSkipped || result.diagnostics.some(d => d.category === ts.DiagnosticCategory.Error)) throw new Error('TypeScript emit failed')
+            for (const filename of policy.required_outputs) if (!emitted.has(filename)) throw new Error(`Missing required runtime output: ${filename}`)
+            for (const filename of emitted) {
+                if (!filename.endsWith('.js')) continue
+                const absolute = path.join(scratch, filename)
+                const tree = ts.createSourceFile(filename, fs.readFileSync(absolute, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
+                const checkReference = reference => {
+                    if (!reference.startsWith('.')) return
+                    const target = path.resolve(path.dirname(absolute), reference)
+                    const candidates = [target, `${target}.js`, `${target}.json`, path.join(target, 'index.js')]
+                    if (!inside(scratch, target) || !candidates.some(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile())) throw new Error(`Missing relative runtime dependency: ${filename} -> ${reference}`)
+                }
+                const visit = node => {
+                    if (ts.isCallExpression(node) && (node.expression.kind === ts.SyntaxKind.ImportKeyword || ts.isIdentifier(node.expression) && node.expression.text === 'require') && node.arguments.length && ts.isStringLiteralLike(node.arguments[0])) checkReference(node.arguments[0].text)
+                    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteralLike(node.moduleSpecifier)) checkReference(node.moduleSpecifier.text)
+                    ts.forEachChild(node, visit)
+                }
+                visit(tree)
             }
-            visit(tree)
+            serverFiles = [...emitted].sort()
+            if (!serverFiles.length || walk(emitRoot).length !== serverFiles.length) throw new Error('Incomplete emitted output inventory')
+            fs.cpSync(emitRoot, path.join(output, 'out'), { recursive: true, errorOnExist: true, force: false })
+            serverMetadata = { typescript_version: ts.version, dependency_source: options.dependencyRoot ? 'trusted-local-install' : 'npm-ci',
+                root_dir: parsed.options.rootDir ? slash(path.relative(scratch, parsed.options.rootDir)) : null }
         }
-        const serverFiles = [...emitted].sort()
-        if (!serverFiles.length || walk(emitRoot).length !== serverFiles.length) throw new Error('Incomplete emitted output inventory')
-        fs.cpSync(emitRoot, path.join(output, 'out'), { recursive: true, errorOnExist: true, force: false })
-        const adminFiles = buildAdminArtifact(scratch, output, entries)
+        const adminFiles = components.includes('admin') ? buildAdminArtifact(scratch, output, entries) : []
         const files = [...serverFiles, ...adminFiles].sort()
-        return { schema: 1, ...buildInputIdentity(input, scratch), node_version: node, npm_version: npm, typescript_version: ts.version, dependency_source: options.dependencyRoot ? 'trusted-local-install' : 'npm-ci', lockfile_sha256: sha256(lockBytes), root_dir: parsed.options.rootDir ? slash(path.relative(scratch, parsed.options.rootDir)) : null, files }
+        return { schema: 1, ...buildInputIdentity(input, scratch), node_version: node, npm_version: npm,
+            typescript_version: serverMetadata.typescript_version, dependency_source: serverMetadata.dependency_source,
+            lockfile_sha256: sha256(lockBytes), root_dir: serverMetadata.root_dir, files,
+            ...(options.components === undefined ? {} : { components }) }
     } catch (error) {
         const emittedOutput = path.join(output, 'out')
         if (inside(output, emittedOutput)) fs.rmSync(emittedOutput, { recursive: true, force: true })
@@ -294,11 +317,12 @@ function buildRuntimeArtifact(options) {
 }
 function main(argv = process.argv.slice(2)) {
     const options = {}
-    const names = { '--repo': 'repo', '--source': 'source', '--source-tree': 'sourceTree', '--output': 'output', '--dependency-root': 'dependencyRoot' }
+    const names = { '--repo': 'repo', '--source': 'source', '--source-tree': 'sourceTree', '--output': 'output', '--dependency-root': 'dependencyRoot', '--components': 'components' }
     for (let i = 0; i < argv.length; i++) {
-        if (argv[i] === '--help') { process.stdout.write('Usage: node tools/build-runtime-artifact.cjs --repo REPO --source SHA --output EMPTY_DIR [--source-tree FULL_TREE_OID] [--dependency-root LOCKED_INSTALL_DIR]\n--source-tree selects an existing Git tree for commit-mode inputs while retaining --source as the source_commit anchor and recording source_tree.\nDefault: isolated npm ci --ignore-scripts. --dependency-root trusts local package bytes after checking source/install lock metadata and actual versions; it does not verify each installed byte against registry tarballs.\n'); return }
+        if (argv[i] === '--help') { process.stdout.write('Usage: node tools/build-runtime-artifact.cjs --repo REPO --source SHA --output EMPTY_DIR [--source-tree FULL_TREE_OID] [--dependency-root LOCKED_INSTALL_DIR] [--components server|admin|server,admin]\nDefault: complete server and admin artifact. --components selects a local validation scope, not a complete delivery artifact.\n--source-tree selects an existing Git tree for commit-mode inputs while retaining --source as the source_commit anchor and recording source_tree.\nDefault: isolated npm ci --ignore-scripts. --dependency-root trusts local package bytes after checking source/install lock metadata and actual versions; it does not verify each installed byte against registry tarballs.\n'); return }
         if (!names[argv[i]] || !argv[i + 1]) throw new Error(`Unknown or incomplete argument: ${argv[i]}`)
-        options[names[argv[i]]] = argv[++i]
+        const name = names[argv[i]], value = argv[++i]
+        options[name] = name === 'components' ? value.split(',') : value
     }
     if (!options.source || !options.output) throw new Error('--source and --output are required')
     process.stdout.write(`${JSON.stringify(buildRuntimeArtifact(options))}\n`)
