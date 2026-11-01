@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.353",
+  "cdn_version": "1.4.355",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -33876,6 +33876,74 @@
         "production/upload/ad/dd80306c1243fb2c0098964a76c7d82077608a",
         "production/upload/e2/0870f7d024e24e1967f8e788b83b3ff1b0886e",
         "production/upload/fd/fbc5cc260978c853cfdbf44cade82991a90d64"
+      ],
+      "created_at": "2026-11-01"
+    },
+    {
+      "id": "gerald-fever-toggle-1.4.354",
+      "type": "patch",
+      "name": "水杰拉德能力3 Fever开关修复与描述修正",
+      "description": "修复能力 1299893 在 Fever 进出时清理隐藏固有状态失效的问题（c47 528→526），并将文案修正为伤害类型与队长相同。离线验证，未经实战验收。",
+      "version": "1.4.354",
+      "depends_on": "1.4.353",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.353-1.4.354-1-gerald-fever-toggle.zip",
+      "archive_size": 311871,
+      "chain": [
+        "pinball-1.4.353-1.4.354-1-gerald-fever-toggle.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.353-1.4.354-1-gerald-fever-toggle.zip",
+          "size": 311871,
+          "sha256": "815e297ae95510bc854188722fb537abe0f4591e274625870d7fd4f74941c52c",
+          "members": 2,
+          "files": [
+            "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+            "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+        "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001"
+      ],
+      "created_at": "2026-11-01"
+    },
+    {
+      "id": "fiveboss-second-tune-1.4.355",
+      "type": "patch",
+      "name": "五重二轮减难与P2去清槽调整",
+      "description": "五重防御up阶梯调整为50%起（50/60/70/80/90/100%），39关Boss血量×0.70、攻击×0.80，P2入场不再清空技能槽；狂暴可驱散已在1.4.352生效，不重复下发。离线验证，未经实战验收。",
+      "version": "1.4.355",
+      "depends_on": "1.4.354",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.354-1.4.355-1-fiveboss-second-tune.zip",
+      "archive_size": 93976,
+      "chain": [
+        "pinball-1.4.354-1.4.355-1-fiveboss-second-tune.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.354-1.4.355-1-fiveboss-second-tune.zip",
+          "size": 93976,
+          "sha256": "b56054bc70b2589e00411ab429543784b5a6f5171bdd10d3abd381a404cd571b",
+          "members": 4,
+          "files": [
+            "production/upload/77/d39547cee5052ce00f4fcf952874cb651aaf36",
+            "production/upload/c2/8880c7c16edbda663cdf2ccb0f82a0e2f8ec4b",
+            "production/upload/cd/84cfd1deb4c6344183e82bcc8c380d26a120e5",
+            "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/77/d39547cee5052ce00f4fcf952874cb651aaf36",
+        "production/upload/c2/8880c7c16edbda663cdf2ccb0f82a0e2f8ec4b",
+        "production/upload/cd/84cfd1deb4c6344183e82bcc8c380d26a120e5",
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
       ],
       "created_at": "2026-11-01"
     }
