@@ -277,6 +277,178 @@ test('proof failure stays visible to finish; retransmission may retry durable pr
   assert.deepEqual(runtime.fiveBossProofBarrierStatus(x.r.five_boss_runtime.runId, 11), { ok: true }); assert.equal(calls, 2)
 })
 
+const budgetFailure = () => Object.assign(new Error('business capacity unavailable'), { code: 'BUSINESS_PENDING_BUDGET' })
+const proofClient = () => ({ viewerId: 1, playerId: 11, connectionId: 'cid', superseded: false, socket: {} })
+
+test('a barrier restores only the original capacity-rejected payloads after room expiry in proof dependency order', async () => {
+  const x = fixture(), client = proofClient(), sent = []
+  business = (_kind, payload) => { sent.push(payload); return Promise.reject(budgetFailure()) }
+  for (const signal of ['scene_ready', 'finalize', 'level_next']) runtime.recordFiveBossSignal(x.r, client, signal)
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  const original = sent.map(payload => ({ ...payload }))
+  activeRooms.delete(x.r.room_number)
+  x.r.lifecycle.instanceId = 'replacement-instance'; x.r.lifecycle.battleSessionId = 'replacement-session'
+  let transitioned = false
+  business = (_kind, payload) => {
+    sent.push(payload)
+    assert.equal(Object.isFrozen(payload), true)
+    if (payload.signal === 'level_next') transitioned = true
+    if (payload.signal === 'finalize') assert.equal(transitioned, true)
+    return Promise.resolve({ persisted: true })
+  }
+  const result = await x.gateway.execute('fiveBoss.proof.barrier', {
+    runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number,
+  })
+  assert.deepEqual(result, { ok: true })
+  assert.deepEqual(sent.slice(3).map(payload => payload.signal), ['scene_ready', 'level_next', 'finalize'])
+  for (const payload of sent.slice(3)) assert.deepEqual(payload, original.find(value => value.signal === payload.signal))
+})
+
+test('concurrent barriers share one original proof recovery and drain retains its actual completion', async () => {
+  const x = fixture(), client = proofClient(), gate = deferred(); let calls = 0
+  business = () => Promise.reject(budgetFailure())
+  runtime.recordFiveBossSignal(x.r, client, 'finalize')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  business = () => { calls++; return gate.promise }
+  const input = { runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number }
+  const first = x.gateway.execute('fiveBoss.proof.barrier', input)
+  await pause()
+  const second = x.gateway.execute('fiveBoss.proof.barrier', input)
+  let drained = false
+  const drain = runtime.drainFiveBossSignalPersistence().then(() => { drained = true })
+  await pause(); assert.equal(calls, 1); assert.equal(drained, false)
+  gate.resolve({ persisted: true })
+  assert.deepEqual(await first, { ok: true }); assert.deepEqual(await second, { ok: true })
+  await drain; assert.equal(drained, true)
+})
+
+test('persistent capacity rejection makes one bounded attempt per barrier and retains the original proof', async () => {
+  const x = fixture(), client = proofClient(), sent = []
+  business = (_kind, payload) => { sent.push(payload); return Promise.reject(budgetFailure()) }
+  runtime.recordFiveBossSignal(x.r, client, 'level_next')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  const input = { runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number }
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', input), { ok: false })
+  assert.equal(sent.length, 2)
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', input), { ok: false })
+  assert.equal(sent.length, 3)
+  assert.deepEqual(sent[1], sent[0]); assert.deepEqual(sent[2], sent[0])
+})
+
+test('a barrier restores the original LevelNext before its dependency-rejected original Finalize', async () => {
+  const x = fixture(), client = proofClient(), sent = []
+  business = (_kind, payload) => {
+    sent.push(payload)
+    return Promise.reject(payload.signal === 'level_next' ? budgetFailure()
+      : Object.assign(new Error('Finalize preceded the durable LevelNext'), { code: 'battle_signal_order' }))
+  }
+  runtime.recordFiveBossSignal(x.r, client, 'level_next')
+  runtime.recordFiveBossSignal(x.r, client, 'finalize')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  let levelNextDurable = false
+  business = (_kind, payload) => {
+    sent.push(payload)
+    if (payload.signal === 'level_next') levelNextDurable = true
+    if (payload.signal === 'finalize') assert.equal(levelNextDurable, true)
+    return Promise.resolve({ persisted: true })
+  }
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', {
+    runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number,
+  }), { ok: true })
+  assert.deepEqual(sent.slice(2), sent.slice(0, 2))
+})
+
+test('a successful TCP LevelNext retransmission leaves its original order-rejected Finalize recoverable', async () => {
+  const x = fixture(), client = proofClient(), sent = []; let levelNextDurable = false
+  business = (_kind, payload) => {
+    sent.push(payload)
+    return Promise.reject(payload.signal === 'level_next' ? budgetFailure()
+      : Object.assign(new Error('Finalize preceded the durable LevelNext'), { code: 'battle_signal_order' }))
+  }
+  runtime.recordFiveBossSignal(x.r, client, 'level_next')
+  runtime.recordFiveBossSignal(x.r, client, 'finalize')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  const originalFinalize = sent.find(payload => payload.signal === 'finalize')
+  business = (_kind, payload) => {
+    sent.push(payload)
+    if (payload.signal === 'level_next') levelNextDurable = true
+    if (payload.signal === 'finalize') assert.equal(levelNextDurable, true)
+    return Promise.resolve({ persisted: true })
+  }
+  runtime.recordFiveBossSignal(x.r, client, 'level_next')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  assert.equal(levelNextDurable, true)
+  assert.deepEqual(runtime.fiveBossProofBarrierStatus(x.r.five_boss_runtime.runId, 11), { ok: false })
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', {
+    runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number,
+  }), { ok: true })
+  assert.equal(sent.length, 4)
+  assert.deepEqual(sent[3], originalFinalize)
+})
+
+test('retrying an original order-rejected Finalize never invents LevelNext or clears a renewed SQL rejection', async () => {
+  const x = fixture(), client = proofClient(), sent = []
+  business = (_kind, payload) => {
+    sent.push(payload)
+    return Promise.reject(Object.assign(new Error('durable LevelNext is still absent'), { code: 'battle_signal_order' }))
+  }
+  runtime.recordFiveBossSignal(x.r, client, 'finalize')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  const input = { runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number }
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', input), { ok: false })
+  assert.equal(sent.length, 2)
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', input), { ok: false })
+  assert.equal(sent.length, 3)
+  for (const payload of sent) assert.deepEqual(payload, sent[0])
+})
+
+test('an unknown recovery waits for its original ACK and neither another barrier nor drain resubmits it', async () => {
+  const x = fixture(), client = proofClient(), confirmation = deferred(); let calls = 0
+  business = () => Promise.reject(budgetFailure())
+  runtime.recordFiveBossSignal(x.r, client, 'finalize')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  business = () => { calls++; return Promise.reject(Object.assign(new Error('ACK deadline'), {
+    code: 'BUSINESS_OUTCOME_UNKNOWN', confirmation: confirmation.promise,
+  })) }
+  const input = { runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number }
+  const first = x.gateway.execute('fiveBoss.proof.barrier', input)
+  await pause()
+  const second = x.gateway.execute('fiveBoss.proof.barrier', input)
+  let drained = false
+  const drain = runtime.drainFiveBossSignalPersistence().then(() => { drained = true })
+  await pause(); assert.equal(calls, 1); assert.equal(drained, false)
+  confirmation.resolve({ persisted: true })
+  assert.deepEqual(await first, { ok: true }); assert.deepEqual(await second, { ok: true })
+  await drain; assert.equal(calls, 1)
+})
+
+test('a recovery cannot use another room or invent another member proof; terminal confirmation prevents replay', async () => {
+  const x = fixture(), client = proofClient(); let calls = 0
+  business = () => { calls++; return Promise.reject(budgetFailure()) }
+  runtime.recordFiveBossSignal(x.r, client, 'finalize')
+  await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+  const input = { runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number }
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', { ...input, roomNumber: 'other-room' }), { ok: false })
+  await x.gateway.execute('fiveBoss.proof.barrier', { ...input, playerId: 12 })
+  assert.equal(calls, 1)
+  runtime.clearFiveBossProofStatus(input.runId)
+  assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', input), { ok: true })
+  assert.equal(calls, 1)
+})
+
+test('a failed original confirmation or unrelated permanent rejection is never replayed', async () => {
+  for (const code of ['BUSINESS_CHANNEL_CLOSED', 'member_not_active', 'run_conflict']) {
+    const x = fixture(), client = proofClient(); let calls = 0
+    business = () => { calls++; return Promise.reject(Object.assign(new Error(code), { code })) }
+    runtime.recordFiveBossSignal(x.r, client, 'finalize')
+    await runtime.waitForFiveBossSignalPersistence(x.r.five_boss_runtime.runId, 11)
+    assert.deepEqual(await x.gateway.execute('fiveBoss.proof.barrier', {
+      runId: x.r.five_boss_runtime.runId, playerId: 11, roomNumber: x.r.room_number,
+    }), { ok: false })
+    assert.equal(calls, 1)
+  }
+})
+
 test('the child freezes only parent-authenticated owned characters and never reads a database', () => {
   const x = fixture(); delete x.r.five_boss_runtime
   const wire = { viewerId: 1, comId: 0, state: [1], autoplayMode: false,

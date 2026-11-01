@@ -9,7 +9,7 @@ import { bindBattlePlay, findBattlePlayBinding, markBattleMemberPhase } from "..
 import { ensureRematchReturnReservations, markMemberSettlementCommitted, markRematchReturnWindowOpened } from "../room/rematch-roster"
 import { classifyMultiActiveQuestRecovery } from "../../lib/multi-active-quest-recovery"
 import { isFiveBossGauntletQuest } from "../five-boss/contract"
-import { waitForFiveBossSignalPersistence, fiveBossProofBarrierStatus, clearFiveBossProofStatus } from "../five-boss/lobby-runtime"
+import { recoverFiveBossSignalPersistence, fiveBossProofBarrierStatus, clearFiveBossProofStatus } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import { pinRoomStart, unpinRoomStart, deferPinnedRoomControl } from "./room-start-claims"
 
@@ -176,7 +176,7 @@ export function registerFiveBossCommandHandlers(executor: RoomCommandExecutor): 
                 if (!deferPinnedRoomControl(room, resolve)) resolve()
             })
         }
-        await waitForFiveBossSignalPersistence(p.runId, p.playerId)
+        await recoverFiveBossSignalPersistence(p.runId, p.playerId, p.roomNumber)
         return fiveBossProofBarrierStatus(p.runId, p.playerId)
     })
     executor.register("fiveBoss.terminal", (p: { roomNumber: string; runId: string; runStatus: string; playerId?: number; viewerId?: number; playId?: string }) =>

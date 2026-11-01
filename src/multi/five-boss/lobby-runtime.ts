@@ -13,7 +13,19 @@ import { getPlayerBusinessFacts } from "../coordinator/business-facts"
 // necessarily committed.  Keep the tail for each frozen member so HTTP
 // settlement can wait for notifications that already reached this process.
 const pendingFiveBossSignalWrites = new Map<string, Promise<void>>()
-const failedFiveBossSignals = new Map<string, { at: number; signals: Set<string> }>()
+type FiveBossSignal = "scene_ready" | "level_next" | "finalize"
+interface FiveBossProofPayload {
+    readonly runId: string
+    readonly playerId: number
+    readonly roomNumber: string
+    readonly signal: FiveBossSignal
+    readonly proofSequence: number
+    readonly roomInstanceId: string
+    readonly battleSessionId: string | null
+}
+interface FailedFiveBossSignal { payload: Readonly<FiveBossProofPayload>; code: string }
+const failedFiveBossSignals = new Map<string, { at: number; signals: Map<FiveBossSignal, FailedFiveBossSignal> }>()
+const recoveringFiveBossSignals = new Map<string, Promise<void>>()
 const proofSequences = new WeakMap<object, number>()
 const terminalProofRuns = new Map<string, number>()
 
@@ -48,9 +60,64 @@ export function waitForFiveBossSignalPersistence(runId: string, playerId: number
     return pendingFiveBossSignalWrites.get(fiveBossSignalKey(runId, playerId)) ?? Promise.resolve()
 }
 
+async function persistFiveBossProof(payload: Readonly<FiveBossProofPayload>): Promise<void> {
+    let result: { persisted: boolean }
+    try { result = await invokeRealtimeBusiness<{ persisted: boolean }>("fiveBoss.proof.persist", payload) }
+    catch (error) {
+        const uncertain = error as { code?: string; confirmation?: Promise<unknown> }
+        // A deadline is not rejection. Observe the original application ACK;
+        // never replace an unknown write with another request.
+        if (uncertain?.code !== "BUSINESS_OUTCOME_UNKNOWN" || !uncertain.confirmation
+            || typeof uncertain.confirmation.then !== "function") throw error
+        result = await uncertain.confirmation as { persisted: boolean }
+    }
+    if (!result.persisted) throw new Error("Proof application ACK missing")
+}
+
+/** Retry captured, definitely rejected proof in the new HTTP command scope. */
+export function recoverFiveBossSignalPersistence(runId: string, playerId: number, roomNumber?: string): Promise<void> {
+    const key = fiveBossSignalKey(runId, playerId)
+    const inFlight = recoveringFiveBossSignals.get(key)
+    if (inFlight) return inFlight
+    const recovery = (async () => {
+        await waitForFiveBossSignalPersistence(runId, playerId)
+        for (const signal of ["scene_ready", "level_next", "finalize"] as const) {
+            if (terminalProofRuns.has(runId)) return
+            const failed = failedFiveBossSignals.get(key)?.signals.get(signal)
+            if (!failed) continue
+            const payload = failed.payload
+            if (payload.runId !== runId || payload.playerId !== playerId
+                || (roomNumber !== undefined && payload.roomNumber !== roomNumber)) return
+            // The original Finalize's ordering rejection rolled back its SQL.
+            // LevelNext may have been restored here or by an earlier TCP retry;
+            // the parent must still recheck its durable presence on every retry.
+            const retryable = failed.code === "BUSINESS_PENDING_BUDGET"
+                || (signal === "finalize" && failed.code === "battle_signal_order")
+            if (!retryable) continue
+            try { await persistFiveBossProof(payload) }
+            catch (error) {
+                if (failedFiveBossSignals.get(key)?.signals.get(signal) === failed) {
+                    failed.code = (error as { code?: string } | null)?.code ?? "unknown"
+                }
+                return // One attempt per signal and barrier; retain failure for a later request.
+            }
+            const current = failedFiveBossSignals.get(key)
+            if (current?.signals.get(signal) === failed) current.signals.delete(signal)
+            if (current?.signals.size === 0) failedFiveBossSignals.delete(key)
+        }
+    })()
+    recoveringFiveBossSignals.set(key, recovery)
+    void recovery.finally(() => {
+        if (recoveringFiveBossSignals.get(key) === recovery) recoveringFiveBossSignals.delete(key)
+    }).catch(() => {})
+    return recovery
+}
+
 /** Includes detached proof tails accepted before TCP ingress was withdrawn. */
 export async function drainFiveBossSignalPersistence(): Promise<void> {
-    while (pendingFiveBossSignalWrites.size) await Promise.allSettled([...pendingFiveBossSignalWrites.values()])
+    while (pendingFiveBossSignalWrites.size || recoveringFiveBossSignals.size) {
+        await Promise.allSettled([...pendingFiveBossSignalWrites.values(), ...recoveringFiveBossSignals.values()])
+    }
 }
 
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
@@ -118,7 +185,7 @@ export function isFrozenFiveBossBattleClient(room: MultiRoom, client: SessionCli
 export function recordFiveBossSignal(
     room: MultiRoom,
     client: SessionClient,
-    signal: "scene_ready" | "level_next" | "finalize",
+    signal: FiveBossSignal,
 ): boolean {
     if (!isFrozenFiveBossBattleClient(room, client)) {
         fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:identity`)
@@ -158,22 +225,12 @@ export function recordFiveBossSignal(
     // order; waiting on another tail here would bypass its upstream bound.
     const proofSequence = (proofSequences.get(runtime) ?? 0) + 1
     proofSequences.set(runtime, proofSequence)
-    const attempted = invokeRealtimeBusiness<{ persisted: boolean }>("fiveBoss.proof.persist", {
+    const payload: Readonly<FiveBossProofPayload> = Object.freeze({
         runId, playerId, roomNumber, signal, proofSequence,
         roomInstanceId: room.lifecycle.instanceId,
         battleSessionId: room.lifecycle.battleSessionId,
     })
-        .catch(async error => {
-            const uncertain = error as { code?: string; confirmation?: Promise<unknown> }
-            // This local promise observes the original application ACK. It is
-            // not another business request and remains inside its IPC budget.
-            if (uncertain?.code === "BUSINESS_OUTCOME_UNKNOWN" && uncertain.confirmation
-                && typeof uncertain.confirmation.then === "function") {
-                return await uncertain.confirmation as { persisted: boolean }
-            }
-            throw error
-        })
-        .then(result => { if (!result.persisted) throw new Error("Proof application ACK missing") })
+    const attempted = persistFiveBossProof(payload)
         .then(() => {
             failedFiveBossSignals.get(key)?.signals.delete(signal)
             if (failedFiveBossSignals.get(key)?.signals.size === 0) failedFiveBossSignals.delete(key)
@@ -196,8 +253,10 @@ export function recordFiveBossSignal(
             // next queued signal and the cleanup below would see a rejection.
             try {
                 if (!terminalProofRuns.has(runId)) {
-                    const failure = failedFiveBossSignals.get(key) ?? { at: Date.now(), signals: new Set<string>() }
-                    failure.at = Date.now(); failure.signals.add(signal); failedFiveBossSignals.set(key, failure)
+                    const failure = failedFiveBossSignals.get(key) ?? { at: Date.now(), signals: new Map<FiveBossSignal, FailedFiveBossSignal>() }
+                    failure.at = Date.now()
+                    failure.signals.set(signal, { payload, code: (error as { code?: string } | null)?.code ?? "unknown" })
+                    failedFiveBossSignals.set(key, failure)
                 }
                 if (signal === "scene_ready") client.fiveBossBattleEntered = false
                 else acceptedFiveBossSignals.get(runtime)?.delete(dedupeKey)
