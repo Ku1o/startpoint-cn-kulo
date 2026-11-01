@@ -18,12 +18,19 @@ class CandleCleanupTest(unittest.TestCase):
         import json
         cls.manifest = json.loads((ROOT / "assets/asset-patch/manifest.json").read_bytes())
         cls.base = copy.deepcopy(cls.manifest)
-        cls.base["patches"].pop()
+        index = next(i for i, patch in enumerate(cls.base["patches"]) if patch["version"] == repair.VERSION)
+        cls.base["patches"] = cls.base["patches"][:index]
         cls.base["cdn_version"] = repair.BASE_VERSION
         cls.entries = repair.build_entries(ROOT, cls.base)
 
     def test_published_archive_is_exact_scoped_recipe(self):
         self.assertEqual(repair.verify(ROOT)["members"], 7)
+
+    def test_later_resource_edges_do_not_invalidate_the_fixed_repair(self):
+        future = copy.deepcopy(self.manifest)
+        future["cdn_version"] = "1.4.999"
+        future["patches"].append({"version": "1.4.999", "depends_on": repair.VERSION})
+        self.assertEqual(repair.verify_manifest(ROOT, future), repair.verify(ROOT))
 
     def test_each_on_changes_only_the_discrimination_key(self):
         for program in repair.PROGRAMS[:-1]:

@@ -112,10 +112,19 @@ def archive_bytes(entries: dict[str, bytes]) -> bytes:
 
 def verify(root: Path) -> dict:
     manifest = json.loads((root / "assets/asset-patch/manifest.json").read_bytes())
-    if manifest["cdn_version"] != VERSION or manifest["patches"][-1]["version"] != VERSION:
-        raise ValueError("Expected installed 1.4.353 repair")
+    return verify_manifest(root, manifest)
+
+
+def verify_manifest(root: Path, manifest: dict) -> dict:
+    matches = [index for index, patch in enumerate(manifest["patches"]) if patch["version"] == VERSION]
+    if len(matches) != 1 or not matches[0]:
+        raise ValueError("Expected exactly one installed 1.4.353 repair")
+    index = matches[0]
     base = copy.deepcopy(manifest)
-    patch = base["patches"].pop()
+    patch = manifest["patches"][index]
+    base["patches"] = base["patches"][:index]
+    if base["patches"][-1]["version"] != BASE_VERSION:
+        raise ValueError("Repair does not follow the reviewed source edge")
     base["cdn_version"] = BASE_VERSION
     expected = archive_bytes(build_entries(root, base))
     actual = (root / "assets/asset-patch/active" / ARCHIVE).read_bytes()
