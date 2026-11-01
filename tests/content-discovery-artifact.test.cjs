@@ -18,11 +18,11 @@ function actualReader() {
 }
 test('shipped discovery artifacts bind every current source and preserve exact parent coverage', () => {
     const stale = []
-    const expected = { 'assets/asset-patch/manifest.json': canonical.source.manifestSha256,
-        'assets/content_presentation.json': canonical.source.presentationSha256,
+    const expected = { 'assets/content_presentation.json': canonical.source.presentationSha256,
         'assets/content_catalog.json': canonical.source.catalogSha256, ...canonical.sourceInputs }
     assert.ok(Object.keys(canonical.sourceInputs).length > 0)
     for (const [relative, digest] of Object.entries(expected)) {
+        if (relative === 'assets/asset-patch/manifest.json') continue // capture provenance, not a relation dependency
         assert.match(relative, /^(?:assets|src|tools|docs)\/[a-zA-Z0-9_./-]+$/)
         assert.ok(!relative.split('/').some(part => !part || part === '.' || part === '..'))
         assert.match(digest, /^[a-f0-9]{64}$/)

@@ -41,6 +41,19 @@ test('title matches outrank incidental reward/alias matches and same-name groupi
     assert.equal(reader.view({ ...parent, key: 'gacha:8' }).seriesKey, reader.view(parent).seriesKey)
     assert.notEqual(reader.view({ ...parent, type: 'story_event' }).seriesKey, reader.view(parent).seriesKey)
 })
+test('unrelated resource manifest changes preserve relations, including legacy manifest bindings', t => {
+    const f = fixture(t)
+    f.index.sourceInputs['assets/asset-patch/manifest.json'] = f.index.source.manifestSha256
+    f.write('assets/content_discovery.json', f.index)
+    const before = f.api.contentDiscoveryReader().details('gacha:7')
+    f.write('assets/asset-patch/manifest.json', { chain: 'unrelated art and battle extension', version: '1.4.354' })
+    const reader = f.api.contentDiscoveryReader()
+    assert.equal(reader.verificationNotice, undefined)
+    assert.equal(reader.match(f.parent, ['阿尔克']).matched, true)
+    assert.equal(reader.match(f.parent, ['勇气之剑']).matched, true)
+    assert.deepEqual(reader.details('gacha:7'), before)
+})
+
 test('changed source input rejects old associations while retaining title and date search; restored input recovers', t => {
     const f = fixture(t)
     assert.equal(f.api.contentDiscoveryReader().match(f.parent, ['阿尔克']).matched, true)

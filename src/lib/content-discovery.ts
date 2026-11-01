@@ -125,9 +125,13 @@ function readIndex(): Index | null {
         }
         if (value.schemaVersion === 2 && (!shaPattern.test((value as RuntimeIndex).canonicalSha256 || "")
             || digest(canonicalPath) !== (value as RuntimeIndex).canonicalSha256)) return null
-        const expected = [["assets/asset-patch/manifest.json", value.source.manifestSha256],
-            ["assets/content_presentation.json", value.source.presentationSha256], ["assets/content_catalog.json", value.source.catalogSha256]]
-        for (const [relative, sha] of [...expected, ...Object.entries(value.sourceInputs)]) {
+        // The full CDN manifest records capture provenance. Search relations
+        // depend on the bound data/consumers, not unrelated art or battle patches.
+        // Ignore legacy manifest entries too, so old captures remain compatible.
+        const expected = [["assets/content_presentation.json", value.source.presentationSha256],
+            ["assets/content_catalog.json", value.source.catalogSha256]]
+        const inputs = Object.entries(value.sourceInputs).filter(([relative]) => relative !== "assets/asset-patch/manifest.json")
+        for (const [relative, sha] of [...expected, ...inputs]) {
             if (!shaPattern.test(sha || "") || !/^(?:assets|src|tools|docs)\/[a-zA-Z0-9_./-]+$/.test(relative)
                 || relative.split("/").some(part => part === ".." || part === "." || !part)
                 || digest(path.join(root, relative)) !== sha) return null
