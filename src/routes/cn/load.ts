@@ -300,22 +300,46 @@ const routes = async (fastify: FastifyInstance) => {
         if (activeQuest) {
             const fiveBossMulti = activeQuest.isMulti && isFiveBossGauntletQuest(activeQuest.category, activeQuest.questId);
             const frozenRun = fiveBossMulti ? getFiveBossRunByClientSync({ playerId, clientPlayId: activeQuest.playId }) : null;
+            const terminalRun = frozenRun?.status === "settled" || frozenRun?.status === "aborted";
             const multiRecovery = await getRoomCommandGateway().execute(fiveBossMulti ? "fiveBoss.recovery" : "battle.recovery", fiveBossMulti ? {
                 staleQuest: activeQuest, playerId, ...(frozenRun ? { staleFrozenRunId: frozenRun.runId } : {}),
             } : { quest: activeQuest, viewerId, playerId }) as MultiActiveQuestRecoveryDecision & { roomPhase: string | null };
-            if (frozenRun && !multiRecovery.recoverable) {
+            let proofPending = false;
+            if (frozenRun?.status === "active" && !multiRecovery.recoverable) {
                 const barrier = await getRoomCommandGateway().execute("fiveBoss.proof.barrier", {
                     runId: frozenRun.runId, playerId, roomNumber: frozenRun.roomNumber,
                 }) as { ok: boolean };
-                if (!barrier.ok) throw new Error("Previous five-boss result proof is not durably acknowledged.");
+                proofPending = !barrier.ok;
             }
-            const detachedResult = fiveBossMulti && !multiRecovery.recoverable && await runPersistenceTransaction({
-                domain: "multi-settlement", playerId, operation: "load_five_boss_result_pending",
-            }, () => detachFinalizedFiveBossActiveSync(playerId, activeQuest.playId));
-            if (detachedResult) {
+            const detachedResult = fiveBossMulti && (!multiRecovery.recoverable || terminalRun) && !proofPending && await runPersistenceTransaction({
+                domain: "multi-settlement", playerId,
+                operation: terminalRun ? "load_terminal_five_boss_cleanup" : "load_five_boss_result_pending",
+            }, () => terminalRun
+                ? deletePlayerActiveQuestIfPlayIdSync(playerId, activeQuest.playId)
+                : detachFinalizedFiveBossActiveSync(playerId, activeQuest.playId));
+            if (proofPending) {
+                // Failed proof is not a playable restore and cannot authorize
+                // cleanup or payment. Keep its exact active/member/receipt for
+                // a later barrier, while allowing the rest of login to finish.
+                const replacement = getPlayerActiveQuestSync(playerId);
+                const entry = replacement && replacement.playId !== activeQuest.playId
+                    ? { play_id: replacement.playId, continue_count: replacement.continueCount }
+                    : null;
+                clientData.unfinished_quest_list = entry && !replacement!.isMulti ? [entry] : [];
+                clientData.unfinished_multi_quest_list = entry && replacement!.isMulti ? [entry] : [];
+                gameVerboseLog(() => `[CN-LOAD] retained pending five-boss proof play=${activeQuest.playId}`
+                    + ` run=${frozenRun?.runId}`);
+            } else if (detachedResult) {
                 if (activeQuests[playerId]?.playId === activeQuest.playId) delete activeQuests[playerId];
                 clientData.unfinished_quest_list = [];
                 clientData.unfinished_multi_quest_list = [];
+            } else if (terminalRun) {
+                const replacement = getPlayerActiveQuestSync(playerId);
+                const entry = replacement
+                    ? { play_id: replacement.playId, continue_count: replacement.continueCount }
+                    : null;
+                clientData.unfinished_quest_list = entry && !replacement!.isMulti ? [entry] : [];
+                clientData.unfinished_multi_quest_list = entry && replacement!.isMulti ? [entry] : [];
             } else if ((!multiRecovery.recoverable || isStaleAbyssBattle(activeQuest)) && contentClientReload().preservesPlay(playerId, activeQuest.playId)) {
                 // Operational reload may retire a transport seat. Keep only the
                 // exact registered play; do not advertise an impossible restore

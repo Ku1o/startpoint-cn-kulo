@@ -290,6 +290,134 @@ test('/cn/load unknown owner RPC does not detach or manufacture a result marker'
     assert.deepEqual(ledgerState(), oldLedgers)
 })
 
+test('/cn/load with unresolved proof logs in repeatedly without changing old result rights', async () => {
+    const p = await player(), r = room([p]); start(p, r); proof(p, r)
+    rooms.disbandRoom(r.room_number, 'fixture_unresolved_proof')
+    const gateway = coordinator.getRoomCommandGateway(), execute = gateway.execute
+    const before = active.getPlayerActiveQuestSync(p.id), oldMemory = memory[p.id], oldLedgers = ledgerState()
+    let barriers = 0
+    gateway.execute = async function(kind, ...args) {
+        if (kind === 'fiveBoss.proof.barrier') { barriers++; return { ok: false } }
+        return execute.call(this, kind, ...args)
+    }
+    try { hidden(await login(p)); hidden(await login(p)) }
+    finally { gateway.execute = execute }
+    assert.equal(barriers, 2)
+    assert.deepEqual(active.getPlayerActiveQuestSync(p.id), before)
+    assert.equal(memory[p.id], oldMemory)
+    assert.deepEqual(ledgerState(), oldLedgers)
+    assert.equal(marker(p, r), null)
+    hidden(await login(p))
+    assert.ok(marker(p, r), 'a later confirmed barrier can release occupancy normally')
+    assert.equal(finish(p, r).receiptStatus, 'settled')
+    assert.equal(finish(p, r).receiptStatus, 'already_settled')
+})
+
+test('/cn/load recovers captured capacity-rejected proof after disconnect and preserves a newer play', async () => {
+    const p = await player(), r = room([p]); start(p, r); proof(p, r, false)
+    const signals = load('multi/five-boss/lobby-runtime'), rpc = load('multi/coordinator/business-rpc')
+    const original = rpc.invokeRealtimeBusiness
+    const client = { viewerId: p.viewerId, playerId: p.id, connectionId: `capacity-${p.id}`,
+        superseded: false, socket: {} }
+    r.five_boss_runtime.battleIdentityByViewerId[String(p.viewerId)] = {
+        playerId: p.id, remoteAddress: 'fixture', connectionId: client.connectionId,
+    }
+    let refuse = true
+    const attempts = []
+    rpc.invokeRealtimeBusiness = (kind, payload) => {
+        if (kind === 'fiveBoss.proof.persist' && payload.playerId === p.id) {
+            attempts.push({ ...payload })
+            if (refuse) return Promise.reject(Object.assign(Error('fixture capacity rejection'), { code: 'BUSINESS_PENDING_BUDGET' }))
+        }
+        return original(kind, payload)
+    }
+    try {
+        for (const signal of ['level_next', 'finalize']) signals.recordFiveBossSignal(r, client, signal)
+        await signals.waitForFiveBossSignalPersistence(r.five_boss_runtime.runId, p.id)
+        battle.markBattleMemberPhase(r, p.viewerId, 'FINALIZED')
+        rooms.disbandRoom(r.room_number, 'fixture_capacity_disconnect')
+        const before = member(p, r), oldActive = active.getPlayerActiveQuestSync(p.id)
+        hidden(await login(p))
+        assert.deepEqual(active.getPlayerActiveQuestSync(p.id), oldActive)
+        assert.deepEqual(member(p, r), before)
+        refuse = false
+        hidden(await login(p))
+        assert.ok(marker(p, r)); assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+        assert.ok(member(p, r).level_next_at); assert.ok(member(p, r).finalized_at)
+        const oldPayloads = attempts.slice(0, 2)
+        for (const payload of attempts.slice(-2)) {
+            assert.deepEqual(payload, oldPayloads.find(value => value.signal === payload.signal), 'retry must use the exact captured signal identity')
+        }
+        const playId = `after-capacity-${p.id}`
+        solo.startFiveBossSoloSync(p.id, playId, () => active.insertPlayerActiveQuestSync(p.id, {
+            playerId: p.id, playId, questId: mode.visibleQuestId, category: mode.category,
+            useBoostPoint: false, useBossBoostPoint: false, isAutoStartMode: false, isMulti: false,
+            isMultiHost: false, roomNumber: null, entryItemId: mode.ticketItemId, eventId: null,
+            continueCount: 0, startedAtMs: Date.now(),
+        }))
+        const next = active.getPlayerActiveQuestSync(p.id)
+        assert.equal(finish(p, r).receiptStatus, 'settled')
+        assert.equal(finish(p, r).receiptStatus, 'already_settled')
+        assert.deepEqual(active.getPlayerActiveQuestSync(p.id), next)
+    } finally { rpc.invokeRealtimeBusiness = original }
+})
+
+test('/cn/load ignores a stale proof failure for a durably settled run without paying it again', async () => {
+    const p = await player(), r = room([p]); start(p, r); proof(p, r)
+    const previous = active.getPlayerActiveQuestSync(p.id)
+    assert.equal(finish(p, r).receiptStatus, 'settled')
+    active.insertPlayerActiveQuestSync(p.id, previous)
+    const paid = ledgerState(), gateway = coordinator.getRoomCommandGateway(), execute = gateway.execute
+    gateway.execute = async function(kind, ...args) {
+        if (kind === 'fiveBoss.proof.barrier') throw Error('terminal run must not replay old proof')
+        return execute.call(this, kind, ...args)
+    }
+    try { hidden(await login(p)) } finally { gateway.execute = execute }
+    assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+    assert.deepEqual(ledgerState(), paid)
+    assert.equal(finish(p, r).receiptStatus, 'already_settled')
+})
+
+test('/cn/load restores the original rejected Finalize after TCP already retried LevelNext', async () => {
+    const p = await player(), r = room([p]); start(p, r); proof(p, r, false)
+    const signals = load('multi/five-boss/lobby-runtime'), rpc = load('multi/coordinator/business-rpc')
+    const original = rpc.invokeRealtimeBusiness, attempts = []
+    const client = { viewerId: p.viewerId, playerId: p.id, connectionId: `order-${p.id}`, superseded: false, socket: {} }
+    r.five_boss_runtime.battleIdentityByViewerId[String(p.viewerId)] = {
+        playerId: p.id, remoteAddress: 'fixture', connectionId: client.connectionId,
+    }
+    let refuseLevel = true
+    rpc.invokeRealtimeBusiness = (kind, payload) => {
+        if (kind === 'fiveBoss.proof.persist' && payload.playerId === p.id) {
+            attempts.push({ ...payload })
+            if (payload.signal === 'level_next' && refuseLevel) {
+                return Promise.reject(Object.assign(Error('fixture level capacity'), { code: 'BUSINESS_PENDING_BUDGET' }))
+            }
+        }
+        return original(kind, payload)
+    }
+    try {
+        signals.recordFiveBossSignal(r, client, 'level_next')
+        signals.recordFiveBossSignal(r, client, 'finalize')
+        await signals.waitForFiveBossSignalPersistence(r.five_boss_runtime.runId, p.id)
+        assert.equal(member(p, r).level_next_at, null)
+        assert.equal(member(p, r).finalized_at, null, 'SQL must refuse Finalize without its real transition')
+        refuseLevel = false
+        signals.recordFiveBossSignal(r, client, 'level_next')
+        await signals.waitForFiveBossSignalPersistence(r.five_boss_runtime.runId, p.id)
+        assert.ok(member(p, r).level_next_at)
+        battle.markBattleMemberPhase(r, p.viewerId, 'FINALIZED')
+        rooms.disbandRoom(r.room_number, 'fixture_order_disconnect')
+        hidden(await login(p))
+        assert.ok(member(p, r).finalized_at); assert.ok(marker(p, r))
+        const finalizes = attempts.filter(value => value.signal === 'finalize')
+        assert.equal(finalizes.length, 2)
+        assert.deepEqual(finalizes[1], finalizes[0])
+        assert.equal(finish(p, r).receiptStatus, 'settled')
+        assert.equal(finish(p, r).receiptStatus, 'already_settled')
+    } finally { rpc.invokeRealtimeBusiness = original }
+})
+
 test('/cn/load detachment permits a new solo; original late finish never removes its active quest', async () => {
     const p = await player(), r = room([p]); start(p, r); proof(p, r); hidden(await login(p))
     const playId = `post-load-solo-${p.id}`
