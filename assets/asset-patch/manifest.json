@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.353",
+  "cdn_version": "1.4.354",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -33876,6 +33876,38 @@
         "production/upload/ad/dd80306c1243fb2c0098964a76c7d82077608a",
         "production/upload/e2/0870f7d024e24e1967f8e788b83b3ff1b0886e",
         "production/upload/fd/fbc5cc260978c853cfdbf44cade82991a90d64"
+      ],
+      "created_at": "2026-11-01"
+    },
+    {
+      "id": "gerald-fever-toggle-1.4.354",
+      "type": "patch",
+      "name": "水杰拉德能力3 Fever开关修复与描述修正",
+      "description": "修复能力 1299893 在 Fever 进出时清理隐藏固有状态失效的问题（c47 528→526），并将文案修正为伤害类型与队长相同。离线验证，未经实战验收。",
+      "version": "1.4.354",
+      "depends_on": "1.4.353",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.353-1.4.354-1-gerald-fever-toggle.zip",
+      "archive_size": 311871,
+      "chain": [
+        "pinball-1.4.353-1.4.354-1-gerald-fever-toggle.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.353-1.4.354-1-gerald-fever-toggle.zip",
+          "size": 311871,
+          "sha256": "815e297ae95510bc854188722fb537abe0f4591e274625870d7fd4f74941c52c",
+          "members": 2,
+          "files": [
+            "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+            "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+        "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001"
       ],
       "created_at": "2026-11-01"
     }
