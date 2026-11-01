@@ -15,6 +15,12 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Invalid request body."
         })
 
+        const page = body.page === undefined ? 1 : body.page
+        if (!Number.isSafeInteger(page) || page < 1) return reply.status(400).send({
+            error: "Bad Request",
+            message: "Invalid history page."
+        })
+
         const session = await getSession(viewerId.toString())
         if (!session) return reply.status(400).send({
             error: "Bad Request",
@@ -28,7 +34,8 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         const records = getReceiveHistorySync(playerId, 7, 500)
-        const history = records.map(r => ({
+        const perPage = 100
+        const history = records.slice((page - 1) * perPage, page * perPage).map(r => ({
             create_time: serializeRealTimeForVirtualClient(r.create_time),
             description: null,
             number: r.number,
