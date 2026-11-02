@@ -1,0 +1,38 @@
+{
+  "version": "1.4.356",
+  "archive": {
+    "name": "pinball-1.4.355-1.4.356-1-epuration-gacha-restore.zip",
+    "size": 8285,
+    "sha256": "726098827b15ae4d0f17f21b4d24041a5955021462b4685223ae060b4acdf95f",
+    "members": 2,
+    "files": [
+      "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
+    ]
+  },
+  "pools": [
+    {
+      "gachaId": 990001,
+      "logical": "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap",
+      "restoredKey": "18",
+      "weight": 1000,
+      "fiveStarTotal": 150000,
+      "exchangePoints": 250,
+      "preservedRows": 293,
+      "beforeSha256": "fc3118e9e3d65a25fbb3b3fedf74a595446b21d37d3b1e28eea0025af99890c7",
+      "afterSha256": "1b4674e375b87efc873aa8b1a5bf37d71cf869226fb9072b6197b76e20fdcc90"
+    },
+    {
+      "gachaId": 990002,
+      "logical": "master/gacha_odds/cnmod_ashen_verdict_gacha_character_5.orderedmap",
+      "restoredKey": "50",
+      "weight": 10000,
+      "fiveStarTotal": 950000,
+      "exchangePoints": 250,
+      "preservedRows": 293,
+      "beforeSha256": "0e66cfdf35808eab1cbe475bbfb813a92302874de0bc70fdc12237be7c8e459b",
+      "afterSha256": "842f575746774933d367606fc8858cfe7d027b10fdf4a1ec83e50818cb4daf0c"
+    }
+  ],
+  "deviceTested": false
+}

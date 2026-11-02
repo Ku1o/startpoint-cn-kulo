@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.355",
+  "cdn_version": "1.4.356",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -33946,6 +33946,38 @@
         "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
       ],
       "created_at": "2026-11-01"
+    },
+    {
+      "id": "epuration-gacha-restore-1.4.356",
+      "type": "patch",
+      "name": "歼灭者两池抽取与250点兑换恢复",
+      "description": "恢复179981深渊0.100%、竞速1.000%抽取及两池250点兑换；保留其他角色权重、兑换限制和所有旧资源边。",
+      "version": "1.4.356",
+      "depends_on": "1.4.355",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.355-1.4.356-1-epuration-gacha-restore.zip",
+      "archive_size": 8285,
+      "chain": [
+        "pinball-1.4.355-1.4.356-1-epuration-gacha-restore.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.355-1.4.356-1-epuration-gacha-restore.zip",
+          "size": 8285,
+          "sha256": "726098827b15ae4d0f17f21b4d24041a5955021462b4685223ae060b4acdf95f",
+          "members": 2,
+          "files": [
+            "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+            "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+        "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
+      ],
+      "created_at": "2026-11-02"
     }
   ],
   "generated_for": "official active chain"
