@@ -77,6 +77,13 @@ function openSource(sourceRoot, archiveRoot = sourceRoot) {
   function load(request) {
     const file = resolveModule(request), relative = path.relative(root, file).replaceAll('\\', '/')
     if (['src/data/db.ts', 'src/data/db.js', 'out/data/db.js'].includes(relative)) return { getDb() { throw Error('Default database access is forbidden during capture') } }
+    // Registration affects diagnostics only. Pin its source bytes, but never
+    // import its worker/process probes into an effective-business capture.
+    if (['src/lib/memory-diagnostics.ts', 'out/lib/memory-diagnostics.js'].includes(relative)) return new Proxy({}, { get(_target, name) {
+      if (name === 'registerMemoryCounters') return () => () => {}
+      if (name === '__esModule') return true
+      throw Error('Capture diagnostic operation is forbidden: ' + String(name))
+    } })
     if (modules.has(file)) return modules.get(file).exports
     const bytes = fs.readFileSync(resolveRead(file)), mod = { exports: {} }; modules.set(file, mod)
     if (file.endsWith('.json')) { mod.exports = JSON.parse(bytes.toString('utf8')); return mod.exports }
@@ -87,6 +94,9 @@ function openSource(sourceRoot, archiveRoot = sourceRoot) {
         return () => { throw Error('Capture cannot execute a child process') }
       } })
       if (['node:path', 'path', 'node:crypto', 'crypto', 'node:zlib', 'zlib', 'node:util', 'util', 'node:assert/strict', 'assert/strict', 'node:async_hooks', 'async_hooks'].includes(name)) return require(name)
+      // Native readers also require absolute JSON paths. load/resolveRead still
+      // enforce the same explicit source roots and private-state exclusions.
+      if (path.isAbsolute(name)) return load(name)
       if (name.startsWith('.')) return load(path.resolve(path.dirname(file), name))
       throw Error('Capture external/process module is forbidden: ' + name)
     }

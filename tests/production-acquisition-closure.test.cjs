@@ -24,8 +24,8 @@ test('all regular JSON producers exclude both overlimit materials while preservi
 test('closed characters stay defined and owned-compatible but do not appear in ordinary pools',()=>{
  const characters={...require('../assets/character.json'),...require('../assets/character_rank_p5b.json')}
  const pools=require('../'+(process.env.STARPOINT_TEST_COMPILED==='1'?'out':'src')+'/lib/content-master').serverGachas
- const bossIds=[119950,119951,119970,129950,129951,129970,139950,139951,139970,149950,149951,149970,159950,159951,159970,169950,169951,169970,179970,179981,179982,179983,179984,179985,179986]
- for(const id of [...bossIds,139988])assert.ok(characters[id],'Do not delete a saved character identity: '+id)
+ const bossIds=[119950,119951,119970,129950,129951,129970,139950,139951,139970,149950,149951,149970,159950,159951,159970,169950,169951,169970,179970,179982,179983,179984,179985,179986]
+ for(const id of [...bossIds,179981,139988])assert.ok(characters[id],'Do not delete a saved character identity: '+id)
  const hits=[]
  for(const[id,pool]of Object.entries(pools)){
   const serialized=JSON.stringify(pool)
@@ -35,8 +35,10 @@ test('closed characters stay defined and owned-compatible but do not appear in o
  for(const poolId of [990001,990002]){
   const serialized=JSON.stringify(pools[poolId]),banned=new Set(bossIds),found=forbiddenPoolMembers(pools[poolId],banned)
   assert.deepEqual(found,[],'Closed members in effective merged pool '+poolId)
-  const regression=structuredClone(pools[poolId]);regression.pool['1'].push({id:179981,rank:5,odds:1})
-  assert.ok(forbiddenPoolMembers(regression,banned).some(hit=>hit.id===179981),'Numeric array-object IDs must be detected, unlike the retired key-only regex')
+  const restored=pools[poolId].pool['1'].filter(row=>row.id===179981)
+  assert.equal(restored.length,1);assert.equal(restored[0].odds,poolId===990001?1000:10000);assert.equal(restored[0].isExchangeable,true)
+  const regression=structuredClone(pools[poolId]);regression.pool['1'].push({id:179985,rank:5,odds:1})
+  assert.ok(forbiddenPoolMembers(regression,banned).some(hit=>hit.id===179985),'Numeric array-object IDs must be detected, unlike the retired key-only regex')
   assert.match(serialized,/169980/,'Abyss beast must remain')
  }
  assert.equal(require('../assets/boss_coin_shop.json')['97'],undefined)

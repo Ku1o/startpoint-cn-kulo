@@ -69,4 +69,6 @@ test('missing archives, corrupt ZIPs and incomplete resource scope cannot inheri
     f.write('assets/content_resource_source.json', f.reference)
     assert.throws(() => read(f.root), /scope/)
 })
-test('the real resource chain retains the existing release source', () => assert.deepEqual(read(), source))
+test('the real resource chain binds the reviewed Epuration business revision', () => assert.deepEqual(read(), {
+    assetVersion: '1.4.356', manifestSha256: '01f9a3036c8eb6f35043dfa8d8da0eddfcecd40d4178ae6cd6356cb542446c45',
+}))

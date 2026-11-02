@@ -30,23 +30,37 @@ function api() {
     }
 }
 function releaseApi() { return require('../out/lib/content-release-supplement') }
+function revisionApi() { return require('../out/lib/content-gacha-revision') }
+function planApi(options) {
+    if (!options.gachaRevision) return releaseApi()
+    const revision = revisionApi()
+    return {
+        validateContentReleasePlanSync: revision.validateGachaRevisionPlanSync,
+        inspectContentReleaseSupplementSync: revision.inspectGachaRevisionSync,
+        validateContentReleaseIdentityCaptureSync: revision.validateGachaRevisionCaptureSync,
+        applyContentReleaseSupplementSync: (store, plan, digest, context, now, _source, _keys, capture) =>
+            revision.applyGachaRevisionSync(store, plan, digest, context, now, capture),
+    }
+}
 function supplementCapture(options, p, plan) {
     if (!plan.bindings.length) return undefined
     if (!options.previousSource) throw Error('身份重绑定需要固定旧源目录；声明JSON不能代替实际捕获')
     return require('../tools/content-release-capture.cjs').createReleaseCaptureSession({ previousSource: options.previousSource, currentSource: p.root })
 }
 function loadSupplement(options, p) {
-    if (!options.supplement) {
-        if (options.planDigest) throw Error('--plan-digest requires --supplement')
+    if (options.supplement && options.gachaRevision) throw Error('Choose one explicit maintenance plan')
+    const planFile = options.gachaRevision || options.supplement
+    if (!planFile) {
+        if (options.planDigest) throw Error('--plan-digest requires an explicit maintenance plan')
         return null
     }
     if (!/^[a-f0-9]{64}$/.test(options.planDigest || '')) throw Error('补充应用需要明确的 --plan-digest')
-    if (fs.statSync(options.supplement).size > 40 * 1024 * 1024) throw Error('补充计划超过40MiB')
-    const value = readJson(options.supplement)
+    if (fs.statSync(planFile).size > 40 * 1024 * 1024) throw Error('补充计划超过40MiB')
+    const value = readJson(planFile)
     const same = (a, b) => process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b
-    const modulePath = path.join(p.root, 'out/lib/content-release-supplement.js')
+    const modulePath = path.join(p.root, options.gachaRevision ? 'out/lib/content-gacha-revision.js' : 'out/lib/content-release-supplement.js')
     const producer = require('../tools/content-release-capture.cjs')
-    if (value.format !== 1 || value.kind !== 'reviewed-content-release-supplement'
+    if (value.format !== 1 || value.kind !== (options.gachaRevision ? 'reviewed-gacha-business-revision' : 'reviewed-content-release-supplement')
         || typeof value.targetDatabase !== 'string' || !same(path.resolve(value.targetDatabase), p.database)
         || value.sourceModuleSha256 !== sha(fs.readFileSync(modulePath)) || value.plan?.digest !== options.planDigest
         || value.captureProducerSha256 !== producer.PRODUCER_SHA256)
@@ -83,7 +97,8 @@ function inspectDatabase(db, a) {
     // A supplemental receipt authenticates the new catalog without rewriting or
     // replaying the original fixed-July deployment/box markers.
     const supplemented = !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='content_release_supplements'").get()
-    const content = hasContent ? (supplemented
+    const revised = !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='content_gacha_revisions'").get()
+    const content = hasContent ? (revised ? revisionApi().inspectGachaRevisionSync(a.createContentOperationsStore(db)) : supplemented
         ? releaseApi().inspectContentReleaseSupplementSync(a.createContentOperationsStore(db))
         : a.inspectContentDeploymentSync(a.createContentOperationsStore(db))) : { ready: false, reasons: ['尚未初始化内容运营表'] }
     return { ready: clock?.snapshot.mode === 'real' && content.ready, timeMode: clock?.snapshot.mode ?? 'legacy',
@@ -96,9 +111,9 @@ function inspect(options) {
         const plan = loadSupplement(options, p)
         if (plan) {
             const store = a.createContentOperationsStore(db), clock = a.readServerClockStateSync(db)
-            releaseApi().validateContentReleasePlanSync(store, plan, options.planDigest)
-            const content = releaseApi().inspectContentReleaseSupplementSync(store)
-            if (!content.ready) releaseApi().validateContentReleaseIdentityCaptureSync(store, plan, supplementCapture(options, p, plan))
+            planApi(options).validateContentReleasePlanSync(store, plan, options.planDigest)
+            const content = planApi(options).inspectContentReleaseSupplementSync(store)
+            if (!content.ready) planApi(options).validateContentReleaseIdentityCaptureSync(store, plan, supplementCapture(options, p, plan))
             if (!content.ready && a.getDeploymentDatabaseFingerprintSync(db) !== plan.databaseFingerprint) throw Error('预览目标已经变化')
             return { database: p.database, ready: clock?.snapshot.mode === 'real' && content.ready,
                 canApply: clock?.snapshot.mode === 'real' && !content.ready, content, inputs,
@@ -179,9 +194,9 @@ async function apply(options) {
         db.pragma('locking_mode=EXCLUSIVE'); db.exec('BEGIN EXCLUSIVE; COMMIT')
         const before = supplement ? (() => {
             const store = a.createContentOperationsStore(db)
-            releaseApi().validateContentReleasePlanSync(store, supplement, options.planDigest)
+            planApi(options).validateContentReleasePlanSync(store, supplement, options.planDigest)
             if (a.readServerClockStateSync(db)?.snapshot.mode !== 'real') throw Error('补充计划要求已经迁移的真实时间；不能重放旧切换')
-            const content = releaseApi().inspectContentReleaseSupplementSync(store)
+            const content = planApi(options).inspectContentReleaseSupplementSync(store)
             if (content.ready && content.planDigest !== supplement.digest) throw Error('本批已有不同回执，禁止重放')
             return { ready: content.ready, content }
         })() : inspectDatabase(db, a)
@@ -209,7 +224,7 @@ async function apply(options) {
             a.initializeContentOperationsSchema(db)
             const store = a.createContentOperationsStore(db)
             const content = supplement
-                ? releaseApi().applyContentReleaseSupplementSync(store, supplement, options.planDigest, context, state.cutoverRealMs,
+                ? planApi(options).applyContentReleaseSupplementSync(store, supplement, options.planDigest, context, state.cutoverRealMs,
                     undefined, undefined, supplementCapture(options, p, supplement))
                 : a.applyContentDeploymentMaintenanceSync(store, context, { nowMs: state.cutoverRealMs })
             if (options.faultAt === 'after-content') throw Error('Injected failure after content')
@@ -319,14 +334,15 @@ async function main(args) {
     const seen = new Set()
     while (args.length) {
         const key = args.shift()
-        if (!['--project', '--supplement', '--plan-digest'].includes(key) || seen.has(key) || !args[0] || args[0].startsWith('--')) throw Error('无效或重复的迁移参数')
+        if (!['--project', '--supplement', '--gacha-revision', '--plan-digest'].includes(key) || seen.has(key) || !args[0] || args[0].startsWith('--')) throw Error('无效或重复的迁移参数')
         seen.add(key)
         const value = args.shift()
         if (key === '--project') options.project = path.resolve(value)
         else if (key === '--supplement') options.supplement = path.resolve(value)
+        else if (key === '--gacha-revision') options.gachaRevision = path.resolve(value)
         else options.planDigest = value
     }
-    if ((options.supplement || options.planDigest) && !['preview', 'verify', 'apply'].includes(command)) throw Error('补充计划参数仅用于 preview、verify、apply')
+    if ((options.supplement || options.gachaRevision || options.planDigest) && !['preview', 'verify', 'apply'].includes(command)) throw Error('补充计划参数仅用于 preview、verify、apply')
     let result
     if (command === 'preview' || command === 'verify') { result = inspect(options); if (command === 'verify' && !result.ready) throw Error('时间或内容设置尚未迁移；请执行迁移工具，不要直接开服') }
     else if (command === 'apply') result = await apply(options)

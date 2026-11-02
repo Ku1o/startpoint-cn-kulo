@@ -155,20 +155,24 @@ export function rebindReviewedContentIdentitiesOfflineSync(store: ContentOperati
                 || store.contentDigests.get(binding.key) !== binding.nextContentDigest
                 || store.runtimeDefinitions.get(binding.key)?.matchesCatalog !== true)
                 throw new ContentOperationError("既有运营配置或复核定义发生变化", 409)
-            const common = { expectedRevision: store.revision(), catalogDigest: store.digest,
-                readiness: before.readiness,
-                evidence: before.evidence.trim() || `原生字段读取复核 ${plan.evidenceDigest}；逐动作原审批保持不变`,
-                reason: "核对原生字段与资源身份，保持既有权限和进度" }
-            const input = before.actionOverrides !== undefined ? { ...common, actionOverrides: Object.fromEntries(
-                Object.entries(before.actionOverrides).map(([action, value]) => {
-                    const { contentDigest: _content, catalogDigest: _catalog, ...review } = value!
-                    return [action, review]
-                })) } : { ...common, flags: before.flags, endsAtMs: before.endsAtMs,
-                    ...(before.questKeys !== undefined ? { questKeys: before.questKeys } : {}),
-                    ...(before.missionKeys !== undefined ? { missionKeys: before.missionKeys } : {}) }
-            const after = store.update(binding.key, input, options.nowMs)
+            // These are retained decisions, including already expired reviews.
+            // Sending them through the new-review API would reject old deadlines
+            // or re-approve fields that this identity-only operation must preserve.
+            const after = JSON.parse(persisted.value_json) as typeof before, revision = store.revision()
+            after.catalogDigest = store.digest; after.contentDigest = binding.nextContentDigest
+            after.revision = revision + 1
+            for (const action of Object.values(after.actionOverrides ?? {})) {
+                action!.catalogDigest = store.digest; action!.contentDigest = binding.nextContentDigest
+            }
             if (semanticControl(before as unknown as Record<string, unknown>) !== semanticControl(after as unknown as Record<string, unknown>))
                 throw new ContentOperationError("身份复核不得改变既有运营权限", 409)
+            const encoded = JSON.stringify(after)
+            if (store.db.prepare("UPDATE content_operations_state SET value_json=? WHERE content_key=? AND value_json=?")
+                .run(encoded, binding.key, persisted.value_json).changes !== 1
+                || store.db.prepare("UPDATE content_operations_meta SET revision=? WHERE id=1 AND revision=?").run(revision + 1, revision).changes !== 1)
+                throw new ContentOperationError("身份重绑定版本冲突", 409)
+            store.db.prepare("INSERT INTO content_operations_audit VALUES(?,?,?,?,?,?)").run(revision + 1, binding.key,
+                options.nowMs, persisted.value_json, encoded, `reviewed-identity-rebind:${plan.evidenceDigest}`)
             reboundKeys.push(binding.key)
         }
         return { reboundKeys, revision: store.revision() }

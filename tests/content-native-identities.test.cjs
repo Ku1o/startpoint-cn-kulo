@@ -13,11 +13,11 @@ test('changed business resources reject initialization before non-native control
     finally { resources.readContentResourceSourceSync = read }
 })
 
-test('all original native keys, digests and insertion order survive removal of the generated index', () => {
+test('the reviewed 356 source retains all native keys and deterministic identity order', () => {
     const maps = loadContentNativeIdentities()
     assert.equal(maps.quests.size, 268); assert.equal(maps.shops.size, 8771)
-    // Captured from the original fixed ea153661 native index before this refactor.
-    assert.equal(aggregate(maps), 'a8c688f284cccb620e3e3f75a5fba9f3ee299e0288d7ef5c6795c7d64516adc7')
+    // The business revision rebinds provenance; native quest/shop rules are unchanged.
+    assert.equal(aggregate(maps), '468e04a1708608f2fcfb6eab0e41311d5715909c6be3688ad8c54fc14928f1a0')
     const next = loadContentNativeIdentities()
     maps.quests.clear(); maps.shops.clear()
     assert.equal(next.quests.size, 268); assert.equal(next.shops.size, 8771)

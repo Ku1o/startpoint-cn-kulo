@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "source": {
-    "assetVersion": "1.4.350",
-    "manifestSha256": "4cb3dd337ac062af6845591b85cf27d3bc203160923f74c2cf1c7a2883b76843"
+    "assetVersion": "1.4.356",
+    "manifestSha256": "01f9a3036c8eb6f35043dfa8d8da0eddfcecd40d4178ae6cd6356cb542446c45"
   },
   "resources": {
     "master/active_mission/active_mission_event.orderedmap": {
@@ -62,8 +62,8 @@
       "sha256": "efd2b1d36af857fe767f3fb0daf6171fd327889f9de76ef7f34791fef10ce67b"
     },
     "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap": {
-      "archive": "assets/asset-patch/active/pinball-1.4.132-1.4.133-1-midautumn-mod-pool-migration-20261008.zip",
-      "sha256": "fc3118e9e3d65a25fbb3b3fedf74a595446b21d37d3b1e28eea0025af99890c7"
+      "archive": "assets/asset-patch/active/pinball-1.4.355-1.4.356-1-epuration-gacha-restore.zip",
+      "sha256": "1b4674e375b87efc873aa8b1a5bf37d71cf869226fb9072b6197b76e20fdcc90"
     },
     "master/gacha_odds/cnmod_abyss_limited_gacha_rarity.orderedmap": {
       "archive": "assets/asset-patch/active/pinball-1.4.106-1.4.107-2-author858-selected.zip",
@@ -78,8 +78,8 @@
       "sha256": "e9cd466819fe371160c61f049d17d9b0974f06c5ca0c20ee54be108b704cce04"
     },
     "master/gacha_odds/cnmod_ashen_verdict_gacha_character_5.orderedmap": {
-      "archive": "assets/asset-patch/active/pinball-1.4.132-1.4.133-1-midautumn-mod-pool-migration-20261008.zip",
-      "sha256": "0e66cfdf35808eab1cbe475bbfb813a92302874de0bc70fdc12237be7c8e459b"
+      "archive": "assets/asset-patch/active/pinball-1.4.355-1.4.356-1-epuration-gacha-restore.zip",
+      "sha256": "842f575746774933d367606fc8858cfe7d027b10fdf4a1ec83e50818cb4daf0c"
     },
     "master/gacha_odds/cnmod_ashen_verdict_gacha_rarity.orderedmap": {
       "archive": "assets/asset-patch/active/pinball-1.4.106-1.4.107-2-author858-selected.zip",

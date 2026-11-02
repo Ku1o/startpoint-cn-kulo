@@ -46,6 +46,7 @@ RUNTIME_EXACT_PATHS = {
     "tools/build-content-discovery.cjs",
     "tools/content-release-capture.cjs",
     "tools/prepare-content-release.cjs",
+    "tools/prepare-gacha-revision.cjs",
 }
 DISCOVERY_GENERATORS = {
     "tools/build-content-discovery-gacha.py",

@@ -9,8 +9,10 @@ const unzipper = require("unzipper")
 const baseGachas = require("../assets/gacha.json")
 const cnmodGachas = require("../assets/gacha_cnmod.json")
 const rankGachas = require("../assets/gacha_rank_p5b.json")
-const { getGachaSync } = require("../out/lib/assets")
-const { getExchangeableGachaItem } = require("../out/lib/gacha-rules")
+if (process.env.STARPOINT_TEST_COMPILED !== "1") require("ts-node/register/transpile-only")
+const code = process.env.STARPOINT_TEST_COMPILED === "1" ? "../out/" : "../src/"
+const { getGachaSync } = require(code + "lib/assets")
+const { getExchangeableGachaItem } = require(code + "lib/gacha-rules")
 const manifest = require("../assets/asset-patch/manifest.json")
 const {
     AUDITED_NON_GACHA_CHARACTER_IDS,
@@ -216,7 +218,7 @@ test("preserves the cleaned abyss pool while applying the current MOD rates", ()
         .reduce((sum, item) => sum + item.odds, 0), 68_000)
 })
 
-test("removes the same audited fillers from the race pool while preserving zero-weight placeholders", () => {
+test("keeps closed Boss placeholders absent while restoring only Epuration in the race pool", () => {
     const gacha = getGachaSync(Number(RACE_GACHA_ID))
     assert.ok(gacha)
     assert.deepEqual(gacha.rankRates.normal, [950, 20, 30])
@@ -225,7 +227,7 @@ test("removes the same audited fillers from the race pool while preserving zero-
     assert.equal(gacha.tenTicketItemId, 999018)
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, entries.length])),
-        { "1": 318, "2": 125, "3": 76 },
+        { "1": 294, "2": 125, "3": 76 },
     )
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, poolTotal(entries)])),
@@ -240,7 +242,7 @@ test("removes the same audited fillers from the race pool while preserving zero-
     }
     const sourceZeroWeightIds = Object.values(rankGachas[RACE_GACHA_ID].pool)
         .flat().filter(item => item.odds === 0).map(item => item.id)
-    assert.equal(sourceZeroWeightIds.length, 24)
+    assert.equal(sourceZeroWeightIds.length, 0)
     for (const characterId of sourceZeroWeightIds) {
         assert.equal(gacha.pool["1"].find(item => item.id === characterId)?.odds, 0)
     }
@@ -325,7 +327,7 @@ test("preserves the published 1.4.100 archives and verifies the effective gacha 
 test("same .100 update changes only five title conditions and preserves all other title data", async () => {
     const audit = require("../assets/asset-patch/audit/rank-title-conditions-1.4.100/report.json")
     const policy = require("../assets/leaderboard_reward_policy.json")
-    const { degreeDefinitions } = require("../out/lib/content-master")
+    const { degreeDefinitions } = require(code + "lib/content-master")
     const sourceArchive = await unzipper.Open.file(path.join(CLIENT_PATCH_DIR, path.basename(audit.source.archive)))
     const beforeRaw = await sourceArchive.files.find(file => file.path === audit.source.member).buffer()
     assert.equal(crypto.createHash("sha256").update(beforeRaw).digest("hex"), audit.source.sha256)

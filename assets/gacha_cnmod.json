@@ -39,7 +39,7 @@
           "isLimited": true,
           "isExchangeable": true,
           "trialReadingForced": false,
-          "rarity": 13.422818791946309
+          "rarity": 13.333333333333334
         },
         {
           "id": 139993,
@@ -49,7 +49,7 @@
           "isLimited": true,
           "isExchangeable": true,
           "trialReadingForced": false,
-          "rarity": 13.422818791946309
+          "rarity": 13.333333333333334
         },
         {
           "id": 159998,
@@ -59,7 +59,7 @@
           "isLimited": true,
           "isExchangeable": true,
           "trialReadingForced": false,
-          "rarity": 13.422818791946309
+          "rarity": 13.333333333333334
         },
         {
           "id": 159997,
@@ -69,7 +69,7 @@
           "isLimited": true,
           "isExchangeable": true,
           "trialReadingForced": false,
-          "rarity": 13.422818791946309
+          "rarity": 13.333333333333334
         },
         {
           "id": 159996,
@@ -79,7 +79,7 @@
           "isLimited": true,
           "isExchangeable": true,
           "trialReadingForced": false,
-          "rarity": 13.422818791946309
+          "rarity": 13.333333333333334
         },
         {
           "id": 169992,
@@ -89,7 +89,7 @@
           "isLimited": true,
           "isExchangeable": true,
           "trialReadingForced": false,
-          "rarity": 13.422818791946309
+          "rarity": 13.333333333333334
         },
         {
           "id": 129991,
@@ -99,7 +99,7 @@
           "isLimited": true,
           "isExchangeable": true,
           "trialReadingForced": false,
-          "rarity": 13.422818791946309
+          "rarity": 13.333333333333334
         },
         {
           "id": 149990,
@@ -108,7 +108,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -119,7 +119,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 149989,
@@ -129,7 +129,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 169989,
@@ -139,7 +139,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 149988,
@@ -149,7 +149,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 129992,
@@ -158,7 +158,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -168,7 +168,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -178,7 +178,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -188,7 +188,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -198,7 +198,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -208,7 +208,17 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
+          "trialReadingForced": false
+        },
+        {
+          "id": 179981,
+          "rank": 5,
+          "odds": 1000,
+          "isRateUp": true,
+          "isLimited": true,
+          "isExchangeable": true,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -218,7 +228,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -228,7 +238,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -238,7 +248,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -248,7 +258,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -258,7 +268,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -268,7 +278,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -278,7 +288,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -288,7 +298,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -298,7 +308,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -308,7 +318,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -318,7 +328,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -328,7 +338,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -338,7 +348,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -348,7 +358,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -358,7 +368,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -368,7 +378,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -378,7 +388,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 6.7114093959731544,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
@@ -389,7 +399,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 119994,
@@ -399,7 +409,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 119995,
@@ -409,7 +419,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 129993,
@@ -419,7 +429,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 129994,
@@ -429,7 +439,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 129995,
@@ -439,7 +449,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 129996,
@@ -449,7 +459,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 129998,
@@ -459,7 +469,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 139996,
@@ -469,7 +479,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 149991,
@@ -479,7 +489,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 149992,
@@ -489,7 +499,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 149993,
@@ -499,7 +509,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 149994,
@@ -509,7 +519,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 159999,
@@ -519,7 +529,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 169993,
@@ -529,7 +539,7 @@
           "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
-          "rarity": 6.7114093959731544
+          "rarity": 6.666666666666667
         },
         {
           "id": 111001,
@@ -538,7 +548,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -548,7 +558,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -558,7 +568,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -568,7 +578,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -578,7 +588,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -588,7 +598,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -598,7 +608,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -608,7 +618,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -618,7 +628,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -628,7 +638,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -638,7 +648,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -648,7 +658,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -658,7 +668,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -668,7 +678,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -678,7 +688,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -688,7 +698,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -698,7 +708,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -708,7 +718,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -718,7 +728,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -728,7 +738,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -738,7 +748,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -748,7 +758,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -758,7 +768,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -768,7 +778,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -778,7 +788,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -788,7 +798,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -798,7 +808,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -808,7 +818,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -818,7 +828,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -828,7 +838,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -838,7 +848,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -848,7 +858,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -858,7 +868,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -868,7 +878,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -878,7 +888,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -888,7 +898,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -898,7 +908,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -908,7 +918,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -918,7 +928,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -928,7 +938,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -938,7 +948,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -948,7 +958,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -958,7 +968,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -968,7 +978,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -978,7 +988,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -988,7 +998,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -998,7 +1008,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1008,7 +1018,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1018,7 +1028,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1028,7 +1038,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1038,7 +1048,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1048,7 +1058,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1058,7 +1068,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1068,7 +1078,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1078,7 +1088,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1088,7 +1098,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1098,7 +1108,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1108,7 +1118,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1118,7 +1128,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1128,7 +1138,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1138,7 +1148,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1148,7 +1158,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1158,7 +1168,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1168,7 +1178,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1178,7 +1188,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1188,7 +1198,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1198,7 +1208,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1208,7 +1218,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1218,7 +1228,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1228,7 +1238,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1238,7 +1248,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1248,7 +1258,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1258,7 +1268,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1268,7 +1278,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1278,7 +1288,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1288,7 +1298,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1298,7 +1308,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1308,7 +1318,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1318,7 +1328,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1328,7 +1338,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1338,7 +1348,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1348,7 +1358,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1358,7 +1368,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1368,7 +1378,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1378,7 +1388,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1388,7 +1398,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1398,7 +1408,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1408,7 +1418,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1418,7 +1428,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1428,7 +1438,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1438,7 +1448,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1448,7 +1458,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1458,7 +1468,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1468,7 +1478,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1478,7 +1488,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1488,7 +1498,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1498,7 +1508,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1508,7 +1518,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1518,7 +1528,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1528,7 +1538,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1538,7 +1548,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1548,7 +1558,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1558,7 +1568,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1568,7 +1578,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1578,7 +1588,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1588,7 +1598,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1598,7 +1608,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1608,7 +1618,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1618,7 +1628,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1628,7 +1638,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1638,7 +1648,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1648,7 +1658,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1658,7 +1668,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1668,7 +1678,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1678,7 +1688,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1688,7 +1698,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1698,7 +1708,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1708,7 +1718,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1718,7 +1728,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1728,7 +1738,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1738,7 +1748,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1748,7 +1758,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1758,7 +1768,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1768,7 +1778,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1778,7 +1788,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1788,7 +1798,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1798,7 +1808,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1808,7 +1818,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1818,7 +1828,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1828,7 +1838,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1838,7 +1848,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1848,7 +1858,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1858,7 +1868,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1868,7 +1878,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1878,7 +1888,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1888,7 +1898,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1898,7 +1908,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1908,7 +1918,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1918,7 +1928,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1928,7 +1938,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1938,7 +1948,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1948,7 +1958,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1958,7 +1968,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1968,7 +1978,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1978,7 +1988,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1988,7 +1998,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -1998,7 +2008,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2008,7 +2018,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2018,7 +2028,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2028,7 +2038,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2038,7 +2048,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2048,7 +2058,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2058,7 +2068,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2068,7 +2078,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2078,7 +2088,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2088,7 +2098,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2098,7 +2108,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2108,7 +2118,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2118,7 +2128,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2128,7 +2138,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2138,7 +2148,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2148,7 +2158,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2158,7 +2168,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2168,7 +2178,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2178,7 +2188,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2188,7 +2198,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9798657718120807,
+          "rarity": 1.9666666666666666,
           "trialReadingForced": false
         },
         {
@@ -2198,7 +2208,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2208,7 +2218,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2218,7 +2228,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2228,7 +2238,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2238,7 +2248,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2248,7 +2258,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2258,7 +2268,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2268,7 +2278,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9731543624161074,
+          "rarity": 1.96,
           "trialReadingForced": false
         },
         {
@@ -2278,7 +2288,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2288,7 +2298,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2298,7 +2308,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2308,7 +2318,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2318,7 +2328,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2328,7 +2338,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2338,7 +2348,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2348,7 +2358,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2358,7 +2368,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2368,7 +2378,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2378,7 +2388,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2388,7 +2398,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2398,7 +2408,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2408,7 +2418,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2418,7 +2428,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2428,7 +2438,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2438,7 +2448,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2448,7 +2458,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2458,7 +2468,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2468,7 +2478,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2478,7 +2488,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2488,7 +2498,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2498,7 +2508,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2508,7 +2518,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2518,7 +2528,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2528,7 +2538,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2538,7 +2548,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2548,7 +2558,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2558,7 +2568,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2568,7 +2578,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2578,7 +2588,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2588,7 +2598,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2598,7 +2608,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2608,7 +2618,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9664429530201342,
+          "rarity": 1.9533333333333334,
           "trialReadingForced": false
         },
         {
@@ -2618,7 +2628,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2628,7 +2638,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2638,7 +2648,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2648,7 +2658,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2658,7 +2668,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2668,7 +2678,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2678,7 +2688,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2688,7 +2698,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2698,7 +2708,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2708,7 +2718,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2718,7 +2728,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2728,7 +2738,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": true,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2738,7 +2748,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2748,7 +2758,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2758,7 +2768,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2768,7 +2778,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2778,7 +2788,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2788,7 +2798,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2798,7 +2808,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2808,7 +2818,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2818,7 +2828,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2828,7 +2838,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2838,7 +2848,7 @@
           "isRateUp": false,
           "isLimited": false,
           "isExchangeable": false,
-          "rarity": 1.9597315436241611,
+          "rarity": 1.9466666666666665,
           "trialReadingForced": false
         },
         {
@@ -2848,7 +2858,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2858,7 +2868,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2868,7 +2878,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2878,7 +2888,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2888,7 +2898,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2898,7 +2908,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2908,7 +2918,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2918,7 +2928,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2928,7 +2938,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2938,7 +2948,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2948,7 +2958,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         },
         {
@@ -2958,7 +2968,7 @@
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": false,
-          "rarity": 13.422818791946309,
+          "rarity": 13.333333333333334,
           "trialReadingForced": false
         }
       ],

@@ -184,6 +184,11 @@ const UPSTREAM_BUSINESS_TABLES = new Set<string>([
 
 const EXCLUDED_PLAYER_STATE = Object.freeze([
     {
+        tables: ["content_gacha_revisions"],
+        policy: "preserve-target" as const,
+        reason: "卡池业务修订回执属于目标服务器维护身份，不是玩家便携进度；导入保留目标回执，不迁移或重放。",
+    },
+    {
         tables: ["player_time_state", "player_time_migration_ledger"],
         policy: "preserve-target" as const,
         reason: "真实时间迁移标记和账本属于本服目标账号，导入保留目标既有模式及锚点；来源 timeBasis 仅作受校验的来源元数据，不新增迁移状态。",

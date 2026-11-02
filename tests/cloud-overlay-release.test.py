@@ -231,7 +231,8 @@ class CloudOverlayReleaseTest(unittest.TestCase):
         self.assertEqual(list(folder.iterdir()), [destination])
 
     def test_release_supplement_tools_ship_without_resource_recipe_inputs(self):
-        required = ["tools/content-release-capture.cjs", "tools/prepare-content-release.cjs"]
+        required = ["tools/content-release-capture.cjs", "tools/prepare-content-release.cjs",
+                    "tools/prepare-gacha-revision.cjs"]
         excluded = ["tools/rebuild_production_20261031_cdn.py",
                     "assets/asset-patch/specs/production-20261031/release344.json",
                     "assets/asset-patch/specs/production-20261031/inputs/ticket.png"]

@@ -18,6 +18,7 @@ const { installPlayerLoginGuard } = require('../out/routes/cn/playerLogin')
 const db = getDb()
 const app = require('fastify')({ logger: false, bodyLimit: 262144 })
 const ledgerTables = [
+    'content_gacha_revisions',
     'abyss_floor_records',
     'player_payment_receipts', 'player_operation_receipts', 'battle_settlement_ledger', 'battle_receipt_payload_queue',
     'five_boss_continue_receipts', 'five_boss_solo_runs', 'five_boss_gauntlet_runs',
@@ -67,6 +68,14 @@ function backupSnapshot(result) {
 
 async function main() {
     auth.initializePlayerLogin()
+    db.exec(`CREATE TABLE content_gacha_revisions (
+        revision_id TEXT PRIMARY KEY, plan_digest TEXT NOT NULL, catalog_digest TEXT NOT NULL,
+        source_json TEXT NOT NULL, legacy_receipt_sha256 TEXT NOT NULL,
+        baseline_sha256 TEXT NOT NULL, keys_json TEXT NOT NULL)`)
+    db.prepare('INSERT INTO content_gacha_revisions VALUES(?,?,?,?,?,?,?)').run(
+        'epuration-179981-gacha-356-v1', '1'.repeat(64), '2'.repeat(64),
+        JSON.stringify({ assetVersion: '1.4.356', manifestSha256: '3'.repeat(64) }),
+        '4'.repeat(64), '5'.repeat(64), JSON.stringify(['gacha:990001', 'gacha:990002']))
     const source = legacy('source')
     const host = bound('transferhost', 910011)
     const member = bound('transfermember', 910012)

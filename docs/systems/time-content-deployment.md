@@ -8,6 +8,22 @@
 
 ## 更新前
 
+### 356卡池修订：已经完成350补充的目标
+
+歼灭者179981的后续修订独立于350补充。它只允许深渊990001、竞速990002分别新增权重1000、10000的同一角色，并使基础镜像与胜出表一致；原角色权重、支付、价格、兑换限制及其他业务字段必须保留。五星显示概率只按新总权重重新计算。350回执及原初始化、部署、奖励箱标记保持原文，不重放历史接管，不创建或重新开放控制项。
+
+编译最终源码及配套登记后，保留与目标旧身份对应的固定旧程序和资源来源。在目标服务器已停服的维护窗口，使用真实目标库生成新的专用计划；本机合成库计划不能用于云服：
+
+```powershell
+node --env-file=.env tools/prepare-gacha-revision.cjs --database '<真实目标库绝对路径>' --previous-source '<固定旧源目录>' --evidence '<本批审阅文件SHA256>' --output '<新私有计划路径>'
+node --env-file=.env scripts/time-content-deployment.cjs preview --project '<服务根目录>' --gacha-revision '<新私有计划路径>' --plan-digest '<摘要中的planDigest>'
+node --env-file=.env scripts/time-content-deployment.cjs apply --project '<服务根目录>' --gacha-revision '<新私有计划路径>' --plan-digest '<摘要中的planDigest>'
+node --env-file=.env scripts/time-content-deployment.cjs verify --project '<服务根目录>'
+node --env-file=.env scripts/time-content-deployment.cjs release --project '<服务根目录>'
+```
+
+专用预览在显式只读快照内核对旧/新实际访问器和全部既有控制。预览及首次Apply会读取目标库完整指纹，并核对所有非运营表及旧审计；大库应为这些顺序读取预留维护时间。普通启动Verify只核对已保存回执、资源和运营身份，不计算完整玩家库指纹。Apply沿用现有停服检查、双锁、SQLite备份核验、维护事务及中断恢复，只更新运营身份、版本和追加审计，另存`content_gacha_revisions`修订回执。原发布关闭、未审核状态、已过期或未来期限、实例、动作范围、积分和其他玩家进度均保留。重复Apply核对已有修订后不再写入；后续管理员决定继续有效。未能证明实际旧源、发生额外业务差异或目标库已变化时，应停止并重新审阅，不能改旧350回执绕过。
+
 - 使用同一批完整的服务端程序、后台页面、内容数据和对应资源链；选择性交付后必须先核对内容/CDN暂缓清单，不能把来源锚点当作整仓已更新。
 - 从目标服务目录操作，保留目标 `.env`、`config/`、准入配对、`.database/` 和 `.cdn/`。配置不随普通代码修复覆盖。
 - 安排维护窗口，等待正在进行的多人房间结束。数据库中的旧局、结算凭据和领奖进度会保留，但内存中的房间和连接不能跨重启继续。

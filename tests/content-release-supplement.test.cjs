@@ -79,6 +79,8 @@ function sourceFixture(directory, data) {
   const write = (name, value) => fs.writeFileSync(path.join(directory, name), typeof value === 'string' ? value : JSON.stringify(value))
   write('assets/content_catalog.json', data)
   write('src/lib/content-operations-store.ts', fs.readFileSync(path.join(__dirname, '../src/lib/content-operations-store.ts'), 'utf8'))
+  for (const name of ['cached-statement.ts', 'memory-diagnostics.ts'])
+    write('src/lib/' + name, fs.readFileSync(path.join(__dirname, '../src/lib', name), 'utf8'))
   write('src/lib/content-operations-defaults.ts', fs.readFileSync(path.join(__dirname, '../src/lib/content-operations-defaults.ts'), 'utf8'))
   write('src/lib/content-native-presentation-rules.ts', fs.readFileSync(path.join(__dirname, '../src/lib/content-native-presentation-rules.ts'), 'utf8'))
   fs.mkdirSync(path.join(directory, 'src/lib/types'), { recursive: true })
