@@ -1,0 +1,1 @@
+package pinball.debug {public class CrashUtil {public static var errors:Array=[];public static function saveServerError(error:Object):void{errors.push(error);}}}

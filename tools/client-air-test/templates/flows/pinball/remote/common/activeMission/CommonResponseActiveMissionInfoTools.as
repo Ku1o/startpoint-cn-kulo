@@ -1,0 +1,4 @@
+package pinball.remote.common.activeMission {
+import haxe.IMap;
+import haxe.ds.Option;
+public dynamic class CommonResponseActiveMissionInfoTools {public static function convertResponseToProgressMap(p0:Option):IMap{throw new Error("ungrafted EX helper");}public static function convertToActiveMissionProgressData(p0:int,p1:Object):Object{throw new Error("ungrafted EX helper");}public static function setArrayToProgressDataMap(p0:Array,p1:IMap):void{throw new Error("ungrafted EX helper");}public static function setStageInfoToStageStatusMap(p0:Object,p1:IMap):void{throw new Error("ungrafted EX helper");}}}

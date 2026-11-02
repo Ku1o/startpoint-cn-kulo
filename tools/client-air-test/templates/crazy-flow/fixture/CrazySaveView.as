@@ -1,0 +1,1 @@
+package fixture {import pinball.dialog.gacha.GachaResultSaveDialogViewOrder;public class CrazySaveView implements GachaResultSaveDialogViewOrder {public var refreshes:int=0;public function refreshList():void{refreshes++;}}}

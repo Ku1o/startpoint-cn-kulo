@@ -1,0 +1,1 @@
+package cn.fixture {import pinball.master.generated.AccessCountModeValues;import pinball.master.runtime.MasterMap;public class IdentityModeMap implements pinball.master.runtime.MasterMap {public function exists(k:Object):Boolean{return false;}public function get(k:Object):Object{return new pinball.master.generated.AccessCountModeValues();}}}

@@ -1,0 +1,2 @@
+package pinball.common.tools._FunctionTools {
+public class BindImpl3_1 {public var func:Function;public var arg1:Object;public var arg2:Object;public function BindImpl3_1(f:Function=null,a:Object=null,b:Object=null){func=f;arg1=a;arg2=b;}public function execute(v:Object):Object{return func(arg1,arg2,v);}}}

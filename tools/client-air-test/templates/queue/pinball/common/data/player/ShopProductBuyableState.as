@@ -1,0 +1,1 @@
+package pinball.common.data.player {public class ShopProductBuyableState {public static var OutOfStock:Object={tag:"OutOfStock"};}}

@@ -1,0 +1,2 @@
+package pinball.asset {
+public class FileUtilCommon {public static var gmDeleteFile:Object;public static var deletes:Array=[];public static function deleteFile(paths:Array):void{deletes.push(paths);}}}

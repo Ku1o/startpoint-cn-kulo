@@ -1,0 +1,342 @@
+[
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepRemoteInput",
+    "name": "End"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepRemoteInput",
+    "name": "GachaDrawn"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepRemoteInput",
+    "name": "NameChangeComplete"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepKind",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepKind",
+    "name": "CompleteStep"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepKind",
+    "name": "CompleteStepToEnd"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepKind",
+    "name": "CompleteStepWithChangingName"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepKind",
+    "name": "CompleteStepWithGachaDraw"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepKind",
+    "name": "CompleteStepWithPresent"
+  },
+  {
+    "owner": "pinball.remote.equipment.sell::EquipmentSellRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.equipment.sell::EquipmentSellRemoteInput",
+    "name": "EquipmentSold"
+  },
+  {
+    "owner": "pinball.remote.equipment.sell::EquipmentBulkSellStackRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostDrawRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostDrawRemoteInput",
+    "name": "Finished"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostFirstDrawRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostFirstDrawRemoteInput",
+    "name": "Finished"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostSelectRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostSelectRemoteInput",
+    "name": "FinishedDiscard"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostSelectRemoteInput",
+    "name": "FinishedOverride"
+  },
+  {
+    "owner": "pinball.remote.gacha::GachaRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.gacha::GachaRemoteInput",
+    "name": "GachaEquipmentExec"
+  },
+  {
+    "owner": "pinball.remote.gacha::GachaRemoteInput",
+    "name": "GachaExec"
+  },
+  {
+    "owner": "pinball.remote.gacha::GachaRemoteInput",
+    "name": "GachaSave"
+  },
+  {
+    "owner": "pinball.remote.gacha::GachaRemoteInput",
+    "name": "InvalidDrawResult"
+  },
+  {
+    "owner": "pinball.remote.mail::MailRemoteInput",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.mail::MailRemoteInput",
+    "name": "IndexFinished"
+  },
+  {
+    "owner": "pinball.remote.mail::MailRemoteInput",
+    "name": "ReceiveAllFinished"
+  },
+  {
+    "owner": "pinball.remote.mail::MailRemoteInput",
+    "name": "ReceiveError"
+  },
+  {
+    "owner": "pinball.remote.mail::MailRemoteInput",
+    "name": "ReceiveFinished"
+  },
+  {
+    "owner": "pinball.common.data.tutorial::StartTutorialProgressKind",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.common.data.tutorial::StartTutorialProgressKind",
+    "name": "Full"
+  },
+  {
+    "owner": "pinball.common.data.tutorial::StartTutorialProgressKind",
+    "name": "Shortened"
+  },
+  {
+    "owner": "pinball.common.data.quest.id::BattleGroupKind",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.context.restore.room::RoomRestoreInfo",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.context.restore.lounge::LoungeRestoreInfo",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.common.data.save.restore::RestoreState",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.common.data.save.restore::RestoreState",
+    "name": "Battle"
+  },
+  {
+    "owner": "pinball.common.data.save.restore::RestoreState",
+    "name": "BattleAbort"
+  },
+  {
+    "owner": "pinball.common.data.save.restore::RestoreState",
+    "name": "BattleClear"
+  },
+  {
+    "owner": "pinball.common.data.save.restore::RestoreState",
+    "name": "CooperationRoom"
+  },
+  {
+    "owner": "pinball.common.data.save.restore::RestoreState",
+    "name": "Lounge"
+  },
+  {
+    "owner": "pinball.common.data.save.restore::RestoreState",
+    "name": "Tutorial"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.tutorial.updateStep::TutorialUpdateStepRealRemote",
+    "name": "sendInput"
+  },
+  {
+    "owner": "pinball.remote.mail.receive::MailReceiveRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.mail.receiveAll::MailReceiveAllRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.equipment.sell::EquipmentSellEquipmentRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.equipment.sell::EquipmentSellStackRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.equipment.sell::EquipmentBulkSellStackRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.gacha.exec::GachaExecRealRemote",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.remote.gacha.exec::GachaExecRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.gacha.exec::GachaExecRealRemote",
+    "name": "getItemDiff"
+  },
+  {
+    "owner": "pinball.remote.gacha.exec::GachaExecRealRemote",
+    "name": "isNew"
+  },
+  {
+    "owner": "pinball.remote.gacha.crazyGachaResult::CrazyGachaResultSaveRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.gacha.crazyGachaResult::CrazyGachaResultSelectRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostDrawRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostFirstDrawRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.exBoost::ExBoostSelectRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.initialize::InitializeRealRemote",
+    "name": "loadSuccessHandler"
+  },
+  {
+    "owner": "pinball.remote.initialize::InitializeRealRemote",
+    "name": "restoreFinishedHandler"
+  },
+  {
+    "owner": "pinball.remote.initialize::InitializeRealRemote",
+    "name": "translateFavoriteParty"
+  },
+  {
+    "owner": "pinball.remote.initialize::InitializeRealRemote",
+    "name": "extractPartyId"
+  },
+  {
+    "owner": "pinball.context::SectionCommand",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.context::SectionCommand",
+    "name": "ReceiveCommonResponse"
+  },
+  {
+    "owner": "pinball.context::SectionCommand",
+    "name": "StoreCommonToastResponse"
+  },
+  {
+    "owner": "pinball.context::SectionCommand",
+    "name": "ApplyCommonConfig"
+  },
+  {
+    "owner": "pinball.common.data.save::PartySaveDataTools",
+    "name": "fromPartyInfo"
+  },
+  {
+    "owner": "pinball.common.data.save::PartySaveDataTools",
+    "name": "fromPartyInfoLite"
+  },
+  {
+    "owner": "pinball.remote.bonus.shown::BonusShownResponseTools",
+    "name": "toBonusStatus"
+  },
+  {
+    "owner": "pinball.remote.common.activeMission::CommonResponseActiveMissionInfoTools",
+    "name": "convertResponseToProgressMap"
+  },
+  {
+    "owner": "pinball.remote.common.activeMission::CommonResponseActiveMissionInfoTools",
+    "name": "convertToActiveMissionProgressData"
+  },
+  {
+    "owner": "pinball.remote.common.activeMission::CommonResponseActiveMissionInfoTools",
+    "name": "setArrayToProgressDataMap"
+  },
+  {
+    "owner": "pinball.remote.common.activeMission::CommonResponseActiveMissionInfoTools",
+    "name": "setStageInfoToStageStatusMap"
+  },
+  {
+    "owner": "pinball.remote.common.collectItemEventMission::CommonResponseCollectItemEventMissionTools",
+    "name": "convertResponseToProgressMap"
+  },
+  {
+    "owner": "pinball.remote.common.collectItemEventMission::CommonResponseCollectItemEventMissionTools",
+    "name": "setArrayToProgressMap"
+  },
+  {
+    "owner": "pinball.common.tools::ArrayTools",
+    "name": "unique"
+  },
+  {
+    "owner": "haxe::Int64Helper",
+    "name": "fromFloat"
+  },
+  {
+    "owner": "haxe._Int32::Int32_Impl_",
+    "name": "ucompare"
+  },
+  {
+    "owner": "haxe._Int64::___Int64",
+    "name": "<ctor>"
+  },
+  {
+    "owner": "pinball.common.random._RandomSeed::RandomSeed_Impl_",
+    "name": "_new"
+  },
+  {
+    "owner": "pinball.remote.mail::MailReceiveRemoteUtil",
+    "name": "getCharacterIdAndCount"
+  },
+  {
+    "owner": "pinball.remote.mail::MailReceiveRemoteUtil",
+    "name": "getjoinedCharacterIds"
+  },
+  {
+    "owner": "pinball.remote.equipment.upgrade::EquipmentUpgradeRealRemote",
+    "name": "successHandler"
+  },
+  {
+    "owner": "pinball.remote.equipment.upgrade::EquipmentUpgradeRemoteInput",
+    "name": "<ctor>"
+  }
+]

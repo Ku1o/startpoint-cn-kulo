@@ -1,0 +1,1 @@
+package pinball.context.remote {public class RemoteError {public var kind:RemoteErrorKind;public var causeUrl:String;public var retryable:Boolean=true;public var displayMessage:String="ordinary";public var internalMessage:String="ordinary";public function RemoteError(k:RemoteErrorKind,u:String=""){kind=k;causeUrl=u;}public function shouldRetry():Boolean{return retryable;}}}

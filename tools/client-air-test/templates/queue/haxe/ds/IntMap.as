@@ -1,0 +1,1 @@
+package haxe.ds { public class IntMap { public var h:Object={}; }}

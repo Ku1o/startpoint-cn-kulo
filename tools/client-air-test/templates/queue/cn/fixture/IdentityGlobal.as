@@ -1,0 +1,1 @@
+package cn.fixture {import pinball.common.data.config.ConfigLogic;import pinball.context.global.GlobalLogicForRemote;public class IdentityGlobal implements pinball.context.global.GlobalLogicForRemote {public function getConfig():pinball.common.data.config.ConfigLogic{return new pinball.common.data.config.ConfigLogic();}}}

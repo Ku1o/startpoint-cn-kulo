@@ -1,0 +1,1 @@
+package pinball.common.data.config {import cn.fixture.IdentityModeMap;public class ConfigLogic {public var accessCountModeTable:Object=new cn.fixture.IdentityModeMap();public function getAccessCountMode(p:String):int{return 0;}}}

@@ -1,0 +1,1 @@
+package cn.admission {public class ClientAdmission {public static function beforeQueue(q:Object,s:Object,r:int,t:int):Boolean{return true;}public static function inspect(q:Object,s:Object,v:Object):Boolean{return true;}public static function queueCanceled(q:Object):void{}}}

@@ -1,0 +1,1 @@
+package pinball.context.global {import haxe.ds.Option;public class GlobalLogic {public var logicStatus:Object;public function getTime():Number{return -999;}public function getOptionTime():Option{return Option.None;}}}

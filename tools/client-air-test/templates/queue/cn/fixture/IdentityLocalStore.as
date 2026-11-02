@@ -1,0 +1,1 @@
+package cn.fixture {import pinball.context.localStore.LocalStore;public class IdentityLocalStore {public namespace NativeStore="pinball.context.localStore:LocalStoreForSection";NativeStore function get_account():pinball.context.localStore.LocalStore{return new pinball.context.localStore.LocalStore();}}}

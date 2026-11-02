@@ -1,0 +1,1 @@
+package pinball.common.data.boxGacha {public class BoxGachaLogic {public var id:int=48;}}

@@ -1,0 +1,1 @@
+package pinball.context.remote {public class UserDataEraseRequestStatusKind {public static var RequestPeriodExpired:Object={};public static var Executed:Object={};public static function Requesting(v:Object):Object{return v;}}}

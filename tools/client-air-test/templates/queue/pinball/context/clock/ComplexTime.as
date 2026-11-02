@@ -1,0 +1,1 @@
+package pinball.context.clock {public class ComplexTime {public var serverTime:Number;public var elapsedTime:Number;public function ComplexTime(s:Number=0,e:Number=0){serverTime=s;elapsedTime=e;}public function getAppTime():Number{return serverTime+elapsedTime;}}}

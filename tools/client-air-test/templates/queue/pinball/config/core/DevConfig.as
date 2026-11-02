@@ -1,0 +1,1 @@
+package pinball.config.core {public class DevConfig {public static var loginToken:String;public var remoteFormatKind:int=0;public var assetReadKind:int=2;public var connectionTotalTimeout:int=100000;public function getServerApiPath():String{return "https://offline.invalid";}}}

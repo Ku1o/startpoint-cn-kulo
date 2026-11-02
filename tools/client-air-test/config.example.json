@@ -1,0 +1,6 @@
+{
+  "sdk": "D:/developer-tools/AIRSDK",
+  "java": "D:/developer-tools/java/bin/java.exe",
+  "node": "node",
+  "background": "D:/starpoint-source/tools/client-background/run_background.py"
+}

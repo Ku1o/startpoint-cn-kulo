@@ -1,0 +1,1 @@
+package pinball.context.remote {public class RemoteCommonInput {public var params:Array;public function RemoteCommonInput(error:RemoteError){params=[error];}}}

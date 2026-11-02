@@ -1,0 +1,1 @@
+package pinball.context.global {import pinball.common.data.config.ConfigProvider;public interface GlobalLogicForRemote extends ConfigProvider {}}

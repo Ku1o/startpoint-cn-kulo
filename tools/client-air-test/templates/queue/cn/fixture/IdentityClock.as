@@ -1,0 +1,1 @@
+package cn.fixture {public class IdentityClock {public namespace NativeClock="pinball.context.clock:ClockForRemote";NativeClock function applyServerTime(v:Number):void{}}}

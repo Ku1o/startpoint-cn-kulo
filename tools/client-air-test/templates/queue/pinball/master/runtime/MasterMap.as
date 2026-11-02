@@ -1,0 +1,1 @@
+package pinball.master.runtime {public interface MasterMap {function exists(k:Object):Boolean;function get(k:Object):Object;}}

@@ -1,0 +1,1 @@
+package fixture {import pinball.scene.loading.ILoadingScene;import pinball.common.data.scene.SceneKind;public class CrazyLoadingScene implements ILoadingScene {public var scenes:Array=[];public function startNextSceneAssetLoad(v:SceneKind):void{scenes.push(v);}public function openDialog(v:Object):void{throw new Error("unexpected error dialog");}}}

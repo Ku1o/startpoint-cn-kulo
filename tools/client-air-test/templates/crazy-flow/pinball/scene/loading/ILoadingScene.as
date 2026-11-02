@@ -1,0 +1,1 @@
+package pinball.scene.loading {import pinball.context.scene.ILogicScene;import pinball.common.data.scene.SceneKind;public interface ILoadingScene extends ILogicScene {function startNextSceneAssetLoad(v:SceneKind):void;}}

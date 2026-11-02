@@ -1,0 +1,1 @@
+package pinball.master.runtime {public dynamic class MasterTable {public var data:MasterMap;public function get_data():MasterMap{return data;}}}

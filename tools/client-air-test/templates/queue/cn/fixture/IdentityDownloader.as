@@ -1,0 +1,1 @@
+package cn.fixture {import haxe.ds.Option;public class IdentityDownloader {public namespace NativeDownloader="pinball.context.assetDownloader:AssetDownloaderForSection";NativeDownloader function getResourceVersion():haxe.ds.Option{return haxe.ds.Option.Some("9.9");}}}

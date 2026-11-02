@@ -1,0 +1,1 @@
+package pinball.common.data.quest.event.story {import pinball.common.data.quest.event.common.EventWithFixedHeaderLogicBase;import pinball.common.data.quest.event.EventIdKind;public class StoryEventLogic extends EventWithFixedHeaderLogicBase {public var id:int=1;public function getEventId():EventIdKind{return null;}}}

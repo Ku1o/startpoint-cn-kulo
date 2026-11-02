@@ -1,0 +1,1 @@
+package pinball.remote.attention {public class AttentionRemoteUtil {public static function isIgnorableEndPointAndError(e:String,r:Object):Boolean{return false;}}}

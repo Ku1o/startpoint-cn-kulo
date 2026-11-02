@@ -1,0 +1,1 @@
+package pinball.common.data.shop {public class EventItemShopProductLogic {public var id:Object={tag:"EventItem",params:[9]};public var eventItemValues:Object={event:{tag:"CarnivalEvent",params:[1]}};}}

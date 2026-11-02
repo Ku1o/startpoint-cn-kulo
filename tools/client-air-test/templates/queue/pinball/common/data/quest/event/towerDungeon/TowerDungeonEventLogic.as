@@ -1,0 +1,1 @@
+package pinball.common.data.quest.event.towerDungeon {import pinball.common.data.quest.event.common.EventWithFixedHeaderLogicBase;import pinball.common.data.quest.event.EventIdKind;public class TowerDungeonEventLogic extends EventWithFixedHeaderLogicBase {public var id:int=1;public function getEventId():EventIdKind{return null;}}}

@@ -1,0 +1,1 @@
+package pinball.common.tools {public class DateUtil {public static function getTomorrowStartDateTime(now:Number):Number{return now+86400000;}public static function getNextWeekStartDateTime(now:Number):Number{return now+604800000;}}}

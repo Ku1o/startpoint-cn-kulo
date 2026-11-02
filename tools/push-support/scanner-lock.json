@@ -1,0 +1,10 @@
+{
+  "version": "8.24.3",
+  "binary_relative_path": "gitleaks/8.24.3/windows-x64/gitleaks.exe",
+  "binary_sha256": "8f397272f513c00b573f50380c4724e4b3ac759be1de313d907bb968c5d14c09",
+  "archive_sha256": "3f1a35578631dbfe633cc5b49e6c906e55ff14a4bfd7336a10fb27fe33b6dcd2",
+  "archive_url": "https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_windows_x64.zip",
+  "verified_ci_action_sha": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e",
+  "verified_workflow_sha256": "f54c8e15e9ac11672af4c3969c990ece811e9f15a4b8bb8e1b622e7cc91622c5",
+  "verified_ci_run": "39542471531"
+}

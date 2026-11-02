@@ -1,0 +1,1 @@
+package pinball.common.data.mail {public dynamic class MailLogic {public var kind:MailKind;}}

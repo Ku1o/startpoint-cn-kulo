@@ -1,0 +1,3 @@
+package pinball.context {
+import pinball.context.SectionCommand;
+public dynamic class SectionCommand {public var tag:String;public var index:int;public var params:Array;public var __enum__:Boolean;public function SectionCommand(p0:String,p1:int,p2:Array){}public static function ReceiveCommonResponse(p0:Object):SectionCommand{throw new Error("ungrafted EX helper");}public static function StoreCommonToastResponse(p0:Object):SectionCommand{throw new Error("ungrafted EX helper");}public static function ApplyCommonConfig(p0:Object):SectionCommand{throw new Error("ungrafted EX helper");}}}

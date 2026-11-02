@@ -1,0 +1,1 @@
+package pinball.common.data.quest.event.challengeDungeon {public class CampaignAppliedChallengeDungeonEventLogic extends ChallengeDungeonEventLogic {}}

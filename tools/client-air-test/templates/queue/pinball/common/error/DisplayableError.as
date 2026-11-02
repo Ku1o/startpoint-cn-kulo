@@ -1,0 +1,1 @@
+package pinball.common.error {public class DisplayableError {public var displayMessage:String;public var internalMessage:String;public function DisplayableError(display:String,internalText:String=""){displayMessage=display;internalMessage=internalText;}}}

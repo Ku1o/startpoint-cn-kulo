@@ -1,0 +1,1 @@
+package pinball.common.time._AppTime {public class AppTime_Impl_ {public static function toJapanStandardTimeString(v:Number):String{return String(v);}}}

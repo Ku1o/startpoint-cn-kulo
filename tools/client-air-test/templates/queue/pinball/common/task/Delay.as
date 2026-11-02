@@ -1,0 +1,1 @@
+package pinball.common.task {public class Delay {public static var scheduled:Array=[];public static function delay(f:Function,frames:int):void{scheduled.push(f);}}}

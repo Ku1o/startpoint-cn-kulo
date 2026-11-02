@@ -1,0 +1,1 @@
+package pinball.common.data.character {public interface GeneralCharacterPeek {function get_rarity():int;function get_element():int;}}

@@ -1,0 +1,1 @@
+package pinball.context.localStore._AccountLocalStore {import haxe.ds.Option;public class AccountLocalStore_Impl_ {public static function get(v:Object):haxe.ds.Option{return haxe.ds.Option.Some({viewerId:123,udid:"device-id",shortUdid:"short-id"});}}}

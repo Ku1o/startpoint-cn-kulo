@@ -1,0 +1,1 @@
+package pinball.common.tools._FunctionTools {public class BindImpl1_0 {public var fn:Function;public var args:Array;public function BindImpl1_0(f:Function,p0:*){fn=f;args=[p0];}public function execute():void{fn.apply(null,args);}}}

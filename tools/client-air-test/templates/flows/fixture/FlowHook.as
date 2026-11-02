@@ -1,0 +1,3 @@
+package fixture {
+import pinball.context.input.HookEntrance;
+public class FlowHook implements HookEntrance {public var events:Array=[];public var beforeInstant:Function=null;public function readyWithHandler(v:Object,f:Function,p:Object=null):void{instantWithHandler(v,f,p);}public function ready(v:Object,p:Object=null):void{instant(v,p);}public function instantWithHandler(v:Object,f:Function,p:Object=null):void{instant(v,p);f();}public function instant(v:Object,p:Object=null):void{if(beforeInstant!==null)beforeInstant(v);events.push({tag:v.tag,index:v.index,params:v.params});}}}

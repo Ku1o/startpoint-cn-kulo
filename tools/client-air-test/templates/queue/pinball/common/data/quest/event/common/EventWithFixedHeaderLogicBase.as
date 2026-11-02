@@ -1,0 +1,1 @@
+package pinball.common.data.quest.event.common {public class EventWithFixedHeaderLogicBase extends EventLogicBase {}}

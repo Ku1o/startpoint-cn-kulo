@@ -1,0 +1,1 @@
+package cn.account {public class PlayerLogin {public static function attach(s:Object):void{}}}

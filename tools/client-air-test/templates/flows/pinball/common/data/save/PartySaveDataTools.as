@@ -1,0 +1,2 @@
+package pinball.common.data.save {
+public dynamic class PartySaveDataTools {public static function fromPartyInfo(p0:Object):Object{throw new Error("ungrafted EX helper");}public static function fromPartyInfoLite(p0:Object):Object{throw new Error("ungrafted EX helper");}}}

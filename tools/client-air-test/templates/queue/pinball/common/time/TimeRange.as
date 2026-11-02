@@ -1,0 +1,1 @@
+package pinball.common.time {public class TimeRange {public var startTime:Number;public var endTime:Object;public function TimeRange(s:Number,e:Object){startTime=s;endTime=e;}public function isWithin(t:Number):Boolean{return t>=startTime && (endTime.index==1 || t<=Number(endTime.params[0]));}}}

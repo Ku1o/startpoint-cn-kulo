@@ -1,0 +1,1 @@
+package pinball.master.generated {import pinball.master.runtime.MasterTable;public class ExBoostItemAcquisitionTable extends MasterTable {}}

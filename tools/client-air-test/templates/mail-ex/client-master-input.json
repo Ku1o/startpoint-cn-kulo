@@ -1,0 +1,145 @@
+{
+  "acquisitionRows": [
+    {
+      "rarity": 3,
+      "element": 0,
+      "item_id": 14001,
+      "item_count": 1
+    },
+    {
+      "rarity": 3,
+      "element": 1,
+      "item_id": 14004,
+      "item_count": 1
+    },
+    {
+      "rarity": 3,
+      "element": 3,
+      "item_id": 14010,
+      "item_count": 1
+    },
+    {
+      "rarity": 3,
+      "element": 2,
+      "item_id": 14007,
+      "item_count": 1
+    },
+    {
+      "rarity": 3,
+      "element": 5,
+      "item_id": 14013,
+      "item_count": 1
+    },
+    {
+      "rarity": 3,
+      "element": 4,
+      "item_id": 14016,
+      "item_count": 1
+    },
+    {
+      "rarity": 4,
+      "element": 0,
+      "item_id": 14002,
+      "item_count": 1
+    },
+    {
+      "rarity": 4,
+      "element": 1,
+      "item_id": 14005,
+      "item_count": 1
+    },
+    {
+      "rarity": 4,
+      "element": 3,
+      "item_id": 14011,
+      "item_count": 1
+    },
+    {
+      "rarity": 4,
+      "element": 2,
+      "item_id": 14008,
+      "item_count": 1
+    },
+    {
+      "rarity": 4,
+      "element": 5,
+      "item_id": 14014,
+      "item_count": 1
+    },
+    {
+      "rarity": 4,
+      "element": 4,
+      "item_id": 14017,
+      "item_count": 1
+    },
+    {
+      "rarity": 5,
+      "element": 0,
+      "item_id": 14003,
+      "item_count": 3
+    },
+    {
+      "rarity": 5,
+      "element": 1,
+      "item_id": 14006,
+      "item_count": 3
+    },
+    {
+      "rarity": 5,
+      "element": 3,
+      "item_id": 14012,
+      "item_count": 3
+    },
+    {
+      "rarity": 5,
+      "element": 2,
+      "item_id": 14009,
+      "item_count": 3
+    },
+    {
+      "rarity": 5,
+      "element": 5,
+      "item_id": 14015,
+      "item_count": 3
+    },
+    {
+      "rarity": 5,
+      "element": 4,
+      "item_id": 14018,
+      "item_count": 3
+    }
+  ],
+  "characters": {
+    "121001": {
+      "rarity": 5,
+      "element": 1
+    },
+    "111015": {
+      "rarity": 5,
+      "element": 0
+    }
+  },
+  "source": {
+    "scope": "Actual local enabled Android/common resource chain; bounded table snapshot, no installed-client resource-load acceptance",
+    "manifestSha256": "fc28f55235f5a626fa169434a6e354972543b476b81855ea4631ca4804866188",
+    "assetVersion": "1.4.258",
+    "resources": {
+      "master/character/character.orderedmap": {
+        "archive": "assets/asset-patch/active/pinball-1.4.257-1.4.258-5-halloween-inaho.zip",
+        "sha256": "43ce0d98c87ce4f3b878ed1e7d699c05888762ee8762b0af235e0771601e7fc1"
+      },
+      "master/ex_boost/ex_boost_item_acquisition.orderedmap": {
+        "archive": ".cdn/cn/archive-common-full/pinball-1.4.0-145-130e2e2b.zip",
+        "sha256": "ba589b1267801a88330e82090ab9bcab1e453a3a685bbf89f34d074e738f573c"
+      }
+    },
+    "character_columns": {
+      "rarity": 2,
+      "element": 3
+    },
+    "acquisition_columns": {
+      "item_id": 0,
+      "item_count": 1
+    }
+  }
+}

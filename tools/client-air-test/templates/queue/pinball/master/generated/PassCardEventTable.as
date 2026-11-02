@@ -1,0 +1,1 @@
+package pinball.master.generated {public class PassCardEventTable {}}

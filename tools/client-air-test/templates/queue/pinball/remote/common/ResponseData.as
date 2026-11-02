@@ -1,0 +1,1 @@
+package pinball.remote.common {import haxe.ds.Option;public class ResponseData {public var header:Object={servertime:haxe.ds.Option.None};public var raw:Object;public function ResponseData(v:Object){raw=v;}}}

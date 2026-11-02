@@ -1,0 +1,1 @@
+package cn.fixture {import pinball.context.screenSize.ImageScale;public class IdentityScreenSize {public namespace NativeSize="pinball.context.screenSize:ScreenSizeForSection";NativeSize function get_imageScale():pinball.context.screenSize.ImageScale{return new pinball.context.screenSize.ImageScale();}}}

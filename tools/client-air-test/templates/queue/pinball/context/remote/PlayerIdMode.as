@@ -1,0 +1,1 @@
+package pinball.context.remote {public class PlayerIdMode {public var index:int;public var params:Array;public static var LocalStore:PlayerIdMode=new PlayerIdMode(2,[]);public function PlayerIdMode(i:int,p:Array){index=i;params=p;}}}

@@ -1,0 +1,1 @@
+package pinball.common.data.quest.event.soloTimeAttack {import pinball.common.data.quest.event.common.EventLogicBase;import pinball.common.data.quest.event.EventIdKind;public class SoloTimeAttackEventLogic extends EventLogicBase {public var eventId:int=1;public function getEventId():EventIdKind{return null;}}}

@@ -1,0 +1,1 @@
+package pinball.asset.logic {import pinball.master.runtime.MasterTable;public interface ILogicAssetContainer {function getMasterTable(p0:Class):MasterTable;}}

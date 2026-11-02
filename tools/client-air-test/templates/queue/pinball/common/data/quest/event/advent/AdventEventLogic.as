@@ -1,0 +1,1 @@
+package pinball.common.data.quest.event.advent {import pinball.common.data.quest.event.common.EventLogicBase;import pinball.common.data.quest.event.EventIdKind;public class AdventEventLogic extends EventLogicBase {public var id:int=1;public function getEventId():EventIdKind{return null;}}}

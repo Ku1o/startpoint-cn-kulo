@@ -1,0 +1,1 @@
+package pinball.context.screenSize {public class ImageScale {public var index:int=1;}}
