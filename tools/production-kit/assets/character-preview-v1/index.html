@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOD 角色离线预览</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="preview-data.js" defer></script>
+  <script src="player.js" defer></script>
+</head>
+<body>
+<main>
+  <header class="intro">
+    <div><p class="eyebrow">MOD 角色 · 离线审阅</p><h1 id="characterName">角色离线预览</h1><p id="characterSubtitle" class="muted"></p><p id="characterCode" class="note"></p></div>
+    <span class="badge">离线预览</span>
+  </header>
+  <div class="callout">本页用于检查立绘、界面素材、动作与声音。离线检查不等于游戏验收；实际触发、画面、音量和运行表现仍需按验收清单确认。</div>
+  <div id="fatalError" class="error" role="alert" hidden></div>
+  <div id="summary" class="stats" aria-label="素材与覆盖统计"></div>
+  <p id="missingSummary" class="note"></p>
+  <p id="inventoryScopeSummary" class="note"></p>
+  <nav class="tabs" aria-label="角色预览栏目" role="tablist">
+    <button id="tab-overview" type="button" role="tab" data-tab="overview" aria-controls="overview" aria-selected="true">概览 · 立绘与界面</button>
+    <button id="tab-actions" type="button" role="tab" data-tab="actions" aria-controls="actions" aria-selected="false" tabindex="-1">动作</button>
+    <button id="tab-skill" type="button" role="tab" data-tab="skill" aria-controls="skill" aria-selected="false" tabindex="-1">技能</button>
+    <button id="tab-mechanics" type="button" role="tab" data-tab="mechanics" aria-controls="mechanics" aria-selected="false" tabindex="-1">数值</button>
+    <button id="tab-acceptance" type="button" role="tab" data-tab="acceptance" aria-controls="acceptance" aria-selected="false" tabindex="-1">验收</button>
+  </nav>
+  <section id="overview" role="tabpanel" aria-labelledby="tab-overview">
+    <div class="panel"><div class="section-head"><div><h2>角色立绘</h2><p class="note">按登记形态切换查看。</p></div><label>形态 <select id="formSelect"></select></label></div><div id="illustration" class="artbox"></div></div>
+    <div class="panel"><h2>游戏界面素材</h2><p class="note">显示清单中的全部槽位；原生资源键可在每张卡片中展开。</p>
+      <div class="controls"><label>形态 <select id="uiForm"></select></label><label>版本 <select id="uiVariant"></select></label><label>尺寸 <select id="uiSize"><option value="fit">适配卡片</option><option value="native">原尺寸</option></select></label><label>背景 <select id="uiBackground"><option value="dark">深色</option><option value="white">白色</option></select></label></div>
+      <p id="uiCount" class="note"></p><div id="uiGrid" class="ui-grid"></div>
+    </div>
+    <div class="panel"><h2>声音与补充媒体</h2><p class="note">展开后手动播放；浏览器播放听感不代表游戏内音量已经验收。</p><div class="controls"><label>搜索名称 / 说明 <input id="mediaSearch" type="search" placeholder="输入声音名称或标签"></label><label>类型 <select id="mediaKind"><option value="all">全部</option><option value="audio">声音</option><option value="video">视频</option></select></label></div><p id="mediaCount" class="note"></p><div id="overviewMedia" class="media-grid"></div></div>
+  </section>
+  <section id="actions" role="tabpanel" aria-labelledby="tab-actions" hidden>
+    <div class="panel"><h2>人物动作</h2><p class="note">按每段动作自己的帧率、源 ticks 与显示倍率播放。此处不模拟游戏中的状态切换、打断和恢复。</p><div class="actions-layout"><div id="motionList" class="action-list" aria-label="动作选择"></div><div>
+      <h3 id="motionTitle">尚无动作</h3><div id="motionStage" class="view-frame"><canvas id="motionCanvas" width="1" height="1" aria-label="当前动作画面"></canvas><p id="motionEmpty" class="empty">待制作动作帧。</p></div>
+      <p id="motionLoadStatus" class="note" role="status" aria-live="polite"></p><div class="controls"><button id="motionPlay" type="button">播放</button><button id="motionPrev" type="button">上一帧</button><button id="motionNext" type="button">下一帧</button><button id="motionRestart" type="button">重播</button><label><input id="motionLoop" type="checkbox" checked>循环</label></div>
+      <label class="range-label" for="motionTime">动作时间（源 tick）</label><input id="motionTime" class="range" type="range" min="0" max="0" value="0" step="1"><p id="motionStatus" class="motion-status" aria-live="off"></p><p id="motionNote" class="note"></p>
+    </div></div></div><div class="panel"><h2>动作相关声音与视频</h2><div id="actionsMedia" class="media-grid"></div></div>
+  </section>
+  <section id="skill" role="tabpanel" aria-labelledby="tab-skill" hidden><div class="panel"><h2>技能演出</h2><p class="note">视频用于离线观看声画；伤害、范围、时序与机制以实际游戏验证为准。尚未制作的演出保留占位。</p><div id="skillMedia" class="media-grid"></div></div></section>
+  <section id="mechanics" role="tabpanel" aria-labelledby="tab-mechanics" hidden><div class="panel"><h2>技能与数值说明</h2><div id="mechanicsGrid" class="rule-grid"></div></div><div class="panel"><h2>补充说明</h2><div id="extrasGrid" class="rule-grid"></div></div></section>
+  <section id="acceptance" role="tabpanel" aria-labelledby="tab-acceptance" hidden>
+    <div class="panel"><h2>验收状态</h2><p class="note">已离线检查、已确认、待游戏验证分别记录；任何一项均不自动推导其他项目通过。</p><div id="checks" class="check-list"></div></div>
+    <div class="panel"><h2>缺失与待制作</h2><div id="missingList"></div></div>
+    <div class="panel"><h2>完整资源槽位清单</h2><p id="inventoryScopeDetail" class="note"></p><p id="coverageMeaning" class="note"></p><p class="note">覆盖统计来自清单对账，不代表审美、听感或游戏表现已通过。</p><div class="table-scroll"><table><thead><tr><th>原生键 / 槽位</th><th>类别</th><th>展示条目</th><th>状态与说明</th></tr></thead><tbody id="inventory"></tbody></table></div></div>
+  </section>
+  <footer>本地离线预览 · 无需启动服务 · 素材身份与覆盖范围以本批数据及构建回执为准</footer>
+</main>
+</body>
+</html>

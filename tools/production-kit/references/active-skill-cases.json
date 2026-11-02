@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "cases": [
+    {
+      "id": "native-three-group-toolkit",
+      "description": "Portable empty workspace compiler contract; no character art or gameplay acceptance.",
+      "budgetTemplate": {
+        "paddedPixels": 105678,
+        "scope": "Example allocation for caster/field/hit active sheets only; not an official cap or whole-character limit"
+      },
+      "tools": [
+        {
+          "name": "compile_parts.py",
+          "path": "../active-tools/compile_parts.py",
+          "sha256": "7a71933ab5347a8c801feafb51b2a6acf4360a93d4b5edc5aa5708a85ae16ab8"
+        },
+        {
+          "name": "packing_optimized.py",
+          "path": "../active-tools/packing_optimized.py",
+          "sha256": "1b7e1c57a4fd873d5755a1d0d93d1a8c642202667ad1d0d0735ab9a57431fb1c"
+        },
+        {
+          "name": "readback_native.py",
+          "path": "../active-tools/readback_native.py",
+          "sha256": "34e4cf66eaef713ad55c46e4ac270f3f07974f0828c5be8753d5d2c6f75f1365"
+        }
+      ],
+      "files": [],
+      "toolchainFiles": [
+        {
+          "role": "readOnlyLocalRuntimeDependency",
+          "path": "../../fantasy-gauntlet-mod-tools/wf_assets.py",
+          "sha256": "83129436a49bc457dec303ec5cb7fc4859a359f4285418cbbaa3de8a59ad5879"
+        },
+        {
+          "role": "readOnlyLocalRuntimeDependency",
+          "path": "../../fantasy-gauntlet-mod-tools/wf_character_gates.py",
+          "sha256": "a779c205511808fb869313629a62f89f89f8ae5661159d197c9877459a9a41a3"
+        },
+        {
+          "role": "readOnlyLocalRuntimeDependency",
+          "path": "../../fantasy-gauntlet-mod-tools/wf_dsl.py",
+          "sha256": "42d42b8537ba1a4fba9965f12320f7deed5a2217ad469d0902c81bfee4f6fa43"
+        },
+        {
+          "role": "readOnlyLocalRuntimeDependency",
+          "path": "../../fantasy-gauntlet-mod-tools/wf_flatomo_preview_render.py",
+          "sha256": "44f8a7f2ccb779755147e5c796153d9b406e6b66d7c65a780e466d14572d57f9"
+        },
+        {
+          "role": "readOnlyLocalRuntimeDependency",
+          "path": "../../fantasy-gauntlet-mod-tools/wf_battle_atlas_repack.py",
+          "sha256": "321a84b7b4d8f956ee66b61a41a3bb8c9814d42b300e57bc3bf808a5f8fd2d5a"
+        }
+      ],
+      "lessons": [
+        "Author caster, field and hit art/motion separately.",
+        "Normal alpha only; no new sound registration.",
+        "Decoded ticks and sheet budgets are offline evidence only.",
+        "Use the complete character and device workflow before release."
+      ]
+    }
+  ]
+}
