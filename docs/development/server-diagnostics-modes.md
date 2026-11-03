@@ -12,10 +12,27 @@
 | `MEMORY_DIAGNOSTICS_DETAIL` | `false` | `true` 恢复 V8 附加统计、活跃资源枚举、房间阶段分类、NPC/种子池条目遍历 |
 | `PROCESS_MEMORY_DIAGNOSTICS` | `false` | Windows x64 上显式设置 `true` 后才启动 PowerShell 进程内存区域探测，且需要内存采集开启 |
 | `SQLITE_DIAGNOSTICS` | `false` | `true` 临时开启 SQL prepare/get/all/run 计数与每 64 次一次的计时采样 |
+| `SQLITE_COMMIT_DIAGNOSTICS` | `false` | 显式 `true` 才开启逐事务 WAL 状态读取和慢提交详情；还需 SQL 诊断及基础性能监测开启 |
 | `ROUTE_PERF_SUMMARY` | `true` | 保留 CPU、事件循环、请求状态/耗时及结算、编码、数据库提交等阶段汇总 |
 | `ROUTE_PERF_DETAIL` | `false` | `true` 开启 receive/application/serialize 等每请求阶段细分 |
+| `SLOW_OPERATION_DIAGNOSTICS` | `true` | 主业务进程保留有界慢阶段样本，随基础性能汇总输出；关闭基础性能监测时也关闭采样 |
+| `SLOW_OPERATION_MS` | `250` | 慢阶段阈值，单位毫秒，限制为 1—60000；无效值回到 250 |
 
 详细内存和原生内存开关只接受 `1/true/yes/on` 开启；未配置或无效值保持关闭。环境变量须在服务启动前设置，修改后重启生效。现有 `.env` 若显式写了 `PROCESS_MEMORY_DIAGNOSTICS=true`，该值仍会覆盖新的默认值，须改成 `false` 才能停用。仅更新 `.env.example` 不会更改现有 `.env`。
+
+提交详情诊断默认不执行额外的同步 `-shm` 文件读取。关闭它不改变 SQLite 的正常共享内存访问、事务、同步级别、WAL 维护或 `[WORK-PERF]` 通用提交计时；只停用 `[SQLITE-COMMIT]` 的帧数、代际、回填与慢提交详情。显式启用时，额外读取分别计入 `db.probe.settings/before/after`，避免将诊断自身的等待漏在业务阶段之外。
+
+## 有界慢操作记录
+
+主业务进程启动时输出 `[SLOW-OPERATIONS-CONFIG]`。`[SLOW-OPERATIONS]` 随现有性能汇总输出，每轮最多 16 条：保留首次 4 条以观察故障开始，剩余位置保存最长的 12 条，并报告总数及未保留数。没有新定时扫描、逐请求日志、数据库查询或文件读取。worker 和独立实时 owner 不启用这组主进程样本。
+
+样本仅包含业务域、稳定操作名、阶段、起止 UTC、墙钟耗时、同步阶段的线程 CPU 耗时以及失败标志。操作名去掉冒号后的动态后缀；不记录玩家 ID、SQL、参数、请求载荷、文件路径或异常正文。Node 不支持线程 CPU 时显示 `null`；排队/异步等待始终显示 `null`，因为等待期间其他请求消耗的 CPU 不能归到该等待。
+
+诊断时钟或 CPU 采样自身失败只增加 `observerErrors`，不改变业务返回、原始异常或队列推进；该计数随同一有界摘要报告。业务执行失败仍按原事务逻辑向上传递。
+
+`persistence.order` 是玩家或全局顺序队列等待，`persistence.gate` 是写门等待，`persistence.yield` 是主动让出事件循环后等待恢复；三者属于等待阶段。`db.begin/body/commit`、`db.probe.*` 和同步事务的 `db.sync.body/persistence.sync` 属于同步阶段。现有 `measureServerWork` 的同步业务与编码阶段也可出样本；没有协调器上下文时标签为 `unscoped`。阶段可能嵌套，不能把样本耗时简单相加当作总 CPU。起止 UTC 以开始墙钟加单调计时计算，避免中途系统时钟调整造成负耗时。
+
+这些记录用于定位慢阶段，不能单独证明磁盘、GC 或宿主调度根因，也不取代调用栈和系统侧证据。修改默认诊断负担不等于已经解决某次历史卡顿。
 
 服务启动时输出一次 `[DIAGNOSTICS]`，列出实际 memory 模式、sqlite、nativeMemory 和周期。内存与 SQL 均关闭时不安装这个采集器；基础性能监测仍由 `ROUTE_PERF_SUMMARY` 单独决定。默认请求汇总只使用 Fastify 已有的总耗时，在错误/超时/中止和响应结束处计数；`ROUTE_PERF_DETAIL=true` 才安装完整阶段 hook。
 

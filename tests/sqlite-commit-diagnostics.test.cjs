@@ -11,6 +11,8 @@ require.cache[dbModule]={id:dbModule,filename:dbModule,loaded:true,exports:{getD
 const {runMeasuredSingleTransaction,runImmediateTransactionWithRetry}=require('../out/lib/sqlite-write-coordinator')
 const {drainServerWorkPerformance}=require('../out/lib/server-work-performance')
 process.env.SQLITE_SLOW_COMMIT_MS='0'
+process.env.SQLITE_DIAGNOSTICS='true'
+process.env.SQLITE_COMMIT_DIAGNOSTICS='true'
 let next=0
 function open(){
     const value=new Database(path.join(directory,`${next++}.db`))
@@ -86,13 +88,13 @@ test('bounded samples, unavailable metadata and disable switches do not change w
         process.env.SQLITE_COMMIT_DIAGNOSTICS='false'
         runMeasuredSingleTransaction(db,()=>db.prepare('INSERT INTO items VALUES(100,?)').run('disabled'))
         assert.equal(diagnostics.drainSqliteCommitDiagnostics().n,0)
-        delete process.env.SQLITE_COMMIT_DIAGNOSTICS
+        process.env.SQLITE_COMMIT_DIAGNOSTICS='true'
         process.env.SQLITE_DIAGNOSTICS='false'
         runMeasuredSingleTransaction(db,()=>db.prepare('INSERT INTO items VALUES(101,?)').run('disabled'))
         assert.equal(diagnostics.drainSqliteCommitDiagnostics().n,0)
-        delete process.env.SQLITE_DIAGNOSTICS
+        process.env.SQLITE_DIAGNOSTICS='true'
         assert.equal(db.prepare('SELECT count(*) AS n FROM items').get().n,14)
-    }finally{delete process.env.SQLITE_COMMIT_DIAGNOSTICS;delete process.env.SQLITE_DIAGNOSTICS;db.close()}
+    }finally{process.env.SQLITE_COMMIT_DIAGNOSTICS='true';process.env.SQLITE_DIAGNOSTICS='true';db.close()}
 })
 
 test('nested savepoint releases are not reported as durable commits',()=>{
@@ -104,4 +106,55 @@ test('nested savepoint releases are not reported as durable commits',()=>{
         runMeasuredSingleTransaction(db,()=>db.exec("INSERT INTO items VALUES(2,'monitor disabled')"))
         assert.equal(diagnostics.drainSqliteCommitDiagnostics().n,0)
     }finally{delete process.env.ROUTE_PERF_SUMMARY;db.close()}
+})
+
+test('default and explicit off bypass SHM file probes while preserving writes and rollbacks', async t => {
+    db = open()
+    const shmPath = db.name + '-shm'
+    const openSync = fs.openSync
+    let shmReads = 0
+    t.mock.method(fs, 'openSync', (file, ...args) => {
+        if (file === shmPath) shmReads++
+        return openSync(file, ...args)
+    })
+    try {
+        const insert = db.prepare('INSERT INTO items(data) VALUES (?)')
+        const originalError = new Error('fixture rollback')
+        for (const enabled of [undefined, 'false']) {
+            if (enabled === undefined) delete process.env.SQLITE_COMMIT_DIAGNOSTICS
+            else process.env.SQLITE_COMMIT_DIAGNOSTICS = enabled
+            assert.equal(runMeasuredSingleTransaction(db, () => {
+                insert.run('single committed')
+                return 'single'
+            }), 'single')
+            assert.equal(await runImmediateTransactionWithRetry(() => {
+                insert.run('immediate committed')
+                return 'immediate'
+            }), 'immediate')
+            assert.throws(() => runMeasuredSingleTransaction(db, () => {
+                insert.run('single rolled back')
+                throw originalError
+            }), error => error === originalError)
+            await assert.rejects(runImmediateTransactionWithRetry(() => {
+                insert.run('immediate rolled back')
+                throw originalError
+            }), error => error === originalError)
+            assert.equal(shmReads, 0)
+            assert.equal(diagnostics.drainSqliteCommitDiagnostics().n, 0)
+        }
+        assert.deepEqual(db.prepare('SELECT data FROM items ORDER BY id').pluck().all(), [
+            'single committed', 'immediate committed', 'single committed', 'immediate committed',
+        ])
+        const work = drainServerWorkPerformance()
+        assert.equal(work['db.single.commit'].n, 2)
+        assert.equal(work['db.commit'].n, 2)
+
+        process.env.SQLITE_COMMIT_DIAGNOSTICS = 'true'
+        runMeasuredSingleTransaction(db, () => insert.run('probe enabled'))
+        assert.ok(shmReads > 0)
+        assert.equal(diagnostics.drainSqliteCommitDiagnostics().n, 1)
+    } finally {
+        process.env.SQLITE_COMMIT_DIAGNOSTICS = 'true'
+        db.close()
+    }
 })

@@ -3,6 +3,7 @@ import { closeSync, openSync, readSync } from "node:fs"
 import { endianness } from "node:os"
 import { performance } from "node:perf_hooks"
 import { sqliteDiagnosticsEnabled } from "./memory-diagnostics"
+import { measureSlowOperation } from "./slow-operation-diagnostics"
 
 type Kind = "single" | "immediate"
 interface WalState { frames: number, backfilled: number, generation: string, pageSize: number }
@@ -56,10 +57,11 @@ function settingsFor(db: Database): Settings {
 }
 
 export function beginCommitProbe(db: Database, kind: Kind): CommitProbe | undefined {
-    if (!sqliteDiagnosticsEnabled() || /^(0|false|no|off)$/i.test(process.env.SQLITE_COMMIT_DIAGNOSTICS ?? "true")
+    if (!sqliteDiagnosticsEnabled() || !/^(1|true|yes|on)$/i.test(process.env.SQLITE_COMMIT_DIAGNOSTICS ?? "false")
         || /^(0|false|no|off)$/i.test(process.env.ROUTE_PERF_SUMMARY ?? "true")) return
-    const settings = settingsFor(db)
-    const before = settings.journalMode === "wal" ? readWalCommitState(db) : null
+    const settings = measureSlowOperation("db.probe.settings", () => settingsFor(db))
+    const before = settings.journalMode === "wal"
+        ? measureSlowOperation("db.probe.before", () => readWalCommitState(db)) : null
     return { kind, settings, before, cpu: process.cpuUsage(), startedAt: performance.now() }
 }
 
@@ -83,7 +85,8 @@ export function endCommitProbe(db: Database, probe: CommitProbe | undefined, suc
     const threshold = Number.isFinite(configured) ? Math.max(0, configured) : 100
     if (success && wallMs < threshold) return
     totals.slow++
-    const after = probe.settings.journalMode === "wal" ? readWalCommitState(db) : null
+    const after = probe.settings.journalMode === "wal"
+        ? measureSlowOperation("db.probe.after", () => readWalCommitState(db)) : null
     const before = probe.before
     const walReset = before && after ? before.generation !== after.generation : null
     // Observed progress does not identify the connection that performed it.

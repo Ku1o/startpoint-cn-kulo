@@ -1,4 +1,5 @@
 import { performance } from "node:perf_hooks"
+import { measureSlowOperation } from "./slow-operation-diagnostics"
 
 // Fixed names keep telemetry bounded even when request IDs are unbounded.
 export type ServerWorkPhase = "encode.pack" | "encode.fix" | "encode.base64"
@@ -23,7 +24,7 @@ export function recordServerWork(phase: ServerWorkPhase, elapsedMs: number): voi
 
 export function measureServerWork<T>(phase: ServerWorkPhase, operation: () => T): T {
     const start = performance.now()
-    try { return operation() } finally { recordServerWork(phase, performance.now() - start) }
+    try { return measureSlowOperation(phase, operation) } finally { recordServerWork(phase, performance.now() - start) }
 }
 
 export function drainServerWorkPerformance() {

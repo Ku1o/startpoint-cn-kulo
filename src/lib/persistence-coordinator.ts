@@ -13,6 +13,7 @@ import {
     writerThreadSettings,
 } from "./persistence/writer-client"
 import { recordServerWork } from "./server-work-performance"
+import { beginSlowOperationPhase, endSlowOperationPhase, measureSlowOperation, withSlowOperationContext } from "./slow-operation-diagnostics"
 import { persistenceAdmission } from "./persistence-admission"
 import { persistenceWriteGate } from "./persistence-write-gate"
 import { assertServerAcceptingWork, withServerWorkAdmission } from "./shutdown-state"
@@ -86,7 +87,8 @@ let writerFallbackCount = 0
 let writerStartupWaitCount = 0
 
 function yieldToEventLoop(): Promise<void> {
-    return new Promise(resolve => setImmediate(resolve))
+    const token = beginSlowOperationPhase("persistence.yield", "wait")
+    return new Promise(resolve => setImmediate(() => { endSlowOperationPhase(token); resolve() }))
 }
 
 function statsFor(domain: PersistenceDomain): PersistenceStats {
@@ -134,7 +136,8 @@ function enqueueGlobalWrite<T>(operation: () => Promise<T>): Promise<T> {
 }
 
 function enqueuePersistence<T>(context: PersistenceContext, operation: () => Promise<T>, exclusive = false): Promise<T> {
-    try { return withServerWorkAdmission(() => enqueueAcceptedPersistence(context, operation, exclusive)) }
+    try { return withSlowOperationContext(context,
+        () => withServerWorkAdmission(() => enqueueAcceptedPersistence(context, operation, exclusive))) }
     catch (error) { statsFor(context.domain).failed++; return Promise.reject(error) }
 }
 
@@ -148,8 +151,13 @@ function enqueueAcceptedPersistence<T>(context: PersistenceContext, operation: (
     // Capacity includes running work and all upstream waiting chains, not only
     // commands already handed to the optional SQLite writer thread.
     const admission = { active: true }
+    const ordering = beginSlowOperationPhase("persistence.order", "wait")
     const execute = () => admittedCommand.run(admission, async () => {
-        const releaseGate = await persistenceWriteGate.acquire(exclusive)
+        endSlowOperationPhase(ordering)
+        const gate = beginSlowOperationPhase("persistence.gate", "wait")
+        let releaseGate: () => void
+        try { releaseGate = await persistenceWriteGate.acquire(exclusive) }
+        finally { endSlowOperationPhase(gate) }
         try { return await operation() }
         finally { releaseGate() }
     })
@@ -167,7 +175,7 @@ function withPersistenceContext<T>(context: PersistenceContext, operation: () =>
         // Capture the content clock after BEGIN/queueing. Existing player
         // markers affect EXP/day/week storage only, never content visibility.
         const offset = getConfiguredBusinessTimeOffset() ?? 0
-        return withServerClock(Date.now() + offset, operation, offset)
+        return withSlowOperationContext(context, () => withServerClock(Date.now() + offset, operation, offset))
     }
     finally { activePersistenceContext = previous }
 }
@@ -440,9 +448,10 @@ export function runPersistenceTransactionSync<T>(
     let release: (() => void) | undefined
     try {
         if (!admittedCommand.getStore()?.active) release = persistenceAdmission.acquire(context.playerId)
-        const result = getDb().transaction(() => (
-            withPersistenceContext(context, operation)
-        )).immediate()
+        const result = withSlowOperationContext(context, () => measureSlowOperation("persistence.sync", () => (
+            getDb().transaction(() => withPersistenceContext(context,
+                () => measureSlowOperation("db.sync.body", operation))).immediate()
+        )))
         stats.committed++
         return result
     } catch (error) {

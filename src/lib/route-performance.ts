@@ -7,6 +7,7 @@ import { drainAwakeDiagnostics, installRequestDiagnostics } from "./request-diag
 import { drainServerWorkPerformance } from "./server-work-performance"
 import { drainSqliteCommitDiagnostics } from "./sqlite-commit-diagnostics"
 import { drainSingleSettlementDiagnostics } from "./single-settlement-diagnostics"
+import { drainSlowOperationDiagnostics, slowOperationDiagnosticsConfiguration } from "./slow-operation-diagnostics"
 
 function isEnabled(): boolean {
     return !/^(0|false|no|off)$/i.test(process.env.ROUTE_PERF_SUMMARY ?? "true")
@@ -20,6 +21,7 @@ function isEnabled(): boolean {
 export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
     installMemoryDiagnostics(fastify)
     if (!isEnabled()) return
+    console.warn(`[SLOW-OPERATIONS-CONFIG] ${JSON.stringify(slowOperationDiagnosticsConfiguration)}`)
 
     const detailed = /^(1|true|yes|on)$/i.test(process.env.ROUTE_PERF_DETAIL ?? "false")
     const diagnostics = installRequestDiagnostics(fastify, { detailed })
@@ -61,10 +63,11 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
         const work = drainServerWorkPerformance()
         const commits = drainSqliteCommitDiagnostics()
         const settlements = drainSingleSettlementDiagnostics()
+        const slowOperations = drainSlowOperationDiagnostics()
         if (requestCount === 0 && phases === "none" && admission === "none"
             && awake.skippedUnownedMissions === 0 && commits.n === 0
             && gacha === "none" && Object.keys(work).length === 0
-            && Object.keys(settlements).length === 0) return
+            && Object.keys(settlements).length === 0 && slowOperations.count === 0 && slowOperations.observerErrors === 0) return
         console.warn(
             `[PERF] interval=${intervalMs}ms requests=${requestCount} cpu=${cpuMs.toFixed(0)}ms `
             + `actualInterval=${actualIntervalMs.toFixed(1)}ms `
@@ -76,6 +79,7 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
         if (Object.keys(work).length > 0) console.warn(`[WORK-PERF] ${JSON.stringify(work)}`)
         if (commits.n > 0) console.warn(`[SQLITE-COMMIT] ${JSON.stringify(commits)}`)
         if (Object.keys(settlements).length > 0) console.warn(`[SINGLE-SETTLEMENT] ${JSON.stringify(settlements)}`)
+        if (slowOperations.count > 0 || slowOperations.observerErrors > 0) console.warn(`[SLOW-OPERATIONS] ${JSON.stringify(slowOperations)}`)
     }, intervalMs)
     timer.unref()
     fastify.addHook("onClose", async () => { clearInterval(timer); eventLoopDelay.disable() })
