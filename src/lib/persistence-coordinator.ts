@@ -170,12 +170,16 @@ function withPersistenceContext<T>(context: PersistenceContext, operation: () =>
     const previous = activePersistenceContext
     activePersistenceContext = context
     try {
-        if (context.playerId !== undefined) ensurePlayerClockStateForLoadSync(context.playerId, getDb())
-        else assertServerClockMatchesDatabaseSync(getDb())
-        // Capture the content clock after BEGIN/queueing. Existing player
-        // markers affect EXP/day/week storage only, never content visibility.
-        const offset = getConfiguredBusinessTimeOffset() ?? 0
-        return withSlowOperationContext(context, () => withServerClock(Date.now() + offset, operation, offset))
+        return withSlowOperationContext(context, () => {
+            measureSlowOperation("persistence.clock", () => {
+                if (context.playerId !== undefined) ensurePlayerClockStateForLoadSync(context.playerId, getDb())
+                else assertServerClockMatchesDatabaseSync(getDb())
+            })
+            // Capture the content clock after BEGIN/queueing. Existing player
+            // markers affect EXP/day/week storage only, never content visibility.
+            const offset = getConfiguredBusinessTimeOffset() ?? 0
+            return withServerClock(Date.now() + offset, operation, offset)
+        })
     }
     finally { activePersistenceContext = previous }
 }
@@ -448,10 +452,35 @@ export function runPersistenceTransactionSync<T>(
     let release: (() => void) | undefined
     try {
         if (!admittedCommand.getStore()?.active) release = persistenceAdmission.acquire(context.playerId)
-        const result = withSlowOperationContext(context, () => measureSlowOperation("persistence.sync", () => (
-            getDb().transaction(() => withPersistenceContext(context,
-                () => measureSlowOperation("db.sync.body", operation))).immediate()
-        )))
+        const result = withSlowOperationContext(context, () => measureSlowOperation("persistence.sync", () => {
+            let begin: ReturnType<typeof beginSlowOperationPhase>
+            let finish: ReturnType<typeof beginSlowOperationPhase>
+            const transaction = getDb().transaction(() => {
+                endSlowOperationPhase(begin)
+                begin = undefined
+                try {
+                    const value = withPersistenceContext(context,
+                        () => measureSlowOperation("db.sync.body", operation))
+                    finish = beginSlowOperationPhase("db.sync.commit")
+                    return value
+                } catch (error) {
+                    finish = beginSlowOperationPhase("db.sync.rollback")
+                    throw error
+                }
+            })
+            // Keep better-sqlite3 in charge of BEGIN/COMMIT, savepoints and
+            // rollback. Its native control statements bypass public prepare().
+            begin = beginSlowOperationPhase("db.sync.begin")
+            let failed = false
+            try { return transaction.immediate() }
+            catch (error) { failed = true; throw error }
+            finally {
+                endSlowOperationPhase(begin, failed)
+                // A failed commit includes the driver's automatic rollback;
+                // do not label that interval as successful COMMIT time.
+                endSlowOperationPhase(finish, failed)
+            }
+        }))
         stats.committed++
         return result
     } catch (error) {

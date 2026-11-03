@@ -30,7 +30,11 @@
 
 诊断时钟或 CPU 采样自身失败只增加 `observerErrors`，不改变业务返回、原始异常或队列推进；该计数随同一有界摘要报告。业务执行失败仍按原事务逻辑向上传递。
 
-`persistence.order` 是玩家或全局顺序队列等待，`persistence.gate` 是写门等待，`persistence.yield` 是主动让出事件循环后等待恢复；三者属于等待阶段。`db.begin/body/commit`、`db.probe.*` 和同步事务的 `db.sync.body/persistence.sync` 属于同步阶段。现有 `measureServerWork` 的同步业务与编码阶段也可出样本；没有协调器上下文时标签为 `unscoped`。阶段可能嵌套，不能把样本耗时简单相加当作总 CPU。起止 UTC 以开始墙钟加单调计时计算，避免中途系统时钟调整造成负耗时。
+`persistence.order` 是玩家或全局顺序队列等待，`persistence.gate` 是写门等待，`persistence.yield` 是主动让出事件循环后等待恢复；三者属于等待阶段。`db.begin/body/commit`、`db.probe.*`、`persistence.clock` 和同步事务的 `db.sync.*/persistence.sync` 属于同步阶段。现有 `measureServerWork` 的同步业务与编码阶段也可出样本；没有协调器上下文时标签为 `unscoped`。阶段可能嵌套，不能把样本耗时简单相加当作总 CPU。起止 UTC 以开始墙钟加单调计时计算，避免中途系统时钟调整造成负耗时。
+
+同步事务保留 better-sqlite3 原有事务控制，只在调用边界计时：`db.sync.begin` 从进入 `.immediate()` 到驱动调用业务回调，`persistence.clock` 包含数据库时钟一致性与玩家时钟检查，`db.sync.body` 是业务回调，`db.sync.commit` 从回调正常返回前到驱动返回。业务或时钟检查抛错时，最后一段记为 `db.sync.rollback`。时钟检查仍在取得事务之后执行，不缓存或跳过检查；异步协调器也记录 `persistence.clock`。
+
+成功的 `db.sync.commit` 包含驱动结果检查和提交；失败时还可能包含驱动自动回滚，不能据此认定全部耗时都发生在 COMMIT。`db.sync.rollback` 的 `failed=true` 表示事务失败退出，不代表回滚本身失败。进入已有事务时仍由驱动使用保存点；协调器内嵌同步调用沿用保存点逻辑，不重复分段记录。各段仍受同一个阈值和 16 条样本上限约束，未出现某阶段样本不等于该阶段耗时为零。
 
 这些记录用于定位慢阶段，不能单独证明磁盘、GC 或宿主调度根因，也不取代调用栈和系统侧证据。修改默认诊断负担不等于已经解决某次历史卡顿。
 
