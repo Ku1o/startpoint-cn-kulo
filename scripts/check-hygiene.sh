@@ -68,6 +68,8 @@ while IFS= read -r f; do
     [ -f "$f" ] || continue
     case "$f" in
         scripts/check-hygiene.sh|scripts/hooks/*|.github/workflows/hygiene.yml) continue ;;
+        # Like this scanner, the Windows counterpart contains rule examples.
+        tools/production-kit/scripts/check_hygiene_windows.py) continue ;;
         tools/fantasy-gauntlet-mod-tools/scripts/check-hygiene.sh) continue ;;
         tools/fantasy-gauntlet-mod-tools/scripts/tests/test-hygiene.sh) continue ;;
     esac

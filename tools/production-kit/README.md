@@ -32,6 +32,16 @@ $env:STARPOINT_SUPPORT_ROOT = 'D:/starpoint-source'
 
 ## 验证边界
 
+Windows 上可使用仅依赖 Python 标准库和 Git 的提交卫生检查：
+
+```powershell
+python tools/production-kit/scripts/check_hygiene_windows.py --repo .
+```
+
+它读取 Git 已跟踪文件的工作区内容，按 `scripts/check-hygiene.sh --all` 的规则报告个人地址、路径、邮箱、`.env` 和不应入库的大文件；支持中文及空格文件名，不修改、暂存、提交或上传文件。未跟踪文件不在检查范围内，准备提交时应先按明确文件清单暂存，再检查最终内容。它不检查历史提交，也不能替代独立 Gitleaks 扫描或远端 CI。两种检查器都只对检查器自身的精确路径排除内置规则示例；其他文件仍受检查。
+
+标准库回归入口为 `python -B tools/production-kit/scripts/tests/test_hygiene_windows.py`。若还需对照 Bash 检查器，设置 `HYGIENE_TEST_BASH` 为已有 Git Bash 的实际可执行文件路径；不要为此安装另一套环境。
+
 现有单元测试保存在 `scripts/tests`。真实原生样板测试显式使用 `GACHA_NATIVE_SUPPORT_ROOT`、`GACHA_NATIVE_CASE_ROOT` 和 `GACHA_NATIVE_TEST_OUTPUT`；缺少样板时的 skip 不算真实样板通过。美术样板重放另需 `GACHA_TEST_FONT`。预览测试使用 `GACHA_PREVIEW_TEST_INPUT` 指定输入清单。
 
 制作工具可复用不代表四人模板能够自动适配任意人数，也不代表网页技能演示执行了游戏内 kind2 战斗。新主题仍须实际配置人物、图层、原生槽位、支付和技能引用，并审阅完整动画。
