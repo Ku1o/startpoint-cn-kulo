@@ -17,6 +17,7 @@ import { getEventItemMissionIdsForItems } from "./computer-event-safe"
 import { recordDegreePartyPowerClearSync } from "./degree-party-power"
 import type { MissionSettlementScope } from "./settlement"
 import { QuestCategory } from "../types"
+import { withContentOperationsDecisionScope } from "../content-operations"
 
 // Category 5 (titles) must be settled in the battle result response.  Deferring
 // it until get_mission_progress made newly acquired titles invisible until the
@@ -106,6 +107,10 @@ export function recordMissionBattleFacts(
     ctx: FinishContext,
     evaluationTime: Date = new Date(getServerTime() * 1000),
 ): MissionBattleFactResult {
+    return withContentOperationsDecisionScope(() => recordMissionBattleFactsInScope(ctx, evaluationTime))
+}
+
+function recordMissionBattleFactsInScope(ctx: FinishContext, evaluationTime: Date): MissionBattleFactResult {
     const degreeTrigger = {
         questCategory: ctx.questCategory,
         questId: ctx.questId,
