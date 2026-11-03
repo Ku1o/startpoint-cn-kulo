@@ -54,6 +54,8 @@ async function main() {
         gzipLevel: 9,
         brotliQuality: 0,
         log: true,
+        maxConcurrent: 4,
+        maxInputBytes: 32 * 1024 * 1024,
     })
     console.log("CN /load HTTP compression tests passed")
 }

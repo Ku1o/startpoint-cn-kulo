@@ -39,9 +39,17 @@ export function installCnResponseEncoding(
                     } } : {}),
                 }, { offloadObject: loadResponse });
                 if (encoded.compressionError) {
-                    console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response");
+                    console.error(`[CN-LOAD-COMPRESS] compression failed; ${encoded.statusCode ? "service unavailable" : "sending identity response"}`);
                 }
                 const result = encoded.compression;
+                if (compressedLoad) {
+                    reply.removeHeader("content-encoding");
+                    reply.removeHeader("content-length");
+                }
+                if (encoded.statusCode) {
+                    reply.code(encoded.statusCode);
+                    if (encoded.statusCode === 503) reply.header("retry-after", "1");
+                }
                 if (result?.encoding) {
                     reply.header("content-encoding", result.encoding);
                     reply.removeHeader("content-length");

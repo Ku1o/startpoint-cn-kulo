@@ -12,15 +12,26 @@ export interface CnLoadHttpCompressionConfig {
     readonly gzipLevel: number
     readonly brotliQuality: number
     readonly log: boolean
+    readonly maxConcurrent: number
+    readonly maxInputBytes: number
 }
 
 export interface CnLoadHttpCompressionResult {
-    readonly body: Buffer
+    readonly body: Buffer | string
     readonly encoding: "gzip" | "br" | null
     readonly originalBytes: number
     readonly wireBytes: number
-    readonly reason: "compressed" | "disabled" | "below-threshold" | "not-accepted" | "observe"
+    readonly reason: "compressed" | "disabled" | "below-threshold" | "not-accepted" | "observe" | "capacity"
+    readonly statusCode?: 406 | 503
 }
+
+const DEFAULT_MAX_CONCURRENT = 4
+const DEFAULT_MAX_INPUT_BYTES = 32 * 1024 * 1024
+// Production encoding workers return base64 to their parent before compression,
+// so every local/worker/fallback response shares this budget. There is no queue.
+const compressionStats = { active: 0, inputBytes: 0, rejected: 0, failed: 0,
+    maxConcurrent: DEFAULT_MAX_CONCURRENT, maxInputBytes: DEFAULT_MAX_INPUT_BYTES }
+export function getCnLoadCompressionStats() { return { ...compressionStats } }
 
 function clampInteger(value: string | undefined, fallback: number, minimum: number, maximum: number): number {
     const parsed = Number.parseInt(value ?? "", 10)
@@ -46,15 +57,17 @@ export function getCnLoadHttpCompressionConfig(
         gzipLevel: clampInteger(environment.CN_LOAD_HTTP_GZIP_LEVEL, 1, 1, 9),
         brotliQuality: clampInteger(environment.CN_LOAD_HTTP_BROTLI_QUALITY, 3, 0, 11),
         log: parseBoolean(environment.CN_LOAD_HTTP_COMPRESSION_LOG),
+        maxConcurrent: clampInteger(environment.CN_LOAD_HTTP_COMPRESSION_MAX_CONCURRENT, DEFAULT_MAX_CONCURRENT, 1, 32),
+        maxInputBytes: clampInteger(environment.CN_LOAD_HTTP_COMPRESSION_MAX_INPUT_BYTES, DEFAULT_MAX_INPUT_BYTES, 1, 256 * 1024 * 1024),
     }
 }
 
 export function acceptsHttpEncoding(
     header: string | readonly string[] | undefined,
-    encoding: "gzip" | "br",
+    encoding: "gzip" | "br" | "identity",
 ): boolean {
     const text = typeof header === "string" ? header : header?.join(",")
-    if (!text) return false
+    if (!text) return encoding === "identity"
     let wildcardQuality: number | null = null
     for (const token of text.split(",")) {
         const [rawName, ...parameters] = token.trim().toLowerCase().split(";")
@@ -67,16 +80,18 @@ export function acceptsHttpEncoding(
         if (rawName === encoding) return quality > 0
         if (rawName === "*") wildcardQuality = quality
     }
-    return (wildcardQuality ?? 0) > 0
+    // RFC 9110 12.5.3: identity is acceptable unless explicitly excluded,
+    // including '*;q=0' without a more specific identity entry.
+    return encoding === "identity" ? wildcardQuality !== 0 : (wildcardQuality ?? 0) > 0
 }
 
-function gzipAsync(body: Buffer, level: number): Promise<Buffer> {
+function gzipAsync(body: Buffer | string, level: number): Promise<Buffer> {
     return new Promise((resolve, reject) => gzip(body, { level }, (error, result) => (
         error ? reject(error) : resolve(result)
     )))
 }
 
-function brotliAsync(body: Buffer, quality: number): Promise<Buffer> {
+function brotliAsync(body: Buffer | string, quality: number): Promise<Buffer> {
     return new Promise((resolve, reject) => brotliCompress(body, {
         params: { [zlibConstants.BROTLI_PARAM_QUALITY]: quality },
     }, (error, result) => (
@@ -85,19 +100,24 @@ function brotliAsync(body: Buffer, quality: number): Promise<Buffer> {
 }
 
 export async function compressCnLoadHttpBody(
-    body: Buffer,
+    body: Buffer | string,
     acceptEncoding: string | readonly string[] | undefined,
     config: CnLoadHttpCompressionConfig,
 ): Promise<CnLoadHttpCompressionResult> {
+    const originalBytes = typeof body === "string" ? Buffer.byteLength(body) : body.length
+    const identityAllowed = acceptsHttpEncoding(acceptEncoding, "identity")
     const base = {
         body,
         encoding: null,
-        originalBytes: body.length,
-        wireBytes: body.length,
+        originalBytes,
+        wireBytes: originalBytes,
     } as const
-    if (config.mode === "off") return { ...base, reason: "disabled" }
-    if (body.length < config.minimumBytes) return { ...base, reason: "below-threshold" }
-    if (config.mode === "observe") return { ...base, reason: "observe" }
+    const uncompressed = (reason: CnLoadHttpCompressionResult["reason"], statusCode: 406 | 503 = 406): CnLoadHttpCompressionResult => (
+        identityAllowed ? { ...base, reason } : { ...base, body: "", wireBytes: 0, reason, statusCode }
+    )
+    if (config.mode === "off") return uncompressed("disabled")
+    if (originalBytes < config.minimumBytes && identityAllowed) return uncompressed("below-threshold")
+    if (config.mode === "observe") return uncompressed("observe")
 
     const supportsBrotli = acceptsHttpEncoding(acceptEncoding, "br")
     const supportsGzip = acceptsHttpEncoding(acceptEncoding, "gzip")
@@ -110,16 +130,30 @@ export async function compressCnLoadHttpBody(
                 : supportsGzip
                     ? "gzip"
                     : null
-    if (encoding === null) return { ...base, reason: "not-accepted" }
+    if (encoding === null) return uncompressed("not-accepted")
 
-    const compressed = encoding === "br"
-        ? await brotliAsync(body, config.brotliQuality)
-        : await gzipAsync(body, config.gzipLevel)
-    return {
-        body: compressed,
-        encoding,
-        originalBytes: body.length,
-        wireBytes: compressed.length,
-        reason: "compressed",
+    // Older callers may provide a config without the new fields.
+    const maxConcurrent = config.maxConcurrent ?? DEFAULT_MAX_CONCURRENT
+    const maxInputBytes = config.maxInputBytes ?? DEFAULT_MAX_INPUT_BYTES
+    Object.assign(compressionStats, { maxConcurrent, maxInputBytes })
+    if (compressionStats.active >= maxConcurrent || originalBytes > maxInputBytes - compressionStats.inputBytes) {
+        compressionStats.rejected++
+        return uncompressed("capacity", 503)
+    }
+    compressionStats.active++
+    compressionStats.inputBytes += originalBytes
+    try {
+        // zlib converts strings only after admission; rejected base64 does not
+        // allocate another full Buffer. Release only when native work settles.
+        const compressed = encoding === "br"
+            ? await brotliAsync(body, config.brotliQuality)
+            : await gzipAsync(body, config.gzipLevel)
+        return { body: compressed, encoding, originalBytes, wireBytes: compressed.length, reason: "compressed" }
+    } catch (error) {
+        compressionStats.failed++
+        throw error
+    } finally {
+        compressionStats.active--
+        compressionStats.inputBytes -= originalBytes
     }
 }

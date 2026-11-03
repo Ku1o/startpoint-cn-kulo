@@ -1,6 +1,6 @@
 import { pack } from "msgpackr"
 import { performance } from "node:perf_hooks"
-import { compressCnLoadHttpBody, type CnLoadHttpCompressionConfig } from "./cn-load-http-compression"
+import { acceptsHttpEncoding, compressCnLoadHttpBody, type CnLoadHttpCompressionConfig } from "./cn-load-http-compression"
 
 /** AIR cannot read uint32 correctly. Copy only when a uint32 tag needs fixing. */
 export function fixUint32Tags(input: Buffer): Buffer {
@@ -89,15 +89,26 @@ export async function encodeCnResponse(input: ResponseEncodingInput) {
     start = performance.now()
     const base64 = fixed.toString("base64")
     const base64Ms = performance.now() - start
+    const compressed = await compressCnResponse(base64, input.compression)
+    return { ...compressed, timings: { packMs, fixMs, base64Ms, compressWaitMs: compressed.compressWaitMs } }
+}
+
+/** Also used in the parent after a response worker returns uncompressed base64. */
+export async function compressCnResponse(base64: string, options: ResponseEncodingInput["compression"]) {
     let compressionError = false
+    let statusCode: 406 | 503 | undefined
     let compressionResult: Awaited<ReturnType<typeof compressCnLoadHttpBody>> | undefined
-    start = performance.now()
-    if (input.compression) {
+    const start = performance.now()
+    if (options) {
         try {
             compressionResult = await compressCnLoadHttpBody(
-                Buffer.from(base64, "ascii"), input.compression.acceptEncoding, input.compression.config,
+                base64, options.acceptEncoding, options.config,
             )
-        } catch { compressionError = true }
+            statusCode = compressionResult.statusCode
+        } catch {
+            compressionError = true
+            if (!acceptsHttpEncoding(options.acceptEncoding, "identity")) statusCode = 503
+        }
     }
     const compression = compressionResult ? {
         encoding: compressionResult.encoding,
@@ -106,10 +117,11 @@ export async function encodeCnResponse(input: ResponseEncodingInput) {
         reason: compressionResult.reason,
     } : undefined
     return {
-        body: compressionResult?.encoding ? compressionResult.body : base64,
+        body: statusCode ? "" : compressionResult?.encoding ? compressionResult.body : base64,
         compression,
         compressionError,
-        timings: { packMs, fixMs, base64Ms, compressWaitMs: input.compression ? performance.now() - start : 0 },
+        statusCode,
+        compressWaitMs: options ? performance.now() - start : 0,
     }
 }
 

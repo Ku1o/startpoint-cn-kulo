@@ -3,7 +3,8 @@ import { multicoreConfig } from "./multicore-config"
 import { Worker } from "node:worker_threads"
 import { performance } from "node:perf_hooks"
 import { pack } from "msgpackr"
-import { encodeCnResponse, type ResponseEncodingInput, type ResponseEncodingResult } from "./cn-response-encoding"
+import { compressCnResponse, encodeCnResponse, type ResponseEncodingInput, type ResponseEncodingResult } from "./cn-response-encoding"
+import { getCnLoadCompressionStats } from "./cn-load-http-compression"
 import { observeWorkerMemory, registerMemoryCounters } from "./memory-diagnostics"
 import { recordServerWork } from "./server-work-performance"
 
@@ -62,15 +63,31 @@ export class CnResponseWorkerPool {
             active: this.slots.filter(slot => slot.job).length, retainedBytes: this.bytes,
             maxPending: this.maxPending, maxBytes: this.maxBytes,
             configuredWorkers: this.size, minimumObjectBytes: this.minimumObjectBytes,
+            ...this.compressionCounters(),
         }))
     }
 
     snapshot() {
         return { ...this.counters, workers: this.slots.length, pending: this.queue.length,
-            active: this.slots.filter(slot => slot.job).length, retainedBytes: this.bytes }
+            active: this.slots.filter(slot => slot.job).length, retainedBytes: this.bytes, ...this.compressionCounters() }
+    }
+
+    private compressionCounters() {
+        const stats = getCnLoadCompressionStats()
+        return { compressionActive: stats.active, compressionInputBytes: stats.inputBytes,
+            compressionRejected: stats.rejected, compressionFailed: stats.failed,
+            compressionMaxConcurrent: stats.maxConcurrent, compressionMaxInputBytes: stats.maxInputBytes }
     }
 
     async encode(input: ResponseEncodingInput, options: { offloadObject?: boolean } = {}): Promise<ResponseEncodingResult> {
+        // Native compression uses one parent-owned budget across workers and
+        // local fallbacks. Worker timeout/exit cannot release a native gzip job.
+        const compression = input.compression ? {
+            config: { ...input.compression.config },
+            acceptEncoding: Array.isArray(input.compression.acceptEncoding)
+                ? [...input.compression.acceptEncoding] : input.compression.acceptEncoding,
+        } : undefined
+        if (compression) input = { ...input, compression: undefined }
         let result: ResponseEncodingResult
         const objectPayload = options.offloadObject === true && input.payload !== null && typeof input.payload === "object"
         const eligible = objectPayload || (typeof input.payload === "string" && input.payload.length >= this.minimumLength)
@@ -86,12 +103,7 @@ export class CnResponseWorkerPool {
                     // and preserves the exact wire types (including Buffers/Dates).
                     // msgpackr reuses its buffer: own a copy before the next request.
                     const packedPayload = objectPayload ? Buffer.from(pack(input.payload)) : undefined
-                    snapshot = { payload: objectPayload ? undefined : input.payload, packedPayload,
-                        ...(input.compression ? { compression: {
-                            config: { ...input.compression.config },
-                            acceptEncoding: Array.isArray(input.compression.acceptEncoding)
-                                ? [...input.compression.acceptEncoding] : input.compression.acceptEncoding,
-                        } } : {}) }
+                    snapshot = { payload: objectPayload ? undefined : input.payload, packedPayload }
                 }
                 finally { recordServerWork("encode.snapshot", performance.now() - start) }
                 packMs = objectPayload ? performance.now() - start : 0
@@ -112,10 +124,16 @@ export class CnResponseWorkerPool {
             else this.counters.localIneligible++
             result = await encodeCnResponse(input)
         }
+        if (compression) {
+            if (typeof result.body !== "string") throw new Error("Response worker must return uncompressed base64")
+            const compressed = await compressCnResponse(result.body, compression)
+            result = { ...result, ...compressed,
+                timings: { ...result.timings, compressWaitMs: compressed.compressWaitMs } }
+        }
         recordServerWork("encode.pack", result.timings.packMs)
         recordServerWork("encode.fix", result.timings.fixMs)
         recordServerWork("encode.base64", result.timings.base64Ms)
-        if (input.compression) recordServerWork("encode.compressWait", result.timings.compressWaitMs)
+        if (compression) recordServerWork("encode.compressWait", result.timings.compressWaitMs)
         return result
     }
 

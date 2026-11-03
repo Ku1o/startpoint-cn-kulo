@@ -34,6 +34,18 @@
 
 这些记录用于定位慢阶段，不能单独证明磁盘、GC 或宿主调度根因，也不取代调用栈和系统侧证据。修改默认诊断负担不等于已经解决某次历史卡顿。
 
+## 登录压缩容量保护
+
+启用 `CN_LOAD_HTTP_COMPRESSION` 后，`/load` 压缩共用主进程预算，默认最多 4 个在途任务、32 MiB 原始输入。可用 `CN_LOAD_HTTP_COMPRESSION_MAX_CONCURRENT`（1—32）和 `CN_LOAD_HTTP_COMPRESSION_MAX_INPUT_BYTES`（1—268435456 字节）调整。编码 worker 只返回原有 Base64，压缩统一在父侧调用异步 zlib；worker、主线程编码及 worker 失败后的本地回退不会各自再建压缩配额。
+
+容量不足或单个输入超预算时不排队，也不先复制一份 Base64 Buffer。允许 identity 的客户端立即收到语义和原字节相同的未压缩回包，代价是传输量变大；明确禁止 identity（含适用的 `*;q=0`）时返回空 HTTP 503，并附 `Retry-After: 1`。没有任何可用编码时返回空 406。小于压缩阈值但禁止 identity 的请求仍尝试可接受的压缩。压缩错误也不能绕过 identity 禁令。协商依据 [RFC 9110 §12.5.3](https://www.rfc-editor.org/rfc/rfc9110.html#section-12.5.3)。
+
+只有底层压缩成功或报错后才释放配额；HTTP 断连不会把仍执行中的任务记成已完成，也不增加 Promise 超时来伪装取消。既有 `responseWorkers` 内存计数增加压缩在途数、输入字节、拒绝数和失败数，无新增扫描定时器。`Content-Encoding`、`Content-Length` 和 `Vary` 按实际返回内容处理，非 `/load` 回包路径不启用本保护。
+
+这只限制登录回包的压缩阶段，不是所有登录业务/网络发送的总并发或进程 RSS 上限；未压缩内容仍需正常发送。它用于抑制卡顿后的压缩积压放大，不能代替对最初停顿的根因定位，也不能据本地验证承诺线上收益。
+
+## 基础监控行为
+
 服务启动时输出一次 `[DIAGNOSTICS]`，列出实际 memory 模式、sqlite、nativeMemory 和周期。内存与 SQL 均关闭时不安装这个采集器；基础性能监测仍由 `ROUTE_PERF_SUMMARY` 单独决定。默认请求汇总只使用 Fastify 已有的总耗时，在错误/超时/中止和响应结束处计数；`ROUTE_PERF_DETAIL=true` 才安装完整阶段 hook。
 
 紧凑模式仍在根 Fastify 实例为全部请求建立状态，因此通过 plugin 注册的路由不会丢失 outcome 或自定义编码耗时。abort 和 timeout 保留请求真实开始时间，同一个请求即使同时触发 abort、socket close 和迟到的 handler 完成也只计数一次。相关回归覆盖 plugin route、自定义编码、延迟 abort、timeout 和固定基数路由统计。
