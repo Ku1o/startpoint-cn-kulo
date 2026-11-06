@@ -143,6 +143,9 @@ def load_project(path):
         if not tool.exists():
             raise ValueError("Missing configured toolchain: " + str(tool))
     inputs = input_bindings(spec)
+    if spec.get("skillPreview") is not None:
+        import gacha_skills
+        gacha_skills.validate(spec)
     return path, spec, {"status": "inputs_valid", "inputs": inputs, "pages": keys,
                         "characters": ids, "runtimeModified": False}
 
@@ -257,7 +260,7 @@ def build(project_file, run):
         if completed.returncode:
             raise ValueError("Preview failed: " + completed.stderr[-4000:])
         preview_result = json.loads(completed.stdout)
-        receipt = {"schemaVersion": 1, "status": "offline_candidate_built", "createdAt": datetime.now(timezone.utc).isoformat(),
+        receipt = {"schemaVersion": 1, "status": "preparing_native_skills" if spec.get("skillPreview") is not None else "offline_candidate_built", "createdAt": datetime.now(timezone.utc).isoformat(),
                    "project": spec["project"], "projectInput": binding(project_file),
                    "sourceBindings": checked["inputs"],
                    "resolvedInput": binding(out / "project.resolved.json"), "review": binding(out / "review.html"),
@@ -272,6 +275,9 @@ def build(project_file, run):
                               "HTML contains Movie art pages, not actual kind2 battle execution.",
                               "Business rows are explicitly bound inputs; new pool payment/feature rows require adaptation and tests."]}
         write(out / "BUILD.json", receipt)
+        if spec.get("skillPreview") is not None:
+            import gacha_skills
+            return gacha_skills.start(project_file, spec, out / "BUILD.json")
         return {"status": receipt["status"], "build": str(out / "BUILD.json"), "review": str(out / "review.html"),
                 "resources": len(handoff), "pages": len(models)}
     except Exception as exc:
@@ -288,6 +294,9 @@ def verify_build(build_file):
     # provenance: upgrading the installed tool must not invalidate an archived build.
     for field in ("projectInput", "resolvedInput", "review", "resourceManifest", "resources", "sourceBindings", "evidenceBindings"):
         input_bindings(data[field])
+    resolved = read(data["resolvedInput"]["file"])
+    if resolved.get("skillPreview") is not None and not data.get("skillStage"):
+        raise ValueError("Configured native skills require a completed skillStage")
     for receipt in data["nativeReceipts"]:
         if not Path(receipt).is_file():
             raise ValueError("Native receipt missing: " + receipt)
@@ -297,6 +306,9 @@ def verify_build(build_file):
     # pageBindings is descriptive metadata; inputs is the complete hash-bound list.
     preview = read(path.parent / "preview-receipt.json")
     input_bindings(preview["inputs"])
+    if data.get("skillStage") is not None:
+        import gacha_skills
+        gacha_skills.verify(path, data)
     return path, data
 
 
@@ -316,7 +328,7 @@ def accept(build_file, expected_sha, scope):
     return {"status": record["status"], "acceptance": str(dest)}
 
 
-def init_project(template, destination, name, key):
+def init_project(template, destination, name, key, with_skills=False):
     _, spec, _ = load_project(template)
     if not KEY.fullmatch(key):
         raise ValueError("Invalid project key")
@@ -336,6 +348,20 @@ def init_project(template, destination, name, key):
     spec["evidence"] = []
     spec["payment"] = {"mode": "unconfigured"}
     spec["featureOrder"] = []
+    # A new theme cannot inherit another pool's native scenes or visual approval.
+    spec.pop("skillPreview", None)
+    if with_skills:
+        spec["skillPreview"] = {"schemaVersion": 1, "roles": [],
+                                "limits": {"maxHtmlCharacters": 4500000, "fps": 60}, "keyframes": {}}
+        spec["stageStatus"]["skills"] = "needs_native_capture_configuration"
+        write(dest / "SKILLS-SETUP.json", {
+            "schemaVersion": 1, "status": "needs_configuration",
+            "roles": [{"roleId": c["id"], "posterPage": c["posterPage"]} for c in spec["characters"]],
+            "required": ["Bind one validated native capture configuration per selected role",
+                         "Declare kind2 roleId/page/skillKey entries in featureOrder",
+                         "Run build, inspect generated full-UI evidence, review-skills, then resume"],
+            "oldCaptureConfigurationsInherited": False,
+        })
     for page in spec["nativePages"]:
         page["native"]["logical_prefix"] = "gacha/feature_movie/" + key + "/" + page["key"]
     for resource in spec.get("artResources", []):
@@ -348,18 +374,26 @@ def init_project(template, destination, name, key):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
-    p = sub.add_parser("init"); p.add_argument("--template", required=True); p.add_argument("--output", required=True); p.add_argument("--name", required=True); p.add_argument("--key", required=True)
+    p = sub.add_parser("init"); p.add_argument("--template", required=True); p.add_argument("--output", required=True); p.add_argument("--name", required=True); p.add_argument("--key", required=True); p.add_argument("--with-skills", action="store_true")
     p = sub.add_parser("validate"); p.add_argument("project")
     p = sub.add_parser("build"); p.add_argument("project"); p.add_argument("--run", required=True)
     p = sub.add_parser("verify"); p.add_argument("build")
+    p = sub.add_parser("review-skills"); p.add_argument("build"); p.add_argument("--review", required=True)
+    p = sub.add_parser("resume"); p.add_argument("build"); p.add_argument("--reassemble", action="store_true")
     p = sub.add_parser("accept"); p.add_argument("build"); p.add_argument("--review-sha256", required=True); p.add_argument("--scope", required=True)
     args = parser.parse_args()
     try:
-        if args.command == "init": result = init_project(args.template, args.output, args.name, args.key)
+        if args.command == "init": result = init_project(args.template, args.output, args.name, args.key, args.with_skills)
         elif args.command == "validate":
             _, _, result = load_project(args.project)
             result = {**result, "inputs": len(result["inputs"])}
         elif args.command == "build": result = build(args.project, args.run)
+        elif args.command == "review-skills":
+            import gacha_skills
+            result = gacha_skills.review(args.build, args.review)
+        elif args.command == "resume":
+            import gacha_skills
+            result = gacha_skills.resume(args.build, args.reassemble)
         elif args.command == "verify":
             path, data = verify_build(args.build)
             result = {"status": "built_bytes_verified", "build": str(path), "review": data["review"], "activated": False}
