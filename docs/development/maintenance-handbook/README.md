@@ -18,6 +18,7 @@
 | 登录、存档导入、安全与限流 | [安全](topics/security.md)、[代理与限流](topics/proxy.md) |
 | 崩溃定位、历史故障与候选机制 | [崩溃日志](topics/crash-logs.md)、[旧校验器故障](topics/client-validator-legacy.md)、[累计伤害设计](topics/mod-damage.md) |
 | 大型素材、可编辑工程、私有客户端参考及恢复输入 | [归档索引与校验值](archive-20261103.md) |
+| 五池最新工程与手柄适配成品 | [2026-11-06补充归档](archive-20261106.md) |
 | 语音环境重建 | [固定依赖与模型清单](../../../tools/voice-reproduction/README.md) |
 
 ## 路径、状态和输入
