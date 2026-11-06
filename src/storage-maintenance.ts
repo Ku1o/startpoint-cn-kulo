@@ -240,7 +240,8 @@ function pruneMaintenanceBackups(paths: MaintenancePaths, currentId: string): vo
 export function unlockUnstartedMaintenance(paths: MaintenancePaths): void {
     if(existsSync(paths.state)&&!["completed","rolled-back"].includes(loadState(paths).phase))throw new Error("已有未结束维护，不能直接解锁")
     if(!existsSync(paths.lock))return
-    const lock=JSON.parse(readFileSync(paths.lock,"utf8")) as {pid:number;database:string}
+    const lock=JSON.parse(readFileSync(paths.lock,"utf8")) as {pid:number;database:string;kind?:string}
+    if(lock.kind==="cleanup-indexes")throw new Error("索引维护锁须按索引任务状态审核，不能使用存储维护解锁入口")
     if(lock.database!==paths.database||!Number.isSafeInteger(lock.pid)||lock.pid<1)throw new Error("维护锁信息无效")
     let running=true
     try{process.kill(lock.pid,0)}catch(error){if((error as NodeJS.ErrnoException).code==="ESRCH")running=false;else throw error}

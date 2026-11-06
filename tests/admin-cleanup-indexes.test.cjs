@@ -56,6 +56,20 @@ test('new database installs missing single-column and composite cascade indexes'
     } finally { db.close() }
 })
 
+test('cascade index creation rejects an occupied name that does not support the foreign key', () => {
+    const db = new Database(':memory:')
+    try {
+        db.exec(`
+            CREATE TABLE parent(id INTEGER PRIMARY KEY);
+            CREATE TABLE child(parent_id INTEGER REFERENCES parent(id) ON DELETE CASCADE);
+            CREATE TABLE unrelated(value INTEGER);
+            CREATE INDEX idx_cleanup_fk_child_0 ON unrelated(value);
+        `)
+        assert.throws(() => ensureCascadeDeleteIndexes(db), /child/)
+        assert.deepEqual(findMissingCascadeDeleteIndexes(db).map(index => index.table), ['child'])
+    } finally { db.close() }
+})
+
 test('constraints sharing a child key reuse the first installed index', () => {
     const db = new Database(':memory:')
     try {

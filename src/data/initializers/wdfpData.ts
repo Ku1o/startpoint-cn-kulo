@@ -1104,6 +1104,9 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
+    const exchangeCampaignReceiptsExist = database.prepare(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='players_exchange_campaign_receipts'"
+    ).get();
     database.prepare(`CREATE TABLE IF NOT EXISTS players_exchange_campaign_receipts (
         campaign_type TEXT NOT NULL CHECK(campaign_type IN ('special','start_dash')),
         campaign_id INTEGER NOT NULL,
@@ -1113,7 +1116,16 @@ export default function init(
         PRIMARY KEY (campaign_type, campaign_id, player_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
+    // Only newly created empty tables may build indexes during normal startup.
+    // Existing populated tables are repaired by explicit offline maintenance.
+    if (!exchangeCampaignReceiptsExist) {
+        database.prepare(`CREATE INDEX idx_cleanup_fk_players_exchange_campaign_receipts_0
+            ON players_exchange_campaign_receipts(player_id)`).run();
+    }
 
+    const specialExchangeCampaignsExist = database.prepare(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='players_special_exchange_campaigns'"
+    ).get();
     database.prepare(`CREATE TABLE IF NOT EXISTS players_special_exchange_campaigns (
         campaign_id INTEGER NOT NULL,
         status INTEGER NOT NULL CHECK(status IN (1,2,3)),
@@ -1121,6 +1133,10 @@ export default function init(
         PRIMARY KEY (campaign_id, player_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
+    if (!specialExchangeCampaignsExist) {
+        database.prepare(`CREATE INDEX idx_cleanup_fk_players_special_exchange_campaigns_0
+            ON players_special_exchange_campaigns(player_id)`).run();
+    }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_start_dash_exchange_campaigns (
         campaign_id INTEGER NOT NULL,

@@ -116,6 +116,9 @@ export function ensureCascadeDeleteIndexes(database: Database): number {
             `CREATE INDEX IF NOT EXISTS ${quoteIdentifier(indexName)}
              ON ${quoteIdentifier(table)} (${columns.map(quoteIdentifier).join(", ")})`,
         ).run()
+        if (!hasSupportingIndex(database, table, columns)) {
+            throw new Error(`删除索引 ${indexName} 未覆盖 ${table}(${columns.join(", ")})；请检查同名索引冲突`)
+        }
         created += 1
     }
     return created
