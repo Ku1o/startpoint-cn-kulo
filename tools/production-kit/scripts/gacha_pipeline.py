@@ -101,6 +101,8 @@ def load_project(path):
     if spec.get("schemaVersion") != 1:
         raise ValueError("Unsupported project schemaVersion")
     project = spec.get("project", {})
+    if spec.get('artReviewPolicy') not in (None, 'official-art-v1'):
+        raise ValueError('Unsupported artReviewPolicy')
     if not KEY.fullmatch(str(project.get("key", ""))) or not project.get("name"):
         raise ValueError("project.key and project.name are required")
     if project.get("purpose") not in {"accepted-replay", "production", "engineering-variation"}:
@@ -315,6 +317,8 @@ def verify_build(build_file):
 
 def accept(build_file, expected_sha, scope):
     path, data = verify_build(build_file)
+    import gacha_art_review
+    gacha_art_review.require_for_accept(path, data)
     if data["review"]["sha256"] != expected_sha:
         raise ValueError("Approval must identify the exact review SHA256")
     if not scope.strip():
@@ -341,6 +345,7 @@ def init_project(template, destination, name, key, with_skills=False):
     if any(x.lower() in {".cdn", ".git"} for x in dest.parts) or inside(dest, HERE) or inside(dest, Path(spec["toolchain"]["supportRoot"]).resolve()):
         raise ValueError("Project destination is protected")
     spec["project"] = {"name": name, "key": key, "purpose": "production"}
+    spec['artReviewPolicy'] = 'official-art-v1'
     spec["stageStatus"] = {"artwork": "template_inherited_needs_composition", "business": "needs_adaptation",
                            "skills": "needs_character_review", "device": "not_tested"}
     spec["extraResources"] = []
@@ -368,6 +373,14 @@ def init_project(template, destination, name, key, with_skills=False):
     for resource in spec.get("artResources", []):
         resource["logical"] = "dynamic/gacha_list_banner/" + key + ".png"
     write(dest / "project.json", spec)
+    import gacha_art_review
+    write(dest / 'ART-SETUP.json', {'schemaVersion': 1, 'policy': spec['artReviewPolicy'],
+          'pageChecks': gacha_art_review.requirements(spec),
+          'requiredEvidence': ['official references', 'transition full UI', 'settled full UI',
+                               'final preview and native resource hashes'],
+          'titleMayInnovate': True, 'preserveNativeNameplatesAndLimitedPlaques': True,
+          'footerFollowsActualOfficialLayout': True, 'businessConfigurationIsSeparate': True,
+          'automaticAestheticJudgment': False})
     return {"status": "draft_initialized", "project": str(dest / "project.json"),
             "notice": "Template characters/art remain visible as draft. Adapt composition, business, skills and preview payment before acceptance."}
 
@@ -380,6 +393,9 @@ def main():
     p = sub.add_parser("build"); p.add_argument("project"); p.add_argument("--run", required=True)
     p = sub.add_parser("verify"); p.add_argument("build")
     p = sub.add_parser("review-skills"); p.add_argument("build"); p.add_argument("--review", required=True)
+    p = sub.add_parser('review-art'); p.add_argument('build')
+    art = p.add_mutually_exclusive_group(required=True)
+    art.add_argument('--review'); art.add_argument('--template-output')
     p = sub.add_parser("resume"); p.add_argument("build"); p.add_argument("--reassemble", action="store_true")
     p = sub.add_parser("accept"); p.add_argument("build"); p.add_argument("--review-sha256", required=True); p.add_argument("--scope", required=True)
     args = parser.parse_args()
@@ -392,6 +408,10 @@ def main():
         elif args.command == "review-skills":
             import gacha_skills
             result = gacha_skills.review(args.build, args.review)
+        elif args.command == 'review-art':
+            import gacha_art_review
+            result = (gacha_art_review.template(args.build, args.template_output)
+                      if args.template_output else gacha_art_review.record(args.build, args.review))
         elif args.command == "resume":
             import gacha_skills
             result = gacha_skills.resume(args.build, args.reassemble)

@@ -1,101 +1,87 @@
 # 扭蛋池制作管线
 
-本入口把已采用的原生模板、美术合成、资源编译、检查、便携预览和采用记录连接起来。它是现有 MOD Skill 的扭蛋分支；不是另一个重复 Skill，也不自动发布资源或改数据库。美术判断和原生细节仍查 [gacha-art-workflow.md](gacha-art-workflow.md)。
+`scripts/gacha_pipeline.py` 连接图层美术、原生Movie编译、原生技能录制、完整UI审查、单文件HTML及离线交付。它不发布CDN、不改数据库、不发券、不启动游戏服务。原生客户端适配器目前为固定身份的 `c8601-air-v1`，新客户端须另行适配；模板复用不自动证明新构图或设备效果。
 
-## 已采用模板与能力
+## 环境与输入
 
-从 CURRENT.acceptedProduction（历史本地记录） 找当前采用记录与项目配置。首例是万圣惊奇池：一个四人双阶段封面、四张双形态单人 Movie、官方字样横幅、透明原生底栏、专券十连 UI。最终名牌支点修订的采用记录与运行版本分别登记，目录编号不表示已发布版本。
-
-可自动执行的步骤：
-
-1. 校验每份输入文件、SHA256、尺寸、模板与页面关系。
-2. 按显式图层配方合成立绘/字图/横幅；保持等比缩放和透明度，文字支持绑定字体、字号与描边。
-3. 复用原生 Movie，替换声明的纹理、重定逻辑资源路径，必要时修正独立动画分支的静态外层布局及真实图内支点。
-4. 严格读回 Movie/timeline/atlas/stored-PNG，检查内外序列、分域实例池、图集与逐帧命令，生成最终编译物的预览模型。
-5. 将页面、底栏、横幅、像素人物和按钮等嵌入单 HTML，输出资源交接目录及构建回执。
-6. 将明确的人工采用结果绑定到具体预览 SHA；采用动作不激活资源。
-
-**能力边界：**目前实际模板族是四人封面与单人双形态 Movie。减少预览页数不等于封面已改成对应人数；不同人数/全新动画拓扑须先做一个样板，再登记模板。图层工具不自动设计构图，文字尺寸、人物遮脸、小横幅可读性、完整入场仍要看预览。网页只展示 Movie 美术页；实际九页轮播中的四个 kind2 技能战斗另走原生接线及设备检查。不能把四人模板复制成功说成任意人数或第二个新池已经验收。
-
-## 一个入口
-
-主工具：[scripts/gacha_pipeline.py](../scripts/gacha_pipeline.py)。Python 使用当前项目已有解释器和 Pillow；Node 与只读原生工具根在配置 `toolchain` 指定。`supportRoot` 指包含 `tools/fantasy-gauntlet-mod-tools` 的仓库根。不要安装新全局环境，也不要盲跑历史总装脚本。
+使用已有Python 3.13和Pillow、仓库要求的Node，以及同仓 `tools/fantasy-gauntlet-mod-tools`。技能录制还需自行提供匹配身份的客户端、资源归档、Java/编译器/AIR SDK、FFmpeg/FFprobe和Chromium。客户端、原画、录制帧、SDK和个人配置不随工具入库。
 
 ```powershell
-$py = '<local-tool-path>'
-$pipe = '<repo>/tools/production-kit/scripts/gacha_pipeline.py'
-# 现有采用工程；新任务按CURRENT查找，避免复制过期字节指针。
-$template = '<workspace>/work/halloween-five-gacha-20261027/native-integration-20261028/official-parity-20261028/pipeline-freeze-20261028/accepted-project.json'
-& $py -X utf8 -B $pipe init --template $template --output '<workspace>/work/new-gacha-project' --name '新主题扭蛋' --key 'cnmod_new_theme'
-# 完成素材、槽位、角色、UI、支付和技能引用配置后：
-& $py -X utf8 -B $pipe validate '<workspace>/work/new-gacha-project/project.json'
-& $py -X utf8 -B $pipe build '<workspace>/work/new-gacha-project/project.json' --run 'candidate-01'
-& $py -X utf8 -B $pipe verify '<workspace>/work/new-gacha-project/builds/candidate-01/BUILD.json'
+$py = 'python'
+$pipe = './tools/production-kit/scripts/gacha_pipeline.py'
+$env:STARPOINT_WORK_ROOT = 'D:/starpoint-work'
+# 可选；未设置则使用 STARPOINT_WORK_ROOT/gacha-resource-runs
+$env:STARPOINT_GACHA_RECEIPTS = 'D:/starpoint-work/gacha-resource-runs'
+$template = 'D:/starpoint-work/templates/project.json'
 ```
 
-`init` 创建**未适配草稿**：保留模板人物/字图以便继续编辑，清空旧业务行与技能输入，重新命名输出 Movie 路径，不声称完成新主题。页面会标注草稿状态。字符数量、封面人数、下方小人、姓名/属性/称号/双形态原画、券与按钮必须同时核对。`validate` 只证明已绑定输入有效，不代表美术、业务或设备验收。
+模板必须是已核验、文件可读、摘要匹配且完成 `toolchain.supportRoot/node` 路径配置的真实项目；`<repo>` 等文字占位不能执行。先按任务的CURRENT或交付清单确认最终版本，禁止盲跑历史硬编码总装。纯美术任务只决定展示素材；正式名单、UP、券、概率和时间由维护者配置。约定保留已有池规则时先冻结有效业务数据。
 
-工程选页试验也要同步维护关联：例如只留 `cover` 和一个单人页时，`nativePages`、`preview.pageOrder`、`characters[].posterPage`、`preview.footerOrder`须相符；不能把其他角色的posterPage冒名指向保留页。封面内仍是模板原有人数，必须明示。支付为 unconfigured 时自动显示“模板券（支付待配置）”；ticket-ten 的券名/ID/数量从payment统一传入，冲突的preview覆盖会拒绝。生成横幅必须显式绑定到预览与候选资源，编译后核两者RGBA一致。
+## 默认流程与恢复
 
-每次 `build --run` 使用新的子目录，拒绝覆盖已有构建、输入、源仓库和 `.cdn`。失败留 `FAILURE.json` 定位原因；修正后换一个 run，不覆盖已审阅预览。输出 `review.html`、`native/<page>/`、`handoff/resources.json`、`BUILD.json`。资源交接目录是明确候选闭包，**不是可直接启用的版本边**；预览里的设备截图为本地非公开参考。
+```powershell
+& $py -X utf8 -B $pipe init --template $template --output 'D:/starpoint-work/new-pool' --name '新主题扭蛋' --key 'cnmod_new_theme' --with-skills
+# 配置真实角色、图片、原生槽、预览支付和技能输入后：
+& $py -X utf8 -B $pipe validate 'D:/starpoint-work/new-pool/project.json'
+& $py -X utf8 -B $pipe build 'D:/starpoint-work/new-pool/project.json' --run candidate-01
+# 到 needs_visual_review 后，实际审阅每名角色的全UI图像和连续演出：
+& $py -X utf8 -B $pipe review-skills '<build>/BUILD.json' --review '<task>/visual-review.json'
+& $py -X utf8 -B $pipe resume '<build>/BUILD.json'
+& $py -X utf8 -B $pipe verify '<build>/BUILD.json'
+# 最终产物上的独立美术审查：
+& $py -X utf8 -B $pipe review-art '<build>/BUILD.json' --template-output '<task>/art-review.json'
+& $py -X utf8 -B $pipe review-art '<build>/BUILD.json' --review '<task>/art-review.json'
+```
 
-## 项目配置
+`init` 生成未适配草稿及 `ART-SETUP.json`；`--with-skills` 额外生成 `SKILLS-SETUP.json`，清空旧技能录制/业务输入，不继承旧视觉批准。模板人物仍可见，必须明确为草稿。完整演出默认包含技能，只有明确不包含主动演示的静态/Movie工作才省略该选项。只做美术并不意味着可以漏掉约定的技能展示。
 
-以真实采用配置为示例，不另复制静态大资源到 Skill。`schemaVersion:1` 的主要字段：
+每次 `build --run` 使用新目录，拒绝覆盖已有构建和输入。技能准备失败可 `resume`：输入及回执一致的角色复用，失败角色新建尝试目录；媒体失败重组而不重录有效角色。已完成稿仅修播放器时可 `resume --reassemble`，先核旧稿、按摘要归档旧BUILD再生成新组装。素材/场地/UI改变须新构建及重新审阅，不用reassemble偷换批准输入。
 
-| 字段 | 含义 |
+## 项目合同
+
+| 字段 | 内容 |
 | --- | --- |
-| `project` | `key/name/poolId/purpose`；purpose 为 production、accepted-replay 或 engineering-variation |
-| `toolchain`、`protectedRoots` | 只读原生工具仓库、Node 路径、不可输出的目录 |
-| `characters` | 有序 `id/name/posterPage`，与当前角色数据和素材绑定核对 |
-| `nativePages` | 每页 key/label/native；四资源模板逐条绑定 logical/file/sha256/bytes |
-| `art` | `schema_version:1`、artifacts 列表；每张图 key/size/background/layers |
-| `artResources` | 将生成图按 key/logical/encoding=`stored-png` 严格编码为原生资源 |
-| `preview` | SHA绑定的采用 HTML 播放器模板、pageOrder、footerOrder、overrides |
-| `payment` | 当前实现 ticket-ten：itemId/name、cost1/pulls10/buttons=[ten]；未配置使用 unconfigured |
-| `featureOrder` | 实际 Movie(kind0) 与技能(kind2)顺序；skillKey须从真实表行读取 |
-| `businessInputs/skillInputs` | 业务和技能证据引用，**不自动复制到发布资源** |
-| `extraResources` | 经声明的附加候选资源；禁止整份搬旧 assembly 以免回退新业务 |
-| `stageStatus` | 美术、业务、技能、设备分别记录；不得用总“成功”掩盖缺口 |
+| `schemaVersion/project` | schemaVersion 1；主题key/name，必要的离线poolId，production/accepted-replay/engineering-variation目的 |
+| `toolchain/protectedRoots` | 只读工具仓库、Node及禁止输出的根目录 |
+| `characters` | 真实id/name与posterPage关联，页键可以不是数字 |
+| `nativePages` | key/label及native配置；模板Movie、timeline、atlas、图像逐份绑定 |
+| `art` | schema_version 1、图层配方；图片file/sha256、position、等比scale/fit、crop/mask/alpha/rotation；文字绑定字体、字号和描边 |
+| `artResources` | 生成图key、logical、stored-png编码；横幅同时进入原生资源和预览 |
+| `preview` | SHA绑定播放器模板、pageOrder/footerOrder及结构化overrides |
+| `payment` | unconfigured或ticket-ten；后者为一券十连且只有十连按钮；预览余额不代表业务登记 |
+| `featureOrder` | Movie(kind0)和技能(kind2)的真实页序，skillKey明确声明 |
+| `businessInputs/skillInputs/extraResources` | 精确证据或附加候选，不自动发布；不整包搬运旧业务 |
+| `skillPreview` | 原生角色配置、可验证reuseRun、媒体预算和关键帧；见[技能分支](gacha-skill-pipeline.md) |
+| `stageStatus/artReviewPolicy` | 美术、业务、技能、设备分开；新工程official-art-v1要求采用前逐页美术审查 |
 
-所有外部 `{file:...}` 输入都需要 `sha256`，资源输入还要 `bytes`。相对文件路径按项目文件目录解析；工具链用已验证的绝对路径。输入变化后重新绑定，不能改检查器放行。禁止在配置里塞任意命令或自动服务动作。
+外部文件输入绑定 `{file,sha256}`，资源另含bytes；相对路径按项目文件解析。改变输入必须重绑，不放宽检查器。图层画布应匹配原生槽，不能单轴拉伸文字；横幅原生解码RGBA与预览必须相同。选页试验同步调整nativePages、pageOrder、characters.posterPage和footerOrder，减少页数不等于改造封面人数。未知命令和原生动画语义保留。
 
-### 美术到原生纹理
+## 资源预算
 
-[gacha_art.py](../scripts/gacha_art.py) 的图片层用 file/sha256、position、单值 scale 或等比 fit 的 size；crop 是 `[x,y,w,h]`，可用同尺寸 mask、opacity、rotation。文本层用 text、font 的 file/sha256、font_size、position、fill、stroke_fill、stroke_width、anchor。字号与输出画布一起按2×采样，再在原生叶上均匀缩放；不得单向拉宽姓名。
+Windows主CLI、原生录制CLI和原生编译CLI自动使用同目录 `gacha_guard.py`：轻检查默认512 MiB，build/resume/capture及原生编译上限2048 MiB；共用单处理槽。启动时须有预算之外至少4 GiB物理内存余量。命名Job在恢复挂起进程前设置并回读限制，覆盖其子进程树的提交内存；超时、失败、低余量或日志超额时停止任务树。GPU、共享内存和其他应用不属于此上限。
 
-原生纹理配置在 `nativePages[].native.textures`，例如：
+继承保护须验证真实Job成员和限制，不只信任环境标记。返回75表示没有启动工作进程；等待条件改变，不密集重试或无保护重跑。回执保存限制、退出、耗时及清理后的活动进程数；Job峰值可能含被拒绝的分配，不能冒充采样RSS。当前非Windows主入口拒绝处理，直至实现等效保护；帮助与纯单元测试可读取。
 
-```json
-{"slot":33,"asset":{"generated":"serio_nameplate"}}
-```
-
-这会把同一轮生成图片绑定到声明槽位。图像画布必须与模板槽相符，不自动缩图硬塞；布局变动需重新审查实际矩阵。横幅可以同时从 `artResources` 输出原生 stored-PNG，并通过 `preview.overrides.banner:{"generated":"banner"}` 进入预览，避免预览与候选使用两份图。
-
-[gacha_native.py](../scripts/gacha_native.py) 的 `inspect_template` 提供模板清单；`build_native` 支持 `logical_prefix/textures/anchors/anchor_checks/repack`。纹理、支点约束和模板拓扑先读其 API/检查错误，不按另一个模板的 slot 数字猜位置。支点必须来自**当前字图的来源及实际尖角**，外层布局与原生缩放/摆动分离，稳帧与未改图层逐帧保全。轻摆保留原曲线，不能把底板与文字强制绑成一组；本次被替代的268文字跟板方案不是采用模板。
-
-### 预览与验收
-
-[gacha_preview.cjs](../scripts/gacha_preview.cjs) 从编译模型读取数据，不执行输入 HTML 的脚本来取数据。模型 `source` 可是单页或pages字典；assetBindings逐张绑定本地图片。支付显示、名称、UI/人物数据通过结构化覆盖进入；模板播放器时钟、控件和墨迹基线保留。
-
-先检查资源/模型全帧结果，再看正常速度完整入场、稳定帧、换页与暂停/继续；底部文字按实际字形墨迹与券图标对齐。比较同一尺寸/同一帧的官方画面，不能拿不同裁切估算字号。浏览器或设备未实际执行，就如实记未执行；当前工具访问被策略拒绝时不换端口、协议、浏览器绕过。
-
-人工确认后才记录采用：
+独立Python API、Node、FFmpeg、FFDec和图片工具需显式走同一guard；不能因为导入模块就声称已受保护。AIR继续使用同仓 `tools/client-background/run_background.py`，放在外层guard之内。
 
 ```powershell
-& $py -X utf8 -B $pipe accept '<构建目录>/BUILD.json' --review-sha256 '<已审阅HTML的SHA256>' --scope '已确认的美术和动画范围'
+& $py -X utf8 -B './tools/production-kit/scripts/gacha_guard.py' --memory-mib 512 --timeout 120 --cwd 'D:/starpoint-work/task' --receipt 'D:/starpoint-work/task/check.json' -- '<program>' '<arguments>'
 ```
 
-`ACCEPTANCE.json` 不宣称设备验证、不修改原构建、不启动服务。历史已采用原产物可以保留单独采用回执；工具重建的 HTML 若内容改变，不自动继承新的审美验收。
+日志写盘并有界读取；大JSON先核大小，摘要流式计算。Movie逐帧严格比较，只报首差位置，不生成整棵对象的Myers差异。Node heap不是进程树内存限制。先做一张代表样板；改字只重建相关纹理/审图，复用输入未变且证据有效的原生录制，避免反复整池重录与编码。
 
-`verify`检查构建产物、输入、原生回执和预览图片的字节绑定；来源或模型在原路径被覆盖也会拒绝。工具版本SHA保留为历史生产者记录，安装工具升级不会单独判定旧成品损坏。后续修改构建行为时运行受影响案例，不以元数据验证代替实际重建。
+## 预览与美术审查
 
-## 原生接入与后续制作
+先按[美术专项方法](gacha-art-workflow.md)审查样板，再扩全池。最终 `review-art --template-output` 产生pending草稿，实际看图后填写每页checks的pass和具体observations，绑定官方参考及两种phase（transition/settled）的完整UI图片。每份evidence声明实际frame、displayWidth、view=full-ui以及image的file/sha256/bytes；build/finalPreview/resourceManifest直接保留草稿绑定。
 
-新池业务沿 [扭蛋美术流程](gacha-art-workflow.md) 的 kind2、专用券和运营身份步骤；角色技能效果修改另读 [active-skill-workflow.md](active-skill-workflow.md)。正式制作可连续完成素材准备、编排、构建和离线检查，但发布、版本边、共享表合并、身份切换与设备验收仍按当前任务授权执行，管线没有隐式执行入口。
+工具拦截漏页、缺名牌/限定牌检查、pending、缺相位证据及过期图片/HTML；不识字、不自动评分，也不能判断观察是否真实。官方页面确无某限定标识时填写依据，不能省略字段。保存当前ART-REVIEW与按摘要归档的旧回执；这是制作方检查，不是用户采用。最终重组改变HTML或资源后重审受影响部分并更新绑定，旧工程不追改历史合同。
 
-专券 profile 的真实含义是1券十连、只有十连按钮、pageKind4；零券隐藏由原生规则决定，预览余额只是示意。新券登记不自动授权发券、兑换或获取来源。新池复用时需新建/核对 ID、原生feature/skill key、表行白名单与服务端扣券测试，不把旧池行换名后直接发布。
+从最终编译资源生成完整单文件播放器，包含所有Movie和技能页、暂停/重播/逐帧/速度控制。检查离线无外部请求、次级入口及完整页序。压缩保留所有帧、原速率与等比视口；原始资源留作交付，紧凑WebP不代替原生PNG。应用内实际渲染、仅请求打开、源码视图与普通浏览器通过分别登记；不能凭一次源码视图断言预览功能取消。应用版本变化重新核体积门槛，不绕过工具策略拒绝。
 
-本隔离服已采用轻量身份流程：不再做存档备份、临时整库副本或全表存档指纹；用最新运营状态捕获、raw-CAS、原子重绑和原启动校验。仅限 269续作约定（历史本地记录） 的这套隔离运行；不能推广到正式服，也不删除历史备份。
+明确采用后才执行 `accept <BUILD> --review-sha256 <final HTML SHA> --scope <已确认范围>`。新工程缺当前美术审查会拒绝。ACCEPTANCE只记录离线采用，不改资源激活状态。verify检查实际输入和产物字节；工具SHA为历史生产者信息，安装工具更新不单独判旧成品损坏。
 
-每次新池先做一个样板，采用后扩全批；自然任务才证明真实跨池复用。工程变体测试可以证明配置替换与检查器有效，不能替代第二个新主题的美术、技能和设备验收。
+## 最终交付与作者接入
+
+冻结最后修字/补背景后的HTML、原生资源逻辑名/大小/摘要、角色录制及完整窗口、场景修改和表行来源；明确覆盖清单，不以过期project或BUILD冒充最后成片。交付包含必要的replay、terrain、背景族及五表连接片段，改动供体独立命名，检查内部图片及field/fieldData/zone引用。占位ID须在目标链核冲突后由维护者分配。
+
+PR按目录隔离池子，仅含可复用源码、原生候选及必要重建/检查说明；不附聊天、私有路径、客户端SWF、SDK、录制大帧目录或个人流水。核实际Git index字节、换行、LFS属性和目标仓大小规则；例外限定精确文件，不放宽整目录。执行相关完整性、卫生、密钥检查并核远端HEAD/CI。上传源码、离线通过、正式业务接入、资源激活和设备验收分别报告。
