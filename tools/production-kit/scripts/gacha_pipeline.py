@@ -24,7 +24,8 @@ SHA = re.compile(r"^[0-9a-f]{64}$")
 
 
 def digest(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    with Path(path).open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
 def read(path):
@@ -406,4 +407,5 @@ def main():
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    from gacha_guard import guarded_main
+    raise SystemExit(guarded_main(main))

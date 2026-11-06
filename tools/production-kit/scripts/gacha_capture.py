@@ -530,4 +530,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    from gacha_guard import guarded_main
+    raise SystemExit(guarded_main(main))

@@ -5,6 +5,7 @@ const { createHash } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const { isDeepStrictEqual } = require('node:util');
 const { compactMovie, extractTemplate, hash, packedMovie, render } = require('./gacha_skill_media/movie.cjs');
 
 const read = file => JSON.parse(fs.readFileSync(file,'utf8'));
@@ -15,6 +16,15 @@ const identity = file => {
 };
 const safeKey = value => typeof value === 'string' && /^[A-Za-z0-9_.:-]+$/.test(value)
   && !['__proto__','constructor','prototype'].includes(value);
+
+function verifyFrameEquality(expected, actual, page) {
+  if (!Array.isArray(actual) || actual.length !== expected.length)
+    throw Error('Movie frame count differs: ' + page);
+  for (let i = 0; i < expected.length; i++) {
+    if (!isDeepStrictEqual(expected[i], actual[i]))
+      throw Error('Movie frame differs: ' + page + ', index ' + i);
+  }
+}
 
 function context(file) {
   const config = read(file);
@@ -111,7 +121,7 @@ function preparedMovie(ctx) {
   }
   for (const [key,page] of Object.entries(template.model.pages)) {
     assert.equal(hash(JSON.stringify(page.frames)),input.receipt.frameHashes[key]);
-    assert.deepEqual(page.frames,packed.frameLibrary[packed.model.pages[key].frameLibraryIndex]);
+    verifyFrameEquality(page.frames,packed.frameLibrary[packed.model.pages[key].frameLibraryIndex],key);
   }
   return {...input,template,packed,source,sourceReceipt};
 }
@@ -316,5 +326,5 @@ async function main(args) {
   console.log(JSON.stringify(result));
 }
 
-module.exports = {context,preparedMovie,identity,read,write,invoke};
+module.exports = {context,preparedMovie,identity,read,write,invoke,verifyFrameEquality};
 if (require.main===module) main(process.argv.slice(2)).catch(error=>{console.error('[gacha-skill-media] '+error.stack);process.exitCode=1;});
